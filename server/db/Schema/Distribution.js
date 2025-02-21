@@ -45,7 +45,7 @@ const MarkovDistributionSchema = new mongoose.Schema({
     driftMu: { Number },
     volatileSigma: { Number },
     timeStepDeltaT: { Number },
-    randomEpsilon: { type: Schema.Types.ObjectId, ref: 'NormalDistribution' }
+    randomEpsilon: { type: mongoose.Schema.Types.ObjectId, ref: 'NormalDistribution' }
 });
 const MarkovDistribution = Distribution.discriminator('MarkovDistribution', MarkovDistributionSchema);
 

@@ -10,7 +10,7 @@ const InvestmentSchema = new mongoose.Schema({
     expectedAnnualReturnDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution', required: true },
     expenseRatio: { type: Number, required: true },
     expectedAnnualIncome: { type: Number, required: true },
-    expectedAnnualIncomeDistribution: { type: Schema.Types.ObjectId, ref: 'Distribution', required: true },
+    expectedAnnualIncomeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution', required: true },
     taxability: { type: Boolean, required: true },
     taxStatus: { type: String, enum: TAX_STATUS, required: true }
 });
