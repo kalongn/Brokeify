@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+import { PERMISSION } from './Enums';
+
 const UserSchema = new mongoose.Schema({
     firstName: { type: String, required: true, default: 'John', },
     lastName: { type: String, required: true, default: 'Doe', },
@@ -16,12 +18,12 @@ const UserSchema = new mongoose.Schema({
 
     accessToken: { type: String, required: true, default: '', },
 
-    permission: { type: String, enum: ['ADMIN', 'USER', 'GUEST'], default: 'GUEST' },
+    permission: { type: String, enum: PERMISSION, default: 'GUEST' },
 
     OwnerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     EditorScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     ViewerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
-    
+
 });
 
 UserSchema.virtual('id').get(function get() {

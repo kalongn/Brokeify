@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
 
+import { DISTRIBUTION_TYPE } from "./Enums";
+
 const options = { discriminatorKey: 'type', collection: 'distributions' };
 
 const DistributionSchema = new mongoose.Schema({
-    distributionType: { type: String, enum: ['FIXED_AMOUNT', 'FIXED_PERCENTAGE', 'UNIFORM_AMOUNT', 'UNIFORM_PERCENTAGE', 'NORMAL_AMOUNT', 'NORMAL_PERCENTAGE', 'MARKOV_PERCENTAGE'], required: true },
+    distributionType: { type: String, enum: DISTRIBUTION_TYPE, required: true },
     percentile: { Number } // this probably will be modified
 }, options);
 

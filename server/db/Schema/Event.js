@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 
-import { TAX_STATUS } from "./Enums";
+import { EVENT_TYPE, ASSET_ALLOCATION_TYPE, TAX_STATUS } from "./Enums";
 
 // Default Event Interface
 const EventOptions = { discriminatorKey: 'type', collection: 'events' };
 
 const EventSchema = new mongoose.Schema({
-    eventType: { type: String, enum: ["INCOME", "EXPENSE", "INVEST", "REBALANCE"], required: true },
+    eventType: { type: String, enum: EVENT_TYPE, required: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
     startYear: { type: Number, required: true },
@@ -34,7 +34,7 @@ const Event = mongoose.model('Event', EventSchema);
 const InvestRebalanceEventOptions = { discriminatorKey: 'type', collection: 'events' };
 
 const InvestRebalanceEventSchema = new mongoose.Schema({
-    assetAllocationType: { type: String, enum: ["FIXED", "GLIDE"], required: true },
+    assetAllocationType: { type: String, enum: ASSET_ALLOCATION_TYPE, required: true },
     percentageAllocations: [[{ type: Number, required: true }]], // Glide Path use [[Before, After], [Before, After], ...], Fixed use [[Percentage], [Percentage], ....]
     allocatedInvestments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment', required: true }],
     maximumCash: { type: Number, default: 0, required: true },
