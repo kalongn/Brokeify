@@ -24,6 +24,7 @@ const UserSchema = new mongoose.Schema({
     EditorScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     ViewerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
 
+    userSpecificTaxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tax' }],
 });
 
 UserSchema.virtual('id').get(function get() {
