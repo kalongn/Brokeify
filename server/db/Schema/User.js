@@ -20,9 +20,9 @@ const UserSchema = new mongoose.Schema({
 
     permission: { type: String, enum: PERMISSION, default: 'GUEST' },
 
-    OwnerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
-    EditorScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
-    ViewerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
+    ownerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
+    editorScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
+    viewerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
 
     userSpecificTaxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tax' }],
 });
