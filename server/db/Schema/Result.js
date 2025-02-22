@@ -7,7 +7,7 @@ const YearlyResultSchema = new mongoose.Schema({
     totalExpense: { type: Number, required: true },
     totalTax: { type: Number, required: true },
     earlyWithDrawalTax: { type: Number, required: true },
-    //TODO: the percentage field here once clarify
+    totalDiscretionaryExpenses: { type: Number, required: true }, // acutal / desired
     isViolated: { type: Boolean, required: true },
 });
 
