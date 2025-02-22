@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
 const SimulationSchema = new mongoose.Schema({
-    Scenario: { type: mongoose.Schema.Types.ObjectId, ref: 'Scenario', required: true },
-    Result: { type: mongoose.Schema.Types.ObjectId, ref: 'Result', required: true },
+    scenario: { type: mongoose.Schema.Types.ObjectId, ref: 'Scenario', required: true },
+    result: { type: mongoose.Schema.Types.ObjectId, ref: 'Result', required: true },
 });
 
 SimulationSchema.virtual('id').get(function get() {
