@@ -6,7 +6,7 @@ const YearlyResultSchema = new mongoose.Schema({
     totalIncome: { type: Number, required: true },
     totalExpense: { type: Number, required: true },
     totalTax: { type: Number, required: true },
-    earlyWithDrawalTax: { type: Number, required: true },
+    earlyWithdrawalTax: { type: Number, required: true },
     totalDiscretionaryExpenses: { type: Number, required: true }, // acutal / desired
     isViolated: { type: Boolean, required: true },
 });

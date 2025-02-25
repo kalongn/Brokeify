@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const RMDTableSchema = new mongoose.Schema({
     ages: [{ type: Number, required: true }],
-    distributionPeriodss: [{ type: Number, required: true }]
+    distributionPeriods: [{ type: Number, required: true }]
 });
 
 RMDTableSchema.virtual('id').get(function get() {
