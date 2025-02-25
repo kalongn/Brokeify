@@ -6,6 +6,7 @@ const InvestmentSchema = new mongoose.Schema({
     name: { type: String, required: true },
     description: { type: String, required: true },
     value: { type: Number, required: true },
+    investmentType: { type: String, required: true },
     expectedAnnualReturn: { type: Number, required: true },
     expectedAnnualReturnDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution', required: true },
     expenseRatio: { type: Number, required: true },
