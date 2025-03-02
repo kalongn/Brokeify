@@ -64,7 +64,6 @@ const IncomeExpenseEvent = Event.discriminator('IncomeExpenseEvent', IncomeExpen
 
 const IncomeSchema = new mongoose.Schema({
     isSocialSecurity: { type: Boolean, required: true },
-    isWages: { type: Boolean, required: true },
 });
 
 const ExpenseSchema = new mongoose.Schema({
