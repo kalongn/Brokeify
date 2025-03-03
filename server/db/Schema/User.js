@@ -5,27 +5,17 @@ import { PERMISSION } from './Enums';
 const UserSchema = new mongoose.Schema({
     firstName: { type: String, required: true, default: 'John', },
     lastName: { type: String, required: true, default: 'Doe', },
-
     email: { type: String, required: true, unique: true, default: '', },
-
     birthYear: { type: Number, required: true, default: 0, },
-
     googleId: { type: String, required: true, unique: true, default: '', },
-
     picture: { type: String, required: true, default: '', },
-
     refreshToken: { type: String, required: true, default: '', },
-
     accessToken: { type: String, required: true, default: '', },
-
     permission: { type: String, enum: PERMISSION, default: 'GUEST' },
-
     ownerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     editorScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     viewerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
-
     userSpecificTaxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tax' }],
-
     userRuns: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Run' }],
 });
 
