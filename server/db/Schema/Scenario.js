@@ -9,6 +9,7 @@ const ScenarioSchema = new mongoose.Schema({
     spouseBirthYear: { type: Number },
     userLifeExpectancy: { type: Number, required: true },
     spouseLifeExpectancy: { type: Number },
+    investmentsType: [{ type: mongoose.Schema.Types.ObjectId, ref: 'InvestmentType' }],
     investments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     inflationAssumption: { type: Number, required: true },
