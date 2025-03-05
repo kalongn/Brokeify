@@ -14,3 +14,16 @@ connection.on('error', (err) => {
     console.error(`MongoDB connection error: ${err}`);
 });
 
+connection.on('disconnected', () => {
+    console.log('MongoDB disconnected');
+});
+
+const populateDB = async () => {
+    // testing methods go here
+};
+
+populateDB();
+// Disconnect from MongoDB
+connection.close();
+// Exit the process
+process.exit();
