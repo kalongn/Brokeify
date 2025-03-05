@@ -6,7 +6,6 @@ const options = { discriminatorKey: 'type', collection: 'distributions' };
 
 const DistributionSchema = new mongoose.Schema({
     distributionType: { type: String, enum: DISTRIBUTION_TYPE, required: true },
-    percentile: { Number } // this probably will be modified
 }, options);
 
 DistributionSchema.virtual('id').get(function get() {
