@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const SimulationSchema = new mongoose.Schema({
     scenario: { type: mongoose.Schema.Types.ObjectId, ref: 'Scenario', required: true },
-    result: { type: mongoose.Schema.Types.ObjectId, ref: 'Result', required: true },
+    result: { type: mongoose.Schema.Types.ObjectId, ref: 'Result' },
 });
 
 SimulationSchema.virtual('id').get(function get() {
