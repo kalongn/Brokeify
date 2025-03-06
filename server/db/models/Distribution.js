@@ -48,4 +48,4 @@ const MarkovDistributionSchema = new mongoose.Schema({
 });
 const MarkovDistribution = Distribution.discriminator('MarkovDistribution', MarkovDistributionSchema);
 
-export default { Distribution, FixedDistribution, UniformDistribution, NormalDistribution, MarkovDistribution };
+export default { FixedDistribution, UniformDistribution, NormalDistribution, MarkovDistribution };
