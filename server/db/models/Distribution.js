@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { DISTRIBUTION_TYPE } from "./Enums";
+import { DISTRIBUTION_TYPE } from "./Enums.js";
 
 const options = { discriminatorKey: 'type', collection: 'distributions' };
 
@@ -48,4 +48,4 @@ const MarkovDistributionSchema = new mongoose.Schema({
 });
 const MarkovDistribution = Distribution.discriminator('MarkovDistribution', MarkovDistributionSchema);
 
-export default { FixedDistribution, UniformDistribution, NormalDistribution, MarkovDistribution };
+export { FixedDistribution, UniformDistribution, NormalDistribution, MarkovDistribution };
