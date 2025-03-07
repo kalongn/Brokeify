@@ -59,57 +59,11 @@ const testDistruibution = async () => {
     }
 }
 
-const testInvestmentType = async () => {
-    const factory = new InvestmentTypeController();
-    try {
-        await factory.create({
-            name: "Fixed Income",
-            description: "Fixed income investments pay a fixed rate of return on a fixed schedule.",
-            expectedAnnualReturn: 0.05,
-            expectedAnnualReturnDistribution: await factory.createDistribution("FIXED_PERCENTAGE", { value: 0.05 }),
-            expenseRatio: 0.01,
-            expectedAnnualIncome: 1000,
-            expectedAnnualIncomeDistribution: await factory.createDistribution("FIXED_AMOUNT", { value: 1000 }),
-            taxability: true
-        });
-
-        const investmentTypes = await factory.readAll();
-        console.log(investmentTypes);
-
-        const investmentType = await factory.read(investmentTypes[0].id);
-        console.log(investmentType);
-
-        await factory.update(investmentType.id, { name: "Equity" });
-        const updatedInvestmentType = await factory.read(investmentType.id);
-        console.log(updatedInvestmentType);
-
-        await factory.delete(updatedInvestmentType.id);
-        const deletedInvestmentType = await factory.read(updatedInvestmentType.id);
-        console.log(deletedInvestmentType);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
 const testInvestment = async () => {
     const factory = new InvestmentController();
-    const investmentTypeFactory = new InvestmentTypeController();
-
     try {
-        const investmentType = await investmentTypeFactory.create({
-            name: "Fixed Income",
-            description: "Fixed income investments pay a fixed rate of return on a fixed schedule.",
-            expectedAnnualReturn: 0.05,
-            expectedAnnualReturnDistribution: await investmentTypeFactory.createDistribution("FIXED_PERCENTAGE", { value: 0.05 }),
-            expenseRatio: 0.01,
-            expectedAnnualIncome: 1000,
-            expectedAnnualIncomeDistribution: await investmentTypeFactory.createDistribution("FIXED_AMOUNT", { value: 1000 }),
-            taxability: true
-        });
-
         await factory.create({
             value: 10000,
-            investmentType: investmentType.id,
             taxStatus: "NON_RETIREMENT"
         });
 
@@ -126,6 +80,48 @@ const testInvestment = async () => {
         await factory.delete(updatedInvestment.id);
         const deletedInvestment = await factory.read(updatedInvestment.id);
         console.log(deletedInvestment);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+const testInvestmentType = async () => {
+    const factory = new InvestmentTypeController();
+    const DistributionFactory = new DistributionController();
+    const InvestmentFactory = new InvestmentController();
+
+    try {
+
+        const testInvestment = await InvestmentFactory.create({
+            value: 10000,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        await factory.create({
+            name: "Fixed Income",
+            description: "Fixed income investments pay a fixed rate of return on a fixed schedule.",
+            expectedAnnualReturn: 0.05,
+            expectedAnnualReturnDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
+            expenseRatio: 0.01,
+            expectedAnnualIncome: 1000,
+            expectedAnnualIncomeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1000 }),
+            taxability: true,
+            investments: [testInvestment]
+        });
+
+        const investmentTypes = await factory.readAll();
+        console.log(investmentTypes);
+
+        const investmentType = await factory.read(investmentTypes[0].id);
+        console.log(investmentType);
+
+        await factory.update(investmentType.id, { name: "Equity" });
+        const updatedInvestmentType = await factory.read(investmentType.id);
+        console.log(updatedInvestmentType);
+
+        await factory.delete(updatedInvestmentType.id);
+        const deletedInvestmentType = await factory.read(updatedInvestmentType.id);
+        console.log(deletedInvestmentType);
     } catch (error) {
         console.error(error);
     }
@@ -252,14 +248,13 @@ const populateDB = async () => {
     // console.log('====================== Distribution Test ======================');
     // await testDistruibution();
     // console.log('====================== Distribution Test Done ======================');
-    // console.log('====================== Investment Type Test =====================');
-    // await testInvestmentType();
-    // console.log('====================== Investment Type Test Done ======================');
     // console.log('====================== Investment Test =====================');
     // await testInvestment();
     // console.log('====================== Investment Test Done =====================');
-
-    console.log('====================== Event Test =====================');
-    await testEvent();
-    console.log('====================== Event Test Done =====================');
+    // console.log('====================== Investment Type Test =====================');
+    // await testInvestmentType();
+    // console.log('====================== Investment Type Test Done ======================');
+    // console.log('====================== Event Test =====================');
+    // await testEvent();
+    // console.log('====================== Event Test Done =====================');
 };

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { InvestmentType } from "../models/Investment.js";
+import InvestmentController from "./InvestmentController.js";
 import DistributionController from "./DistributionController.js";
 
 /**
@@ -92,30 +93,17 @@ export default class InvestmentTypeController {
         try {
             const deleteInvestmentType = await InvestmentType.findById(id);
             const distributionController = new DistributionController();
+            const investmentController = new InvestmentController();
+
             await distributionController.delete(deleteInvestmentType.expectedAnnualReturnDistribution);
             await distributionController.delete(deleteInvestmentType.expectedAnnualIncomeDistribution);
+            for (const investment of deleteInvestmentType.investments) {
+                await investmentController.delete(investment);
+            }
             return await InvestmentType.deleteOne({ _id: id });
         }
         catch (error) {
             throw new Error(error);
         }
-    }
-
-    /**
-     * @requires DistributionController
-     * This function creates a new distribution with the given distribution type and data
-     * 
-     * @param {String} distributionType
-     *      The distribution type
-     * @param {Object} data
-     *      The data for the distribution
-     * @returns
-     *      The newly created distribution
-     * @note 
-     *      Read the create function in DistributionController for more information
-     */
-    async createDistribution(distributionType, data) {
-        const distributionController = new DistributionController();
-        return await distributionController.create(distributionType, data);
     }
 }
