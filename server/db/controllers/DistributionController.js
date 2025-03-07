@@ -1,10 +1,32 @@
+import mongoose from "mongoose";
 import { Distribution, FixedDistribution, UniformDistribution, NormalDistribution, MarkovDistribution } from "../models/Distribution.js";
 
+/**
+ * @typedef {"FIXED_AMOUNT" | "FIXED_PERCENTAGE" | "UNIFORM_AMOUNT" | "UNIFORM_PERCENTAGE" | "NORMAL_AMOUNT" | "NORMAL_PERCENTAGE" | "MARKOV_PERCENTAGE"} DistributionType
+ */
+
+/**
+ * Controller for Distribution, Support CRUD operations for Distribution Class
+ */
 export default class DistributionController {
+
+    /**
+     * Constructor (empty)
+     */
     constructor() { }
 
+    /**
+     * 
+     * @param {DistributionType} distributionType 
+     *      Type of distribution to be created
+     * @param {Distribution} data 
+     *      Data for the distribution, check Distribution.js for the data structure for each respective distribution type
+     * @returns 
+     *      Returns the created distribution
+     * @throws Error
+     *      Throws error if any error occurs or if the distribution type is not handled
+     */
     async create(distributionType, data) {
-        // console.log(distributionType, data);
         try {
             let distribution;
             switch (distributionType) {
@@ -38,6 +60,11 @@ export default class DistributionController {
         }
     }
 
+    /**
+     * This function reads all the distributions and return them all
+     * @returns All the distributions
+     * @throws Error if any Error occurs
+     */
     async readAll() {
         try {
             return await Distribution.find();
@@ -47,6 +74,13 @@ export default class DistributionController {
         }
     }
 
+    /**
+     * This function find the distribution of the given Id
+     * @param {mongoose.Types.ObjectId} id 
+     *      The Id of the distribution to be found
+     * @returns The distribution of that Id
+     * @throws Error if the distribution is not found
+     */
     async read(id) {
         try {
             return await Distribution.findById(id);
@@ -56,6 +90,15 @@ export default class DistributionController {
         }
     }
 
+    /**
+     * This function update the distribution of the given Id with the given data, handling the distribution type accordingly
+     * @param {mongoose.Types.ObjectId} id 
+     *      The Id of the distribution to be updated
+     * @param {Distribution} data 
+     *      Data for the distribution, check Distribution.js for the data structure for each respective distribution type
+     * @returns The updated Distribution of that Id
+     * @throws Error if the distribution is not found or if the distribution type is not handled
+     */
     async update(id, data) {
         try {
             const distribution = await Distribution.findById(id);
@@ -100,6 +143,13 @@ export default class DistributionController {
         }
     }
 
+    /**
+     * This function delete the distribution of the given Id
+     * @param {mongoose.Types.ObjectId} id 
+     *      The Id of the distribution to be deleted
+     * @returns The deleted distribution
+     * @throws Error if the distribution is not found
+     */
     async delete(id) {
         try {
             return await Distribution.findByIdAndDelete(id);
