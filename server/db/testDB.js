@@ -3,6 +3,7 @@ import 'dotenv/config'
 
 import DistributionController from "./controllers/DistributionController.js";
 import InvestmentTypeController from "./controllers/InvestmentTypeController.js";
+import InvestmentController from "./controllers/InvestmentController.js";
 
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
@@ -19,6 +20,8 @@ connection.once('open', async () => {
     connection.close();
     process.exit();
 });
+
+// Test of CRUD operations
 
 const testDistruibution = async () => {
     const factory = new DistributionController();
@@ -87,11 +90,54 @@ const testInvestmentType = async () => {
     }
 }
 
+const testInvestment = async () => {
+    const factory = new InvestmentController();
+    const investmentTypeFactory = new InvestmentTypeController();
+
+    try {
+        const investmentType = await investmentTypeFactory.create({
+            name: "Fixed Income",
+            description: "Fixed income investments pay a fixed rate of return on a fixed schedule.",
+            expectedAnnualReturn: 0.05,
+            expectedAnnualReturnDistribution: await investmentTypeFactory.createDistribution("FIXED_PERCENTAGE", { value: 0.05 }),
+            expenseRatio: 0.01,
+            expectedAnnualIncome: 1000,
+            expectedAnnualIncomeDistribution: await investmentTypeFactory.createDistribution("FIXED_AMOUNT", { value: 1000 }),
+            taxability: true
+        });
+
+        await factory.create({
+            value: 10000,
+            investmentType: investmentType.id,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const investments = await factory.readAll();
+        console.log(investments);
+
+        const investment = await factory.read(investments[0].id);
+        console.log(investment);
+
+        await factory.update(investment.id, { value: 20000 });
+        const updatedInvestment = await factory.read(investment.id);
+        console.log(updatedInvestment);
+
+        await factory.delete(updatedInvestment.id);
+        const deletedInvestment = await factory.read(updatedInvestment.id);
+        console.log(deletedInvestment);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 const populateDB = async () => {
     // console.log('====================== Distribution Test ======================');
     // await testDistruibution();
     // console.log('====================== Distribution Test Done ======================');
-    console.log('====================== Investment Type Test =====================');
-    await testInvestmentType();
-    console.log('====================== Investment Type Test Done ======================');
+    // console.log('====================== Investment Type Test =====================');
+    // await testInvestmentType();
+    // console.log('====================== Investment Type Test Done ======================');
+    console.log('====================== Investment Test =====================');
+    await testInvestment();
+    console.log('====================== Investment Test Done =====================');
 };
