@@ -23,29 +23,29 @@ DistributionSchema.set('toObject', {
 const Distribution = mongoose.model('Distribution', DistributionSchema);
 
 const FixedDistributionSchema = new mongoose.Schema({
-    value: { Number }
+    value: { type: Number }
 });
 const FixedDistribution = Distribution.discriminator('FixedDistribution', FixedDistributionSchema);
 
 const UniformDistributionSchema = new mongoose.Schema({
-    lowerBound: { Number },
-    upperBound: { Number }
+    lowerBound: { type: Number },
+    upperBound: { type: Number }
 });
 const UniformDistribution = Distribution.discriminator('UniformDistribution', UniformDistributionSchema);
 
 const NormalDistributionSchema = new mongoose.Schema({
-    mean: { Number },
-    standardDeviation: { Number }
+    mean: { type: Number },
+    standardDeviation: { type: Number }
 });
 const NormalDistribution = Distribution.discriminator('NormalDistribution', NormalDistributionSchema);
 
 const MarkovDistributionSchema = new mongoose.Schema({
-    initialValue: { Number },
-    driftMu: { Number },
-    volatileSigma: { Number },
-    timeStepDeltaT: { Number },
+    initialValue: { type: Number },
+    driftMu: { type: Number },
+    volatileSigma: { type: Number },
+    timeStepDeltaT: { type: Number },
     randomEpsilon: { type: mongoose.Schema.Types.ObjectId, ref: 'NormalDistribution' }
 });
 const MarkovDistribution = Distribution.discriminator('MarkovDistribution', MarkovDistributionSchema);
 
-export { FixedDistribution, UniformDistribution, NormalDistribution, MarkovDistribution };
+export { Distribution, FixedDistribution, UniformDistribution, NormalDistribution, MarkovDistribution };
