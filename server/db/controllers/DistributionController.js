@@ -105,34 +105,18 @@ export default class DistributionController {
             switch (distribution.distributionType) {
                 case "FIXED_AMOUNT":
                 case "FIXED_PERCENTAGE":
-                    return await FixedDistribution.findByIdAndUpdate(
-                        id,
-                        { $set: { ...data } },
-                        { new: true }
-                    );
+                    return await FixedDistribution.findByIdAndUpdate(id, data, { new: true });
 
                 case "UNIFORM_AMOUNT":
                 case "UNIFORM_PERCENTAGE":
-                    return await UniformDistribution.findByIdAndUpdate(
-                        id,
-                        { $set: { ...data } },
-                        { new: true }
-                    );
+                    return await UniformDistribution.findByIdAndUpdate(id, data, { new: true });
 
                 case "NORMAL_AMOUNT":
                 case "NORMAL_PERCENTAGE":
-                    return await NormalDistribution.findByIdAndUpdate(
-                        id,
-                        { $set: { ...data } },
-                        { new: true }
-                    );
+                    return await NormalDistribution.findByIdAndUpdate(id, data, { new: true });
 
                 case "MARKOV_PERCENTAGE":
-                    return await MarkovDistribution.findByIdAndUpdate(
-                        id,
-                        { $set: { ...data } },
-                        { new: true }
-                    );
+                    return await MarkovDistribution.findByIdAndUpdate(id, data, { new: true });
 
                 default:
                     throw new Error("Unhandled distribution type");
