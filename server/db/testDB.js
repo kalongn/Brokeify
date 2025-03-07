@@ -4,6 +4,7 @@ import 'dotenv/config'
 import DistributionController from "./controllers/DistributionController.js";
 import InvestmentTypeController from "./controllers/InvestmentTypeController.js";
 import InvestmentController from "./controllers/InvestmentController.js";
+import EventController from "./controllers/EventController.js";
 
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
@@ -130,6 +131,123 @@ const testInvestment = async () => {
     }
 }
 
+const testEvent = async () => {
+    const factory = new EventController();
+    const DistributionFactory = new DistributionController();
+    const InvestmentFactory = new InvestmentController();
+    const InvestmentTypeFactory = new InvestmentTypeController();
+
+    try {
+        const testInvestmentType = await InvestmentTypeFactory.create({
+            name: "Fixed Income",
+            description: "Fixed income investments pay a fixed rate of return on a fixed schedule.",
+            expectedAnnualReturn: 0.05,
+            expectedAnnualReturnDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
+            expenseRatio: 0.01,
+            expectedAnnualIncome: 1000,
+            expectedAnnualIncomeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1000 }),
+            taxability: true
+        });
+
+        const testInvestment1 = await InvestmentFactory.create({
+            value: 10000,
+            investmentType: testInvestmentType.id,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const testInvestment2 = await InvestmentFactory.create({
+            value: 20000,
+            investmentType: testInvestmentType.id,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const testInvestment3 = await InvestmentFactory.create({
+            value: 30000,
+            investmentType: testInvestmentType.id,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const RebalanceEvent = await factory.create("REBALANCE", {
+            name: "Rebalance",
+            description: "Rebalance the portfolio",
+            startYear: 2021,
+            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
+            duration: 1,
+            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
+            assetAllocationType: "GLIDE",
+            percentageAllocations: [[0.6, 0.4], [0.5, 0.5], [0.4, 0.6]],
+            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
+            maximumCash: 1000,
+            taxStatus: "NON_RETIREMENT"
+        });
+        console.log(RebalanceEvent);
+
+        const InvestEvent = await factory.create("INVEST", {
+            name: "Invest",
+            description: "Invest in the portfolio",
+            startYear: 2021,
+            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
+            duration: 1,
+            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
+            assetAllocationType: "FIXED",
+            percentageAllocations: [[0.6], [0.5], [0.4]],
+            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
+            maximumCash: 1000,
+        });
+        console.log(InvestEvent);
+
+        const IncomeEvent = await factory.create("INCOME", {
+            name: "Income",
+            description: "Income from the portfolio",
+            startYear: 2021,
+            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
+            duration: 1,
+            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
+            amount: 1000,
+            expectedAnnualChange: 0.05,
+            expectedAnnualChangeDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
+            isinflationAdjusted: true,
+            userContributions: 100,
+            spouseContributions: 0,
+            isSocialSecurity: true
+        });
+        console.log(IncomeEvent);
+
+        const ExpenseEvent = await factory.create("EXPENSE", {
+            name: "Expense",
+            description: "Expense from the portfolio",
+            startYear: 2021,
+            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
+            duration: 1,
+            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
+            amount: 1000,
+            expectedAnnualChange: 0.05,
+            expectedAnnualChangeDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
+            isinflationAdjusted: true,
+            userContributions: 100,
+            spouseContributions: 0,
+            isDiscretionary: true
+        });
+        console.log(ExpenseEvent);
+
+        const events = await factory.readAll();
+        console.log(events);
+
+        const event = await factory.read(events[0].id);
+        console.log(event);
+
+        await factory.update(event.id, { name: "New Event" });
+        const updatedEvent = await factory.read(event.id);
+        console.log(updatedEvent);
+
+        await factory.delete(updatedEvent.id);
+        const deletedEvent = await factory.read(updatedEvent.id);
+        console.log(deletedEvent);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 const populateDB = async () => {
     // console.log('====================== Distribution Test ======================');
     // await testDistruibution();
@@ -137,7 +255,11 @@ const populateDB = async () => {
     // console.log('====================== Investment Type Test =====================');
     // await testInvestmentType();
     // console.log('====================== Investment Type Test Done ======================');
-    console.log('====================== Investment Test =====================');
-    await testInvestment();
-    console.log('====================== Investment Test Done =====================');
+    // console.log('====================== Investment Test =====================');
+    // await testInvestment();
+    // console.log('====================== Investment Test Done =====================');
+
+    console.log('====================== Event Test =====================');
+    await testEvent();
+    console.log('====================== Event Test Done =====================');
 };

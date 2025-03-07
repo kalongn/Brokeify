@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { EVENT_TYPE, ASSET_ALLOCATION_TYPE, TAX_STATUS } from "./Enums";
+import { EVENT_TYPE, ASSET_ALLOCATION_TYPE, TAX_STATUS } from "./Enums.js";
 
 // Default Event Interface
 const EventOptions = { discriminatorKey: 'type', collection: 'events' };
@@ -29,47 +29,45 @@ EventSchema.set('toObject', {
 
 const Event = mongoose.model('Event', EventSchema);
 
-
-// InvestRebalanceEvent Interface
-const InvestRebalanceEventOptions = { discriminatorKey: 'type', collection: 'events' };
-
-const InvestRebalanceEventSchema = new mongoose.Schema({
+const RebalanceSchema = new mongoose.Schema({
     assetAllocationType: { type: String, enum: ASSET_ALLOCATION_TYPE, required: true },
     percentageAllocations: [[{ type: Number }]], // Glide Path use [[Before, After], [Before, After], ...], Fixed use [[Percentage], [Percentage], ....]
     allocatedInvestments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     maximumCash: { type: Number, default: 0 },
-}, InvestRebalanceEventOptions);
-
-const InvestRebalanceEvent = Event.discriminator('InvestRebalanceEvent', InvestRebalanceEventSchema);
-
-const RebalanceSchema = new mongoose.Schema({
     taxStatus: { type: String, enum: TAX_STATUS }
 });
 
-const Rebalance = InvestRebalanceEvent.discriminator('Rebalance', RebalanceSchema);
-const Invest = InvestRebalanceEvent.discriminator('Invest', InvestRebalanceEventSchema);
+const InvestSchema = new mongoose.Schema({
+    assetAllocationType: { type: String, enum: ASSET_ALLOCATION_TYPE, required: true },
+    percentageAllocations: [[{ type: Number }]], // Glide Path use [[Before, After], [Before, After], ...], Fixed use [[Percentage], [Percentage], ....]
+    allocatedInvestments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
+    maximumCash: { type: Number, default: 0 },
+});
 
-// IncomeExpenseEvent Interface
-const IncomeExpenseEventOptions = { discriminatorKey: 'type', collection: 'events' };
-const IncomeExpenseEventSchema = new mongoose.Schema({
+const Rebalance = Event.discriminator('Rebalance', RebalanceSchema);
+const Invest = Event.discriminator('Invests', InvestSchema);
+
+const IncomeSchema = new mongoose.Schema({
     amount: { type: Number },
     expectedAnnualChange: { type: Number },
     expectedAnnualChangeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
     isinflationAdjusted: { type: Boolean },
     userContributions: { type: Number, default: 100 },
     spouseContributions: { type: Number, default: 0 },
-}, IncomeExpenseEventOptions);
-
-const IncomeExpenseEvent = Event.discriminator('IncomeExpenseEvent', IncomeExpenseEventSchema);
-
-const IncomeSchema = new mongoose.Schema({
     isSocialSecurity: { type: Boolean },
 });
 
 const ExpenseSchema = new mongoose.Schema({
+    amount: { type: Number },
+    expectedAnnualChange: { type: Number },
+    expectedAnnualChangeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
+    isinflationAdjusted: { type: Boolean },
+    userContributions: { type: Number, default: 100 },
+    spouseContributions: { type: Number, default: 0 },
     isDiscretionary: { type: Boolean },
 });
-const Income = IncomeExpenseEvent.discriminator('Income', IncomeSchema);
-const Expense = IncomeExpenseEvent.discriminator('Expense', ExpenseSchema);
 
-export default { Event, InvestRebalanceEvent, Rebalance, Invest, IncomeExpenseEvent, Income, Expense };
+const Income = Event.discriminator('Income', IncomeSchema);
+const Expense = Event.discriminator('Expense', ExpenseSchema);
+
+export { Event, Rebalance, Invest, Income, Expense };
