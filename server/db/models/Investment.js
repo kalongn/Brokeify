@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { TAX_STATUS } from "./Enums";
+import { TAX_STATUS } from "./Enums.js";
 
 const InvestmentTypeSchema = new mongoose.Schema({
     name: { type: String },
@@ -45,4 +45,4 @@ const InvestmentType = mongoose.model('InvestmentType', InvestmentTypeSchema);
 
 const Investment = mongoose.model('Investment', InvestmentSchema);
 
-export default { InvestmentType, Investment };
+export { InvestmentType, Investment };

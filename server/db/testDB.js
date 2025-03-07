@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import 'dotenv/config'
 
 import DistributionController from "./controllers/DistributionController.js";
+import InvestmentTypeController from "./controllers/InvestmentTypeController.js";
 
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
@@ -54,6 +55,43 @@ const testDistruibution = async () => {
     }
 }
 
+const testInvestmentType = async () => {
+    const factory = new InvestmentTypeController();
+    try {
+        await factory.create({
+            name: "Fixed Income",
+            description: "Fixed income investments pay a fixed rate of return on a fixed schedule.",
+            expectedAnnualReturn: 0.05,
+            expectedAnnualReturnDistribution: await factory.createDistribution("FIXED_PERCENTAGE", { value: 0.05 }),
+            expenseRatio: 0.01,
+            expectedAnnualIncome: 1000,
+            expectedAnnualIncomeDistribution: await factory.createDistribution("FIXED_AMOUNT", { value: 1000 }),
+            taxability: true
+        });
+
+        const investmentTypes = await factory.readAll();
+        console.log(investmentTypes);
+
+        const investmentType = await factory.read(investmentTypes[0].id);
+        console.log(investmentType);
+
+        await factory.update(investmentType.id, { name: "Equity" });
+        const updatedInvestmentType = await factory.read(investmentType.id);
+        console.log(updatedInvestmentType);
+
+        await factory.delete(updatedInvestmentType.id);
+        const deletedInvestmentType = await factory.read(updatedInvestmentType.id);
+        console.log(deletedInvestmentType);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 const populateDB = async () => {
-    await testDistruibution();
+    // console.log('====================== Distribution Test ======================');
+    // await testDistruibution();
+    // console.log('====================== Distribution Test Done ======================');
+    console.log('====================== Investment Type Test =====================');
+    await testInvestmentType();
+    console.log('====================== Investment Type Test Done ======================');
 };
