@@ -10,6 +10,7 @@ import UserController from "./controllers/UserController.js";
 
 import RMDTableController from "./controllers/RMDTableController.js";
 import TaxController from "./controllers/TaxController.js";
+import ResultController from "./controllers/ResultController.js";
 
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
@@ -518,6 +519,45 @@ const testTax = async () => {
     }
 }
 
+const testResult = async () => {
+    const InvestmentFactory = new InvestmentController();
+    const factory = new ResultController();
+    try {
+
+        const testInvestment1 = await InvestmentFactory.create({
+            value: 10000,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const testInvestment2 = await InvestmentFactory.create({
+            value: 20000,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const testInvestment3 = await InvestmentFactory.create({
+            value: 30000,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const result = await factory.create({
+            yearlyResults: [{
+                year: 2021,
+                investmentValues: [{ name: testInvestment1, values: 10000 }, { name: testInvestment2, values: 20000 }, { name: testInvestment3, values: 30000 }],
+                totalIncome: 1000,
+                totalExpense: 500,
+                totalTax: 100,
+                earlyWithdrawalTax: 50,
+                totalDiscretionaryExpenses: 100,
+                isViolated: false
+            }]
+        });
+        console.log(result);
+        await factory.delete(result.id);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 const populateDB = async () => {
     // console.log('====================== Distribution Test ======================');
     // await testDistruibution();
@@ -540,7 +580,10 @@ const populateDB = async () => {
     // console.log('====================== RMD Table Test =====================');
     // await testRMDTable();
     // console.log('====================== RMD Table Test Done =====================');
-    console.log('====================== Tax Test =====================');
-    await testTax();
-    console.log('====================== Tax Test Done =====================');
+    // console.log('====================== Tax Test =====================');
+    // await testTax();
+    // console.log('====================== Tax Test Done =====================');
+    console.log('====================== Result Test =====================');
+    await testResult();
+    console.log('====================== Result Test Done =====================');
 };

@@ -27,4 +27,6 @@ ResultSchema.set('toObject', {
     virtuals: true,
 });
 
-export default mongoose.model('Result', ResultSchema);
+const Result = mongoose.model('Result', ResultSchema);
+
+export default Result;
