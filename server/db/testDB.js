@@ -9,6 +9,7 @@ import ScenarioController from "./controllers/ScenarioController.js";
 import UserController from "./controllers/UserController.js";
 
 import RMDTableController from "./controllers/RMDTableController.js";
+import TaxController from "./controllers/TaxController.js";
 
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
@@ -443,6 +444,79 @@ const testRMDTable = async () => {
     }
 }
 
+const testTax = async () => {
+
+    const factory = new TaxController();
+
+    try {
+        const federalIncomeTax = await factory.create("FEDERAL_INCOME", {
+            filingStatus: "SINGLE",
+            taxBrackets: [
+                { lowerBound: 0, upperBound: 9875, rate: 0.1 },
+                { lowerBound: 9876, upperBound: 40125, rate: 0.12 },
+                { lowerBound: 40126, upperBound: 85525, rate: 0.22 },
+                { lowerBound: 85526, upperBound: 163300, rate: 0.24 },
+                { lowerBound: 163301, upperBound: 207350, rate: 0.32 },
+                { lowerBound: 207351, upperBound: 518400, rate: 0.35 },
+                { lowerBound: 518401, upperBound: Infinity, rate: 0.37 }
+            ]
+        });
+        console.log(federalIncomeTax);
+        const stateIncomeTax = await factory.create("STATE_INCOME", {
+            filingStatus: "SINGLE",
+            state: "CA",
+            taxBrackets: [
+                { lowerBound: 0, upperBound: 8544, rate: 0.01 },
+                { lowerBound: 8545, upperBound: 20255, rate: 0.02 },
+                { lowerBound: 20256, upperBound: 31969, rate: 0.04 },
+                { lowerBound: 31970, upperBound: 44377, rate: 0.06 },
+                { lowerBound: 44378, upperBound: 56085, rate: 0.08 },
+                { lowerBound: 56086, upperBound: 286492, rate: 0.093 },
+                { lowerBound: 286493, upperBound: 343788, rate: 0.103 },
+                { lowerBound: 343789, upperBound: 572980, rate: 0.113 },
+                { lowerBound: 572981, upperBound: Infinity, rate: 0.123 }
+            ]
+        });
+        console.log(stateIncomeTax);
+        const federalStandardDeduction = await factory.create("FEDERAL_STANDARD", {
+            filingStatus: "SINGLE",
+            standardDeduction: 12400
+        });
+        console.log(federalStandardDeduction);
+        const stateStandardDeduction = await factory.create("STATE_STANDARD", {
+            filingStatus: "SINGLE",
+            state: "CA",
+            standardDeduction: 4601
+        });
+        console.log(stateStandardDeduction);
+
+        const capitalGainTax = await factory.create("CAPITAL_GAIN", {
+            filingStatus: "SINGLE",
+            taxBrackets: [
+                { lowerBound: 0, upperBound: 40000, rate: 0 },
+                { lowerBound: 40001, upperBound: 441450, rate: 0.15 },
+                { lowerBound: 441451, upperBound: Infinity, rate: 0.2 }
+            ]
+        });
+        console.log(capitalGainTax);
+
+        const updatedFederalIncomeTax = await factory.update(federalIncomeTax.id, {
+            filingStatus: "SINGLE",
+            taxBrackets: [
+                { lowerBound: 0, upperBound: 9875, rate: 0.1 },
+                { lowerBound: 9876, upperBound: 40125, rate: 0.12 },
+                { lowerBound: 40126, upperBound: 85525, rate: 0.22 },
+                { lowerBound: 85526, upperBound: 163300, rate: 0.24 },
+                { lowerBound: 163301, upperBound: 207350, rate: 0.32 },
+                { lowerBound: 207351, upperBound: 518400, rate: 0.35 },
+                { lowerBound: 518401, upperBound: Infinity, rate: 0.4 }
+            ]
+        });
+        console.log(updatedFederalIncomeTax);
+    } catch (error) {
+        console.error(error);
+    }
+}
 
 const populateDB = async () => {
     // console.log('====================== Distribution Test ======================');
@@ -463,7 +537,10 @@ const populateDB = async () => {
     // console.log('====================== User Test =====================');
     // await testUser();
     // console.log('====================== User Test Done =====================');
-    console.log('====================== RMD Table Test =====================');
-    await testRMDTable();
-    console.log('====================== RMD Table Test Done =====================');
+    // console.log('====================== RMD Table Test =====================');
+    // await testRMDTable();
+    // console.log('====================== RMD Table Test Done =====================');
+    console.log('====================== Tax Test =====================');
+    await testTax();
+    console.log('====================== Tax Test Done =====================');
 };
