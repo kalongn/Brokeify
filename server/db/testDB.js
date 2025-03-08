@@ -5,6 +5,7 @@ import DistributionController from "./controllers/DistributionController.js";
 import InvestmentTypeController from "./controllers/InvestmentTypeController.js";
 import InvestmentController from "./controllers/InvestmentController.js";
 import EventController from "./controllers/EventController.js";
+import ScenarioController from "./controllers/ScenarioController.js";
 
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
@@ -248,6 +249,146 @@ const testEvent = async () => {
     }
 }
 
+const testScenario = async () => {
+
+    const factory = new ScenarioController();
+    const DistributionFactory = new DistributionController();
+    const InvestmentFactory = new InvestmentController();
+    const InvestmentTypeFactory = new InvestmentTypeController();
+    const EventFactory = new EventController();
+
+    try {
+
+        const testInvestment1 = await InvestmentFactory.create({
+            value: 10000,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const testInvestment2 = await InvestmentFactory.create({
+            value: 20000,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const testInvestment3 = await InvestmentFactory.create({
+            value: 30000,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const testInvestmentType = await InvestmentTypeFactory.create({
+            name: "Fixed Income",
+            description: "Fixed income investments pay a fixed rate of return on a fixed schedule.",
+            expectedAnnualReturn: 0.05,
+            expectedAnnualReturnDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
+            expenseRatio: 0.01,
+            expectedAnnualIncome: 1000,
+            expectedAnnualIncomeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1000 }),
+            taxability: true,
+            investments: [testInvestment1, testInvestment2, testInvestment3]
+        });
+
+        const RebalanceEvent = await EventFactory.create("REBALANCE", {
+            name: "Rebalance",
+            description: "Rebalance the portfolio",
+            startYear: 2021,
+            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
+            duration: 1,
+            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
+            assetAllocationType: "GLIDE",
+            percentageAllocations: [[0.6, 0.4], [0.5, 0.5], [0.4, 0.6]],
+            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
+            maximumCash: 1000,
+            taxStatus: "NON_RETIREMENT"
+        });
+
+        const InvestEvent = await EventFactory.create("INVEST", {
+            name: "Invest",
+            description: "Invest in the portfolio",
+            startYear: 2021,
+            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
+            duration: 1,
+            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", {
+                value:
+                    1
+            }),
+            assetAllocationType: "FIXED",
+            percentageAllocations: [[0.6], [0.5], [0.4]],
+            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
+            maximumCash: 1000,
+        });
+
+        const IncomeEvent = await EventFactory.create("INCOME", {
+            name: "Income",
+            description: "Income from the portfolio",
+            startYear: 2021,
+            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
+            duration: 1,
+            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
+            amount: 1000,
+            expectedAnnualChange: 0.05,
+            expectedAnnualChangeDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
+            isinflationAdjusted: true,
+            userContributions: 100,
+            spouseContributions: 0,
+            isSocialSecurity: true
+        });
+
+        const ExpenseEvent = await EventFactory.create("EXPENSE", {
+            name: "Expense",
+            description: "Expense from the portfolio",
+            startYear: 2021,
+            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
+            duration: 1,
+            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
+            amount: 1000,
+            expectedAnnualChange: 0.05,
+            expectedAnnualChangeDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
+            isinflationAdjusted: true,
+            userContributions: 100,
+            spouseContributions: 0,
+            isDiscretionary: true
+        });
+
+        const testScenario = await factory.create({
+            name: "Test Scenario",
+            filingStatus: "SINGLE",
+            userBirthYear: 1990,
+            spouseBirthYear: 1990,
+            userLifeExpectancy: 90,
+            spouseLifeExpectancy: 90,
+            investmentTypes: [testInvestmentType],
+            events: [RebalanceEvent, InvestEvent, IncomeEvent, ExpenseEvent],
+            inflationAssumption: 0.02,
+            inflationAssumptionDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.02 }),
+            annualPreTaxContributionLimit: 19500,
+            annualPostTaxContributionLimit: 6000,
+            financialGoal: 1000000,
+            orderedSpendingStrategy: [IncomeEvent, ExpenseEvent],
+            orderedExpenseWithdrawalStrategy: [testInvestment1, testInvestment2, testInvestment3],
+            orderedRMDStrategy: [testInvestment1, testInvestment2, testInvestment3],
+            orderedRothStrategy: [testInvestment1, testInvestment2, testInvestment3],
+            startYearRothOptimizer: 2021,
+            endYearRothOptimizer: 2021
+        });
+        console.log(testScenario);
+
+        const scenarios = await factory.readAll();
+        console.log(scenarios);
+
+        const scenario = await factory.read(scenarios[0].id);
+        console.log(scenario);
+
+        await factory.update(scenario.id, { name: "New Scenario" });
+        const updatedScenario = await factory.read(scenario.id);
+        console.log(updatedScenario);
+
+        await factory.delete(updatedScenario.id);
+        const deletedScenario = await factory.read(updatedScenario.id);
+        console.log(deletedScenario);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 const populateDB = async () => {
     // console.log('====================== Distribution Test ======================');
     // await testDistruibution();
@@ -261,4 +402,7 @@ const populateDB = async () => {
     // console.log('====================== Event Test =====================');
     // await testEvent();
     // console.log('====================== Event Test Done =====================');
+    console.log('====================== Scenario Test =====================');
+    await testScenario();
+    console.log('====================== Scenario Test Done =====================');
 };
