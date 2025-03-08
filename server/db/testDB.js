@@ -11,6 +11,7 @@ import UserController from "./controllers/UserController.js";
 import RMDTableController from "./controllers/RMDTableController.js";
 import TaxController from "./controllers/TaxController.js";
 import ResultController from "./controllers/ResultController.js";
+import SimulationController from "./controllers/SimulationController.js";
 
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
@@ -558,6 +559,55 @@ const testResult = async () => {
     }
 }
 
+const testSimulation = async () => {
+
+    const factory = new SimulationController();
+    const ScenarioFactory = new ScenarioController();
+    const ResultFactory = new ResultController();
+
+    try {
+        const simulation = await factory.create({
+            scenario: await ScenarioFactory.create({
+                name: "Test Scenario",
+                filingStatus: "SINGLE",
+                userBirthYear: 1990,
+                spouseBirthYear: 1990,
+                userLifeExpectancy: 90,
+                spouseLifeExpectancy: 90,
+                investmentTypes: [],
+                events: [],
+                inflationAssumption: 0.02,
+                annualPreTaxContributionLimit: 19500,
+                annualPostTaxContributionLimit: 6000,
+                financialGoal: 1000000,
+                orderedSpendingStrategy: [],
+                orderedExpenseWithdrawalStrategy: [],
+                orderedRMDStrategy: [],
+                orderedRothStrategy: [],
+                startYearRothOptimizer: 2021,
+                endYearRothOptimizer: 2021
+            }),
+            results: [await ResultFactory.create({
+                yearlyResults: [{
+                    year: 2021,
+                    investmentValues: [],
+                    totalIncome: 1000,
+                    totalExpense: 500,
+                    totalTax: 100,
+                    earlyWithdrawalTax: 50,
+                    totalDiscretionaryExpenses: 100,
+                    isViolated: false
+                }]
+            })]
+        });
+        console.log(simulation);
+        await factory.delete(simulation.id);
+    } catch (error) {
+        console.error(error);
+
+    }
+}
+
 const populateDB = async () => {
     // console.log('====================== Distribution Test ======================');
     // await testDistruibution();
@@ -583,7 +633,10 @@ const populateDB = async () => {
     // console.log('====================== Tax Test =====================');
     // await testTax();
     // console.log('====================== Tax Test Done =====================');
-    console.log('====================== Result Test =====================');
-    await testResult();
-    console.log('====================== Result Test Done =====================');
+    // console.log('====================== Result Test =====================');
+    // await testResult();
+    // console.log('====================== Result Test Done =====================');
+    console.log('====================== Simulation Test =====================');
+    await testSimulation();
+    console.log('====================== Simulation Test Done =====================');
 };
