@@ -58,7 +58,7 @@ export default class RMDTableController {
             if (!rmdTable) {
                 throw new Error("RMDTable not found");
             }
-            rmdTable.update(data);
+            Object.assign(rmdTable, data);
             await rmdTable.save();
             return rmdTable;
         }

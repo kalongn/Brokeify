@@ -8,6 +8,8 @@ import EventController from "./controllers/EventController.js";
 import ScenarioController from "./controllers/ScenarioController.js";
 import UserController from "./controllers/UserController.js";
 
+import RMDTableController from "./controllers/RMDTableController.js";
+
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
 
@@ -414,6 +416,33 @@ const testUser = async () => {
     }
 }
 
+const testRMDTable = async () => {
+
+    const factory = new RMDTableController();
+
+    try {
+        const rmd = await factory.create({
+            ages: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79],
+            distributionPeriods: [27.4, 26.5, 25.6, 24.7, 23.8, 22.9, 22.0, 21.2, 20.3, 19.5]
+        });
+        console.log(rmd);
+
+        let oneRmd = await factory.read();
+        console.log(oneRmd);
+
+        await factory.update({
+            ages: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80],
+            distributionPeriods: [27.4, 26.5, 25.6, 24.7, 23.8, 22.9, 22.0, 21.2, 20.3, 19.5, 18.7]
+        });
+
+        oneRmd = await factory.read();
+        console.log(oneRmd);
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 
 const populateDB = async () => {
     // console.log('====================== Distribution Test ======================');
@@ -431,7 +460,10 @@ const populateDB = async () => {
     // console.log('====================== Scenario Test =====================');
     // await testScenario();
     // console.log('====================== Scenario Test Done =====================');
-    console.log('====================== User Test =====================');
-    await testUser();
-    console.log('====================== User Test Done =====================');
+    // console.log('====================== User Test =====================');
+    // await testUser();
+    // console.log('====================== User Test Done =====================');
+    console.log('====================== RMD Table Test =====================');
+    await testRMDTable();
+    console.log('====================== RMD Table Test Done =====================');
 };
