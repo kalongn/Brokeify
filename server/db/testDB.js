@@ -412,7 +412,7 @@ const testUser = async () => {
             editorScenarios: [],
             viewerScenarios: [],
             userSpecificTaxes: [],
-            userRuns: []
+            userSimulations: []
         });
     } catch (error) {
         console.error(error);
@@ -636,7 +636,7 @@ const populateDB = async () => {
     // console.log('====================== Result Test =====================');
     // await testResult();
     // console.log('====================== Result Test Done =====================');
-    console.log('====================== Simulation Test =====================');
-    await testSimulation();
-    console.log('====================== Simulation Test Done =====================');
+    // console.log('====================== Simulation Test =====================');
+    // await testSimulation();
+    // console.log('====================== Simulation Test Done =====================');
 };
