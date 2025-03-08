@@ -6,6 +6,7 @@ import InvestmentTypeController from "./controllers/InvestmentTypeController.js"
 import InvestmentController from "./controllers/InvestmentController.js";
 import EventController from "./controllers/EventController.js";
 import ScenarioController from "./controllers/ScenarioController.js";
+import UserController from "./controllers/UserController.js";
 
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
@@ -389,6 +390,31 @@ const testScenario = async () => {
     }
 }
 
+const testUser = async () => {
+    const factory = new UserController();
+    try {
+        await factory.create({
+            firstName: "John",
+            lastName: "Doe",
+            email: "",
+            birthYear: 1990,
+            googleId: "",
+            picture: "",
+            refreshToken: "",
+            accessToken: "",
+            permission: "GUEST",
+            ownerScenarios: [],
+            editorScenarios: [],
+            viewerScenarios: [],
+            userSpecificTaxes: [],
+            userRuns: []
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
 const populateDB = async () => {
     // console.log('====================== Distribution Test ======================');
     // await testDistruibution();
@@ -402,7 +428,10 @@ const populateDB = async () => {
     // console.log('====================== Event Test =====================');
     // await testEvent();
     // console.log('====================== Event Test Done =====================');
-    console.log('====================== Scenario Test =====================');
-    await testScenario();
-    console.log('====================== Scenario Test Done =====================');
+    // console.log('====================== Scenario Test =====================');
+    // await testScenario();
+    // console.log('====================== Scenario Test Done =====================');
+    console.log('====================== User Test =====================');
+    await testUser();
+    console.log('====================== User Test Done =====================');
 };

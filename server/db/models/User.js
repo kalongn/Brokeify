@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import { PERMISSION } from './Enums';
+import { PERMISSION } from './Enums.js';
 
 const UserSchema = new mongoose.Schema({
     firstName: { type: String, default: 'John', },
