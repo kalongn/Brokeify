@@ -239,6 +239,10 @@ const testEvent = async () => {
         await factory.delete(updatedEvent.id);
         const deletedEvent = await factory.read(updatedEvent.id);
         console.log(deletedEvent);
+
+        for (const event of await factory.readAll()) {
+            await factory.delete(event.id);
+        }
     } catch (error) {
         console.error(error);
     }

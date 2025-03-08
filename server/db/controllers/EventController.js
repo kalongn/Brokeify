@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Event, Rebalance, Invest, Income, Expense } from "../models/Event.js";
+import DistributionController from "./DistributionController.js";
 
 /**
  * @typedef {"INCOME" | "EXPENSE" | "INVEST" | "REBALANCE"} EVENT_TYPE
@@ -116,13 +117,21 @@ export default class EventController {
     }
 
     /**
-     * This function deletes the Event with the given id and returns the deleted event
+     * This function deletes the Event with the given id and returns the deleted event, 
+     * it also deletes the associated distributions of the event
      * @param {mongoose.Types.ObjectId} id 
      * @returns deleted event
      */
     async delete(id) {
         try {
-            return await Event.findByIdAndDelete(id);
+            const distributionController = new DistributionController();
+            const event = await Event.findById(id);
+            distributionController.delete(event.startYearTypeDistribution);
+            distributionController.delete(event.durationTypeDistribution);
+            if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
+                distributionController.delete(event.expectedAnnualChangeDistribution);
+            }
+            return await Event.deleteOne({ _id: id });
         }
         catch (error) {
             throw new Error(error);
