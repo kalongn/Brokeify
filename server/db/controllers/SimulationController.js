@@ -34,9 +34,11 @@ export default class SimulationController {
     }
 
     /**
-     * This function reads the Simulation with the given id
+     * This function delete the Simulation with the given id
+     * @note
+     *      This function also deletes all the results associated with the simulation
      * @param {mongoose.Types.ObjectId} id 
-     *      Id of the simulation to be read
+     *      Id of the simulation to be deleted
      * @returns
      *      Returns the simulation
      * @throws Error
