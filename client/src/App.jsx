@@ -1,9 +1,25 @@
 import './App.css'
 import { Route, Routes } from "react-router-dom";
+import Axios from 'axios';
 
 import Home from './pages/Home.jsx';
+import { useEffect } from 'react';
 
 function App() {
+
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    // Check if user is logged in
+    Axios.get('/')
+      .then((response) => {
+        console.log('User session:', response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching user session:', error);
+      });
+  }, []);
 
   return (
     <>
