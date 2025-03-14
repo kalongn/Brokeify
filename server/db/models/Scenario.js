@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { FILING_STATUS } from "./Enums";
+import { FILING_STATUS } from "./Enums.js";
 
 const ScenarioSchema = new mongoose.Schema({
     name: { type: String },
@@ -9,8 +9,7 @@ const ScenarioSchema = new mongoose.Schema({
     spouseBirthYear: { type: Number },
     userLifeExpectancy: { type: Number },
     spouseLifeExpectancy: { type: Number },
-    investmentsType: [{ type: mongoose.Schema.Types.ObjectId, ref: 'InvestmentType' }],
-    investments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
+    investmentTypes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'InvestmentType' }],
     events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     inflationAssumption: { type: Number },
     inflationAssumptionDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
@@ -35,4 +34,6 @@ ScenarioSchema.set('toObject', {
     virtuals: true,
 });
 
-export default mongoose.model('Scenario', ScenarioSchema);
+const Scenario = mongoose.model('Scenario', ScenarioSchema);
+
+export default Scenario;

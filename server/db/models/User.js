@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import { PERMISSION } from './Enums';
+import { PERMISSION } from './Enums.js';
 
 const UserSchema = new mongoose.Schema({
     firstName: { type: String, default: 'John', },
@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema({
     editorScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     viewerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     userSpecificTaxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tax' }],
-    userRuns: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Run' }],
+    userSimulations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Simulation' }],
 });
 
 UserSchema.virtual('id').get(function get() {

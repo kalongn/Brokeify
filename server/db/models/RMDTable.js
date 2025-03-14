@@ -17,4 +17,6 @@ RMDTableSchema.set('toObject', {
     virtuals: true,
 });
 
-export default mongoose.model('RMDTable', RMDTableSchema);
+const RMDTable = mongoose.model('RMDTable', RMDTableSchema);
+
+export default RMDTable;

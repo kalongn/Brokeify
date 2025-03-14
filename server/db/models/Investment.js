@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { TAX_STATUS } from "./Enums";
+import { TAX_STATUS } from "./Enums.js";
 
 const InvestmentTypeSchema = new mongoose.Schema({
     name: { type: String },
@@ -11,6 +11,7 @@ const InvestmentTypeSchema = new mongoose.Schema({
     expectedAnnualIncome: { type: Number },
     expectedAnnualIncomeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
     taxability: { type: Boolean },
+    investments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }]
 });
 
 InvestmentTypeSchema.virtual('id').get(function get() {
@@ -25,7 +26,6 @@ InvestmentTypeSchema.set('toObject', {
 
 const InvestmentSchema = new mongoose.Schema({
     value: { type: Number },
-    investmentType: { type: mongoose.Schema.Types.ObjectId, ref: 'InvestmentType', required: true },
     taxStatus: { type: String, enum: TAX_STATUS }
 });
 
@@ -45,4 +45,4 @@ const InvestmentType = mongoose.model('InvestmentType', InvestmentTypeSchema);
 
 const Investment = mongoose.model('Investment', InvestmentSchema);
 
-export default { InvestmentType, Investment };
+export { InvestmentType, Investment };
