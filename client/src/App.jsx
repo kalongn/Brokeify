@@ -1,9 +1,10 @@
-import './App.css'
+import { useEffect } from 'react';
 import { Route, Routes } from "react-router-dom";
 import Axios from 'axios';
 
+import './App.css'
+
 import Home from './pages/Home.jsx';
-import { useEffect } from 'react';
 
 function App() {
 

@@ -640,3 +640,5 @@ const populateDB = async () => {
     // await testSimulation();
     // console.log('====================== Simulation Test Done =====================');
 };
+
+// Need to be do this in Playwright
