@@ -25,13 +25,11 @@
 a {
   font-weight: 500;
   color: var(--color-primary);
-  /*TODO: change this */
-  text-decoration: inherit;
+  text-decoration: None;
 }
 
 a:hover {
   color: var(--color-primary-muted);
-  /*TODO: change this */
 }
 
 body {
