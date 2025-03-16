@@ -25,19 +25,15 @@
 a {
   font-weight: 500;
   color: var(--color-primary);
-  /*TODO: change this */
-  text-decoration: inherit;
+  text-decoration: None;
 }
 
 a:hover {
   color: var(--color-primary-muted);
-  /*TODO: change this */
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -48,8 +44,8 @@ h1 {
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid var(--color-silver);
+  border-radius: 6px;
+  border: 2px solid var(--color-silver);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;

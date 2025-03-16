@@ -1,4 +1,7 @@
 #root {
-  width: 100%;
-  height: inherit;
+  min-height: inherit;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  min-width: 100%;
 }
