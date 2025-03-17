@@ -19,7 +19,7 @@ const Navbar = () => {
 
             <div className={style.profileLink}>
                 
-                <Link to='/Home' className={style.profileLink} onClick={() => { console.log('Profile Page') }}>
+                <Link to='/ProfilePage' className={style.profileLink} onClick={() => { console.log('Profile Page') }}>
                     My Profile
                 </Link>
             
