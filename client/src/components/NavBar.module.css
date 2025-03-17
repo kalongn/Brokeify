@@ -1,0 +1,32 @@
+.navbar {
+    background-color: var(--color-black);
+    color: var(--color-white);
+    height: 100vh;
+    padding: min(48px, 3rem);
+    display: flex;
+    flex-direction: column;
+   
+}
+
+
+.navLinks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.navLink {
+    padding: 10px;
+    text-decoration: none;
+    color: var(--color-white);
+    font-size: 20px;
+}
+
+.profileLink {
+    margin-top: auto;
+    padding: 10px;
+    text-decoration: none;
+    color: var(--color-white);
+    font-size: 20px;
+}
