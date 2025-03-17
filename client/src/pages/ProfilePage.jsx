@@ -1,15 +1,11 @@
-import Navbar from "../components/Navbar";
+// import Navbar from "../components/Navbar";
 import style from './Home.module.css';
+import Layout from "../components/Layout";
 const Home = () => {
   return (
-    <>
-      <div>
-      <Navbar/>
-      </div>
-      <div>
+    <Layout>
         <h1>Profile Page</h1>
-    </div>
-    </>
+    </Layout>
   );
 }
 
