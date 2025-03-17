@@ -11,10 +11,67 @@ import TaxController from "../db/controllers/TaxController.js";
 import ResultController from "../db/controllers/ResultController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
 
-function updateTaxBracketsForInflation(taxData, inflationRate) { /* ... */ }
-function updateContributionLimitsForInflation(scenario, inflationRate) { /* ... */ }
-function adjustForInflation(amount, inflationRate, isInflationAdjusted) { /* ... */ }
-function shouldPerformRMD(currentYear, birthYear, rmdTable) { /* ... */ }
+async function sample(expectedValue, distributionID){
+    return expectedValue;
+}
+async function createSimulation(scenario){
+    const factory = new SimulationController();
+    const ResultFactory = new ResultController();
+    try {
+        const simulation = await factory.create({
+            scenario: scenario,
+            results: []
+        });
+        return simulation;
+    } catch (error) {
+        console.error(error);
+
+    }
+    
+}
+function updateTaxBracketsForInflation(taxData, inflationRate) {
+    //Multiplies tax brackes by 1+inflationRate
+    //console.log(taxData);
+    taxData.taxBrackets.forEach(bracket => {
+        bracket.lowerBound = Math.round(bracket.lowerBound * (1 + inflationRate));
+        if (bracket.upperBound !== Infinity) {
+            bracket.upperBound = Math.round(bracket.upperBound * (1 + inflationRate));
+        }
+    });
+    //console.log(taxData);
+}
+function updateContributionLimitsForInflation(scenario, inflationRate) {
+    scenario.annualPreTaxContributionLimit = scenario.annualPreTaxContributionLimit * (1+inflationRate);
+    scenario.annualPostTaxContributionLimit = scenario.annualPostTaxContributionLimit * (1+inflationRate);
+}
+async function adjustEventIncome(event, inflationRate) {
+    //adjusts event.amount for inflation and expected change
+    if(event.isinflationAdjusted){
+        event.amount = event.amount*(1+inflationRate);
+    }
+    const amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
+    event.amount = event.amount*(1+amountRate);
+    return event.amount;
+}
+function shouldPerformRMD(currentYear, birthYear, rmdTable, investments) {
+    // If the user’s age is at least 74 and at the end of the previous
+    // year, there is at least one investment with tax status = “pre-tax” 
+    // and with a positive value
+    const realYear = new Date().getFullYear();
+    const age =  realYear + currentYear - birthYear;
+    console.log(investments);
+    
+    if (age < 74) {
+        return false;
+    }
+
+    //if there is at least one pre-tax investment with a positive value
+    const hasPreTaxInvestment = investments.some(inv => 
+        inv.taxStatus === "PRE_TAX_RETIREMENT" && inv.value > 0
+    );
+
+    return hasPreTaxInvestment;
+}
 function processRMDs(investments, rmdTable, currentYear, birthYear) { /* ... */ }
 function updateInvestments(investments, inflationRate) { /* ... */ }
 function performRothConversion(curYearIncome, curYearSS, federalIncomeTax) { /* ... */ }
@@ -26,7 +83,7 @@ function rebalanceInvestments(scenario, investments) { /* ... */ }
 
 
 export async function simulate(
-    scenario, 
+    inputScenario, 
     federalIncomeTax, 
     stateIncomeTax, 
     federalStandardDeduction, 
@@ -34,16 +91,18 @@ export async function simulate(
     capitalGainTax, 
     rmdTable
 ) {
-    
+    const simulation = await createSimulation(inputScenario);
+    //console.log(simulation);
     let currentYear = 0;
     const realYear = new Date().getFullYear();
-    const endYear = scenario.userBirthYear+scenario.userLifeExpectancy - realYear;
+    const endYear = simulation.scenario.userBirthYear+simulation.scenario.userLifeExpectancy - realYear;
 
     const investmentTypeFactory = new InvestmentTypeController();
     const investmentFactory = new InvestmentController();
+    const eventFactory = new EventController();
 
     const investmentTypes = await Promise.all(
-        scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
+        simulation.scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
     );
     
     const investmentIds = investmentTypes.flatMap(type => type.investments);
@@ -51,31 +110,42 @@ export async function simulate(
     const investments = await Promise.all(
         investmentIds.map(async (id) => await investmentFactory.read(id))
     );
-
+    const events = await Promise.all(
+        simulation.scenario.events.map(async (id) => await eventFactory.read(id))
+    );
+    //console.log(events);
+    //Create empty special cash account:
     
+
+
     while (currentYear <= endYear) {
         //console.log(`Simulating year: ${currentYear}`);
 
-        
-        const inflationRate = scenario.inflationAssumption;
+        //TODO: implement non-fixed inflation assumptions
+        const inflationRate = await sample(simulation.scenario.inflationAssumption, simulation.scenario.inflationAssumptionDistribution);
         updateTaxBracketsForInflation(federalIncomeTax, inflationRate);
         updateTaxBracketsForInflation(stateIncomeTax, inflationRate);
-        updateContributionLimitsForInflation(scenario, inflationRate);
+        updateContributionLimitsForInflation(simulation.scenario, inflationRate);
 
         
         let curYearIncome = 0;
         let curYearSS = 0;
-        for (const event of scenario.events.filter(e => e.type === "INCOME")) {
-            const income = adjustForInflation(event.amount, inflationRate, event.isinflationAdjusted);
+
+        for (const event of events.filter(e => e.eventType === "INCOME")) {
+            const income = adjustEventIncome(event, inflationRate);
+            
+            //TODO: Save breakdown of income by event
+            event.amount = income;
             curYearIncome += income;
             if (event.isSocialSecurity) {
                 curYearSS += income;
             }
         }
+        
 
         
-        if (shouldPerformRMD(currentYear, scenario.userBirthYear, rmdTable)) {
-            const rmd = processRMDs(investments, rmdTable, currentYear, scenario.userBirthYear);
+        if (shouldPerformRMD(currentYear, simulation.scenario.userBirthYear, rmdTable, investments)) {
+            const rmd = processRMDs(investments, rmdTable, currentYear, simulation.scenario.userBirthYear);
             curYearIncome += rmd;
         }
 
