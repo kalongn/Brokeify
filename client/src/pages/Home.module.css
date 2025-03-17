@@ -1,0 +1,15 @@
+
+/*
+--color-white: #EDEDED;
+--color-black: #2E2D2D;
+--color-silver: #A3A2A2;
+--color-primary: #77E1B8;
+--color-primary-muted: #AED7C7;
+--color-primary-light: #BCF0DC;
+*/
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+ 
