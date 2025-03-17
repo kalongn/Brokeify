@@ -5,6 +5,7 @@ import './App.css'
 
 import Login from './pages/Login.jsx';
 import Home from './pages/Home.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 
 const App = () => {
   useEffect(() => {
@@ -29,6 +30,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/Home" element={<Home />} />
+        <Route path="/ProfilePage" element={<ProfilePage />} />
       </Routes>
     </>
   )
