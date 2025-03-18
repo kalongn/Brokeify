@@ -15,15 +15,24 @@ body, html {
 }
 /* Profile Image */
 .profileImage {
-    width: 80px;
-    height: 80px;
+    width: 15rem;
+    height: 15rem;
     border-radius: 50%;
-    object-fit: cover;
-    position: absolute;
-    top: -40px;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 3px solid white;
+    border: 5px solid black;
+}
+
+/*Need to somehow fix this shadowing effect**/
+.uploadButton{
+    color: var(--color-white); ; 
+    margin: 1rem auto;
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+    padding: 0.6em 1.2em;  
+    font-size: 1em;  
+    font-weight: 500;  
+    cursor: pointer;  
+    box-shadow: 0 0.2rem rgb(199, 199, 199);
+    background-color: var(--color-black);
 }
 
 

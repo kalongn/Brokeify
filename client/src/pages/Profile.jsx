@@ -8,6 +8,9 @@ const Profile = () => {
        <div className = {style.profileBackground}>
 
         <div className = {style.profile}>
+            <div>
+            <img className = {style.profileImage} src = "src\assets\sharlottePic.jpg"></img>
+       
             <div className= {style.profileInfo}>
             <h2>Your Information</h2>
             <p>Full Name</p>
@@ -18,10 +21,11 @@ const Profile = () => {
             <p className = {style.infoInput}>2000</p>
            
             </div>  
+            </div>
             <div className= {style.fileInfo}>
             <h2>File Upload</h2>
             <p>Here you can upload a YAML file containing information about state income taxes and brackets. Note that without this data, the financial projection will ignore state income taxes not in the database.</p>
-            <button>^ Upload YAML</button>
+            <button className={style.uploadButton}>^ Upload YAML</button>
 
             <table>
               <thead>
