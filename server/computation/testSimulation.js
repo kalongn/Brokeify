@@ -128,7 +128,7 @@ const testScenario = async () => {
             description: "Expense from the portfolio",
             startYear: 2021,
             startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
-            duration: 1,
+            duration: 100,
             durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
             amount: 1000,
             expectedAnnualChange: 0.05,
@@ -137,6 +137,21 @@ const testScenario = async () => {
             userContributions: 100,
             spouseContributions: 0,
             isDiscretionary: true
+        });
+        const ExpenseEvent2 = await EventFactory.create("EXPENSE", {
+            name: "Expense2",
+            description: "Expense from the portfolio",
+            startYear: 2021,
+            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
+            duration: 100,
+            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
+            amount: 10,
+            expectedAnnualChange: .05,
+            expectedAnnualChangeDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
+            isinflationAdjusted: true,
+            userContributions: 100,
+            spouseContributions: 0,
+            isDiscretionary: false
         });
 
         const testScenario = await factory.create({
@@ -147,12 +162,12 @@ const testScenario = async () => {
             userLifeExpectancy: 90,
             spouseLifeExpectancy: 90,
             investmentTypes: [testInvestmentType],
-            events: [RebalanceEvent, InvestEvent, IncomeEvent, ExpenseEvent],
+            events: [RebalanceEvent, InvestEvent, IncomeEvent, ExpenseEvent, ExpenseEvent2],
             inflationAssumption: 0.02,
             inflationAssumptionDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.02 }),
             annualPreTaxContributionLimit: 19500,
             annualPostTaxContributionLimit: 6000,
-            financialGoal: 1000000,
+            financialGoal: 10000,
             orderedSpendingStrategy: [IncomeEvent, ExpenseEvent],
             orderedExpenseWithdrawalStrategy: [testInvestment1, testInvestment2, testInvestment3],
             orderedRMDStrategy: [testInvestment1, testInvestment2, testInvestment3],
