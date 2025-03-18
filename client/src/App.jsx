@@ -5,7 +5,7 @@ import './App.css'
 
 import Login from './pages/Login.jsx';
 import Home from './pages/Home.jsx';
-import ProfilePage from './pages/ProfilePage.jsx';
+import ProfilePage from './pages/Profile.jsx';
 
 const App = () => {
   useEffect(() => {
