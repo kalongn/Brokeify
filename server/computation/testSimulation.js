@@ -60,6 +60,10 @@ const testScenario = async () => {
             value: 30000,
             taxStatus: "NON_RETIREMENT"
         });
+        const testInvestment4 = await InvestmentFactory.create({
+            value: 40000,
+            taxStatus: "PRE_TAX_RETIREMENT"
+        });
 
         const testInvestmentType = await InvestmentTypeFactory.create({
             name: "Fixed Income",
@@ -70,7 +74,7 @@ const testScenario = async () => {
             expectedAnnualIncome: 1000,
             expectedAnnualIncomeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1000 }),
             taxability: true,
-            investments: [testInvestment1, testInvestment2, testInvestment3]
+            investments: [testInvestment1, testInvestment2, testInvestment3, testInvestment4]
         });
 
         const RebalanceEvent = await EventFactory.create("REBALANCE", {
@@ -152,9 +156,9 @@ const testScenario = async () => {
             orderedSpendingStrategy: [IncomeEvent, ExpenseEvent],
             orderedExpenseWithdrawalStrategy: [testInvestment1, testInvestment2, testInvestment3],
             orderedRMDStrategy: [testInvestment1, testInvestment2, testInvestment3],
-            orderedRothStrategy: [testInvestment1, testInvestment2, testInvestment3],
+            orderedRothStrategy: [testInvestment1, testInvestment2, testInvestment3, testInvestment4],
             startYearRothOptimizer: 2021,
-            endYearRothOptimizer: 2021
+            endYearRothOptimizer: 2070
         });
         console.log(testScenario);
         
