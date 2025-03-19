@@ -664,7 +664,7 @@ async function processInvestmentEvents(scenario, currentYear) {
     
 
 }
-async function rebalanceInvestments(scenario, investments) {
+async function rebalanceInvestments(scenario, currentYear) {
     //returns capitalGains created
 
     //only one rebalance event per tax status
@@ -687,21 +687,69 @@ async function rebalanceInvestments(scenario, investments) {
         if(event.eventType !== "REBALANCE"){
             continue;
         }
+        
+        //get total value
+        let totalValue = 0;
+        const actualValues = []
+        for(const investmentIDIndex in event.allocatedInvestments){
+            const investmentID = event.allocatedInvestments[investmentIDIndex];
+            const investment = await investmentFactory.read(investmentID);
+            totalValue+=investment.value;
+            actualValues.push(investment.value);
+        }
+        
         //get proportions:
+        let proportions = [];
+        if(event.assetAllocationType==="FIXED"){
+            proportions = {... event.percentageAllocations};
+        }
+        else if(event.assetAllocationType==="GLIDE"){
+            for(const boundsIndex in event.percentageAllocations){
+                let bounds =  event.percentageAllocations[boundsIndex];
+                let ratio = ((realYear+currentYear-event.startYear)/(event.duration));
+                let proportion = bounds[1]*ratio + bounds[0]*(1-ratio);
+                proportions.push(proportion);
+            }
+        }
+        //get target values:
+        let targetValues = [];
+        for(const i in proportions){
+            const p = proportions[i];
+            targetValues.push(p*totalValue);
+        }
+        // console.log(`Actual: ${actualValues}`);
+        // console.log(`Target: ${targetValues}`);
+
         
 
-        //get target values:
+
+        //sell all (keep track of amount sold)
+        let amountSold = 0;
+        for(const investmentIDIndex in event.allocatedInvestments){
+            const investmentID = event.allocatedInvestments[investmentIDIndex];
+            const investment = await investmentFactory.read(investmentID);
+            if(targetValues[investmentIDIndex]<actualValues[investmentIDIndex]){
+                //sell difference
+                amountSold += actualValues[investmentIDIndex] - targetValues[investmentIDIndex];
+                investment.value = targetValues[investmentIDIndex];
+                await investmentFactory.update(investment.id, {value: investment.value});
+            }
+        }
 
 
-        //sell
 
         //buy:
-
+        for(const investmentIDIndex in event.allocatedInvestments){
+            const investmentID = event.allocatedInvestments[investmentIDIndex];
+            const investment = await investmentFactory.read(investmentID);
+            if(targetValues[investmentIDIndex]>actualValues[investmentIDIndex]){
+                //buy difference
+                await investmentFactory.update(investment.id, {value: targetValues[investmentIDIndex]});
+            }
+        }
 
         //increment toReturn
-
-        
-        
+        toReturn+=amountSold;
     }
     return toReturn;
 }
@@ -728,7 +776,7 @@ export async function simulate(
     const eventFactory = new EventController();
     const scenarioFactory = new ScenarioController();
     
-    const investmentTypes = await Promise.all(
+    let investmentTypes = await Promise.all(
         simulation.scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
     );
     let cashInvestment = await getCashInvestment(investmentTypes);
@@ -739,7 +787,7 @@ export async function simulate(
 
     //console.log(investmentTypes);
     //return;
-    const investmentIds = investmentTypes.flatMap(type => type.investments);
+    let investmentIds = investmentTypes.flatMap(type => type.investments);
     
     let investments = await Promise.all(
         investmentIds.map(async (id) => await investmentFactory.read(id))
@@ -818,9 +866,23 @@ export async function simulate(
         await processInvestmentEvents(simulation.scenario, currentYear);
 
         
-        thisYearGains = await rebalanceInvestments(simulation.scenario, investments);
+        thisYearGains = await rebalanceInvestments(simulation.scenario, currentYear);
         lastYearGains = thisYearGains;
         thisYearGains = 0;
+
+
+        investmentTypes = await Promise.all(
+            simulation.scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
+        );
+        investmentIds = investmentTypes.flatMap(type => type.investments);
+        investments = await Promise.all(
+            investmentIds.map(async (id) => await investmentFactory.read(id))
+        );
+        let totalValue = 0;
+        for(const investmentIndex in investments){
+            totalValue+=investments[investmentIndex].value;
+        }
+        console.log(`The net asset value of this year is ${totalValue}`);
         currentYear++;
     }
 
