@@ -355,7 +355,7 @@ function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federa
     console.log(`The total tax for this year is ${totalTax}`);
     return totalTax;
 }
-async function processExpenses(scenario, previousYearTaxes) {
+async function processExpenses(scenario, previousYearTaxes, currentYear) {
     //pay all non discretionary expenses and taxes
     //first: calculate value of all non discretionary expenses:
     let totalExpenses = previousYearTaxes;
@@ -366,7 +366,12 @@ async function processExpenses(scenario, previousYearTaxes) {
     for(const eventIDIndex in scenario.events){
         const eventID = scenario.events[eventIDIndex];
         const event = await eventFactory.read(eventID);
-        
+        //check if event is in range:
+        const realYear = new Date().getFullYear();
+        if(!(event.startYear<=realYear+currentYear&&event.duration+event.startYear<=realYear+currentYear)){
+            continue;
+        }
+
         if(event.eventType === "EXPENSE" && event.isDiscretionary === false){
             totalExpenses+=event.amount;
         }   
@@ -429,7 +434,7 @@ async function processExpenses(scenario, previousYearTaxes) {
 
 
 }
-async function processDiscretionaryExpenses(scenario) { //returns amount not paid
+async function processDiscretionaryExpenses(scenario, currentYear) { //returns amount not paid
     //first: determine how much value you have above fincncial goal:
     const eventFactory = new EventController();
     const investmentTypeFactory = new InvestmentTypeController();
@@ -439,7 +444,10 @@ async function processDiscretionaryExpenses(scenario) { //returns amount not pai
     for(const eventIDIndex in scenario.events){
         const eventID = scenario.events[eventIDIndex];
         const event = await eventFactory.read(eventID);
-        
+        const realYear = new Date().getFullYear();
+        if(!(event.startYear<=realYear+currentYear&&event.duration+event.startYear<=realYear+currentYear)){
+            continue;
+        }
         if(event.eventType === "EXPENSE" && event.isDiscretionary === true){
             totalExpenses+=event.amount;
         }   
@@ -522,8 +530,181 @@ async function processDiscretionaryExpenses(scenario) { //returns amount not pai
     return toReturn;
 
 }
-async function processInvestmentEvents(scenario, investments) { /* ... */ }
-async function rebalanceInvestments(scenario, investments) { /* ... */ }
+async function processInvestmentEvents(scenario, currentYear) {
+    //cannot include pre-tax-retirement
+    //first, get chashinvestment to determine avaliable amount to invest
+    //get the invest event (should only be 1)
+    //ensure that investing will not lead to a violation of annualPostTaxContributionLimit
+    //if so, adjust asset allocation
+    //invest amounts
+    const eventFactory = new EventController();
+    const investmentTypeFactory = new InvestmentTypeController();
+    const investmentFactory = new InvestmentController();
+    const realYear = new Date().getFullYear();
+    let cashInvestment;
+    for(const investmentTypeIDIndex in scenario.investmentTypes){
+        const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
+        const investmentType = await investmentTypeFactory.read(investmentTypeID);
+        if(investmentType.name === "Cash"){
+            cashInvestment = await investmentFactory.read(investmentType.investments[0]);
+        }
+        
+    }
+    if(!cashInvestment){
+        console.log("CRITICAL ERROR: COULD NOT FIND CASH INVESTMENT IN processDiscretionaryExpenses()");
+        throw("CRITICAL ERROR: COULD NOT FIND CASH INVESTMENT IN processDiscretionaryExpenses()");
+    }
+    if(cashInvestment.value<=0){
+        return;
+    }
+    
+    //get invest event in this time period:
+    for(const eventIDIndex in scenario.events){
+        const eventID = scenario.events[eventIDIndex];
+        const event = await eventFactory.read(eventID);
+        
+        if(!(event.startYear<=realYear+currentYear&&event.duration+event.startYear>=realYear+currentYear)){
+            continue;
+        }
+        
+        if(event.eventType !== "INVEST"){
+            continue;
+        }
+        
+        let amountToInvest = cashInvestment.value - event.maximumCash;
+        if(amountToInvest<=0){
+            return;
+        }
+        //check to see if all investment are limited, if so, lower total amount:
+        let foundNonRetierment = false;
+        for(const investmentIDIndex in event.allocatedInvestments){
+            const investmentID = event.allocatedInvestments[investmentIDIndex];
+            const investment = await investmentFactory.read(investmentID);
+            if(investment.taxStatus==="NON_RETIREMENT"){
+                foundNonRetierment=true;
+            }
+        }
+        if(!foundNonRetierment){
+            //change investment amount to be annualPostTaxContributionLimit
+            amountToInvest = Math.max(scenario.annualPostTaxContributionLimit, amountToInvest);
+
+        }
+        await investmentFactory.update(cashInvestment.id, {value: cashInvestment.value - amountToInvest});
+        //determine percantage to invest in each:
+        let proportions = [];
+        if(event.assetAllocationType==="FIXED"){
+            proportions = {... event.percentageAllocations};
+        }
+        else if(event.assetAllocationType==="GLIDE"){
+            for(const boundsIndex in event.percentageAllocations){
+                let bounds =  event.percentageAllocations[boundsIndex];
+                let ratio = ((realYear+currentYear-event.startYear)/(event.duration));
+                let proportion = bounds[1]*ratio + bounds[0]*(1-ratio);
+                proportions.push(proportion);
+            }
+        }
+        let tentativeInvestmentAmounts = [];
+        for(const i in proportions){
+            const p = proportions[i];
+            tentativeInvestmentAmounts.push(p*amountToInvest);
+        }
+        
+        
+        //calculate B = sum of the amounts to buy of
+        //investments with tax status = “after-tax retirement”
+        let b = 0;
+        for(const investmentIDIndex in event.allocatedInvestments){
+            const investmentID = event.allocatedInvestments[investmentIDIndex];
+            const investment = await investmentFactory.read(investmentID);
+            if(investment.taxStatus==="AFTER_TAX_RETIREMENT"){
+                b+=tentativeInvestmentAmounts[investmentIDIndex];
+            }
+        }
+        //console.log(`b is ${b}`);
+        //console.log(scenario.annualPostTaxContributionLimit);
+        if(b>scenario.annualPostTaxContributionLimit){
+            let lbRatio = scenario.annualPostTaxContributionLimit/b;
+            //scale down investments and
+            //determine proportion taken up by AFTER_TAX_RETIREMENT accounts
+            let totalProportion = 0;
+            for(const investmentIDIndex in event.allocatedInvestments){
+                const investmentID = event.allocatedInvestments[investmentIDIndex];
+                const investment = await investmentFactory.read(investmentID);
+                if(investment.taxStatus==="AFTER_TAX_RETIREMENT"){
+                    tentativeInvestmentAmounts[investmentIDIndex] *= lbRatio;
+                    totalProportion+=proportions[investmentIDIndex];
+                }
+            }
+            
+            let amountToRedistribute = b - scenario.annualPostTaxContributionLimit;
+            //redistribute investments in NON_RETIREMENT investments
+            for(const investmentIDIndex in event.allocatedInvestments){
+                const investmentID = event.allocatedInvestments[investmentIDIndex];
+                const investment = await investmentFactory.read(investmentID);
+                if(investment.taxStatus!=="AFTER_TAX_RETIREMENT"){
+                    let pro = proportions[investmentIDIndex]/(1-totalProportion);
+                    tentativeInvestmentAmounts[investmentIDIndex]+=pro*amountToRedistribute;
+                }
+            }
+
+            
+            
+        }
+
+        //distribute to all investments
+        for(const investmentIDIndex in event.allocatedInvestments){
+            const investmentID = event.allocatedInvestments[investmentIDIndex];
+            const investment = await investmentFactory.read(investmentID);
+            await investmentFactory.update(investment.id, {value: investment.value+=tentativeInvestmentAmounts[investmentIDIndex]});
+        }
+        return;
+    }
+    
+
+    
+
+}
+async function rebalanceInvestments(scenario, investments) {
+    //returns capitalGains created
+
+    //only one rebalance event per tax status
+    const eventFactory = new EventController();
+    const investmentTypeFactory = new InvestmentTypeController();
+    const investmentFactory = new InvestmentController();
+    const realYear = new Date().getFullYear();
+    
+    
+    //get rebalance event in this time period:
+    let toReturn = 0;
+    for(const eventIDIndex in scenario.events){
+        const eventID = scenario.events[eventIDIndex];
+        const event = await eventFactory.read(eventID);
+        
+        if(!(event.startYear<=realYear+currentYear&&event.duration+event.startYear>=realYear+currentYear)){
+            continue;
+        }
+        
+        if(event.eventType !== "REBALANCE"){
+            continue;
+        }
+        //get proportions:
+        
+
+        //get target values:
+
+
+        //sell
+
+        //buy:
+
+
+        //increment toReturn
+
+        
+        
+    }
+    return toReturn;
+}
 
 
 export async function simulate(
@@ -591,7 +772,9 @@ export async function simulate(
 
         for (const event of events.filter(e => e.eventType === "INCOME")) {
             const income = event.amount;
-            
+            if(!(event.startYear<=realYear+currentYear&&event.duration+event.startYear<=realYear+currentYear)){
+                continue;
+            }
             //TODO: Save breakdown of income by event
             event.amount = income;
             
@@ -629,14 +812,15 @@ export async function simulate(
         await processExpenses(simulation.scenario, lastYearTaxes);
         lastYearTaxes = thisYearTaxes;
         //returns amount not paid
-        let discretionaryAmountIgnored = await processDiscretionaryExpenses(simulation.scenario);
+        let discretionaryAmountIgnored = await processDiscretionaryExpenses(simulation.scenario, currentYear);
 
         
-        await processInvestmentEvents(simulation.scenario, investments);
+        await processInvestmentEvents(simulation.scenario, currentYear);
 
         
-        await rebalanceInvestments(simulation.scenario, investments);
-
+        thisYearGains = await rebalanceInvestments(simulation.scenario, investments);
+        lastYearGains = thisYearGains;
+        thisYearGains = 0;
         currentYear++;
     }
 

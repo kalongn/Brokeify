@@ -64,6 +64,10 @@ const testScenario = async () => {
             value: 40000,
             taxStatus: "PRE_TAX_RETIREMENT"
         });
+        const testInvestment5 = await InvestmentFactory.create({
+            value: 50000,
+            taxStatus: "AFTER_TAX_RETIREMENT"
+        });
 
         const testInvestmentType = await InvestmentTypeFactory.create({
             name: "Fixed Income",
@@ -74,7 +78,7 @@ const testScenario = async () => {
             expectedAnnualIncome: 1000,
             expectedAnnualIncomeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1000 }),
             taxability: true,
-            investments: [testInvestment1, testInvestment2, testInvestment3, testInvestment4]
+            investments: [testInvestment1, testInvestment2, testInvestment3, testInvestment4, testInvestment5]
         });
 
         const RebalanceEvent = await EventFactory.create("REBALANCE", {
@@ -82,10 +86,10 @@ const testScenario = async () => {
             description: "Rebalance the portfolio",
             startYear: 2021,
             startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
-            duration: 1,
+            duration: 100,
             durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
             assetAllocationType: "GLIDE",
-            percentageAllocations: [[0.6, 0.4], [0.5, 0.5], [0.4, 0.6]],
+            percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
             allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
             maximumCash: 1000,
             taxStatus: "NON_RETIREMENT"
@@ -96,14 +100,14 @@ const testScenario = async () => {
             description: "Invest in the portfolio",
             startYear: 2021,
             startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
-            duration: 1,
+            duration: 10,
             durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", {
                 value:
                     1
             }),
-            assetAllocationType: "FIXED",
-            percentageAllocations: [[0.6], [0.5], [0.4]],
-            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
+            assetAllocationType: "GLIDE",
+            percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
+            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment5],
             maximumCash: 1000,
         });
 
@@ -166,7 +170,7 @@ const testScenario = async () => {
             inflationAssumption: 0.02,
             inflationAssumptionDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.02 }),
             annualPreTaxContributionLimit: 19500,
-            annualPostTaxContributionLimit: 6000,
+            annualPostTaxContributionLimit: 100,
             financialGoal: 10000,
             orderedSpendingStrategy: [IncomeEvent, ExpenseEvent],
             orderedExpenseWithdrawalStrategy: [testInvestment1, testInvestment2, testInvestment3],
