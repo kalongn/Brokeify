@@ -5,7 +5,7 @@ import UserController from '../db/controllers/UserController.js';
 passport.use(new Strategy({
     clientID: `${process.env.GOOGLE_CLIENT_ID}`,
     clientSecret: `${process.env.GOOGLE_CLIENT_SECRET}`,
-    callbackURL: `${process.env.GOOGLE_REDIRECT_URI}`
+    callbackURL: `${process.env.GOOGLE_REDIRECT_URI.replace("\#", process.env.SERVER_PORT)}`, // Remove trailing slash if present
 }, async (accessToken, refreshToken, profile, done) => {
     const userController = new UserController();
     let user = await userController.findByGoogleId(profile.id);
