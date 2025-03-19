@@ -1,7 +1,27 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import Axios from "axios";
+
 import Navbar from "../components/Navbar";
 import style from './Home.module.css';
 import Layout from "../components/Layout";
 const Home = () => {
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    Axios.get("/profile")
+      .then((response) => {
+        console.log("User Profile Data:", response.data);
+        setUser(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching user session:', error);
+      });
+
+  }, []);
+
   return (
     <Layout>
         {/* TODO: remove when layout is finalized */}
@@ -25,6 +45,20 @@ Praesent tincidunt lorem quis mi molestie eleifend. Fusce rutrum lobortis fringi
 
 Sed feugiat, diam tempus bibendum faucibus, mi massa sagittis diam, eget scelerisque mauris orci maximus arcu. Etiam euismod laoreet dui eu bibendum. Suspendisse at nulla quis enim ornare luctus. Maecenas sit amet magna ac ante vehicula gravida vel at diam. Ut varius metus vel purus consequat, sit amet varius elit blandit. Aenean lorem elit, ornare id ante eget, lacinia aliquet ante. In hac habitasse platea dictumst. Cras nec finibus lacus, non porttitor mi.</p>
     </Layout>
+    <div>
+      <h1>Home Page</h1>
+      <p>Welcome to the home page!</p>
+      <Link to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Go back to Login</Link>
+      {user && (
+        <div>
+          <h2>User Profile</h2>
+          <p>Name: {user.firstName} {user.lastName}</p>
+          <p>Email: {user.email}</p>
+          <img src={user.picture} alt="User Profile" />
+        </div>
+      )}
+      {!user && <p>Please log in to see your profile.</p>}
+    </div>
   );
 }
 

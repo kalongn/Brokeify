@@ -12,17 +12,13 @@ const App = () => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
 
-    // TODO: The Backend needs to be implemented to handle the session
-    // This is a placeholder for checking if the user is logged in
-    // Uncomment this when the backend is ready to handle sessions
-
-    // Axios.get('/')
-    //   .then((response) => {
-    //     console.log('User session:', response.data);
-    //   })
-    //   .catch((error) => {
-    //     console.error('Error fetching user session:', error);
-    //   });
+    Axios.get('/')
+      .then((response) => {
+        console.log('User session:', response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching user session:', error);
+      });
   }, []);
 
   return (
