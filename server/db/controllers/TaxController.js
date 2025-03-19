@@ -77,6 +77,23 @@ export default class TaxController {
             throw new Error(error);
         }
     }
+
+
+    /**
+     * This function reads a Tax with the given id
+     * @param {mongoose.Types.ObjectId} id 
+     *      Id of the Tax to be read
+     * @returns 
+     *      Returns the Tax with the given id
+     */
+    async read(id) {
+        try {
+            return await Tax.findById(id);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
     /**
      * This function update a Tax with the given id and data
      * @param {mongoose.Types.ObjectId} id 

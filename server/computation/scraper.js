@@ -25,7 +25,7 @@ export async function scrapeFederalIncomeTaxBrackets() {
         $('table tbody tr').each((index, element)=>{
             const tds = $(element).find('td');
             let hb = Number($(tds[2]).text().trim().replace(/[^0-9.-]+/g,""));
-            if(hb==0){hb = Number.MAX_VALUE;}
+            if(hb==0){hb = Infinity;}
             const bracket = {
                 rate: Number($(tds[0]).text().trim().replace(/[^0-9.-]+/g,"")),
                 lowBound: Number($(tds[1]).text().trim().replace(/[^0-9.-]+/g,"")),
@@ -236,7 +236,7 @@ export async function fetchCapitalGainsData() {
         //single:
         const singleBracket1 = {rate: rate1, lowBound: 0, highBound: bracketValues[0]};
         const singleBracket2 = {rate: rate2, lowBound: bracketValues[0]+1, highBound: bracketValues[4]};
-        const singleBracket3 = {rate: rate3, lowBound: bracketValues[4]+1, highBound: Number.MAX_VALUE};
+        const singleBracket3 = {rate: rate3, lowBound: bracketValues[4]+1, highBound: Infinity};
         single.push(singleBracket1);
         single.push(singleBracket2);
         single.push(singleBracket3);
@@ -245,7 +245,7 @@ export async function fetchCapitalGainsData() {
         //married joint:
         const marriedJointBracket1 = {rate: rate1, lowBound: 0, highBound: bracketValues[1]};
         const marriedJointBracket2 = {rate: rate2, lowBound: bracketValues[1]+1, highBound: bracketValues[8]};
-        const marriedJointBracket3 = {rate: rate3, lowBound: bracketValues[8]+1, highBound: Number.MAX_VALUE};
+        const marriedJointBracket3 = {rate: rate3, lowBound: bracketValues[8]+1, highBound: Infinity};
         marriedJoint.push(marriedJointBracket1);
         marriedJoint.push(marriedJointBracket2);
         marriedJoint.push(marriedJointBracket3);
@@ -254,7 +254,7 @@ export async function fetchCapitalGainsData() {
         //married seperate:
         const marriedSeperateBracket1 = {rate: rate1, lowBound: 0, highBound: bracketValues[0]};
         const marriedSeperateBracket2 = {rate: rate2, lowBound: bracketValues[0]+1, highBound: bracketValues[6]};
-        const marriedSeperateBracket3 = {rate: rate3, lowBound: bracketValues[6]+1, highBound: Number.MAX_VALUE};
+        const marriedSeperateBracket3 = {rate: rate3, lowBound: bracketValues[6]+1, highBound: Infinity};
         marriedSeperate.push(marriedSeperateBracket1);
         marriedSeperate.push(marriedSeperateBracket2);
         marriedSeperate.push(marriedSeperateBracket3);
@@ -263,7 +263,7 @@ export async function fetchCapitalGainsData() {
         //head of household:
         const headOfHouseholdBracket1 = {rate: rate1, lowBound: 0, highBound: bracketValues[2]};
         const headOfHouseholdBracket2 = {rate: rate2, lowBound: bracketValues[2]+1, highBound: bracketValues[10]};
-        const headOfHouseholdBracket3 = {rate: rate3, lowBound: bracketValues[10]+1, highBound: Number.MAX_VALUE};
+        const headOfHouseholdBracket3 = {rate: rate3, lowBound: bracketValues[10]+1, highBound: Infinity};
         headOfHousehold.push(headOfHouseholdBracket1);
         headOfHousehold.push(headOfHouseholdBracket2);
         headOfHousehold.push(headOfHouseholdBracket3);
