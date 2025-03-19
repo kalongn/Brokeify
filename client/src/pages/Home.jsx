@@ -1,19 +1,38 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import Axios from "axios";
 
 const Home = () => {
+  const [user, setUser] = useState(null);
   useEffect(() => {
-    // Placeholder for any setup or API calls when the Home component mounts
-    // For example, you could fetch user data or settings here
-    console.log("Home component mounted");
-  }
-  , []);
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    Axios.get("/profile")
+      .then((response) => {
+        console.log("User Profile Data:", response.data);
+        setUser(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching user session:', error);
+      });
+
+  }, []);
 
   return (
     <div>
       <h1>Home Page</h1>
       <p>Welcome to the home page!</p>
       <Link to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Go back to Login</Link>
+      {user && (
+        <div>
+          <h2>User Profile</h2>
+          <p>Name: {user.firstName} {user.lastName}</p>
+          <p>Email: {user.email}</p>
+          <img src={user.picture} alt="User Profile" />
+        </div>
+      )}
+      {!user && <p>Please log in to see your profile.</p>}
     </div>
   );
 }
