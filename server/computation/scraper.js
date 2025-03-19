@@ -4,7 +4,7 @@ import * as cheerio from 'cheerio';
 //This scaper is not flexible: it may only be re-used in the case of a change of values
 //Any change in the structure of the relevant tables/fields will result in a fatal error
 
-async function scrapeFederalIncomeTaxBrackets() {
+export async function scrapeFederalIncomeTaxBrackets() {
     try {
         const url = 'https://www.irs.gov/filing/federal-income-tax-rates-and-brackets';
         const { data } = await axios.get(url);
@@ -62,9 +62,9 @@ async function scrapeFederalIncomeTaxBrackets() {
     }
 }
 //For testing: can do node scraper.js
-scrapeFederalIncomeTaxBrackets().then(brackets => console.log(brackets));
+//scrapeFederalIncomeTaxBrackets().then(brackets => console.log(brackets));
 
-async function scrapeStandardDeductions() {
+export async function scrapeStandardDeductions() {
     try {
         const url = 'https://www.irs.gov/publications/p17';
         const { data } = await axios.get(url);
@@ -107,9 +107,9 @@ async function scrapeStandardDeductions() {
 }
 
 //test usage
-scrapeStandardDeductions().then(deductions => console.log(deductions));
+//scrapeStandardDeductions().then(deductions => console.log(deductions));
 
-async function fetchCapitalGainsData() {
+export async function fetchCapitalGainsData() {
     try {
         const url = 'https://www.irs.gov/taxtopics/tc409';
         const { data } = await axios.get(url);
@@ -278,7 +278,91 @@ async function fetchCapitalGainsData() {
   
     }
 }
-fetchCapitalGainsData().then(data => console.log(data)).catch(err => console.error(err));
+//fetchCapitalGainsData().then(data => console.log(data)).catch(err => console.error(err));
 
 //scrape RMD tables
+export async function fetchRMDTable(){
+    try {
+        const url = 'https://www.irs.gov/publications/p590b#en_US_2023_publink100090310';
+        const { data } = await axios.get(url);
+        const $ = cheerio.load(data);
 
+        let rawtableData = [];
+
+    
+   
+        const table = $('table[summary="Appendix B. Uniform Lifetime Table"]');
+
+        if (!table.length) {
+        console.log('Table with specified name not found.');
+        return [];
+        }
+
+        
+        
+        
+        table.find('tbody tr').each((index, element) => {
+            const row = {};
+            $(element).find('td').each((i, el) => {
+                row[i] = $(el).text().trim();
+            });
+            rawtableData.push(row);
+        });
+        let ages = [];
+        let distributions = [];
+        let boolAtTable = false;
+        let toBreak = false;
+
+        //do left side first
+        let p = 0;
+        for(const i in rawtableData){
+            if(!boolAtTable){
+                if(rawtableData[i][0] ==='Age'){
+                    boolAtTable=true;
+                }
+                continue;
+            }
+            //check to see if at '120 and over'
+            let age = rawtableData[i][0];
+            
+            age = Number(age);
+            let distribution = Number(rawtableData[i][1]);
+            distributions.push(distribution);
+            ages.push(age);
+
+            p++;
+        }
+        //right side
+        toBreak = false;
+        boolAtTable = false;
+        for(const i in rawtableData){
+            if(!boolAtTable){
+                if(rawtableData[i][0] ==='Age'){
+                    boolAtTable=true;
+                }
+                continue;
+            }
+            //check to see if at '120 and over'
+            let age = rawtableData[i][2];
+            if(rawtableData[i][2]==='120 and over'){
+                age = '120';
+                toBreak = true;
+            }
+            age = Number(age);
+            let distribution = Number(rawtableData[i][3]);
+            distributions.push(distribution);
+            ages.push(age);
+
+
+            if(toBreak) break;
+        }
+
+        
+        
+        return {ages, distributions};
+    } catch (error) {
+        console.error('Error fetching Uniform Lifetime Table:', error);
+        return [];
+    }
+}
+//fetchRMDTable().then(data => console.log(data)).catch(err => console.error(err));
