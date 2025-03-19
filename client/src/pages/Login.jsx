@@ -12,11 +12,11 @@ const Login = () => {
           <div className={styles.subtitle}>
             <h1>Your Future,</h1>
             <h1>Your Plan,</h1>
-            <h1 className={styles.important}>Our Guidence</h1>
+            <h1 className={styles.important}>Our Guidance</h1>
           </div>
         </div>
         <div className={styles.buttons}>
-          <Link className={`${styles.button} ${styles.googleButton}`} onClick={() => { console.log('Login Button') }}>
+          <Link className={`${styles.button} ${styles.googleButton}`} to={`${import.meta.env.VITE_SERVER_ADDRESS}/auth/google`} onClick={() => { console.log('Login Button') }}>
             <img src='/src/assets/google.svg' alt='Google Icon' />
             Login with Google
           </Link>
