@@ -12,7 +12,7 @@ const Login = () => {
           <div className={styles.subtitle}>
             <h1>Your Future,</h1>
             <h1>Your Plan,</h1>
-            <h1 className={styles.important}>Our Guidence</h1>
+            <h1 className={styles.important}>Our Guidance</h1>
           </div>
         </div>
         <div className={styles.buttons}>
