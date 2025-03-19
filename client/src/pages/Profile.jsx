@@ -2,6 +2,12 @@
 
 import Layout from "../components/Layout";
 import style from './Profile.module.css';
+import { FaTrashAlt } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa";
+import { FaUpload } from "react-icons/fa";
+
+//I temporarily threw in text for the buttons, ^ means upload
+//X means trash, I will update them with the correct icons later
 const Profile = () => {
   return (
     <Layout>
@@ -9,12 +15,12 @@ const Profile = () => {
 
         <div className = {style.profile}>
             <div>
-            <img className = {style.profileImage} src = "src\assets\sharlottePic.jpg"></img>
+            <img className = {style.profileImage} src = "src/assets\sharlottePic.jpg"></img>
        
             <div className= {style.profileInfo}>
             <h2>Your Information</h2>
             <p>Full Name</p>
-            <p className = {style.infoInput}>Sharolette Webb</p>
+            <p classNames = {style.infoInput}>Sharolette Webb</p>
             <p>Email</p>
             <p className = {style.infoInput}>sharolette.webb@gmail.com</p>
             <p>Birth Year</p>
@@ -25,7 +31,7 @@ const Profile = () => {
             <div className= {style.fileInfo}>
             <h2>File Upload</h2>
             <p>Here you can upload a YAML file containing information about state income taxes and brackets. Note that without this data, the financial projection will ignore state income taxes not in the database.</p>
-            <button className={style.uploadButton}>^ Upload YAML</button>
+            <button className={style.uploadButton}> <FaUpload />  Upload YAML</button>
 
             <table>
               <thead>
@@ -40,7 +46,7 @@ const Profile = () => {
               <tr>
               <td>Temporary Name</td>
               <td> Temporary Date</td> 
-              <td><button>^</button><button>X</button></td>
+              <td><button><FaDownload /></button><button><FaTrashAlt /></button></td>
               </tr>
               </tbody>
             </table>
