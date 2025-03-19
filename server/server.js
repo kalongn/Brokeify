@@ -3,7 +3,7 @@ import session from 'express-session';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import passport from 'passport';
-import { Strategy as GoogleStrategy, Strategy } from 'passport-google-oauth20';
+import { Strategy } from 'passport-google-oauth20';
 import 'dotenv/config'
 
 import UserController from './db/controllers/UserController.js';
