@@ -4,6 +4,8 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import passport from 'passport';
 import { Strategy } from 'passport-google-oauth20';
+import MongoStore from 'connect-mongo';
+
 import 'dotenv/config'
 
 import UserController from './db/controllers/UserController.js';
@@ -37,7 +39,14 @@ app.use(
             maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days in milliseconds.
         },
         resave: false,
-        saveUninitialized: false //TODO: This need to save to MongoDB later
+        saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: mongoDB,
+            collectionName: 'sessions',
+            ttl: 7 * 24 * 60 * 60, // 7 days in seconds
+            autoRemove: 'interval', // Automatically remove expired sessions
+            autoRemoveInterval: 10 // Interval in minutes to check for expired sessions
+        })
     })
 );
 
