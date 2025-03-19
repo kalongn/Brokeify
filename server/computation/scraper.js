@@ -279,3 +279,6 @@ async function fetchCapitalGainsData() {
     }
 }
 fetchCapitalGainsData().then(data => console.log(data)).catch(err => console.error(err));
+
+//scrape RMD tables
+

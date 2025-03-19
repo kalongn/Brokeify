@@ -62,7 +62,21 @@ export default class TaxController {
     }
 
     // no read, readAll, delete function as not needed, as we will attach these values to the user object / global User (aka a dummy User) object
-
+    /**
+     * This function reads all Taxes
+     * @returns 
+     *      Returns all Taxes
+     * @throws Error
+     *      Throws error if any error occurs
+     */
+    async readAll() {
+        try {
+            return await Tax.find();
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
     /**
      * This function update a Tax with the given id and data
      * @param {mongoose.Types.ObjectId} id 

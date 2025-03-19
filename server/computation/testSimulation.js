@@ -18,6 +18,8 @@ import ResultController from "../db/controllers/ResultController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
 
 import { simulate } from "./simulator.js";
+import { validateRun } from "./planValidator.js";
+
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
 
@@ -171,7 +173,7 @@ const testScenario = async () => {
             inflationAssumptionDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.02 }),
             annualPreTaxContributionLimit: 19500,
             annualPostTaxContributionLimit: 100,
-            financialGoal: 10000,
+            financialGoal: 1000000,
             orderedSpendingStrategy: [IncomeEvent, ExpenseEvent],
             orderedExpenseWithdrawalStrategy: [testInvestment1, testInvestment2, testInvestment3],
             orderedRMDStrategy: [testInvestment1, testInvestment2, testInvestment3],
