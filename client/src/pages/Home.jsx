@@ -2,7 +2,7 @@ import Layout from "../components/Layout";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Axios from "axios";
-
+import ScenarioCard from "../components/ScenarioCard";
 import style from './Home.module.css';
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -24,6 +24,15 @@ const Home = () => {
   return (
     <Layout>
       <div className={style.background}>
+      <div>
+      <ScenarioCard
+        title="Retired at 50 with kids"
+        name="Single"
+        targetAmount={400000}
+        investments={12}
+        events={26}
+      />
+    </div>
       <h1>Home Page</h1>
       <p>Welcome to the home page!</p>
       <Link to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Go back to Login</Link>
