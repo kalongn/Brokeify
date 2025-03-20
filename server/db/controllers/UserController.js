@@ -64,6 +64,28 @@ export default class UserController {
     }
 
     /**
+     * This function finds a User with the given googleId
+     *      This is used for authentication with Google
+     *      and to check if the User already exists in the database
+     *      before creating a new User
+     * @param {String} googleId 
+     *      Google Id of the User to be found
+     * @returns 
+     *      Returns the User with the given googleId
+     * @throws Error
+     *      Throws error if the User is not found or if any error occurs
+     */
+    async findByGoogleId(googleId) {
+        try {
+            return await User.findOne
+                ({ googleId });
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
      * This function deletes a User with the given id
      * @param {mongoose.Types.ObjectId} id 
      *      Id of the User to be deleted

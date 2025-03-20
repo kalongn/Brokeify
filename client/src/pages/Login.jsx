@@ -16,7 +16,7 @@ const Login = () => {
           </div>
         </div>
         <div className={styles.buttons}>
-          <Link className={`${styles.button} ${styles.googleButton}`} onClick={() => { console.log('Login Button') }}>
+          <Link className={`${styles.button} ${styles.googleButton}`} to={`${import.meta.env.VITE_SERVER_ADDRESS}/auth/google`} onClick={() => { console.log('Login Button') }}>
             <img src='/src/assets/google.svg' alt='Google Icon' />
             Login with Google
           </Link>

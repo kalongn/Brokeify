@@ -1,0 +1,41 @@
+on:
+    pull_request:
+        branches:
+            - main
+    push:
+        branches:
+            - main
+
+jobs:
+    eslint:
+        name: Run ESLint
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: '20.x'
+
+            - name: Install dependencies for client
+              run: |
+                cd client
+                npm install
+
+            - name: Run ESLint for client
+              run: |
+                cd client
+                npm run lint
+
+            # - name: Install dependencies for server
+            #   run: |
+            #     cd server
+            #     npm install
+
+            # - name: Run ESLint for server
+            #   run: |
+            #     cd server
+            #     npm run lint
