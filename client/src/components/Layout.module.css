@@ -9,6 +9,6 @@
   flex-direction: column;
   grid-area: 1 / 2 / 3 / 3;
 }
-#pageContent>main {
+/* #pageContent>main {
   padding: 1rem;
-}
+} */
