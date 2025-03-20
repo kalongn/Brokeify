@@ -9,7 +9,7 @@ const Layout = ({children}) => {
         <Navbar/>
         <div id={style.pageContent}>
             <Header/>
-            <main>{children}</main>
+            <main id = {style.content}>{children}</main>
         </div>
       </div>
     );

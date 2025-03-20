@@ -2,6 +2,7 @@
 
 import Layout from "../components/Layout";
 import style from './Profile.module.css';
+import layoutStyle from '../components/Layout.module.css';
 import { FaTrashAlt } from "react-icons/fa";
 import { FaDownload } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
@@ -11,7 +12,7 @@ import { FaUpload } from "react-icons/fa";
 const Profile = () => {
   return (
     <Layout>
-       <div className = {style.profileBackground}>
+       <div className = {style.profileBackground} >
 
         <div className = {style.profile}>
             <div>
@@ -46,7 +47,7 @@ const Profile = () => {
               <tr>
               <td>Temporary Name</td>
               <td> Temporary Date</td> 
-              <td><button><FaDownload /></button><button><FaTrashAlt /></button></td>
+              <td className = {style.fileActions}><button><FaDownload /></button><button><FaTrashAlt /></button></td>
               </tr>
               </tbody>
             </table>
