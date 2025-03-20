@@ -1,7 +1,6 @@
 //This component parses a user's request, calls to db or scraper to attain
 //and compile RMD tables and Tax info, creates worker threads, then calls simulate()
 
-
 //Note: This is not a very efficient approach, but it does make the code simpler
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
@@ -16,6 +15,7 @@ import ResultController from "../db/controllers/ResultController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
 
 import { scrapeFederalIncomeTaxBrackets, scrapeStandardDeductions, fetchCapitalGainsData, fetchRMDTable } from "./scraper.js";
+import { simulate } from "./simulator.js";
 async function validate(scenarioID){
     
 }
@@ -198,14 +198,211 @@ async function clone(scenarioID){
     //orderedRMDStrategy
     //orderedRothStrategy
 
+    //The following code was initially written by ChatGPT with the prompt:
+    /*
+        Write me a function that does a deep clone of scenario, making sure to clone 
+        investments, Investment Types, and events. Also, ensure that
+        ref ids are changed in orderedSpendingStrategy, orderedExpenseWithdrawalStrategy,
+        orderedRMDStrategy, orderedRothStrategy: {pasted in scenario schema}
+    */
+    /*
+        Takeaways: 
+        - ChatGPT did not understand the structure of a database, or our controllers
+        - Did a decent job at using javascript functionality
+
+    */
+   
+    const scenarioFactory = new ScenarioController();
+    const investmentTypeFactory = new InvestmentTypeController();
+    const investmentFactory = new InvestmentController();
+    const eventFactory = new EventController();
+    const unmodifiedScenario = await scenarioFactory.read(scenarioID);
+    const originalScenario = await unmodifiedScenario.populate('investmentTypes events orderedSpendingStrategy orderedExpenseWithdrawalStrategy orderedRMDStrategy orderedRothStrategy');
+    // console.log("ORIGINAL")
+    // console.log(originalScenario);
     
+    if (!originalScenario) {
+        throw new Error('Scenario not found');
+    }
+    //console.log(originalScenario);
+    const idMap = new Map();
+    
+    // Clone Investment Types and Investments
+    const clonedInvestmentTypes = await Promise.all(
+        originalScenario.investmentTypes.map(async (typeId) => {
+            const type = await investmentTypeFactory.read(typeId);
+            if (!type) return null;
+
+            const clonedInvestments = await Promise.all(
+                type.investments.map(async (invId) => {
+                    const investment = await investmentFactory.read(invId);
+                    if (!investment) return null;
+
+                    const clonedInvestment = await investmentFactory.create({
+                        value: investment.value,
+                        taxStatus: investment.taxStatus,
+                    });
+
+                    idMap.set(invId.toString(), clonedInvestment.id);
+                    return clonedInvestment.id;
+                })
+            );
+
+            const clonedType = await investmentTypeFactory.create({
+                ...type,
+                investments: clonedInvestments.filter(Boolean),
+            });
+
+            idMap.set(typeId.toString(), clonedType.id);
+            return clonedType.id;
+        })
+    );
+
+    // Clone Events
+    const clonedEvents = await Promise.all(
+        originalScenario.events.map(async (eventId) => {
+            const event = await eventFactory.read(eventId);
+            if (!event) return null;
+            //console.log({...event});
+            let clonedEvent = null;
+            if(event.eventType==="REBALANCE"){
+                clonedEvent = await eventFactory.create(event.eventType, {
+                    eventType: event.eventType,
+                    name: event.name,
+                    description: event.description,
+                    startYear: event.startYear,
+                    startYearTypeDistribution: event.startYearTypeDistribution,
+                    duration: event.duration,
+                    durationTypeDistribution: event.durationTypeDistribution,
+                    assetAllocationType: event.assetAllocationType,
+                    percentageAllocations: event.percentageAllocations, 
+                    allocatedInvestments: event.allocatedInvestments.map(id => idMap.get(id.toString())),
+                    maximumCash: event.maximumCash,
+                    taxStatus: event.taxStatus
+                });
+            }
+            if(event.eventType==="INVEST"){
+                clonedEvent = await eventFactory.create(event.eventType, {
+                    eventType: event.eventType,
+                    name: event.name,
+                    description: event.description,
+                    startYear: event.startYear,
+                    startYearTypeDistribution: event.startYearTypeDistribution,
+                    duration: event.duration,
+                    durationTypeDistribution: event.durationTypeDistribution,
+                    assetAllocationType: event.assetAllocationType,
+                    percentageAllocations: event.percentageAllocations, 
+                    allocatedInvestments: event.allocatedInvestments.map(id => idMap.get(id.toString())),
+                    maximumCash: event.maximumCash,
+                });
+            }
+            if(event.eventType==="INCOME"){
+                clonedEvent = await eventFactory.create(event.eventType, {
+                    eventType: event.eventType,
+                    name: event.name,
+                    description: event.description,
+                    startYear: event.startYear,
+                    startYearTypeDistribution: event.startYearTypeDistribution,
+                    duration: event.duration,
+                    durationTypeDistribution: event.durationTypeDistribution,
+                    amount: event.amount,
+                    expectedAnnualChange: event.expectedAnnualChange,
+                    expectedAnnualChangeDistribution: event.expectedAnnualChangeDistribution,
+                    isinflationAdjusted: event.isinflationAdjusted,
+                    userContributions: event.userContributions,
+                    spouseContributions:event.spouseContributions,
+                    isSocialSecurity: event.isSocialSecurity,
+                });
+            }
+            if(event.eventType==="EXPENSE"){
+                clonedEvent = await eventFactory.create(event.eventType, {
+                    eventType: event.eventType,
+                    name: event.name,
+                    description: event.description,
+                    startYear: event.startYear,
+                    startYearTypeDistribution: event.startYearTypeDistribution,
+                    duration: event.duration,
+                    durationTypeDistribution: event.durationTypeDistribution,
+                    amount: event.amount,
+                    expectedAnnualChange:event.expectedAnnualChange,
+                    expectedAnnualChangeDistribution:event.expectedAnnualChangeDistribution,
+                    isinflationAdjusted: event.isinflationAdjusted,
+                    userContributions: event.userContributions,
+                    spouseContributions: event.spouseContributions,
+                    isDiscretionary: event.isDiscretionary,
+                });
+            }
+            
+
+            idMap.set(eventId.toString(), clonedEvent.id);
+            return clonedEvent.id;
+        })
+    );
+
+    // Clone Scenario
+    const clonedScenario = await scenarioFactory.create({
+        name: `${originalScenario.name} CLONE`,
+        filingStatus: originalScenario.filingStatus,
+        userBirthYear: originalScenario.userBirthYear,
+        spouseBirthYear: originalScenario.spouseBirthYear,
+        userLifeExpectancy: originalScenario.userLifeExpectancy,
+        spouseLifeExpectancy: originalScenario.spouseLifeExpectancy,
+        investmentTypes: clonedInvestmentTypes.filter(Boolean),
+        events: clonedEvents.filter(Boolean),
+        inflationAssumption: originalScenario.inflationAssumption,
+        inflationAssumptionDistribution: originalScenario.inflationAssumptionDistribution,
+        annualPreTaxContributionLimit: originalScenario.annualPreTaxContributionLimit,
+        annualPostTaxContributionLimit: originalScenario.annualPostTaxContributionLimit,
+        financialGoal: originalScenario.financialGoal,
+        orderedSpendingStrategy: originalScenario.orderedSpendingStrategy.map(id => idMap.get(id.toString()) || id),
+        orderedExpenseWithdrawalStrategy: originalScenario.orderedExpenseWithdrawalStrategy.map(id => idMap.get(id.toString()) || id),
+        orderedRMDStrategy: originalScenario.orderedRMDStrategy.map(id => idMap.get(id.toString()) || id),
+        orderedRothStrategy: originalScenario.orderedRothStrategy.map(id => idMap.get(id.toString()) || id),
+        startYearRothOptimizer: originalScenario.startYearRothOptimizer,
+        endYearRothOptimizer:originalScenario.endYearRothOptimizer,
+        
+    });
+    //console.log("CLONED:");
+    //console.log(await clonedScenario.populate('investmentTypes events orderedSpendingStrategy orderedExpenseWithdrawalStrategy orderedRMDStrategy orderedRothStrategy'));
+    return clonedScenario;
+}
+
+async function chooseEventTimeframe(scenario){
+    //determine when events will start and end using sample, making sure that
+    //conflicting events do not overlap
+    //save determined start years and durations in {expexted...} variables
 }
 async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, stateDeduction, rmdTable){
     //deep clone then run simulation then re-splice original scenario in simulation output
-
+    
+    let copiedScenario = await clone(scenarioID);
+    let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, stateDeduction, capitalGains, rmdTable);
+    //console.log(simulationResult);
+    return simulationResult;
 }
 
-
+async function eraseScenario(scenarioID){
+    //erase the scenario and all investments, events, investmentTypes associated with it
+    const scenarioFactory = new ScenarioController();
+    const investmentTypeFactory = new InvestmentTypeController();
+    const investmentFactory = new InvestmentController();
+    const eventFactory = new EventController();
+    const scenario = await scenarioFactory.read(scenarioID);
+    //first, get & erase all investments & investmentTypes
+    for(const i in scenario.investmentTypes){
+        const investmentType = await investmentTypeFactory.read(scenario.investmentTypes[i]);
+        for(const j in investmentType.investments){
+            await investmentFactory.delete(investmentType.investments[j]);
+        }
+        await investmentTypeFactory.delete(scenario.investmentTypes[i]); 
+    }
+    //erase all events
+    for(const i in scenario.events){
+        await eventFactory.delete(scenario.events[i]);
+    }
+    //erase scenario
+    await scenarioFactory.shallowDelete(scenarioID);
+}
 
 //recives ID of scenario in db
 export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandardDeductionID){
@@ -220,13 +417,13 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
         throw err;
     }
     const scrapeReturn = await scrape();
-    console.log(scrapeReturn);
+    //console.log(scrapeReturn);
     //depending on if scenario is single or joint, pass in different values to run:
     const scenario = await scenarioFactory.read(scenarioID);
     let fedIncome = null;
     let capitalGains = null;
     let fedDeduction = null;
-    let rmdTable = scenario.rmdTable;
+    let rmdTable = scrapeReturn.rmdTable;
     if(scenario.filingStatus==="SINGLE"){
         fedIncome = scrapeReturn.federalIncomeSingle;
         capitalGains = scrapeReturn.capitalGainsSingle;
@@ -240,9 +437,12 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
 
     const stateTax = await taxFactory.read(stateTaxID);
     const stateDeduction = await taxFactory.read(stateStandardDeductionID)
+    
+    //Array of simulations
+    const compiledResults = [];
     //TODO: parralelism
     for(let i=0;i<numTimes;i++){
-        const runResult = run(
+        let runResult = await run(
             scenarioID, 
             fedIncome, 
             capitalGains, 
@@ -251,6 +451,15 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
             stateDeduction, 
             rmdTable
         );
+        //Replace runResult.scenario with scenario, to erase the fact we cloned
+        let clonedScenarioID = runResult.scenario.id;
+        runResult.scenario = scenario;
+        //console.log(runResult);
+        await eraseScenario(clonedScenarioID);
+        compiledResults.push(runResult);
+
 
     }
+    //console.log(await scenarioFactory.readAll());
+    return compiledResults;
 }

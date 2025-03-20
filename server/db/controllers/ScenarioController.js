@@ -85,6 +85,23 @@ export default class ScenarioController {
     }
 
     /**
+     * This function deletes the Scenario with the given id
+     * @param {mongoose.Types.ObjectId} id 
+     * @returns 
+     *      Returns the deleted Scenario
+     * @throws Error
+     *      Throws error if the Scenario is not found or if any error occurs
+     */
+    async shallowDelete(id) {
+        try {
+            return await Scenario.findByIdAndDelete(id);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
      * This function deletes a Scenario with the given id
      * @param {mongoose.Types.ObjectId} id 
      *      Id of the Scenario to be deleted
