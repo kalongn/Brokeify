@@ -47,7 +47,7 @@ router.get("/profile", (req, res) => {
                 res.status(500).send("Error retrieving user profile.");
             });
     } else {
-        res.status(401).send("Not authenticated");
+        res.status(404).send("Not logged in.");
     }
 });
 
