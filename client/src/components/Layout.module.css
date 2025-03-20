@@ -7,9 +7,17 @@
 
 #pageContent {
   display: flex;
+  flex-direction: column;
   position: relative;
   left: 20%;
   width: 80%;
-  flex-direction: column;
+  height: 100%;
   overflow-y: auto;
+}
+
+#content {
+  display: flex;
+  flex-direction: column;
+  height: inherit;
+  background-color: var(--color-white);
 }
