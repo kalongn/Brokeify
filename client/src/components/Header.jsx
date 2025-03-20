@@ -1,10 +1,11 @@
 import React from 'react';
+import styles from  './Header.module.css';
 
 const Header = () => {
     return (
       // TODO: replace simple header placeholder
         <header>
-            <h2>Placeholder Header</h2>
+            <h1>Placeholder Header</h1>
         </header>
     );
 };

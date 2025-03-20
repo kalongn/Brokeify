@@ -4,12 +4,17 @@
     background-color: var(--color-black);
     color: var(--color-white);
     height: 100%;
-    width: 20vw;
+    width: calc(100vw / 6);
     padding: min(2%, 3rem);
     box-sizing: border-box;
     position: fixed;
 }
-
+.navIcon {
+    margin-bottom: 4rem;
+}
+#appName {
+    margin: 0;
+}
 .navLinks {
     display: flex;
     flex-direction: column;
@@ -26,8 +31,4 @@
 
 .profileLink {
     margin-top: auto;
-    padding: 10px;
-    text-decoration: none;
-    color: var(--color-white);
-    font-size: 20px;
 }
