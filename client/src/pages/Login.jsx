@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import styles from './Login.module.css';
 const Login = () => {
   return (
-    <>
+    <div id={styles.login}>
       <div className={styles.left}>
         <div className={styles.title}>
           <div className={styles.icon}>
@@ -28,7 +28,7 @@ const Login = () => {
       <div className={styles.right}>
         <img src="/src/assets/3d-piggy-bank.svg" alt="3D Piggy Bank Rendering" />
       </div>
-    </>
+    </div>
   )
 }
 

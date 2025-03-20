@@ -1,8 +1,12 @@
 {
   "name": "brokeify",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
+  "description": "",
+  "license": "ISC",
+  "author": "",
   "type": "module",
+  "main": "eslint.config.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,6 +17,7 @@
     "axios": "^1.8.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^7.3.0"
   },
   "devDependencies": {
