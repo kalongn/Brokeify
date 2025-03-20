@@ -13,3 +13,13 @@
     height: 100vh;
 } */
  
+.background {
+
+
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgb(141, 202, 141));
+    background-size: cover;
+    padding: 1rem;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+}

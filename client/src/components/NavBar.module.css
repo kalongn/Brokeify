@@ -47,7 +47,12 @@
     color: var(--color-white);
 
 }
-
+.navIcon {
+    margin-bottom: 4rem;
+}
+#appName {
+    margin: 0;
+}
 .navLinks {
     display: flex;
     flex-direction: column;

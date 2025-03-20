@@ -9,6 +9,7 @@
   height: 4rem;
   box-sizing: border-box;
   color: var(--color-black);
+  z-index: 1;
 }
 
 header>h1 {

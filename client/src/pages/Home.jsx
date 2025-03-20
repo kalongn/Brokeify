@@ -2,6 +2,8 @@ import Layout from "../components/Layout";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Axios from "axios";
+
+import style from './Home.module.css';
 const Home = () => {
   const [user, setUser] = useState(null);
   useEffect(() => {
@@ -21,6 +23,7 @@ const Home = () => {
 
   return (
     <Layout>
+      <div className={style.background}>
       <h1>Home Page</h1>
       <p>Welcome to the home page!</p>
       <Link to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Go back to Login</Link>
@@ -53,7 +56,7 @@ const Home = () => {
         </div>
       )}
       {!user && <p>Please log in to see your profile.</p>}
-
+      </div>
     </Layout>
   );
 }
