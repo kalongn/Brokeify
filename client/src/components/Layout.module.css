@@ -1,13 +1,10 @@
-
 #layout {
-  display: inherit;
+  display: grid;
   grid-template-columns: 1fr 4fr;
-  
 }
-
 
 #pageContent {
   display: flex;
   flex-direction: column;
-  grid-area: 1 / 2 / 2 / 3; 
+  grid-area: 1 / 2 / 2 / 3;
 }
