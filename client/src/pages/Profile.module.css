@@ -16,6 +16,7 @@ body, html {
 /* Profile Image */
 .profileImage {
     width: 15rem;
+    aspect-ratio: 1/1;
     height: 15rem;
     border-radius: 50%;
     border: 5px solid var(--color-primary);

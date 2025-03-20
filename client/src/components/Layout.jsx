@@ -5,13 +5,13 @@ import style from './Layout.module.css';
 
 const Layout = ({children}) => {
     return (
-      <>
+      <div>
         <Navbar/>
         <div id={style.layout}>
             <Header/>
             <main>{children}</main>
         </div>
-      </>
+      </div>
     );
 };
 export default Layout;

@@ -20,7 +20,7 @@ const Profile = () => {
             <div className= {style.profileInfo}>
             <h2>Your Information</h2>
             <p>Full Name</p>
-            <p classNames = {style.infoInput}>Sharolette Webb</p>
+            <p className = {style.infoInput}>Sharolette Webb</p>
             <p>Email</p>
             <p className = {style.infoInput}>sharolette.webb@gmail.com</p>
             <p>Birth Year</p>
