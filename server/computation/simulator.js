@@ -978,5 +978,5 @@ export async function simulate(
     //console.log(simulation.results[0].yearlyResults);
 
     console.log("Simulation complete.");
-    return simulation;
+    return simulation.results[0];
 }

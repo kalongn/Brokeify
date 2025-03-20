@@ -58,4 +58,24 @@ export default class SimulationController {
         }
     }
     
+    /**
+     * This function deletes a Simulation with the given id
+     * @param {mongoose.Types.ObjectId} id 
+     *      Id of the Simulation to be deleted
+     * @param {Simulation} data 
+     *      Data for the Simulation to be updated
+     * @returns 
+     *      Returns the updated Simulation
+     */
+    async update(id, data) {
+        try {
+            return await Simulation.findByIdAndUpdate(id, data, {
+                new: true
+            });
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
 }
