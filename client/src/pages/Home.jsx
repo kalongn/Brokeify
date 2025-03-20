@@ -1,4 +1,3 @@
-import Navbar from "../components/Navbar";
 import style from './Home.module.css';
 import Layout from "../components/Layout";
 const Home = () => {
