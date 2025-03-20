@@ -1,7 +1,11 @@
 header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   background-color:var(--color-white);
   padding: min(2%, 3rem);
+  height: 4rem;
+  box-sizing: border-box;
   color: var(--color-black);
   box-shadow: 0 5px 5px var(--color-silver);
 }

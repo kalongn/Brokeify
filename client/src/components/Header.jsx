@@ -17,10 +17,30 @@ const Header = () => {
                 return 'Brokeify';
         }
     };
+    const getHeaderButtons = () => {
+        switch (path) {
+            case '/Home':
+                return (
+                    <>
+                    <button onClick={() => console.log('Import Scenario')}>Import Scenario</button>
+                    </>
+            );
+            case '/Profile':
+                return (
+                    <>
+                    <button onClick={() => console.log('Logout')}>Logout</button>
+                    </>
+            );
+            case '/SharedScenarios':
+            case '/ScenarioForm':
+            default:
+                return null;
+        }
+    };
     return (
-      // TODO: replace simple header placeholder
         <header>
             <h1>{getHeaderTitle()}</h1>
+            <div className={styles.buttons}>{getHeaderButtons()}</div>
         </header>
     );
 };
