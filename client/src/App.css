@@ -1,8 +1,6 @@
-/* this page layout works for login but it should not be applied to other pages */
 #root {
   min-height: inherit;
   margin: 0;
   display: grid;
-  /* grid-template-columns: 1fr 2fr; */
   min-width: 100%;
 }

@@ -8,11 +8,7 @@
     padding: min(2%, 3rem);
     box-sizing: border-box;
     position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 100;
 }
-
 
 .navLinks {
     display: flex;
