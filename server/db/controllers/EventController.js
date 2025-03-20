@@ -117,6 +117,23 @@ export default class EventController {
     }
 
     /**
+     * This function deletes the Event with the given id
+     * @param {mongoose.Types.ObjectId} id 
+     * @returns 
+     *      Returns the deleted Event
+     * @throws Error
+     *      Throws error if the Event is not found or if any error occurs
+     */
+    async shallowDelete(id) {
+        try {
+            return await Event.findByIdAndDelete(id);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
      * This function deletes the Event with the given id and returns the deleted event, 
      * it also deletes the associated distributions of the event
      * @param {mongoose.Types.ObjectId} id 

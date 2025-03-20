@@ -78,7 +78,22 @@ export default class InvestmentTypeController {
             throw new Error(error);
         }
     }
-
+    /**
+     * This function deletes the InvestmentType with the given id
+     * @param {mongoose.Types.ObjectId} id 
+     * @returns 
+     *      Returns the deleted InvestmentType
+     * @throws Error
+     *      Throws error if the InvestmentType is not found or if any error occurs
+     */
+    async shallowDelete(id) {
+        try {
+            return await InvestmentType.findByIdAndDelete(id);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
     /**
      * This function deletes the InvestmentType with
      * the given id and also deletes the associated distributions

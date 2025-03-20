@@ -16,10 +16,11 @@ async function sample(expectedValue, distributionID){
     //sample from distribution
     const factory = new DistributionController();
     const distribution = await factory.read(distributionID);
-    // if(distribution===null){
-    //     return expectedValue;
-    // }
-    console.log(distribution);
+    if(distribution===null){
+        
+        return expectedValue;
+    }
+    //console.log(distribution);
     //depends on distribution type:
     if(distribution.distributionType==='FIXED_AMOUNT'||distribution.distributionType=== 'FIXED_PERCENTAGE'){
         return distribution.value;
@@ -121,6 +122,9 @@ function updateContributionLimitsForInflation(scenario, inflationRate) {
 }
 async function adjustEventAmount(event, inflationRate) {
     //adjusts event.amount for inflation and expected change
+    if(event.eventType==="INVEST"|| event.eventType==="REBALANCE"){
+        return;
+    }
     if(event.isinflationAdjusted){
         event.amount = event.amount*(1+inflationRate);
     }
@@ -802,7 +806,7 @@ export async function simulate(
 ) {
     // console.log(rmdTable);
     const simulation = await createSimulation(inputScenario);
-
+    //console.log(simulation);
     
     let currentYear = 0;
     const realYear = new Date().getFullYear();
@@ -842,8 +846,8 @@ export async function simulate(
     while (currentYear <= endYear) {
         //console.log(`Simulating year: ${currentYear}`);
 
-        //TODO: implement non-fixed inflation assumptions
-        console.log("sampleing for inflation");
+        
+        
         const inflationRate = await sample(simulation.scenario.inflationAssumption, simulation.scenario.inflationAssumptionDistribution);
         updateTaxBracketsForInflation(federalIncomeTax, inflationRate);
         updateTaxBracketsForInflation(stateIncomeTax, inflationRate);
@@ -890,10 +894,13 @@ export async function simulate(
             curYearIncome += rmd;
         }
         
+
         curYearIncome += await updateInvestments(investmentTypes, inflationRate);
         
+
         const rothConversion = await performRothConversion(curYearIncome, curYearSS, federalIncomeTax, currentYear, simulation.scenario.userBirthYear, simulation.scenario.orderedRothStrategy, investmentTypes);
         
+
         curYearIncome += rothConversion.curYearIncome;
         //console.log(investmentTypes);
         
@@ -933,7 +940,7 @@ export async function simulate(
         for(const investmentIndex in investments){
             totalValue +=  investments[investmentIndex].value;
         }
-        console.log(`The net asset value of ${currentYear+realYear} is ${totalValue}`);
+        //console.log(`The net asset value of ${currentYear+realYear} is ${totalValue}`);
         let boolIsViolated = false;
         if(totalValue<simulation.scenario.financialGoal){
             boolIsViolated=true;

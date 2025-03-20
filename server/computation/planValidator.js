@@ -347,6 +347,7 @@ async function clone(scenarioID){
     );
 
     // Clone Scenario
+    //console.log(`CLONING: ${originalScenario.inflationAssumptionDistribution}`);
     const clonedScenario = await scenarioFactory.create({
         name: `${originalScenario.name} CLONE`,
         filingStatus: originalScenario.filingStatus,
@@ -385,8 +386,9 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
     
     //const unmodifiedScenario = await scenarioFactory.read(scenarioID);
     let copiedScenario = await clone(scenarioID);
-    await chooseEventTimeframe(scenarioID);
+    await chooseEventTimeframe(copiedScenario.id);
     let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, stateDeduction, capitalGains, rmdTable);
+    await eraseScenario(copiedScenario.id);
     //console.log(simulationResult);
     return simulationResult;
 }
@@ -404,11 +406,11 @@ async function eraseScenario(scenarioID){
         for(const j in investmentType.investments){
             await investmentFactory.delete(investmentType.investments[j]);
         }
-        await investmentTypeFactory.delete(scenario.investmentTypes[i]); 
+        await investmentTypeFactory.shallowDelete(scenario.investmentTypes[i]); 
     }
     //erase all events
     for(const i in scenario.events){
-        await eventFactory.delete(scenario.events[i]);
+        await eventFactory.shallowDelete(scenario.events[i]);
     }
     //erase scenario
     await scenarioFactory.shallowDelete(scenarioID);
@@ -418,6 +420,8 @@ async function eraseScenario(scenarioID){
 export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandardDeductionID){
     //first, validate scenario's invariants
     const scenarioFactory = new ScenarioController();
+    
+    
     const taxFactory = new TaxController();
     try{
         await validate(scenarioID);
@@ -430,6 +434,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
     //console.log(scrapeReturn);
     //depending on if scenario is single or joint, pass in different values to run:
     const scenario = await scenarioFactory.read(scenarioID);
+    //console.log(scenario);
     let fedIncome = null;
     let capitalGains = null;
     let fedDeduction = null;
@@ -462,10 +467,10 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
             rmdTable
         );
         //Replace runResult.scenario with scenario, to erase the fact we cloned
-        let clonedScenarioID = runResult.scenario.id;
+        //let clonedScenarioID = runResult.scenario.id;
         runResult.scenario = scenario;
         //console.log(runResult);
-        await eraseScenario(clonedScenarioID);
+        
         compiledResults.push(runResult);
 
 
