@@ -249,7 +249,14 @@ async function clone(scenarioID){
             );
 
             const clonedType = await investmentTypeFactory.create({
-                ...type,
+                name: type.name,
+                description:type.description,
+                expectedAnnualReturn:type.expectedAnnualReturn,
+                expectedAnnualReturnDistribution: type.expectedAnnualReturnDistribution,
+                expenseRatio: type.expenseRatio,
+                expectedAnnualIncome: type.expectedAnnualIncome,
+                expectedAnnualIncomeDistribution: type.expectedAnnualIncomeDistribution,
+                taxability: type.taxability,
                 investments: clonedInvestments.filter(Boolean),
             });
 
@@ -367,15 +374,18 @@ async function clone(scenarioID){
     return clonedScenario;
 }
 
-async function chooseEventTimeframe(scenario){
+async function chooseEventTimeframe(scenarioID){
     //determine when events will start and end using sample, making sure that
     //conflicting events do not overlap
     //save determined start years and durations in {expexted...} variables
 }
 async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, stateDeduction, rmdTable){
     //deep clone then run simulation then re-splice original scenario in simulation output
+    const scenarioFactory = new ScenarioController();
     
+    //const unmodifiedScenario = await scenarioFactory.read(scenarioID);
     let copiedScenario = await clone(scenarioID);
+    await chooseEventTimeframe(scenarioID);
     let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, stateDeduction, capitalGains, rmdTable);
     //console.log(simulationResult);
     return simulationResult;

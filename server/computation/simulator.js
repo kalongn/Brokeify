@@ -12,7 +12,36 @@ import ResultController from "../db/controllers/ResultController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
 
 async function sample(expectedValue, distributionID){
+    
+    //sample from distribution
+    const factory = new DistributionController();
+    const distribution = await factory.read(distributionID);
+    // if(distribution===null){
+    //     return expectedValue;
+    // }
+    console.log(distribution);
+    //depends on distribution type:
+    if(distribution.distributionType==='FIXED_AMOUNT'||distribution.distributionType=== 'FIXED_PERCENTAGE'){
+        return distribution.value;
+    }
+    else if(distribution.distributionType==='UNIFORM_AMOUNT'||distribution.distributionType=== 'UNIFORM_PERCENTAGE'){
+        //console.log((Math.random() * (distribution.upperBound - distribution.lowerBound) + distribution.lowerBound));
+        return (Math.random() * (distribution.upperBound - distribution.lowerBound) + distribution.lowerBound)
+    }
+    else if(distribution.distributionType==='NORMAL_AMOUNT'||distribution.distributionType=== 'NORMAL_PERCENTAGE'){
+        let u = 0, v = 0;
+        while(u === 0) u = Math.random(); 
+        while(v === 0) v = Math.random(); 
+        //use this weird function i found to approximate normal curve with mean 0 stddev 1
+        const num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+        let toReturn =  (num * distribution.standardDeviation) + distribution.mean;
+        // console.log(toReturn);
+        // throw("eee");
+        return toReturn;
+    }
+
     return expectedValue;
+
 }
 
 
@@ -95,6 +124,7 @@ async function adjustEventAmount(event, inflationRate) {
     if(event.isinflationAdjusted){
         event.amount = event.amount*(1+inflationRate);
     }
+    
     const amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
     event.amount = event.amount*(1+amountRate);
     const eventFactory = new EventController();
@@ -813,6 +843,7 @@ export async function simulate(
         //console.log(`Simulating year: ${currentYear}`);
 
         //TODO: implement non-fixed inflation assumptions
+        console.log("sampleing for inflation");
         const inflationRate = await sample(simulation.scenario.inflationAssumption, simulation.scenario.inflationAssumptionDistribution);
         updateTaxBracketsForInflation(federalIncomeTax, inflationRate);
         updateTaxBracketsForInflation(stateIncomeTax, inflationRate);
@@ -823,7 +854,9 @@ export async function simulate(
         let curYearSS = 0;
         //update events
         for(const event of events){
-            await adjustEventAmount(event, inflationRate);
+            if(event.eventType === "INCOME"||event.eventType==="EXPENSE"){
+                await adjustEventAmount(event, inflationRate);
+            }
         }
         
         for (const event of events.filter(e => e.eventType === "INCOME")) {
