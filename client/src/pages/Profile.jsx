@@ -12,46 +12,45 @@ const Profile = () => {
   return (
     <Layout>
       <div className={style.profileBackground} >
-
         <div className={style.profile}>
-          <div>
-            <img className={style.profileImage} src="src/assets\sharlottePic.jpg"></img>
-
-            <div className={style.profileInfo}>
-              <h2>Your Information</h2>
-              <p>Full Name</p>
-              <p className={style.infoInput}>Sharolette Webb</p>
-              <p>Email</p>
-              <p className={style.infoInput}>sharolette.webb@gmail.com</p>
-              <p>Birth Year</p>
-              <p className={style.infoInput}>2000</p>
-
+          <img className={style.profileImage} src="src/assets\sharlottePic.jpg"></img>
+          <div className={style.profileInfo}>
+            <h2>Your Information</h2>
+            <div>
+              <div>Full Name</div>
+              <div className={style.infoInput}>Sharolette Webb</div>
+            </div>
+            <div>
+              <div>Email</div>
+              <div className={style.infoInput}>sharolette.webb@gmail.com</div>
+            </div>
+            <div>
+              <div>Birth Year</div>
+              <div className={style.infoInput}>2000</div>
             </div>
           </div>
-          <div className={style.fileInfo}>
-            <h2>File Upload</h2>
-            <p>Here you can upload a YAML file containing information about state income taxes and brackets. Note that without this data, the financial projection will ignore state income taxes not in the database.</p>
-            <button className={style.uploadButton}> <FaUpload />  Upload YAML</button>
+        </div>
+        <div className={style.fileInfo}>
+          <h2>File Upload</h2>
+          <div>Here you can upload a YAML file containing information about state income taxes and brackets. Note that without this data, the financial projection will ignore state income taxes not in the database.</div>
+          <button className={style.uploadButton}> <FaUpload />  Upload YAML</button>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Upload Date</th>
+                <th> </th>
+              </tr>
+            </thead>
 
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Upload Date</th>
-                  <th> </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr>
-                  <td>Temporary Name</td>
-                  <td> Temporary Date</td>
-                  <td className={style.fileActions}><button><FaDownload /></button><button><FaTrashAlt /></button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
+            <tbody>
+              <tr>
+                <td>Temporary Name</td>
+                <td> Temporary Date</td>
+                <td className={style.fileActions}><button><FaDownload /></button><button><FaTrashAlt /></button></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </Layout>
