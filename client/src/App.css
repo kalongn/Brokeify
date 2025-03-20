@@ -1,6 +1,5 @@
 #root {
   min-height: inherit;
-  margin: 0;
+  min-width: inherit;
   display: flex;
-  min-width: 100%;
 }
