@@ -24,7 +24,10 @@ export async function scrapeFederalIncomeTaxBrackets() {
         let i = 0;
         $('table tbody tr').each((index, element)=>{
             const tds = $(element).find('td');
-            let hb = Number($(tds[2]).text().trim().replace(/[^0-9.-]+/g,""));
+            //hb is 'high bound' and is like this due to it sometimes being infinity
+            //the regex takes in a tring and drops all characters exept 0-9, '0' and '.'
+            //causing '$123,456.78' => '123456.78'
+            let hb = Number($(tds[2]).text().trim().replace(/[^0-9.-]+/g,""));  
             if(hb==0){hb = Infinity;}
             const bracket = {
                 rate: Number($(tds[0]).text().trim().replace(/[^0-9.-]+/g,"")),
@@ -32,7 +35,7 @@ export async function scrapeFederalIncomeTaxBrackets() {
                 highBound: hb
             };
             if(bracket.rate==''){
-                i++;
+                i++;    //increment's because rate will only be empty on header of table
             }
             else{
                 if(i==0){
