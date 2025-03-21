@@ -2,8 +2,8 @@ import styles from './ScenarioCard.module.css';
 import { IoPersonCircle } from "react-icons/io5";
 import { TbTargetArrow } from "react-icons/tb";
 import { IoMdCalendar } from "react-icons/io";
-import { BsGraphUpArrow } from "react-icons/bs";
 import { FaPiggyBank } from "react-icons/fa6";
+
 const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events }) => {
   return (
     <div className={styles.scenarioCard}>
