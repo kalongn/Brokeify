@@ -1,7 +1,9 @@
-.profileBackground {
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgb(141, 202, 141));
-    background-size: cover;
+#login {
     flex-grow: 1;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+}
+.left {
     display: flex;
     padding: 6rem 2rem;
     gap: 4rem;
