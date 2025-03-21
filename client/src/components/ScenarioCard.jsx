@@ -16,12 +16,22 @@ const ScenarioCard = ({ title, name, targetAmount, investments, events }) => {
 
       <div className={styles.detailContainer}>
           {/*Note: This info is visible over hover*/}
-          <p className ={styles.detailTitle}>{title}</p>
+          <div className={styles.detailHeader}>
+            <p className={styles.detailTitle}> {title} </p>
+          </div>
           <div className = {styles.info}>
-          <IoPersonCircle /><p className = {styles.infoRow}>  {name}</p>
-          <TbTargetArrow /> <p className = {styles.infoRow}> {targetAmount.toLocaleString()}</p>
-          <IoMdCalendar />  <p className ={styles.infoRow}> {investments} Investments</p>
-          <FaPiggyBank /> <p className= {styles.infoRow}>{events} Events</p>
+          <div className={styles.infoRow}>
+            <IoPersonCircle size ={30}/> <span>{name}</span>
+          </div>
+          <div className={styles.infoRow}>
+            <TbTargetArrow size ={30} /> <span>{targetAmount?.toLocaleString() ?? "N/A"}</span>
+          </div>
+          <div className={styles.infoRow}>
+            <IoMdCalendar size ={30} /> <span>{investments} Investments</span>
+          </div>
+          <div className={styles.infoRow}>
+            <FaPiggyBank size ={30} /> <span>{events} Events</span>
+          </div>
           </div> 
       </div>
     </div>
