@@ -402,7 +402,6 @@ const testUser = async () => {
             firstName: "John",
             lastName: "Doe",
             email: "",
-            birthYear: 1990,
             googleId: "",
             picture: "",
             refreshToken: "",

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import styles from './Login.module.css';
 const Login = () => {
   return (
-    <>
+    <div id={styles.login}>
       <div className={styles.left}>
         <div className={styles.title}>
           <div className={styles.icon}>
@@ -12,11 +12,11 @@ const Login = () => {
           <div className={styles.subtitle}>
             <h1>Your Future,</h1>
             <h1>Your Plan,</h1>
-            <h1 className={styles.important}>Our Guidence</h1>
+            <h1 className={styles.important}>Our Guidance</h1>
           </div>
         </div>
         <div className={styles.buttons}>
-          <Link className={`${styles.button} ${styles.googleButton}`} onClick={() => { console.log('Login Button') }}>
+          <Link className={`${styles.button} ${styles.googleButton}`} to={`${import.meta.env.VITE_SERVER_ADDRESS}/auth/google`} onClick={() => { console.log('Login Button') }}>
             <img src='/src/assets/google.svg' alt='Google Icon' />
             Login with Google
           </Link>
@@ -28,7 +28,7 @@ const Login = () => {
       <div className={styles.right}>
         <img src="/src/assets/3d-piggy-bank.svg" alt="3D Piggy Bank Rendering" />
       </div>
-    </>
+    </div>
   )
 }
 
