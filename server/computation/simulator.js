@@ -500,18 +500,32 @@ async function processDiscretionaryExpenses(scenario, currentYear) { //returns a
     //console.log(`TOTAL DISCRETIONARY EXPENSES: ${totalExpenses}`);
     //find sum of value of investments:
     let totalValue = 0;
+    for(const investmentTypeIDIndex in scenario.investmentTypes){
+        const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
+        const investmentType = await investmentTypeFactory.read(investmentTypeID);
+        for(const investmentIndex in investmentType.investments){
+            const investment = await investmentFactory.read(investmentType.investments[investmentIndex]);
+            totalValue +=  investment.value;
+        }
+        
+    }
+
+
+    let totalInStrategy = 0;
     for(const investmentIDIndex in scenario.orderedExpenseWithdrawalStrategy){
         
         const investmentID = scenario.orderedExpenseWithdrawalStrategy[investmentIDIndex];
         const investment = await investmentFactory.read(investmentID);
-        
-        totalValue+=investment.value;
+        //console.log(investment);
+        totalInStrategy+=investment.value;
         
     }
     
-    let amountICanPay = totalValue - scenario.financialGoal;
+    
+    let amountICanPay = Math.max(totalValue - scenario.financialGoal, totalInStrategy);
     if(amountICanPay<=0){
         //console.log("No discretionary expenses paid, all incurred");
+        //console.log(totalValue);
         return {np: totalExpenses, p: 0};
     }
     let toReturn = {np: 0, p: totalExpenses};
@@ -520,6 +534,8 @@ async function processDiscretionaryExpenses(scenario, currentYear) { //returns a
         toReturn = {np: totalExpenses - amountICanPay, p: amountICanPay};
         leftToPay = amountICanPay;
     }
+    
+    //console.log(`toReturn.p: ${toReturn.p}`);
 
     //start from cash:
     let cashInvestment;
@@ -532,7 +548,7 @@ async function processDiscretionaryExpenses(scenario, currentYear) { //returns a
         
     }
     if(!cashInvestment){
-        console.log("CRITICAL ERROR: COULD NOT FIND CASH INVESTMENT IN processDiscretionaryExpenses()");
+        //console.log("CRITICAL ERROR: COULD NOT FIND CASH INVESTMENT IN processDiscretionaryExpenses()");
         throw("CRITICAL ERROR: COULD NOT FIND CASH INVESTMENT IN processDiscretionaryExpenses()");
     }
     
@@ -951,7 +967,11 @@ export async function simulate(
             investmentValuesArray.push(touple);
         }
         //create yearly results
-        
+        let discretionaryExpensesPercentage = discretionaryAmountPaid;
+        if(discretionaryAmountIgnored+discretionaryAmountPaid!=0){
+            discretionaryExpensesPercentage=(discretionaryAmountPaid+0.0)/(discretionaryAmountIgnored+discretionaryAmountPaid);
+        }
+        //console.log(discretionaryAmountPaid);
         const yearlyRes = {
             year: currentYear+realYear,
             investmentValues: investmentValuesArray,
@@ -960,12 +980,13 @@ export async function simulate(
             totalExpense: totalExpenses,
             totalTax: lastYearTaxes,    //actually is this year's taxes, but got updated
             earlyWithdrawalTax: earlyWithdrawalTaxPaid,
-            totalDiscretionaryExpenses: (discretionaryAmountIgnored+discretionaryAmountPaid),
+            totalDiscretionaryExpenses: discretionaryExpensesPercentage,
             isViolated: boolIsViolated
         };
 
         //console.log(`YEAR: ${currentYear}`);
         //console.log(yearlyRes);
+        
         //const results = await resultFactory.read()
         //console.log(simulation.results[0].yearlyResults);
         simulation.results[0].yearlyResults.push(yearlyRes);
@@ -975,6 +996,7 @@ export async function simulate(
         currentYear++;
 
     }
+    
     //console.log(simulation.results[0].yearlyResults);
 
     console.log("Simulation complete.");
