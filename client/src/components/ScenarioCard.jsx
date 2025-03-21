@@ -4,6 +4,8 @@ import { TbTargetArrow } from "react-icons/tb";
 import { IoMdCalendar } from "react-icons/io";
 import { FaPiggyBank } from "react-icons/fa6";
 
+import PropTypes from 'prop-types';
+
 const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events }) => {
   return (
     <div className={styles.scenarioCard}>
@@ -36,6 +38,15 @@ const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events 
       </div>
     </div>
   );
+};
+
+
+ScenarioCard.propTypes = {
+  title: PropTypes.string.isRequired, 
+  martialStatus: PropTypes.string,    
+  targetAmount: PropTypes.number,    
+  investments: PropTypes.number,       
+  events: PropTypes.number,           
 };
 
 export default ScenarioCard;
