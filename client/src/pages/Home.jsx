@@ -1,7 +1,9 @@
 import Layout from "../components/Layout";
+/*
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Axios from "axios";
+*/
 import ScenarioCard from "../components/ScenarioCard";
 import style from './Home.module.css';
 const Home = () => {
