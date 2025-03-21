@@ -1,12 +1,11 @@
-//import React from 'react';
-import styles from  './Header.module.css';
-import { useLocation } from 'react-router-dom';
+import styles from './Header.module.css';
+import { useLocation, Link } from 'react-router-dom';
 
 const Header = () => {
     const location = useLocation();
     const path = location.pathname;
     const getHeaderTitle = () => {
-        switch(path) {
+        switch (path) {
             case '/Home':
                 return 'My Scenarios';
             case '/ScenarioForm':
@@ -19,20 +18,21 @@ const Header = () => {
                 return 'Brokeify';
         }
     };
+    // TODO: implement the IMPORT SCENARIO button functionality
     const getHeaderButtons = () => {
         switch (path) {
             case '/Home':
                 return (
                     <>
-                    <button onClick={() => console.log('Import Scenario')}>Import Scenario</button>
+                        <button onClick={() => console.log('Import Scenario')}>Import Scenario</button>
                     </>
-            );
+                );
             case '/Profile':
                 return (
                     <>
-                    <button onClick={() => console.log('Logout')}>Logout</button>
+                        <Link className={styles.linkButton} to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Logout</Link>
                     </>
-            );
+                );
             case '/SharedScenarios':
             case '/ScenarioForm':
             default:
