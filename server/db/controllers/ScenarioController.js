@@ -187,114 +187,32 @@ export default class ScenarioController {
     
                 const clonedInvestments = await Promise.all(
                     type.investments.map(async (invId) => {
-                        const investment = await investmentFactory.read(invId);
-                        if (!investment) return null;
+                        const clonedInvID = await investmentFactory.clone(invId);
     
-                        const clonedInvestment = await investmentFactory.create({
-                            value: investment.value,
-                            taxStatus: investment.taxStatus,
-                        });
-    
-                        idMap.set(invId.toString(), clonedInvestment.id);
-                        return clonedInvestment.id;
+                        idMap.set(invId.toString(), clonedInvID);
+                        return clonedInvID;
                     })
                 );
     
-                const clonedType = await investmentTypeFactory.create({
-                    name: type.name,
-                    description:type.description,
-                    expectedAnnualReturn:type.expectedAnnualReturn,
-                    expectedAnnualReturnDistribution: type.expectedAnnualReturnDistribution,
-                    expenseRatio: type.expenseRatio,
-                    expectedAnnualIncome: type.expectedAnnualIncome,
-                    expectedAnnualIncomeDistribution: type.expectedAnnualIncomeDistribution,
-                    taxability: type.taxability,
-                    investments: clonedInvestments.filter(Boolean),
-                });
-    
-                idMap.set(typeId.toString(), clonedType.id);
-                return clonedType.id;
+                const clonedTypeID = await investmentTypeFactory.clone(type.id)
+                await investmentTypeFactory.update(clonedTypeID, {investments: clonedInvestments.filter(Boolean)});
+                idMap.set(typeId.toString(), clonedTypeID);
+                return clonedTypeID;
             })
         );
     
         // Clone Events
         const clonedEvents = await Promise.all(
             originalScenario.events.map(async (eventId) => {
-                const event = await eventFactory.read(eventId);
-                if (!event) return null;
-                //console.log({...event});
-                let clonedEvent = null;
-                if(event.eventType==="REBALANCE"){
-                    clonedEvent = await eventFactory.create(event.eventType, {
-                        eventType: event.eventType,
-                        name: event.name,
-                        description: event.description,
-                        startYear: event.startYear,
-                        startYearTypeDistribution: event.startYearTypeDistribution,
-                        duration: event.duration,
-                        durationTypeDistribution: event.durationTypeDistribution,
-                        assetAllocationType: event.assetAllocationType,
-                        percentageAllocations: event.percentageAllocations, 
-                        allocatedInvestments: event.allocatedInvestments.map(id => idMap.get(id.toString())),
-                        maximumCash: event.maximumCash,
-                        taxStatus: event.taxStatus
-                    });
+                const clonedEventID = await eventFactory.clone(eventId);
+                const clonedEvent = await eventFactory.read(clonedEventID);
+                //console.log(clonedEvent);
+                if(clonedEvent.eventType=="REBALANCE"||clonedEvent.eventType=="INVEST"){
+                    //update allocatedInvestments
+                    await eventFactory.update(clonedEventID, {allocatedInvestments: await clonedEvent.allocatedInvestments.map(id => idMap.get(id.toString()))})
                 }
-                if(event.eventType==="INVEST"){
-                    clonedEvent = await eventFactory.create(event.eventType, {
-                        eventType: event.eventType,
-                        name: event.name,
-                        description: event.description,
-                        startYear: event.startYear,
-                        startYearTypeDistribution: event.startYearTypeDistribution,
-                        duration: event.duration,
-                        durationTypeDistribution: event.durationTypeDistribution,
-                        assetAllocationType: event.assetAllocationType,
-                        percentageAllocations: event.percentageAllocations, 
-                        allocatedInvestments: event.allocatedInvestments.map(id => idMap.get(id.toString())),
-                        maximumCash: event.maximumCash,
-                    });
-                }
-                if(event.eventType==="INCOME"){
-                    clonedEvent = await eventFactory.create(event.eventType, {
-                        eventType: event.eventType,
-                        name: event.name,
-                        description: event.description,
-                        startYear: event.startYear,
-                        startYearTypeDistribution: event.startYearTypeDistribution,
-                        duration: event.duration,
-                        durationTypeDistribution: event.durationTypeDistribution,
-                        amount: event.amount,
-                        expectedAnnualChange: event.expectedAnnualChange,
-                        expectedAnnualChangeDistribution: event.expectedAnnualChangeDistribution,
-                        isinflationAdjusted: event.isinflationAdjusted,
-                        userContributions: event.userContributions,
-                        spouseContributions:event.spouseContributions,
-                        isSocialSecurity: event.isSocialSecurity,
-                    });
-                }
-                if(event.eventType==="EXPENSE"){
-                    clonedEvent = await eventFactory.create(event.eventType, {
-                        eventType: event.eventType,
-                        name: event.name,
-                        description: event.description,
-                        startYear: event.startYear,
-                        startYearTypeDistribution: event.startYearTypeDistribution,
-                        duration: event.duration,
-                        durationTypeDistribution: event.durationTypeDistribution,
-                        amount: event.amount,
-                        expectedAnnualChange:event.expectedAnnualChange,
-                        expectedAnnualChangeDistribution:event.expectedAnnualChangeDistribution,
-                        isinflationAdjusted: event.isinflationAdjusted,
-                        userContributions: event.userContributions,
-                        spouseContributions: event.spouseContributions,
-                        isDiscretionary: event.isDiscretionary,
-                    });
-                }
-                
-    
-                idMap.set(eventId.toString(), clonedEvent.id);
-                return clonedEvent.id;
+                idMap.set(eventId.toString(), clonedEventID);
+                return clonedEventID;
             })
         );
     

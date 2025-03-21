@@ -16,14 +16,22 @@ import SimulationController from "../db/controllers/SimulationController.js";
 
 import { scrapeFederalIncomeTaxBrackets, scrapeStandardDeductions, fetchCapitalGainsData, fetchRMDTable } from "./scraper.js";
 import { simulate } from "./simulator.js";
+
+const scenarioFactory = new ScenarioController();
+const taxFactory = new TaxController();
+const rmdFactory = new RMDTableController();
+const simulationFactory = new SimulationController();
+const resultFactory = new ResultController();
+
+
 async function validate(scenarioID){
     
 }
 async function scrape(){
     //check to see if federalIncomeTax, federalStandardDeduction, capitalGains exist
     //scrape, parse, and save to DB if not
-    let factory = new TaxController();
-    const a = await factory.readAll();
+    
+    const a = await taxFactory.readAll();
     //console.log(a);
     //check if any of the returned taxes have FEDERAL_INCOME, scrape if not
     let federalIncomeSingle = null;
@@ -82,7 +90,7 @@ async function scrape(){
             }
             //save to db
             //console.log(singleFedTax);
-            await factory.create("FEDERAL_INCOME", {
+            await taxFactory.create("FEDERAL_INCOME", {
                 filingStatus: singleFedTax.filingStatus,
                 taxBrackets: singleFedTax.taxBrackets
             });
@@ -96,7 +104,7 @@ async function scrape(){
             }
             //save to db
             //console.log(marriedFedTax);
-            await factory.create("FEDERAL_INCOME", {
+            await taxFactory.create("FEDERAL_INCOME", {
                 filingStatus: marriedFedTax.filingStatus,
                 taxBrackets: marriedFedTax.taxBrackets
             });
@@ -117,7 +125,7 @@ async function scrape(){
             }
             //save to db
             //console.log(singleFedTax);
-            await factory.create("CAPITAL_GAIN", {
+            await taxFactory.create("CAPITAL_GAIN", {
                 filingStatus: singleCapitalTax.filingStatus,
                 taxBrackets: singleCapitalTax.taxBrackets
             });
@@ -130,7 +138,7 @@ async function scrape(){
                 marriedCapitalTax.taxBrackets.push(bracket);
             }
             //save to db
-            await factory.create("CAPITAL_GAIN", {
+            await taxFactory.create("CAPITAL_GAIN", {
                 filingStatus: marriedCapitalTax.filingStatus,
                 taxBrackets: marriedCapitalTax.taxBrackets
             });
@@ -143,13 +151,13 @@ async function scrape(){
         
         //console.log(returnDeductionsScrape);
         if(federalDeductionSingle===null){
-            federalDeductionSingle = await factory.create("FEDERAL_STANDARD", {
+            federalDeductionSingle = await taxFactory.create("FEDERAL_STANDARD", {
                 filingStatus: "SINGLE",
                 standardDeduction: returnDeductionsScrape[0].amount
             });
         }
         if(federalDeductionMarried===null){
-            federalDeductionMarried = await factory.create("FEDERAL_STANDARD", {
+            federalDeductionMarried = await taxFactory.create("FEDERAL_STANDARD", {
                 filingStatus: "MARRIEDJOINT",
                 standardDeduction: returnDeductionsScrape[1].amount
             });
@@ -160,7 +168,6 @@ async function scrape(){
 
     //check for RMD table:
     let rmdTable = null;
-    let rmdFactory = new RMDTableController();
     rmdTable = await rmdFactory.read();
     //console.log(rmdTable);
     if(rmdTable===null){
@@ -195,13 +202,12 @@ async function chooseEventTimeframe(scenarioID){
 }
 async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, stateDeduction, rmdTable){
     //deep clone then run simulation then re-splice original scenario in simulation output
-    const scenarioFactory = new ScenarioController();
     
     //const unmodifiedScenario = await scenarioFactory.read(scenarioID);
     let copiedScenario = await scenarioFactory.clone(scenarioID);
     await chooseEventTimeframe(copiedScenario.id);
     let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, stateDeduction, capitalGains, rmdTable);
-    await scenarioFactory.eraseScenario(copiedScenario.id);
+    await scenarioFactory.delete(copiedScenario.id);
     //console.log(simulationResult);
     return simulationResult;
 }
@@ -210,10 +216,6 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
 //recives ID of scenario in db
 export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandardDeductionID){
     //first, validate scenario's invariants
-    const scenarioFactory = new ScenarioController();
-    
-    
-    const taxFactory = new TaxController();
     try{
         await validate(scenarioID);
 
@@ -245,13 +247,12 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
     const stateDeduction = await taxFactory.read(stateStandardDeductionID)
     
     //Array of simulations
-    const simulationFactory = new SimulationController();
-    const ResultFactory = new ResultController();
+    
     
         
     const compiledResults = await simulationFactory.create({
         scenario: scenario,
-        results: [await ResultFactory.create({
+        results: [await resultFactory.create({
             yearlyResults: []
         })]
     });

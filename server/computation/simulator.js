@@ -10,12 +10,19 @@ import RMDTableController from "../db/controllers/RMDTableController.js";
 import TaxController from "../db/controllers/TaxController.js";
 import ResultController from "../db/controllers/ResultController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
-
+const investmentTypeFactory = new InvestmentTypeController();
+const investmentFactory = new InvestmentController();
+const eventFactory = new EventController();
+const scenarioFactory = new ScenarioController();
+const taxFactory = new TaxController();
+const simulationFactory = new SimulationController();
+const distributionFactory = new DistributionController();
+const resultFactory = new ResultController();
 async function sample(expectedValue, distributionID){
     
     //sample from distribution
-    const factory = new DistributionController();
-    const distribution = await factory.read(distributionID);
+    
+    const distribution = await distributionFactory.read(distributionID);
     if(distribution===null){
         
         return expectedValue;
@@ -86,13 +93,13 @@ async function getCashInvestment(investmentTypes) {
 }
 
 async function createSimulation(scenario){
-    const factory = new SimulationController();
-    const ResultFactory = new ResultController();
+    
+    
     try {
         
-        const simulation = await factory.create({
+        const simulation = await simulationFactory.create({
             scenario: scenario,
-            results: [await ResultFactory.create({
+            results: [await resultFactory.create({
                 yearlyResults: []
             })]
         });
@@ -113,12 +120,14 @@ function updateTaxBracketsForInflation(taxData, inflationRate) {
             bracket.upperBound = Math.round(bracket.upperBound * (1 + inflationRate));
         }
     });
+    
 
     //console.log(taxData);
 }
-function updateContributionLimitsForInflation(scenario, inflationRate) {
+async function updateContributionLimitsForInflation(scenario, inflationRate) {
     scenario.annualPreTaxContributionLimit = scenario.annualPreTaxContributionLimit * (1+inflationRate);
     scenario.annualPostTaxContributionLimit = scenario.annualPostTaxContributionLimit * (1+inflationRate);
+    await scenarioFactory.update(scenario.id, {annualPreTaxContributionLimit: scenario.annualPreTaxContributionLimit, annualPostTaxContributionLimit: scenario.annualPostTaxContributionLimit});
 }
 async function adjustEventAmount(event, inflationRate) {
     //adjusts event.amount for inflation and expected change
@@ -131,7 +140,7 @@ async function adjustEventAmount(event, inflationRate) {
     
     const amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
     event.amount = event.amount*(1+amountRate);
-    const eventFactory = new EventController();
+    
     await eventFactory.update(event.id, event);
     return event.amount;
 }
@@ -185,7 +194,7 @@ async function processRMDs(investments, rmdTable, currentYear, birthYear, ordere
         const withdrawAmount = Math.min(investment.value, remainingRMD);
         investment.value -= withdrawAmount;
         remainingRMD -= withdrawAmount;
-
+        await investmentFactory.update(investment.id, {value: investment.value});
         if (remainingRMD <= 0) break; 
     }
 
@@ -194,7 +203,7 @@ async function processRMDs(investments, rmdTable, currentYear, birthYear, ordere
 }
 async function updateInvestments(investmentTypes, inflationRate) {
     let curYearIncome = 0; // Track taxable income for 'non-retirement' investments
-    const investmentFactory = new InvestmentController(); // Initialize DB controller
+    //const investmentFactory = new InvestmentController(); // Initialize DB controller
 
     // Iterate through investment types
     for (const type of investmentTypes) {
@@ -233,7 +242,7 @@ async function updateInvestments(investmentTypes, inflationRate) {
 }
 async function performRothConversion(curYearIncome, curYearSS, federalIncomeTax, currentYear, birthYear, orderedRothStrategy, investmentTypes) {
     
-    const investmentFactory = new InvestmentController();
+    
     const age = currentYear - birthYear;
 
     //compute curYearFedTaxableIncome
@@ -399,9 +408,7 @@ async function processExpenses(scenario, previousYearTaxes, currentYear) {
     //first: calculate value of all non discretionary expenses:
     let totalExpenses = previousYearTaxes;
     //go through events and add value of all events if type expense and non discretionary
-    const eventFactory = new EventController();
-    const investmentTypeFactory = new InvestmentTypeController();
-    const investmentFactory = new InvestmentController();
+    
     for(const eventIDIndex in scenario.events){
         const eventID = scenario.events[eventIDIndex];
         const event = await eventFactory.read(eventID);
@@ -476,9 +483,7 @@ async function processExpenses(scenario, previousYearTaxes, currentYear) {
 }
 async function processDiscretionaryExpenses(scenario, currentYear) { //returns amount not paid
     //first: determine how much value you have above fincncial goal:
-    const eventFactory = new EventController();
-    const investmentTypeFactory = new InvestmentTypeController();
-    const investmentFactory = new InvestmentController();
+    
     //find amount I want to pay:
     let totalExpenses = 0;
     for(const eventIDIndex in scenario.events){
@@ -577,9 +582,7 @@ async function processInvestmentEvents(scenario, currentYear) {
     //ensure that investing will not lead to a violation of annualPostTaxContributionLimit
     //if so, adjust asset allocation
     //invest amounts
-    const eventFactory = new EventController();
-    const investmentTypeFactory = new InvestmentTypeController();
-    const investmentFactory = new InvestmentController();
+    
     const realYear = new Date().getFullYear();
     let cashInvestment;
     for(const investmentTypeIDIndex in scenario.investmentTypes){
@@ -708,9 +711,7 @@ async function rebalanceInvestments(scenario, currentYear) {
     //returns capitalGains created
 
     //only one rebalance event per tax status
-    const eventFactory = new EventController();
-    const investmentTypeFactory = new InvestmentTypeController();
-    const investmentFactory = new InvestmentController();
+    
     const realYear = new Date().getFullYear();
     
     
@@ -812,12 +813,7 @@ export async function simulate(
     const realYear = new Date().getFullYear();
     const endYear = simulation.scenario.userBirthYear+simulation.scenario.userLifeExpectancy - realYear;
 
-    const investmentTypeFactory = new InvestmentTypeController();
-    const investmentFactory = new InvestmentController();
-    const eventFactory = new EventController();
-    const scenarioFactory = new ScenarioController();
-    const resultFactory = new ResultController();
-    const simulationFactory = new SimulationController();
+    
     let investmentTypes = await Promise.all(
         simulation.scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
     );
@@ -851,7 +847,7 @@ export async function simulate(
         const inflationRate = await sample(simulation.scenario.inflationAssumption, simulation.scenario.inflationAssumptionDistribution);
         updateTaxBracketsForInflation(federalIncomeTax, inflationRate);
         updateTaxBracketsForInflation(stateIncomeTax, inflationRate);
-        updateContributionLimitsForInflation(simulation.scenario, inflationRate);
+        await updateContributionLimitsForInflation(simulation.scenario, inflationRate);
 
         
         let curYearIncome = 0;
@@ -862,15 +858,18 @@ export async function simulate(
                 await adjustEventAmount(event, inflationRate);
             }
         }
-        
+        const incomeByEvent = [];
         for (const event of events.filter(e => e.eventType === "INCOME")) {
             const income = event.amount;
             if(!(event.startYear<=realYear+currentYear&&event.duration+event.startYear<=realYear+currentYear)){
                 continue;
             }
-            //TODO: Save breakdown of income by event
-            event.amount = income;
             
+            event.amount = income;
+            incomeByEvent.push({
+                name: event.id,
+                values: income
+            });
             //console.log(`Cash investment: ${cashInvestment.id}`);
             const a = await investmentFactory.read(cashInvestment.id);
 
@@ -956,6 +955,7 @@ export async function simulate(
         const yearlyRes = {
             year: currentYear+realYear,
             investmentValues: investmentValuesArray,
+            incomeByEvent: incomeByEvent,
             totalIncome: reportedIncome,
             totalExpense: totalExpenses,
             totalTax: lastYearTaxes,    //actually is this year's taxes, but got updated

@@ -121,4 +121,25 @@ export default class InvestmentTypeController {
             throw new Error(error);
         }
     }
+
+    async clone(id){
+        try{
+            const type = await InvestmentType.findById(id);
+            const clonedType = await this.create({
+                name: type.name,
+                description:type.description,
+                expectedAnnualReturn:type.expectedAnnualReturn,
+                expectedAnnualReturnDistribution: type.expectedAnnualReturnDistribution,
+                expenseRatio: type.expenseRatio,
+                expectedAnnualIncome: type.expectedAnnualIncome,
+                expectedAnnualIncomeDistribution: type.expectedAnnualIncomeDistribution,
+                taxability: type.taxability,
+                investments: type.investments,
+            });
+            return clonedType.id;
+
+        } catch(err){
+            throw new Error(err);
+        }
+    }
 }
