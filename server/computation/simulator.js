@@ -864,7 +864,8 @@ export async function simulate(
         updateTaxBracketsForInflation(federalIncomeTax, inflationRate);
         updateTaxBracketsForInflation(stateIncomeTax, inflationRate);
         await updateContributionLimitsForInflation(simulation.scenario, inflationRate);
-
+        federalStandardDeduction*=(1+inflationRate);
+        stateStandardDeduction*=(1+inflationRate);
 
         let curYearIncome = 0;
         let curYearSS = 0;

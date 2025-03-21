@@ -2,6 +2,10 @@
 //and compile RMD tables and Tax info, creates worker threads, then calls simulate()
 
 //Note: This is not a very efficient approach, but it does make the code simpler
+import { writeFileSync } from 'fs';
+import { join } from 'path';
+import { format } from 'date-fns';
+
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
 import InvestmentController from "../db/controllers/InvestmentController.js";
@@ -23,6 +27,30 @@ const rmdFactory = new RMDTableController();
 const simulationFactory = new SimulationController();
 const resultFactory = new ResultController();
 
+async function createSimulationCSV(user, datetime, folder) {
+    const timestamp = format(datetime, 'yyyyMMdd_HHmmss');
+    const filename = `${user}_${timestamp}.csv`;
+    const filepath = join(folder, filename);
+
+    let csvContent = `Year\n`;
+    //write file
+    writeFileSync(filepath, csvContent, 'utf8');
+    //console.log(`CSV log created: ${filepath}`);
+    return filepath;
+}
+
+async function createEventLog(user, datetime, folder) {
+    const timestamp = format(datetime, 'yyyyMMdd_HHmmss');
+    const filename = `${user}_${timestamp}.log`;
+    const filepath = join(folder, filename);
+
+    let logContent = `Simulation Log for ${user} - ${format(datetime, 'yyyy-MM-dd HH:mm:ss')}\n\n`;
+
+    // Write file
+    writeFileSync(filepath, logContent, 'utf8');
+    //console.log(`Event log created: ${filepath}`);
+    return filepath;
+}
 
 async function validate(scenarioID) {
 
