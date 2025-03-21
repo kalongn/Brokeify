@@ -2,7 +2,7 @@
 //and compile RMD tables and Tax info, creates worker threads, then calls simulate()
 
 //Note: This is not a very efficient approach, but it does make the code simpler
-import { writeFileSync } from 'fs';
+import * as fs from 'fs';
 import { join } from 'path';
 import { format } from 'date-fns';
 
@@ -31,11 +31,13 @@ async function createSimulationCSV(user, datetime, folder) {
     const timestamp = format(datetime, 'yyyyMMdd_HHmmss');
     const filename = `${user}_${timestamp}.csv`;
     const filepath = join(folder, filename);
-
+    if (!fs.existsSync(folder)){
+        fs.mkdirSync(folder);
+    }
     let csvContent = `Year\n`;
     //write file
-    writeFileSync(filepath, csvContent, 'utf8');
-    //console.log(`CSV log created: ${filepath}`);
+    fs.writeFileSync(filepath, csvContent, 'utf8');
+    // console.log(`CSV log created: ${filepath}`);
     return filepath;
 }
 
@@ -43,11 +45,13 @@ async function createEventLog(user, datetime, folder) {
     const timestamp = format(datetime, 'yyyyMMdd_HHmmss');
     const filename = `${user}_${timestamp}.log`;
     const filepath = join(folder, filename);
-
+    if (!fs.existsSync(folder)){
+        fs.mkdirSync(folder);
+    }
     let logContent = `Simulation Log for ${user} - ${format(datetime, 'yyyy-MM-dd HH:mm:ss')}\n\n`;
 
     // Write file
-    writeFileSync(filepath, logContent, 'utf8');
+    fs.writeFileSync(filepath, logContent, 'utf8');
     //console.log(`Event log created: ${filepath}`);
     return filepath;
 }
@@ -228,13 +232,13 @@ async function chooseEventTimeframe(scenarioID) {
     //conflicting events do not overlap
     //save determined start years and durations in {expexted...} variables
 }
-async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, stateDeduction, rmdTable) {
+async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, stateDeduction, rmdTable, csvFile, logFile) {
     //deep clone then run simulation then re-splice original scenario in simulation output
 
     //const unmodifiedScenario = await scenarioFactory.read(scenarioID);
     let copiedScenario = await scenarioFactory.clone(scenarioID);
     await chooseEventTimeframe(copiedScenario.id);
-    let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, stateDeduction, capitalGains, rmdTable);
+    let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, stateDeduction, capitalGains, rmdTable,csvFile,logFile);
     await scenarioFactory.delete(copiedScenario.id);
     //console.log(simulationResult);
     return simulationResult;
@@ -242,8 +246,9 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
 
 
 //recives ID of scenario in db
-export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandardDeductionID) {
+export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandardDeductionID, username) {
     //first, validate scenario's invariants
+    //console.log(process.cwd());
     try {
         await validate(scenarioID);
 
@@ -290,6 +295,19 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
 
     //TODO: parralelism
     for (let i = 0; i < numTimes; i++) {
+        //console.log(i);
+        let csvFile;
+        let logFile;
+        if(i===0){
+            //console.log("I IS 0");
+            
+            //create logs on first run
+            const datetime = new Date();
+            csvFile = (await createSimulationCSV(username, datetime, "../logs")).toString();
+            
+            logFile = await createEventLog(username, datetime, "../logs");
+        }
+        
         let runResult = await run(
             scenarioID,
             fedIncome,
@@ -297,7 +315,10 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
             fedDeduction,
             stateTax,
             stateDeduction,
-            rmdTable
+            rmdTable,
+            csvFile,
+            logFile
+
         );
         //Replace runResult.scenario with scenario, to erase the fact we cloned
         //let clonedScenarioID = runResult.scenario.id;
@@ -308,7 +329,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
 
 
     }
-    console.log(compiledResults);
+    //console.log(compiledResults);
     await simulationFactory.update(compiledResults.id, { results: compiledResults.results });
     //console.log(await scenarioFactory.readAll());
     return compiledResults;

@@ -1,4 +1,6 @@
 //the big boi
+
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
 import InvestmentController from "../db/controllers/InvestmentController.js";
@@ -10,6 +12,7 @@ import RMDTableController from "../db/controllers/RMDTableController.js";
 import TaxController from "../db/controllers/TaxController.js";
 import ResultController from "../db/controllers/ResultController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
+import { cursorTo } from 'readline';
 const investmentTypeFactory = new InvestmentTypeController();
 const investmentFactory = new InvestmentController();
 const eventFactory = new EventController();
@@ -811,6 +814,71 @@ async function rebalanceInvestments(scenario, currentYear) {
     return toReturn;
 }
 
+async function updateCSV(filepath, currentYear, investments){
+    //takes in current year of simulation and a list of investments
+    //if an investment's id is not in the title row, it adds it at the end
+    //inserts a row and puts currentYear, followed by investment values
+    //console.log(filepath);
+    if(filepath===null||filepath===undefined){
+        return;
+    }
+    //console.log(currentYear);
+    let csvContent = [];
+    if (existsSync(filepath)) {
+        csvContent = readFileSync(filepath, 'utf8').trim().split('\n').map(row => row.split(','));
+    }
+    
+    let headers = csvContent.length ? csvContent[0] : ['Year']; // First row is the header
+    let investmentIDs = investments.map(investment=>investment.id);
+
+    // Check for missing investment IDs and add them to the headers
+    let missingIDs = investmentIDs.filter(id => !headers.includes(id));
+    if (missingIDs.length) {
+        headers.push(...missingIDs);
+    }
+    
+    // Prepare new row
+    let newRow = [currentYear];
+    for (let i = 1; i < headers.length; i++) {
+        const inv = await investmentFactory.read(headers[i]);
+
+        newRow.push(inv.value || 0);
+    }
+
+    csvContent.push(newRow);
+
+    //convert back to CSV format and write to file
+    const csvString = csvContent.map(row => row.join(',')).join('\n');
+    writeFileSync(filepath, csvString, 'utf8');
+}
+async function updateLog(filepath, eventType, details){
+    //const EVENT_TYPE = ['INCOME', 'EXPENSE', 'ROTH', 'RMD', 'TAX', 'INVEST', 'REBALANCE'];
+    //details has data based on event type
+    if(eventType==="INCOME"){
+
+    }
+    else if(eventType==="EXPENSE"){
+
+    }
+    else if(eventType==="ROTH"){
+        
+    }
+    else if(eventType==="RMD"){
+        
+    }
+    else if(eventType==="TAX"){
+        
+    }
+    else if(eventType==="INVEST"){
+        
+    }
+    else if(eventType==="REBALANCE"){
+        
+    }
+
+    
+}
+
 
 export async function simulate(
     inputScenario,
@@ -819,8 +887,11 @@ export async function simulate(
     federalStandardDeduction,
     stateStandardDeduction,
     capitalGainTax,
-    rmdTable
+    rmdTable,
+    csvFile,
+    logFile
 ) {
+    //console.log(csvFile);
     // console.log(rmdTable);
     const simulation = await createSimulation(inputScenario);
     //console.log(simulation);
@@ -993,7 +1064,7 @@ export async function simulate(
         simulation.results[0].yearlyResults.push(yearlyRes);
 
         await resultFactory.update(simulation.results.id, { yearlyResults: simulation.results.yearlyResults });
-
+        await updateCSV(csvFile, currentYear, investments);
         currentYear++;
 
     }

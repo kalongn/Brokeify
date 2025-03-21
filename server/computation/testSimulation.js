@@ -320,9 +320,9 @@ const populateDB = async () => {
 
 
     console.log('====================== Simulation Test =====================');
-    await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
+    //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
-        await validateRun(scenario.id, 100, stateIncomeTax.id, stateStandardDeduction.id);
+        await validateRun(scenario.id, 1, stateIncomeTax.id, stateStandardDeduction.id, "GUEST");
     }
     catch (err) {
         const res = await connection.dropDatabase();
