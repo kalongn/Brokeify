@@ -5,21 +5,6 @@ import Axios from "axios";
 import ScenarioCard from "../components/ScenarioCard";
 import style from './Home.module.css';
 const Home = () => {
-  const [user, setUser] = useState(null);
-  useEffect(() => {
-    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
-    Axios.defaults.withCredentials = true;
-
-    Axios.get("/profile")
-      .then((response) => {
-        console.log("User Profile Data:", response.data);
-        setUser(response.data);
-      })
-      .catch((error) => {
-        console.error('Error fetching user session:', error);
-      });
-
-  }, []);
 
   return (
     <Layout>
