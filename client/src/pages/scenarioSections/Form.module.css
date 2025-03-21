@@ -1,0 +1,4 @@
+/* Instead of repeatedly using <br />, opting for CSS solution */
+.newline {
+  display: block;
+}

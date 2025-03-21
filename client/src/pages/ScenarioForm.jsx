@@ -45,6 +45,8 @@ const ScenarioForm = () => {
             navigate(`/ScenarioForm/${sections[currentSectionIndex - 1].path}`);
         }
     };
+    
+    // TODO: Implement save functionality
     const handleSave = () => {
         navigate(`/Home`);
         console.log("Save & Close clicked");

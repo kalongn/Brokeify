@@ -12,20 +12,24 @@ const InvestmentTypes = () => {
             <p>
                 Create investment types or view the default ones.
             </p>
-            <form>
-                <label>
-                    Investment Type
-                    <input type="text" name="cash" value="Cash" disabled />
-                </label>
-                <label>
-                    Taxability
-                    <input type="text" name="taxability" value="Taxable" disabled />
-                </label>
-                {/* Type button prevents form submission on click */}
-                <button type="button" onClick={newInvestmentType}>
-                    Add Investment Type
-                </button>
-            </form>
+            {/* TODO: fix global table styling */}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Investment Type</th>
+                        <th>Taxability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Cash</td>
+                        <td>Taxable</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button onClick={newInvestmentType}>
+                Add New Investment Type
+            </button>
         </div>
     );
 };
