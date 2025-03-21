@@ -100,4 +100,19 @@ export default class InvestmentController {
             throw new Error(error);
         }
     }
+
+    async clone(id){
+        try{
+            const investment = await Investment.findById(id);
+
+            const clonedInvestment = await this.create({
+                value: investment.value,
+                taxStatus: investment.taxStatus,
+            });
+            return clonedInvestment.id;
+
+        } catch(err){
+            throw new Error(err);
+        }
+    }
 }
