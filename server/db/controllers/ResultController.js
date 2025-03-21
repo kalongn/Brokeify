@@ -46,4 +46,25 @@ export default class ResultController {
             throw new Error(error);
         }
     }
+
+    /**
+     * This function updates the Result with the given id with the given data
+     * @param {mongoose.Types.ObjectId} id 
+     *      Id of the Result to be updated
+     * @param {Result} data 
+     *      Data for the Result, check Result.js for the data structure
+     * @returns 
+     *      Returns the updated Result
+     * @throws Error
+     *      Throws error if the Result is not found or if any error occurs
+     */
+    async update(id, data) {
+        try {
+            return await Result.findByIdAndUpdate
+                (id, data, { new: true });
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
 }
