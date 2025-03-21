@@ -22,36 +22,36 @@ export async function scrapeFederalIncomeTaxBrackets() {
         //Mailied filing seperatley
         //Head of household
         let i = 0;
-        $('table tbody tr').each((index, element)=>{
+        $('table tbody tr').each((index, element) => {
             const tds = $(element).find('td');
             //hb is 'high bound' and is like this due to it sometimes being infinity
             //the regex takes in a tring and drops all characters exept 0-9, '0' and '.'
             //causing '$123,456.78' => '123456.78'
-            let hb = Number($(tds[2]).text().trim().replace(/[^0-9.-]+/g,""));  
-            if(hb==0){hb = Infinity;}
+            let hb = Number($(tds[2]).text().trim().replace(/[^0-9.-]+/g, ""));
+            if (hb == 0) { hb = Infinity; }
             const bracket = {
-                rate: Number($(tds[0]).text().trim().replace(/[^0-9.-]+/g,"")),
-                lowBound: Number($(tds[1]).text().trim().replace(/[^0-9.-]+/g,"")),
+                rate: Number($(tds[0]).text().trim().replace(/[^0-9.-]+/g, "")),
+                lowBound: Number($(tds[1]).text().trim().replace(/[^0-9.-]+/g, "")),
                 highBound: hb
             };
-            if(bracket.rate==''){
+            if (bracket.rate == '') {
                 i++;    //increment's because rate will only be empty on header of table
             }
-            else{
-                if(i==0){
+            else {
+                if (i == 0) {
                     single.push(bracket);
                 }
-                if(i==1){
+                if (i == 1) {
                     marriedJoint.push(bracket);
                 }
-                if(i==2){
+                if (i == 2) {
                     marriedSeperate.push(bracket);
                 }
-                if(i==3){
+                if (i == 3) {
                     headOfHousehold.push(bracket);
                 }
             }
-            
+
         });
 
         taxBrackets.push(single);
@@ -74,7 +74,7 @@ export async function scrapeStandardDeductions() {
         const $ = cheerio.load(data);
 
         let standardDeductions = [];
-        
+
         //hardcode the id (hope the irs doesnt update the website)
         const section = $(`#idm140408599383584`);
         if (!section.length) {
@@ -92,17 +92,17 @@ export async function scrapeStandardDeductions() {
         //data from the table
         table.find('tbody tr').each((i, row) => {
             const columns = $(row).find('td');
-            if (columns.length >= 2&&i>0) {
+            if (columns.length >= 2 && i > 0) {
                 const bracket = {
                     filingStatus: $(columns[0]).text().trim(),
-                    amount: Number($(columns[1]).text().trim().replace(/[^0-9.-]+/g,"")),
+                    amount: Number($(columns[1]).text().trim().replace(/[^0-9.-]+/g, "")),
                 };
                 standardDeductions.push(bracket);
             }
         });
 
         return standardDeductions;
-    } 
+    }
     catch (error) {
         console.error('Error fetching standard deductions:', error);
         return [];
@@ -117,7 +117,7 @@ export async function fetchCapitalGainsData() {
         const url = 'https://www.irs.gov/taxtopics/tc409';
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
-    
+
         let unparsedBullets1 = [];
         let unparsedBullets2 = [];
 
@@ -176,7 +176,7 @@ export async function fetchCapitalGainsData() {
             return null;
         }
         rate2 = Number(numbers2[numbers2.length - 1]);
-        
+
         const thirdParagraph = section.nextAll('p').eq(2);
         if (!thirdParagraph.length) {
             console.error('No paragraph found after "Capital gains tax rates".');
@@ -189,39 +189,39 @@ export async function fetchCapitalGainsData() {
             return null;
         }
         rate3 = Number(numbers3[0]);
-        
+
 
         //now, parse all data together and return
 
 
         let bracketValues = [];
-        let q=0;
+        let q = 0;
         //let rx = /(?:^|\s)($[a-z0-9]\w*)/gi;
         unparsedBullets1.forEach((val) => {
             let s = val.split(" ");
             let v = [];
-            for(let i=0;i<s.length;i++){
+            for (let i = 0; i < s.length; i++) {
                 v.push(s[i]);
             }
-            for(let i=0;i<v.length;i++){
+            for (let i = 0; i < v.length; i++) {
                 //check if the start of each word is '$'
-                if(v[i].charAt(0)=='$'){
-                    bracketValues[q] = Number(v[i].replace(/[^0-9.-]+/g,""));
+                if (v[i].charAt(0) == '$') {
+                    bracketValues[q] = Number(v[i].replace(/[^0-9.-]+/g, ""));
                     q++;
                 }
             }
-            
+
         });
         unparsedBullets2.forEach((val) => {
             let s = val.split(" ");
             let v = [];
-            for(let i=0;i<s.length;i++){
+            for (let i = 0; i < s.length; i++) {
                 v.push(s[i]);
             }
-            for(let i=0;i<v.length;i++){
+            for (let i = 0; i < v.length; i++) {
                 //check if the start of each word is '$'
-                if(v[i].charAt(0)=='$'){
-                    bracketValues[q] = Number(v[i].replace(/[^0-9.-]+/g,""));
+                if (v[i].charAt(0) == '$') {
+                    bracketValues[q] = Number(v[i].replace(/[^0-9.-]+/g, ""));
                     q++;
                 }
             }
@@ -237,36 +237,36 @@ export async function fetchCapitalGainsData() {
         const headOfHousehold = [];
         const taxBrackets = [];
         //single:
-        const singleBracket1 = {rate: rate1, lowBound: 0, highBound: bracketValues[0]};
-        const singleBracket2 = {rate: rate2, lowBound: bracketValues[0]+1, highBound: bracketValues[4]};
-        const singleBracket3 = {rate: rate3, lowBound: bracketValues[4]+1, highBound: Infinity};
+        const singleBracket1 = { rate: rate1, lowBound: 0, highBound: bracketValues[0] };
+        const singleBracket2 = { rate: rate2, lowBound: bracketValues[0] + 1, highBound: bracketValues[4] };
+        const singleBracket3 = { rate: rate3, lowBound: bracketValues[4] + 1, highBound: Infinity };
         single.push(singleBracket1);
         single.push(singleBracket2);
         single.push(singleBracket3);
         taxBrackets.push(single);
-        
+
         //married joint:
-        const marriedJointBracket1 = {rate: rate1, lowBound: 0, highBound: bracketValues[1]};
-        const marriedJointBracket2 = {rate: rate2, lowBound: bracketValues[1]+1, highBound: bracketValues[8]};
-        const marriedJointBracket3 = {rate: rate3, lowBound: bracketValues[8]+1, highBound: Infinity};
+        const marriedJointBracket1 = { rate: rate1, lowBound: 0, highBound: bracketValues[1] };
+        const marriedJointBracket2 = { rate: rate2, lowBound: bracketValues[1] + 1, highBound: bracketValues[8] };
+        const marriedJointBracket3 = { rate: rate3, lowBound: bracketValues[8] + 1, highBound: Infinity };
         marriedJoint.push(marriedJointBracket1);
         marriedJoint.push(marriedJointBracket2);
         marriedJoint.push(marriedJointBracket3);
         taxBrackets.push(marriedJoint);
 
         //married seperate:
-        const marriedSeperateBracket1 = {rate: rate1, lowBound: 0, highBound: bracketValues[0]};
-        const marriedSeperateBracket2 = {rate: rate2, lowBound: bracketValues[0]+1, highBound: bracketValues[6]};
-        const marriedSeperateBracket3 = {rate: rate3, lowBound: bracketValues[6]+1, highBound: Infinity};
+        const marriedSeperateBracket1 = { rate: rate1, lowBound: 0, highBound: bracketValues[0] };
+        const marriedSeperateBracket2 = { rate: rate2, lowBound: bracketValues[0] + 1, highBound: bracketValues[6] };
+        const marriedSeperateBracket3 = { rate: rate3, lowBound: bracketValues[6] + 1, highBound: Infinity };
         marriedSeperate.push(marriedSeperateBracket1);
         marriedSeperate.push(marriedSeperateBracket2);
         marriedSeperate.push(marriedSeperateBracket3);
         taxBrackets.push(marriedSeperate);
 
         //head of household:
-        const headOfHouseholdBracket1 = {rate: rate1, lowBound: 0, highBound: bracketValues[2]};
-        const headOfHouseholdBracket2 = {rate: rate2, lowBound: bracketValues[2]+1, highBound: bracketValues[10]};
-        const headOfHouseholdBracket3 = {rate: rate3, lowBound: bracketValues[10]+1, highBound: Infinity};
+        const headOfHouseholdBracket1 = { rate: rate1, lowBound: 0, highBound: bracketValues[2] };
+        const headOfHouseholdBracket2 = { rate: rate2, lowBound: bracketValues[2] + 1, highBound: bracketValues[10] };
+        const headOfHouseholdBracket3 = { rate: rate3, lowBound: bracketValues[10] + 1, highBound: Infinity };
         headOfHousehold.push(headOfHouseholdBracket1);
         headOfHousehold.push(headOfHouseholdBracket2);
         headOfHousehold.push(headOfHouseholdBracket3);
@@ -274,17 +274,17 @@ export async function fetchCapitalGainsData() {
 
 
         return taxBrackets;
-    } 
+    }
     catch (error) {
         console.error('Error fetching capital gains tax rates:', error);
         return [];
-  
+
     }
 }
 //fetchCapitalGainsData().then(data => console.log(data)).catch(err => console.error(err));
 
 //scrape RMD tables
-export async function fetchRMDTable(){
+export async function fetchRMDTable() {
     try {
         const url = 'https://www.irs.gov/publications/p590b#en_US_2023_publink100090310';
         const { data } = await axios.get(url);
@@ -292,18 +292,18 @@ export async function fetchRMDTable(){
 
         let rawtableData = [];
 
-    
-   
+
+
         const table = $('table[summary="Appendix B. Uniform Lifetime Table"]');
 
         if (!table.length) {
-        console.log('Table with specified name not found.');
-        return [];
+            console.log('Table with specified name not found.');
+            return [];
         }
 
-        
-        
-        
+
+
+
         table.find('tbody tr').each((index, element) => {
             const row = {};
             $(element).find('td').each((i, el) => {
@@ -318,16 +318,16 @@ export async function fetchRMDTable(){
 
         //do left side first
         let p = 0;
-        for(const i in rawtableData){
-            if(!boolAtTable){
-                if(rawtableData[i][0] ==='Age'){
-                    boolAtTable=true;
+        for (const i in rawtableData) {
+            if (!boolAtTable) {
+                if (rawtableData[i][0] === 'Age') {
+                    boolAtTable = true;
                 }
                 continue;
             }
             //check to see if at '120 and over'
             let age = rawtableData[i][0];
-            
+
             age = Number(age);
             let distribution = Number(rawtableData[i][1]);
             distributions.push(distribution);
@@ -338,16 +338,16 @@ export async function fetchRMDTable(){
         //right side
         toBreak = false;
         boolAtTable = false;
-        for(const i in rawtableData){
-            if(!boolAtTable){
-                if(rawtableData[i][0] ==='Age'){
-                    boolAtTable=true;
+        for (const i in rawtableData) {
+            if (!boolAtTable) {
+                if (rawtableData[i][0] === 'Age') {
+                    boolAtTable = true;
                 }
                 continue;
             }
             //check to see if at '120 and over'
             let age = rawtableData[i][2];
-            if(rawtableData[i][2]==='120 and over'){
+            if (rawtableData[i][2] === '120 and over') {
                 age = '120';
                 toBreak = true;
             }
@@ -357,12 +357,12 @@ export async function fetchRMDTable(){
             ages.push(age);
 
 
-            if(toBreak) break;
+            if (toBreak) break;
         }
 
-        
-        
-        return {ages, distributions};
+
+
+        return { ages, distributions };
     } catch (error) {
         console.error('Error fetching Uniform Lifetime Table:', error);
         return [];

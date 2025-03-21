@@ -153,7 +153,7 @@ const testScenario = async () => {
             durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
             amount: 10,
             expectedAnnualChange: .05,
-            expectedAnnualChangeDistribution: await DistributionFactory.create("NORMAL_PERCENTAGE", { mean: 0.05, standardDeviation: 0.02}),
+            expectedAnnualChangeDistribution: await DistributionFactory.create("NORMAL_PERCENTAGE", { mean: 0.05, standardDeviation: 0.02 }),
             isinflationAdjusted: true,
             userContributions: 100,
             spouseContributions: 0,
@@ -170,7 +170,7 @@ const testScenario = async () => {
             investmentTypes: [testInvestmentType],
             events: [RebalanceEvent, InvestEvent, IncomeEvent, ExpenseEvent, ExpenseEvent2],
             inflationAssumption: 0.02,
-            inflationAssumptionDistribution: await DistributionFactory.create("UNIFORM_PERCENTAGE", { lowerBound: 0.01 , upperBound: 0.03}),
+            inflationAssumptionDistribution: await DistributionFactory.create("UNIFORM_PERCENTAGE", { lowerBound: 0.01, upperBound: 0.03 }),
             annualPreTaxContributionLimit: 19500,
             annualPostTaxContributionLimit: 100,
             financialGoal: 1000000,
@@ -182,7 +182,7 @@ const testScenario = async () => {
             endYearRothOptimizer: 2070
         });
         console.log(testScenario);
-        
+
         const scenarios = await factory.readAll();
         // console.log(scenarios);
 
@@ -218,7 +218,7 @@ const testRMDTable = async () => {
         let oneRmd = await factory.read();
         console.log(oneRmd);
         return oneRmd;
-        
+
 
     } catch (error) {
         console.error(error);
@@ -230,7 +230,7 @@ const testTax = async (i) => {
     const factory = new TaxController();
 
     try {
-        if(i==1){
+        if (i == 1) {
             const federalIncomeTax = await factory.create("FEDERAL_INCOME", {
                 filingStatus: "SINGLE",
                 taxBrackets: [
@@ -246,7 +246,7 @@ const testTax = async (i) => {
             console.log(federalIncomeTax);
             return federalIncomeTax;
         }
-        else if(i==2){
+        else if (i == 2) {
 
             const stateIncomeTax = await factory.create("STATE_INCOME", {
                 filingStatus: "SINGLE",
@@ -266,7 +266,7 @@ const testTax = async (i) => {
             console.log(stateIncomeTax);
             return stateIncomeTax;
         }
-        else if(i==3){
+        else if (i == 3) {
             const federalStandardDeduction = await factory.create("FEDERAL_STANDARD", {
                 filingStatus: "SINGLE",
                 standardDeduction: 12400
@@ -274,7 +274,7 @@ const testTax = async (i) => {
             console.log(federalStandardDeduction);
             return federalStandardDeduction;
         }
-        else if(i==4){
+        else if (i == 4) {
             const stateStandardDeduction = await factory.create("STATE_STANDARD", {
                 filingStatus: "SINGLE",
                 state: "CA",
@@ -283,8 +283,8 @@ const testTax = async (i) => {
             console.log(stateStandardDeduction);
             return stateStandardDeduction;
         }
-        
-        else if(i==5){
+
+        else if (i == 5) {
             const capitalGainTax = await factory.create("CAPITAL_GAIN", {
                 filingStatus: "SINGLE",
                 taxBrackets: [
@@ -296,9 +296,9 @@ const testTax = async (i) => {
             console.log(capitalGainTax);
             return capitalGainTax;
         }
-        
 
-        
+
+
     } catch (error) {
         console.error(error);
     }
@@ -307,26 +307,26 @@ const testTax = async (i) => {
 
 
 const populateDB = async () => {
-    
+
     const scenario = await testScenario();
-    
-    //const RMDTable = await testRMDTable();
-    
-    //const federalIncomeTax = await testTax(1);
+
+    const RMDTable = await testRMDTable();
+
+    const federalIncomeTax = await testTax(1);
     const stateIncomeTax = await testTax(2);
-    //const federalStandardDeduction = await testTax(3);
+    const federalStandardDeduction = await testTax(3);
     const stateStandardDeduction = await testTax(4);
-    //const capitalGainTax = await testTax(5);
-    
+    const capitalGainTax = await testTax(5);
+
 
     console.log('====================== Simulation Test =====================');
-    //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
-    try{
+    await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
+    try {
         await validateRun(scenario.id, 100, stateIncomeTax.id, stateStandardDeduction.id);
     }
-    catch(err){
+    catch (err) {
         const res = await connection.dropDatabase();
-        throw(err);
+        throw (err);
     }
     //drop all objects in database
     const res = await connection.dropDatabase();
