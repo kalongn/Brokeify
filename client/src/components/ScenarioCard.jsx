@@ -4,7 +4,7 @@ import { TbTargetArrow } from "react-icons/tb";
 import { IoMdCalendar } from "react-icons/io";
 import { BsGraphUpArrow } from "react-icons/bs";
 import { FaPiggyBank } from "react-icons/fa6";
-const ScenarioCard = ({ title, name, targetAmount, investments, events }) => {
+const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events }) => {
   return (
     <div className={styles.scenarioCard}>
 
@@ -21,7 +21,7 @@ const ScenarioCard = ({ title, name, targetAmount, investments, events }) => {
           </div>
           <div className = {styles.info}>
           <div className={styles.infoRow}>
-            <IoPersonCircle size ={30}/> <span>{name}</span>
+            <IoPersonCircle size ={30}/> <span>{martialStatus}</span>
           </div>
           <div className={styles.infoRow}>
             <TbTargetArrow size ={30} /> <span>{targetAmount?.toLocaleString() ?? "N/A"}</span>
