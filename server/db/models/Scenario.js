@@ -21,7 +21,7 @@ const ScenarioSchema = new mongoose.Schema({
     orderedRMDStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     orderedRothStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     startYearRothOptimizer: { type: Number },
-    endYearRothOptimizer: { type: Number }
+    endYearRothOptimizer: { type: Number },
 });
 
 ScenarioSchema.virtual('id').get(function get() {

@@ -19,7 +19,7 @@ import SimulationController from "../db/controllers/SimulationController.js";
 
 import { simulate } from "./simulator.js";
 import { validateRun } from "./planValidator.js";
-
+import { parseAndSaveYAML } from "../yaml_parsers/scenarioParser.js";
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
 
@@ -307,9 +307,13 @@ const testTax = async (i) => {
 
 
 const populateDB = async () => {
-
-    const scenario = await testScenario();
-
+    const factory = new ScenarioController();
+    //const scenario = await testScenario();
+    const scenarioID = await parseAndSaveYAML("../yaml_files/scenario.yaml");
+    const scenario = await factory.read(scenarioID);
+    console.log(scenario);
+    const res1 = await connection.dropDatabase();
+    throw("eee");
     const RMDTable = await testRMDTable();
 
     const federalIncomeTax = await testTax(1);

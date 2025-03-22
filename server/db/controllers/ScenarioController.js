@@ -238,7 +238,6 @@ export default class ScenarioController {
             orderedRothStrategy: originalScenario.orderedRothStrategy.map(id => idMap.get(id.id.toString())),
             startYearRothOptimizer: originalScenario.startYearRothOptimizer,
             endYearRothOptimizer:originalScenario.endYearRothOptimizer,
-            
         });
         // console.log("MAP:");
         // console.log(idMap);

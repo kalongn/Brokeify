@@ -76,16 +76,18 @@ async function updateLog(eventDetails){
 
 
 
-async function sample(expectedValue, distributionID) {
+export async function sample(expectedValue, distributionID) {
 
     //sample from distribution
-
-    const distribution = await distributionFactory.read(distributionID);
+    
+    const distribution = distributionID.hasOwnProperty('id')? distributionID:await distributionFactory.read(distributionID);
+    // console.log(distribution);
     if (distribution === null) {
 
         return expectedValue;
     }
-    //console.log(distribution);
+    // console.log("dist:");
+    // console.log(distribution);
     //depends on distribution type:
     if (distribution.distributionType === 'FIXED_AMOUNT' || distribution.distributionType === 'FIXED_PERCENTAGE') {
         return distribution.value;
@@ -325,11 +327,24 @@ async function updateInvestments(investmentTypes, inflationRate) {
             }
 
             //add the income to the investment value
-            investment.value += generatedIncome;
+            let distribution = await distributionFactory.read(type.expectedAnnualIncomeDistribution);
+            if(distribution.distributionType==="FIXED_AMOUNT"||distribution.distributionType==="UNIFORM_AMOUNT"||distribution.distributionType==="NORMAL_AMOUNT"){
+                investment.value += (generatedIncome);
+            }
+            else{
+                investment.value *= (1 + generatedIncome);
+            }
+            
 
             //calculate value change (growth) based on expected return
             let growth = await sample(type.expectedAnnualReturn, type.expectedAnnualReturnDistribution);
-            investment.value *= (1 + growth);
+            distribution = await distributionFactory.read(type.expectedAnnualReturnDistribution);
+            if(distribution.distributionType==="FIXED_AMOUNT"||distribution.distributionType==="UNIFORM_AMOUNT"||distribution.distributionType==="NORMAL_AMOUNT"){
+                investment.value += (growth);
+            }
+            else{
+                investment.value *= (1 + growth);
+            }
 
             //calculate expenses using the average value over the year
             let avgValue = (investment.value + (investment.value / (1 + growth))) / 2;
