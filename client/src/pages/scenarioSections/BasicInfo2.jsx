@@ -1,4 +1,3 @@
-import React from "react";
 import { useState } from "react";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";

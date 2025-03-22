@@ -1,4 +1,4 @@
-import React from "react";
+import PropTypes from "prop-types";
 import Select from "react-select";
 import styles from "../pages/scenarioSections/Form.module.css";
 
@@ -132,6 +132,17 @@ const Distributions = ({
           )}
         </div>
     );
+};
+
+// PropTypes validation
+Distributions.propTypes = {
+  label: PropTypes.string.isRequired,
+  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  name: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  fixedLabel: PropTypes.string,
+  calculatedLabel: PropTypes.string,
 };
 
 export default Distributions;

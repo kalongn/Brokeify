@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import Axios from 'axios';
 import './App.css'
 
@@ -44,6 +44,8 @@ const App = () => {
         <Route path="/" element={<Login />} />
         <Route path="/Home" element={<Home />} />
         <Route path="/ScenarioForm" element={<ScenarioForm />}>
+          {/* Redirect /ScenarioForm to /ScenarioForm/basic-information */}
+          <Route index element={<Navigate to="basic-information" replace />} />
           <Route path="basic-information" element={<BasicInfo1 />} />
           <Route path="basic-information-continued" element={<BasicInfo2 />} />
           <Route path="investment-types" element={<InvestmentTypes />} />

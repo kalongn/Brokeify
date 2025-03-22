@@ -1,4 +1,3 @@
-import React from "react";
 import Select from "react-select";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -141,7 +140,7 @@ const EventSeriesForm = () => {
                         </label>
                         {/* TODO: show depending on marital status */}
                         <label className={styles.newline}>
-                            Spouse's Increase
+                            Spouse&apos;s Increase
                             <input type="number" name="spouse-percentage-increase" />
                         </label>
                         <label>

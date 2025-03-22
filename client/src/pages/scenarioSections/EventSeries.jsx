@@ -1,4 +1,3 @@
-import React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -15,10 +14,6 @@ const EventSeries = () => {
         const updatedEvents = [...events];
         updatedEvents[index][field] = value;
         setEvents(updatedEvents);
-    };
-
-    const addNewEvent = () => {
-        setInvestments([...events, { name: "", type: "" }]);
     };
     return (
         <div>

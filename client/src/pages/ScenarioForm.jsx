@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/Layout";
 
@@ -21,13 +20,6 @@ const ScenarioForm = () => {
         { path: "roth-strategy", label: "Roth Conversion Strategy & Optimizer" },
         { path: "sharing", label: "Sharing Settings" },
     ];
-
-    // Redirect to the first section when first creating new scenario
-    useEffect(() => {
-        if (path === "/ScenarioForm") {
-            navigate(`/ScenarioForm/${sections[0].path}`);
-        }
-    }, [path, navigate, sections]);
 
     // Determine the current section index based on the URL
     const currentSectionIndex = sections.findIndex(
