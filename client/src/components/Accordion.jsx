@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styles from './Accordion.module.css';
 import { RiArrowDownSFill } from "react-icons/ri";
 import { RiArrowUpSFill } from "react-icons/ri";
+import PropTypes from 'prop-types';
+
 const Accordion = ({ title, content }) => {
   const [isActive, setIsActive] = useState(false);
 
@@ -27,5 +29,14 @@ const Accordion = ({ title, content }) => {
     </div>
   );
 };
+
+Accordion.propTypes = {
+    title: PropTypes.string, 
+    content: PropTypes.oneOfType([
+      PropTypes.string, 
+      PropTypes.arrayOf(PropTypes.string) 
+    ])
+  };
+  
 
 export default Accordion;

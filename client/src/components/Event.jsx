@@ -1,4 +1,3 @@
-import React from "react";
 import styles from "./Event.module.css";
 import PropTypes from 'prop-types';
 

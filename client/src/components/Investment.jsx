@@ -1,4 +1,3 @@
-import React from "react";
 import styles from "./Investment.module.css";
 import PropTypes from 'prop-types';
 
