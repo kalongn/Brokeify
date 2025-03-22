@@ -176,7 +176,7 @@ const testScenario = async () => {
             financialGoal: 1000000,
             orderedSpendingStrategy: [IncomeEvent, ExpenseEvent],
             orderedExpenseWithdrawalStrategy: [testInvestment1, testInvestment2, testInvestment3],
-            orderedRMDStrategy: [testInvestment1, testInvestment2, testInvestment3],
+            orderedRMDStrategy: [testInvestment1, testInvestment2, testInvestment4],
             orderedRothStrategy: [testInvestment1, testInvestment2, testInvestment3, testInvestment4],
             startYearRothOptimizer: 2021,
             endYearRothOptimizer: 2070
@@ -243,7 +243,7 @@ const testTax = async (i) => {
                     { lowerBound: 518401, upperBound: Infinity, rate: 0.37 }
                 ]
             });
-            console.log(federalIncomeTax);
+            //console.log(federalIncomeTax);
             return federalIncomeTax;
         }
         else if (i == 2) {
@@ -263,7 +263,7 @@ const testTax = async (i) => {
                     { lowerBound: 572981, upperBound: Infinity, rate: 0.123 }
                 ]
             });
-            console.log(stateIncomeTax);
+            //console.log(stateIncomeTax);
             return stateIncomeTax;
         }
         else if (i == 3) {
@@ -271,7 +271,7 @@ const testTax = async (i) => {
                 filingStatus: "SINGLE",
                 standardDeduction: 12400
             });
-            console.log(federalStandardDeduction);
+            //console.log(federalStandardDeduction);
             return federalStandardDeduction;
         }
         else if (i == 4) {
@@ -280,7 +280,7 @@ const testTax = async (i) => {
                 state: "CA",
                 standardDeduction: 4601
             });
-            console.log(stateStandardDeduction);
+            ///console.log(stateStandardDeduction);
             return stateStandardDeduction;
         }
 
@@ -293,7 +293,7 @@ const testTax = async (i) => {
                     { lowerBound: 441451, upperBound: Infinity, rate: 0.2 }
                 ]
             });
-            console.log(capitalGainTax);
+            //console.log(capitalGainTax);
             return capitalGainTax;
         }
 

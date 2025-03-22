@@ -232,16 +232,18 @@ export default class ScenarioController {
             annualPreTaxContributionLimit: originalScenario.annualPreTaxContributionLimit,
             annualPostTaxContributionLimit: originalScenario.annualPostTaxContributionLimit,
             financialGoal: originalScenario.financialGoal,
-            orderedSpendingStrategy: originalScenario.orderedSpendingStrategy.map(id => idMap.get(id.toString()) || id),
-            orderedExpenseWithdrawalStrategy: originalScenario.orderedExpenseWithdrawalStrategy.map(id => idMap.get(id.toString()) || id),
-            orderedRMDStrategy: originalScenario.orderedRMDStrategy.map(id => idMap.get(id.toString()) || id),
-            orderedRothStrategy: originalScenario.orderedRothStrategy.map(id => idMap.get(id.toString()) || id),
+            orderedSpendingStrategy: originalScenario.orderedSpendingStrategy.map(id => idMap.get(id.id.toString())),
+            orderedExpenseWithdrawalStrategy: originalScenario.orderedExpenseWithdrawalStrategy.map(id => idMap.get(id.id.toString())),
+            orderedRMDStrategy: originalScenario.orderedRMDStrategy.map(id => idMap.get(id.id.toString())),
+            orderedRothStrategy: originalScenario.orderedRothStrategy.map(id => idMap.get(id.id.toString())),
             startYearRothOptimizer: originalScenario.startYearRothOptimizer,
             endYearRothOptimizer:originalScenario.endYearRothOptimizer,
             
         });
-        //console.log("CLONED:");
-        //console.log(await clonedScenario.populate('investmentTypes events orderedSpendingStrategy orderedExpenseWithdrawalStrategy orderedRMDStrategy orderedRothStrategy'));
+        // console.log("MAP:");
+        // console.log(idMap);
+        // console.log("CLONED:");
+        // console.log(clonedScenario);
         return clonedScenario;
     }
 
