@@ -1,9 +1,48 @@
-import style from './Header.module.css';
+import styles from './Header.module.css';
+import { useLocation, Link } from 'react-router-dom';
+
 const Header = () => {
+    const location = useLocation();
+    const path = location.pathname;
+    const getHeaderTitle = () => {
+        switch (path) {
+            case '/Home':
+                return 'My Scenarios';
+            case '/ScenarioForm':
+                return 'Create/Edit Scenario';
+            case '/SharedScenarios':
+                return 'Shared Scenarios';
+            case '/Profile':
+                return 'My Profile';
+            default:
+                return 'Brokeify';
+        }
+    };
+    // TODO: implement the IMPORT SCENARIO button functionality
+    const getHeaderButtons = () => {
+        switch (path) {
+            case '/Home':
+                return (
+                    <>
+                        <button onClick={() => console.log('Import Scenario')}>Import Scenario</button>
+                    </>
+                );
+            case '/Profile':
+                return (
+                    <>
+                        <Link className={styles.linkButton} to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Logout</Link>
+                    </>
+                );
+            case '/SharedScenarios':
+            case '/ScenarioForm':
+            default:
+                return null;
+        }
+    };
     return (
-      // TODO: replace simple header placeholder
-        <header className= {style.header} >
-            <h2>Placeholder Header</h2>
+        <header className={styles.header}>
+            <h1>{getHeaderTitle()}</h1>
+            <div className={styles.buttons}>{getHeaderButtons()}</div>
         </header>
     );
 };
