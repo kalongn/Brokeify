@@ -15,7 +15,7 @@ const Navbar = () => {
             <div className={style.navLinks}>
                 <Link to='/Home' className={style.navLink} onClick={() => { console.log('My Scenarios Page') }}>My Scenarios</Link>
 
-                <Link to='/Home'  className={style.navLink}  onClick={() => { console.log('Shared Scenarios Page') }}>Shared Scenarios</Link>
+                <Link to='/ScenarioSimulation'  className={style.navLink}  onClick={() => { console.log('Shared Scenarios Page') }}>Shared Scenarios</Link>
             </div>
 
             <div className={style.profileLink}>

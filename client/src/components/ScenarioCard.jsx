@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 
 const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events }) => {
   return (
-    <div className={styles.scenarioCard}>
+    <div className={styles.scenarioCard} onClick={() => console.log("Card clicked")}>
 
       <div className={styles.titleContainer}>
         {/*Note: This is what's shown originally, when the user isn't hovering 
