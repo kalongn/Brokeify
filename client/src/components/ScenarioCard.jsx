@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 
 const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events }) => {
   return (
-    <Link to='/ScenarioSimulation' className={styles.scenarioCard} onClick={() => console.log("Card clicked")}>
+    <Link to='/Scenario' className={styles.scenarioCard} onClick={() => console.log("Card clicked")}>
       {/*Note: we will need to set these routes to be scenario id based!*/}
       <div className={styles.titleContainer}>
         {/*Note: This is what's shown originally, when the user isn't hovering 

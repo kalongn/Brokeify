@@ -14,7 +14,7 @@ const Header = () => {
                 return 'Shared Scenarios';
             case '/Profile':
                 return 'My Profile';
-            case '/ScenarioSimulation':
+            case '/Scenario':
                 return 'Scenario Simulation';
             default:
                 return 'Brokeify';
@@ -37,7 +37,7 @@ const Header = () => {
                 );
             case '/SharedScenarios':
             case '/ScenarioForm':
-            case '/ScenarioSimulation':
+            case '/Scenario':
             return (
                 <>
                 <div className={styles.buttonGroupSimulation}>
