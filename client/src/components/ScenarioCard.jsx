@@ -3,13 +3,13 @@ import { IoPersonCircle } from "react-icons/io5";
 import { TbTargetArrow } from "react-icons/tb";
 import { IoMdCalendar } from "react-icons/io";
 import { FaPiggyBank } from "react-icons/fa6";
-
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events }) => {
   return (
-    <div className={styles.scenarioCard} onClick={() => console.log("Card clicked")}>
-
+    <Link to='/ScenarioSimulation' className={styles.scenarioCard} onClick={() => console.log("Card clicked")}>
+     
       <div className={styles.titleContainer}>
         {/*Note: This is what's shown originally, when the user isn't hovering 
         over the scenario card*/}
@@ -36,7 +36,7 @@ const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events 
           </div>
           </div> 
       </div>
-    </div>
+    </Link>
   );
 };
 
