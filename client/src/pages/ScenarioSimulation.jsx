@@ -2,8 +2,84 @@ import styles from "./ScenarioSimulation.module.css";
 import Investment from "../components/Investment";
 import Event from "../components/Event";
 import Layout from "../components/Layout";
+import Accordion from "../components/Accordion";
 
 const ScenarioSimulation = () => {
+  {/* Note: for strategies, may need to set content to be a list of the names of events/investments*/}
+    const strategiesData = [
+        {
+          title: 'Spending Strategy',
+          content: [
+            "Buy a mechanical keyboard.",
+            "Buy a ferrari"]
+        },
+        {
+          title: 'Expense Withdrawal Strategy',
+          content: [
+            "Bonds",
+            "Domestic Stocks"]
+        },
+        {
+          title: 'RMD Strategy',
+          content: [
+            "Cash",
+            "Real Estate"]
+        },
+        {
+          title: 'Roth Conversion Strategy',
+          content: [
+            "Cash",
+            "Real Estate"]
+        }
+      ];
+
+
+      const investmentsData = [
+        {
+          investmentType: {
+            name: "Cash",
+            taxability: false, //tax-exempt
+            expectedAnnualReturn: 7,
+          },
+          value: 100000,
+          taxStatus: "Pre-tax retirement"
+        },
+        {
+          investmentType: {
+            name: "Domestic Stocks",
+            taxability: true, // Taxable 
+            expectedAnnualReturn: 12.8,
+          },
+          value: 9350,
+          taxStatus: "Non-retirement"
+        }
+      ];
+      
+
+      const eventsData = [
+        { 
+            name: "Buy a mechanical keyboard",
+            amount: 200, 
+            duration: 1, 
+            startYear: 2025, 
+            eventType: "Discretionary Expense" },
+        { 
+           name: "Child's Education",
+           amount: 50000,
+           duration: 4, 
+           startYear: 2028,
+           eventType: "Discretionary Expense"
+        },
+        { 
+           name: "Buy S&P 500 Index Fund",
+           maximumCash: 10000,
+           duration: 10,
+           startYear: 2030,
+           eventType: "Investment"
+
+         }
+      ];
+
   return (
     <Layout>
     <div className={styles.container}>
@@ -40,19 +116,19 @@ const ScenarioSimulation = () => {
             </div>
         
             <div className={styles.strategies}>
-                <h3>Strategies</h3>
+              
+            <div className="accordion">
+                    {strategiesData.map(({ title, content }) => (
+            <Accordion title={title} content={content} />
+            ))}
+      </div>
 
             </div>
             
             <div className = {styles.investments}>
                 <h3 className={styles.investmentTitle}>Investments</h3>
-                {/* If there aren't any investments, show this message:
-                <p>You currently have no investments. Edit the scenario to add.</p>
 
-                */}
-
-                {/*Iterate through list of investments and print these objects.*/}
-                
+                {/* If below doesn't work w/ middleware, here is this as a reference:
                 <Investment 
                     Type="Cash" 
                     DollarValue= {100000}
@@ -68,18 +144,62 @@ const ScenarioSimulation = () => {
                     AnnualReturn={12.8}
                     TaxStatus="Non-retirement" 
                 />
+                */}
+
+                {investmentsData.length > 0 ? (
+              investmentsData.map((investment, index) => (
+                    <Investment
+                        key={index}
+                        Type={investment.investmentType.name}
+                        DollarValue={investment.value}
+                        Taxability={investment.investmentType.taxability ? "Taxable" : "Tax-exempt"}
+                        AnnualReturn={investment.investmentType.expectedAnnualReturn}
+                        TaxStatus={investment.taxStatus}
+                    />
+              ))
+            ) : (
+              <p>You currently have no investments. Edit the scenario to add.</p>
+            )}
 
             </div>
             
             <div className={styles.events}>
-                  {/* If there aren't any events, show this message:
-                <p>You currently have no events. Edit the scenario to add.</p>
-
+                <h3 className={styles.eventTitle}>Events</h3>
+                {/* If below doesn't work w/ middleware, here is this as a reference hardcoded: 
+                
+                <Event
+                    Name="Buy a mechanical keyboard" 
+                    DollarValue= {200}
+                    Duration={1}
+                    AnnualReturn={1.9}
+                    Type="Discretionary Expense"
+                />
+                <Event 
+                    Name="Child's Education" 
+                    DollarValue= {50000}
+                    Duration={4}
+                    AnnualReturn={5}
+                    Type="Discretionary Expense"
+                />
                 */}
 
-                {/*Iterate through list of investments and print these objects.*/}
-                
-                <Event />
+
+                {eventsData.length > 0 ? (
+                eventsData.map((event, index) => (
+                <Event
+                      key={index}
+                      Name={event.name} 
+                      DollarValue={event.amount ?? event.maximumCash ?? 0} 
+                      Duration={event.duration} 
+                      StartYear={event.startYear}
+                      Type={event.eventType} 
+                    />
+                  ))
+                  
+              )
+             : (
+              <p>You currently have no events. Edit the scenario to add.</p>
+            )}
             </div>
         </div>
         </div>
