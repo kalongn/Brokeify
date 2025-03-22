@@ -1,5 +1,7 @@
 import express from 'express';
 import passport from 'passport';
+
+import ScenarioController from '../db/controllers/ScenarioController.js';
 import UserController from '../db/controllers/UserController.js';
 import TaxController from '../db/controllers/TaxController.js';
 
@@ -36,28 +38,20 @@ router.get("/logout", (req, res) => {
     });
 });
 
+
+// router.get("/home", (req, res) => {
+//     if (req.session.user) {
+//         const 
+//     } else {
+//         res.status(200).send("Guest user");
+//     }
+// });
+
 router.get("/profile", async (req, res) => {
     if (req.session.user) {
         const userController = new UserController();
         try {
-            const user = await userController.read(req.session.user);
-            user.googleId = undefined;
-            user.refreshToken = undefined;
-            user.accessToken = undefined;
-            user.permission = undefined;
-            user.userSimulations = undefined;
-            user.ownerScenarios = undefined;
-            user.editorScenarios = undefined;
-            user.viewerScenarios = undefined;
-
-            const taxController = new TaxController();
-            const updatedTaxes = await Promise.all(user.userSpecificTaxes.map(async (value) => {
-                const tax = await taxController.read(value);
-                tax.taxBrackets = undefined; // Remove tax brackets for all taxes
-                return tax;
-            }));
-
-            user.userSpecificTaxes = updatedTaxes;
+            const user = await userController.readWithTaxes(req.session.user);
             return res.status(200).send(user);
         } catch (error) {
             console.error("Error in profile route:", error);

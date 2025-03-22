@@ -64,6 +64,41 @@ export default class UserController {
     }
 
     /**
+     * This function reads a User with the given id, stripping sensitive information and populating userSpecificTaxes
+     *      This is used to get the User with all the taxes associated with it
+     *      and to remove sensitive information from the User object
+     *      and meant to use for the route /profile
+     * @param {mongoose.Types.ObjectId} id 
+     *      Id of the User to be read
+     * @returns 
+     *      Returns the User with the given id
+     * @throws Error
+     *      Throws error if the User is not found or if any error occurs
+     */
+    async readWithTaxes(id) {
+        try {
+            const user = await User.findById(id).populate('userSpecificTaxes');
+            user.googleId = undefined;
+            user.refreshToken = undefined;
+            user.accessToken = undefined;
+            user.permission = undefined;
+            user.ownerScenarios = undefined;
+            user.editorScenarios = undefined;
+            user.viewerScenarios = undefined;
+            user.userSimulations = undefined;
+
+            for (let i = 0; i < user.userSpecificTaxes.length; i++) {
+                user.userSpecificTaxes[i].taxBrackets = undefined;
+            }
+
+            return user;
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
      * This function finds a User with the given googleId
      *      This is used for authentication with Google
      *      and to check if the User already exists in the database
