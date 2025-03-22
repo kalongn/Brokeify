@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 
 // TODO: try modularizing for fixed and normal dist
@@ -26,105 +27,38 @@ const InvestmentTypesForm = () => {
                     Description
                     <input type="text" name="description" className={styles.newline} />
                 </label>
-                <label className={styles.newline}>
-                    Expected Annual Return
-                </label>
-                <label>
-                    <input 
-                    type="radio" 
-                    name="expected-annual-return" 
-                    value="fixed" 
-                    onClick={(e) => setExpectedAnnualReturn(e.target.value)}
-                    />
-                    Fixed Value or Percentage
-                </label>
-                <label className={styles.newline}>
-                    <input 
-                    type="radio" 
-                    name="expected-annual-return" 
-                    value="normal-dist" 
-                    onClick={(e) => setExpectedAnnualReturn(e.target.value)}
-                    />
-                    Sample from Normal Distribution
-                </label>
 
-                {expectedAnnualReturn === "fixed" && (
-                    <>
-                    <label>
-                        Fixed Value (specify if percentage)
-                        <input type="number" name="fixed-value" className={styles.newline}/>
-                    </label>
-                    <label>
-                        <input type="checkbox" />
-                        Percentage
-                    </label>
-                    </>
-                )}
-                {expectedAnnualReturn === "normal-dist" && (
-                    <>
-                    <label>
-                        Mean
-                        <input type="number" name="mean" min="1" />
-                        Standard Deviation
-                        <input type="number" name="std-dev" min="0" />
-                    </label>
-                    <label>
-                        Calculated Annual Return
-                        <input type="number" name="calculated-return" disabled />
-                    </label>
-                    </>
-                )}
+                <Distributions 
+                    label="Expected Annual Return"
+                    options={["fixed", "normal-dist"]}
+                    name="expected-annual-return"
+                    value={expectedAnnualReturn}
+                    onChange={setExpectedAnnualReturn}
+                    fixedLabel={"Fixed Value or Percentage"}
+                    calculatedLabel={"Calculated Annual Return"}
+                />
                 <label className={styles.newline}>
                     Expense Ratio
                     <input type="number" className={styles.newline} />
                 </label>
+                <Distributions 
+                    label="Expected Annual Income from Dividends or Interests"
+                    options={["fixed", "normal-dist"]}
+                    name="expected-dividends-interest"
+                    value={expectedDividendsInterest}
+                    onChange={setExpectedDividendsInterest}
+                    fixedLabel={"Fixed Value or Percentage"}
+                    calculatedLabel={"Calculated Annual Income"}
+                />
+                <label className={styles.newline}>
+                    Taxability
+                </label>
                 <label>
-                    Expected Annual Income from Dividends or Interests
+                    <input type="radio" value="tax-exempt" />
+                    Tax-exempt
+                    <input type="radio" value="taxable" />
+                    Taxable
                 </label>
-                <label className={styles.newline}>
-                    <input 
-                    type="radio" 
-                    name="expected-dividends-interest" 
-                    value="fixed" 
-                    onClick={(e) => setExpectedDividendsInterest(e.target.value)}
-                    />
-                    Fixed Value or Percentage
-                </label>
-                <label className={styles.newline}>
-                    <input 
-                    type="radio" 
-                    name="expected-dividends-interest" 
-                    value="normal-dist" 
-                    onClick={(e) => setExpectedDividendsInterest(e.target.value)}
-                    />
-                    Sample from Normal Distribution
-                </label>
-                {expectedDividendsInterest === "fixed" && (
-                    <>
-                    <label>
-                        Fixed Value (specify if percentage)
-                        <input type="number" name="fixed-value" className={styles.newline}/>
-                    </label>
-                    <label>
-                        <input type="checkbox" />
-                        Percentage
-                    </label>
-                    </>
-                )}
-                {expectedDividendsInterest === "normal-dist" && (
-                    <>
-                    <label>
-                        Mean
-                        <input type="number" name="mean" min="1" />
-                        Standard Deviation
-                        <input type="number" name="std-dev" min="0" />
-                    </label>
-                    <label>
-                        Calculated Annual Return
-                        <input type="number" name="calculated-return" disabled />
-                    </label>
-                    </>
-                )}
             </form>
 
             <div style={{ marginTop: "20px" }}>

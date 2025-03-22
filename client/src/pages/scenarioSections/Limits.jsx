@@ -1,5 +1,7 @@
 import React from "react";
 import { useState } from "react";
+import Distributions from "../../components/Distributions";
+import styles from "./Form.module.css";
 
 const Limits = () => {
     const [inflationAssumption, setInflationAssumption] = useState("");
@@ -7,36 +9,27 @@ const Limits = () => {
         <div>
             <h2>Inflation & Contribution Limits</h2>
             <form>
-                <label>
-                    Inflation Assumption
-                </label>
-                <label>
-                    <input 
-                    type="radio" 
-                    name="inflation-assumption" 
-                    value="fixed" 
-                    onChange={(e) => setInflationAssumption(e.target.value)}
-                    />
-                    Fixed Percentage
-                </label>
-                <label>
-                    <input 
-                    type="radio" 
-                    name="inflation-assumption" 
-                    value="normal-dist" 
-                    onChange={(e) => setInflationAssumption(e.target.value)}
-                    />
-                    Sample from Normal Distribution
-                </label>
-                <label>
-                    <input 
-                    type="radio" 
-                    name="inflation-assumption" 
-                    value="uniform-dist" 
-                    onChange={(e) => setInflationAssumption(e.target.value)}
-                    />
-                    Sample from Uniform Distribution
-                </label>
+            <Distributions 
+                label="Inflation Assumption"
+                options={["fixed", "uniform-dist", "normal-dist"]}
+                name="inflation-assumption"
+                value={inflationAssumption}
+                onChange={setInflationAssumption}
+                fixedLabel="Fixed Percentage"
+                calculatedLabel={"Calculated Inflation Assumption"}
+            />
+            <hr />
+            <label>
+                Retirement Accounts Initial Limit on Annual Contributions
+            </label>
+            <label className={styles.newline}>
+                Pre-Tax
+                <input type="number" name="pre-tax-limit" min="0" />
+            </label>
+            <label>
+                After-Tax
+                <input type="number" name="after-tax-limit" min="0" />
+            </label>
             </form>
         </div>
     );

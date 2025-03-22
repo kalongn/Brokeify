@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Select from "react-select";
 
 const Investments = () => {
+    // TODO: replace with investments from db
     const [investments, setInvestments] = useState([
         { type: "Cash", value: "", taxStatus: "" },
     ]);
