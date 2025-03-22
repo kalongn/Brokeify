@@ -3,7 +3,8 @@ import Investment from "../components/Investment";
 import Event from "../components/Event";
 import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
-
+import { TbEdit } from "react-icons/tb";
+import { TbFileSearch } from "react-icons/tb";
 const ScenarioSimulation = () => {
   {/* Note: for strategies, may need to set content to be a list of the names of events/investments*/}
   {/* Note: for investments,not sure if I'm processing the data right... so confirm that too*/}
@@ -86,7 +87,15 @@ const ScenarioSimulation = () => {
     <Layout>
     <div className={styles.container}>
         <div className={styles.header}> 
+            <div className={styles.title}>
+
             <h2>Ideal Plan!!</h2>
+            {/** To Do: Implement onClick for this later on */}
+            <TbFileSearch size ={25} />
+            <TbEdit   size ={25} />
+            
+            </div>
+            
             <div className={styles.buttons}>
                 <button className={styles.runSimulation}>Run Simulation</button>
                 <button className={styles.seeResults}>See Results</button>
