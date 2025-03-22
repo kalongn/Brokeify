@@ -1,20 +1,53 @@
 .navbar {
+    position: fixed;
     display: flex;
     flex-direction: column;
     background-color: var(--color-black);
     color: var(--color-white);
     height: 100%;
-    width: calc(100vw / 6);
+    width: 20%;
     padding: min(2%, 3rem);
     box-sizing: border-box;
-    position: fixed;
 }
-.navIcon {
-    margin-bottom: 4rem;
+
+.title {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    font-size: 1rem;
 }
-#appName {
-    margin: 0;
+
+#iconImage {
+    width: 2rem;
+    height: 2rem;
+    margin-right: 1rem;
 }
+
+#navTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    margin-top: 0;
+
+}
+
+#createButton {
+    background-color: rgba(163, 162, 163, 0.56);
+    margin-top: 1.25rem;
+    margin-left: 0rem;
+    margin-right: 2rem;
+    margin-bottom: 1rem;
+    border: none;
+    padding: 1em 1em;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.25s;
+    border-radius: 6px;
+    color: var(--color-white);
+
+}
+
 .navLinks {
     display: flex;
     flex-direction: column;
@@ -31,4 +64,8 @@
 
 .profileLink {
     margin-top: auto;
+    padding: 10px;
+    text-decoration: none;
+    color: var(--color-white);
+    font-size: 20px;
 }

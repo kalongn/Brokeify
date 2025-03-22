@@ -78,7 +78,22 @@ export default class InvestmentTypeController {
             throw new Error(error);
         }
     }
-
+    /**
+     * This function deletes the InvestmentType with the given id
+     * @param {mongoose.Types.ObjectId} id 
+     * @returns 
+     *      Returns the deleted InvestmentType
+     * @throws Error
+     *      Throws error if the InvestmentType is not found or if any error occurs
+     */
+    async shallowDelete(id) {
+        try {
+            return await InvestmentType.findByIdAndDelete(id);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
     /**
      * This function deletes the InvestmentType with
      * the given id and also deletes the associated distributions
@@ -104,6 +119,27 @@ export default class InvestmentTypeController {
         }
         catch (error) {
             throw new Error(error);
+        }
+    }
+
+    async clone(id){
+        try{
+            const type = await InvestmentType.findById(id);
+            const clonedType = await this.create({
+                name: type.name,
+                description:type.description,
+                expectedAnnualReturn:type.expectedAnnualReturn,
+                expectedAnnualReturnDistribution: type.expectedAnnualReturnDistribution,
+                expenseRatio: type.expenseRatio,
+                expectedAnnualIncome: type.expectedAnnualIncome,
+                expectedAnnualIncomeDistribution: type.expectedAnnualIncomeDistribution,
+                taxability: type.taxability,
+                investments: type.investments,
+            });
+            return clonedType.id;
+
+        } catch(err){
+            throw new Error(err);
         }
     }
 }

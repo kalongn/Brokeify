@@ -13,24 +13,27 @@ const Header = () => {
                 return 'Create/Edit Scenario';
             case '/SharedScenarios':
                 return 'Shared Scenarios';
+            case '/Profile':
+                return 'My Profile';
             default:
                 return 'Brokeify';
         }
     };
+    // TODO: implement the IMPORT SCENARIO button functionality
     const getHeaderButtons = () => {
         switch (path) {
             case '/Home':
                 return (
                     <>
-                    <button onClick={() => console.log('Import Scenario')}>Import Scenario</button>
+                        <button onClick={() => console.log('Import Scenario')}>Import Scenario</button>
                     </>
-            );
+                );
             case '/Profile':
                 return (
                     <>
-                    <button onClick={() => console.log('Logout')}>Logout</button>
+                        <Link className={styles.linkButton} to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Logout</Link>
                     </>
-            );
+                );
             case '/SharedScenarios':
             case '/ScenarioForm':
             default:
@@ -38,7 +41,7 @@ const Header = () => {
         }
     };
     return (
-        <header>
+        <header className={styles.header}>
             <h1>{getHeaderTitle()}</h1>
             <div className={styles.buttons}>{getHeaderButtons()}</div>
         </header>

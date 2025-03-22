@@ -1,14 +1,23 @@
 #layout {
-  display: inherit;
-  grid-template-columns: 1fr 5fr;
-  grid-template-rows: 1fr 5fr;
+  height: inherit;
+  width: inherit;
   overflow: hidden;
+  flex-grow: 1;
 }
+
 #pageContent {
   display: flex;
   flex-direction: column;
-  grid-area: 1 / 2 / 3 / 3;
+  position: relative;
+  left: 20%;
+  width: 80%;
+  height: 100%;
+  overflow-y: auto;
 }
-/* #pageContent>main {
-  padding: 1rem;
-} */
+
+#content {
+  display: flex;
+  flex-direction: column;
+  height: inherit;
+  background-color: var(--color-white);
+}

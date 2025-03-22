@@ -111,7 +111,24 @@ export default class EventController {
                     throw new Error("Unhandled event type");
             }
         }
-        catch {
+        catch(error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
+     * This function deletes the Event with the given id
+     * @param {mongoose.Types.ObjectId} id 
+     * @returns 
+     *      Returns the deleted Event
+     * @throws Error
+     *      Throws error if the Event is not found or if any error occurs
+     */
+    async shallowDelete(id) {
+        try {
+            return await Event.findByIdAndDelete(id);
+        }
+        catch (error) {
             throw new Error(error);
         }
     }
@@ -135,6 +152,86 @@ export default class EventController {
         }
         catch (error) {
             throw new Error(error);
+        }
+    }
+
+    async clone(id){
+        try{
+            
+            const event = await Event.findById(id);
+            if (!event) return null;
+            //console.log({...event});
+            let clonedEvent = null;
+            if(event.eventType==="REBALANCE"){
+                clonedEvent = await this.create(event.eventType, {
+                    eventType: event.eventType,
+                    name: event.name,
+                    description: event.description,
+                    startYear: event.startYear,
+                    startYearTypeDistribution: event.startYearTypeDistribution,
+                    duration: event.duration,
+                    durationTypeDistribution: event.durationTypeDistribution,
+                    assetAllocationType: event.assetAllocationType,
+                    percentageAllocations: event.percentageAllocations, 
+                    allocatedInvestments: event.allocatedInvestments,
+                    maximumCash: event.maximumCash,
+                    taxStatus: event.taxStatus
+                });
+            }
+            if(event.eventType==="INVEST"){
+                clonedEvent = await this.create(event.eventType, {
+                    eventType: event.eventType,
+                    name: event.name,
+                    description: event.description,
+                    startYear: event.startYear,
+                    startYearTypeDistribution: event.startYearTypeDistribution,
+                    duration: event.duration,
+                    durationTypeDistribution: event.durationTypeDistribution,
+                    assetAllocationType: event.assetAllocationType,
+                    percentageAllocations: event.percentageAllocations, 
+                    allocatedInvestments: event.allocatedInvestments,
+                    maximumCash: event.maximumCash,
+                });
+            }
+            if(event.eventType==="INCOME"){
+                clonedEvent = await this.create(event.eventType, {
+                    eventType: event.eventType,
+                    name: event.name,
+                    description: event.description,
+                    startYear: event.startYear,
+                    startYearTypeDistribution: event.startYearTypeDistribution,
+                    duration: event.duration,
+                    durationTypeDistribution: event.durationTypeDistribution,
+                    amount: event.amount,
+                    expectedAnnualChange: event.expectedAnnualChange,
+                    expectedAnnualChangeDistribution: event.expectedAnnualChangeDistribution,
+                    isinflationAdjusted: event.isinflationAdjusted,
+                    userContributions: event.userContributions,
+                    spouseContributions:event.spouseContributions,
+                    isSocialSecurity: event.isSocialSecurity,
+                });
+            }
+            if(event.eventType==="EXPENSE"){
+                clonedEvent = await this.create(event.eventType, {
+                    eventType: event.eventType,
+                    name: event.name,
+                    description: event.description,
+                    startYear: event.startYear,
+                    startYearTypeDistribution: event.startYearTypeDistribution,
+                    duration: event.duration,
+                    durationTypeDistribution: event.durationTypeDistribution,
+                    amount: event.amount,
+                    expectedAnnualChange:event.expectedAnnualChange,
+                    expectedAnnualChangeDistribution:event.expectedAnnualChangeDistribution,
+                    isinflationAdjusted: event.isinflationAdjusted,
+                    userContributions: event.userContributions,
+                    spouseContributions: event.spouseContributions,
+                    isDiscretionary: event.isDiscretionary,
+                });
+            }
+            return clonedEvent.id;
+        } catch (err){
+            throw new Error(err);
         }
     }
 }
