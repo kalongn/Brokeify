@@ -6,11 +6,12 @@ const Header = () => {
     const location = useLocation();
     const path = location.pathname;
     const getHeaderTitle = () => {
+        if (path.includes('/ScenarioForm')) {
+            return 'Create/Edit Scenario';
+        }
         switch(path) {
             case '/Home':
                 return 'My Scenarios';
-            case '/ScenarioForm':
-                return 'Create/Edit Scenario';
             case '/SharedScenarios':
                 return 'Shared Scenarios';
             case '/Profile':
