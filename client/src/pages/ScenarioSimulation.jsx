@@ -6,6 +6,8 @@ import Accordion from "../components/Accordion";
 
 const ScenarioSimulation = () => {
   {/* Note: for strategies, may need to set content to be a list of the names of events/investments*/}
+  {/* Note: for investments,not sure if I'm processing the data right... so confirm that too*/}
+  {/* Update the basic information with scenario information*/}
     const strategiesData = [
         {
           title: 'Spending Strategy',
