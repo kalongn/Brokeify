@@ -1,6 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 import UserController from '../db/controllers/UserController.js';
+import TaxController from '../db/controllers/TaxController.js';
 
 const router = express.Router();
 
@@ -35,17 +36,33 @@ router.get("/logout", (req, res) => {
     });
 });
 
-router.get("/profile", (req, res) => {
+router.get("/profile", async (req, res) => {
     if (req.session.user) {
         const userController = new UserController();
-        userController.read(req.session.user)
-            .then(user => {
-                res.send(user);
-            })
-            .catch(err => {
-                console.error(err);
-                res.status(500).send("Error retrieving user profile.");
-            });
+        try {
+            const user = await userController.read(req.session.user);
+            user.googleId = undefined;
+            user.refreshToken = undefined;
+            user.accessToken = undefined;
+            user.permission = undefined;
+            user.userSimulations = undefined;
+            user.ownerScenarios = undefined;
+            user.editorScenarios = undefined;
+            user.viewerScenarios = undefined;
+
+            const taxController = new TaxController();
+            const updatedTaxes = await Promise.all(user.userSpecificTaxes.map(async (value) => {
+                const tax = await taxController.read(value);
+                tax.taxBrackets = undefined; // Remove tax brackets for all taxes
+                return tax;
+            }));
+
+            user.userSpecificTaxes = updatedTaxes;
+            return res.status(200).send(user);
+        } catch (error) {
+            console.error("Error in profile route:", error);
+            return res.status(500).send("Error retrieving user profile.");
+        }
     } else {
         res.status(404).send("Not logged in.");
     }
