@@ -12,10 +12,12 @@
   --color-primary: #77E1B8;
   --color-primary-muted: #D0DED9;
   --color-primary-light: #BCF0DC;
+  --color-background: #E9EFED;
+
 
 
   color: var(--color-black);
-  background-color: var(--color-white);
+  background-color: var(--color-background);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;

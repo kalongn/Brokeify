@@ -24,6 +24,8 @@ import RMDStrategy from './pages/scenarioSections/RMDStrategy.jsx';
 import RothStrategy from './pages/scenarioSections/RothStrategy.jsx';
 import Sharing from './pages/scenarioSections/Sharing.jsx';
 
+import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
+
 const App = () => {
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -62,6 +64,8 @@ const App = () => {
         </Route>
         <Route path="/SharedScenarios" element={<SharedScenarios />} />
         <Route path="/Profile" element={<Profile />} />
+
+        <Route path="/Scenario" element={<ScenarioSimulation />} />
       </Routes>
     </>
   )
