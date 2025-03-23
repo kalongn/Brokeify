@@ -1,8 +1,37 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HiDotsVertical } from 'react-icons/hi';
 import styles from "./Form.module.css";
 
+// This page does not submit any data, so childRef is not used
+// TODO: update page to include childRef once investment type deletion is implemented
 const InvestmentTypes = () => {
+  // TODO: empty initial state (placeholder for testing)
+  const [investmentTypes, setInvestmentTypes] = useState([
+    { name: "Cash", taxability: "Taxable" }
+  ]);
+  // TODO: uncomment out and modify when route has been set up
+  useEffect(() => {
+    // TODO: remove superficial call to setInvestments (to satisfy ESLint for now)
+    setInvestmentTypes([{ name: "Cash", taxability: "Taxable" }]);
+    // IIFE
+    // (async () => {
+    //   try {
+    //     const response = await fetch('/api/investment-types');
+    //     const data = await response.json();
+
+    //     const formattedTypes = data.map(type => ({
+    //       name: type.name,
+    //       taxability: type.name
+    //     }));
+
+    //     setInvestmentTypes(formattedTypes);
+    //   } catch (error) {
+    //     console.error('Error fetching investment types:', error);
+    //   }
+    // })();
+  }, []);
+
   const navigate = useNavigate();
   const newInvestmentType = () => {
     navigate("/ScenarioForm/investment-types/new");
@@ -23,18 +52,24 @@ const InvestmentTypes = () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Cash</td>
-            <td>Taxable</td>
-            <td>
-              <button
-                className={styles.tableButton}
-                onClick={() => alert("NOT IMPLEMENTED YET")}
-              >
-                <HiDotsVertical />
-              </button>
-            </td>
-          </tr>
+          {investmentTypes.map((investmentType, index) => (
+            <tr key={index}>
+              <td>
+                {investmentType.name}
+              </td>
+              <td>
+                {investmentType.taxability}
+              </td>
+              <td>
+                <button
+                  className={styles.tableButton}
+                  onClick={() => alert("NOT IMPLEMENTED YET")}
+                >
+                  <HiDotsVertical />
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
       <button id={styles.addButton} onClick={newInvestmentType}>

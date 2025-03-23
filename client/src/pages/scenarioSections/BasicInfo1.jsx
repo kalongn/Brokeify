@@ -1,9 +1,22 @@
+import { useState, useImperativeHandle } from "react";
+import { useOutletContext } from "react-router-dom";
 import Select from "react-select";
 import styles from "./Form.module.css";
 
 // TODO: add scenario name validation (no duplicates at the very least)
 
 const BasicInfo1 = () => {
+  // Get ref from the context 
+  const { childRef } = useOutletContext();
+  // Expose the validateFields function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
+  // For parsing to number
+  const FIELD_TYPES = {
+    NUMBER: new Set(["financialGoal"]),
+  };
+
   const states = [
     { value: "AL", label: "Alabama" },
     { value: "AK", label: "Alaska" },
@@ -56,24 +69,43 @@ const BasicInfo1 = () => {
     { value: "WI", label: "Wisconsin" },
     { value: "WY", label: "Wyoming" }
   ];
+  const [formData, setFormData] = useState({
+    name: null,
+    financialGoal: null,
+    state: null,
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    // Check if name is a number field and parse if so
+    let processedValue = value;
+    if (FIELD_TYPES.NUMBER.has(name)) {
+      processedValue = Number(value);
+    }
+    setFormData((prev) => ({ ...prev, [name]: processedValue }));
+  };
+
+  const handleSelectChange = (selectedOption) => {
+    setFormData((prev) => ({ ...prev, state: selectedOption.value }));
+  };
+
+  const validateFields = () => {
+    console.log("============= validated");
+    console.log(formData);
+  };
+  const handleSubmit = () => {
+    validateFields();
+  };
+
+  // TODO: apply the heading style to all other section components
   return (
     <div id={styles.formSection}>
       <h2 id={styles.heading}>Basic Information</h2>
       <form>
         <label>
           Scenario Name
-          <input type="text" name="name" className={styles.newline} />
+          <input type="text" name="name" className={styles.newline} onChange={handleChange} />
         </label>
-        <div className={styles.columns}>
-          <label>
-            First Name
-            <input type="text" name="first-name" className={styles.newline} />
-          </label>
-          <label>
-            Last Name
-            <input type="text" name="last-name" className={styles.newline} />
-          </label>
-        </div>
         <label>
           Financial Goal
           <p className={styles.description}>
@@ -81,12 +113,12 @@ const BasicInfo1 = () => {
             minimum total value of your investments.
           </p>
           <div className={`${styles.moneyInputContainer} ${styles.shortInput}`}>
-            <input type="number" name="financial-goal" min="0" />
+            <input type="number" name="financialGoal" min="0" onChange={handleChange} />
           </div>
         </label>
         <label className={styles.newline}>
           State of Residence
-          <Select className={`${styles.shortInput} ${styles.select}`} options={states} isSearchable />
+          <Select options={states} className={`${styles.shortInput} ${styles.select}`} onChange={handleSelectChange} />
         </label>
       </form>
     </div>

@@ -1,27 +1,41 @@
-// import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HiDotsVertical } from 'react-icons/hi';
 import styles from "./Form.module.css";
 
+// This page does not submit any data, so childRef is not used
+// TODO: update page to include childRef once event series deletion is implemented
 const EventSeries = () => {
   const navigate = useNavigate();
   const newEventSeries = () => {
     navigate("/ScenarioForm/event-series/new");
   }
   // TODO: remove cash from initial state when done testing
-  const events = [
+  const [events, setEvents] = useState([
     { name: "Cash", type: "Expense" },
-    { name: "Cash", type: "Expense" },
-    { name: "Cash", type: "Expense" },
-  ];
-  // const [events, setEvents] = useState([
-  //   { name: "Cash", type: "Expense" },
-  // ]);
-  // const handleInputChange = (index, field, value) => {
-  //   const updatedEvents = [...events];
-  //   updatedEvents[index][field] = value;
-  //   setEvents(updatedEvents);
-  // };
+  ]);
+  // TODO: uncomment out and modify when route has been set up
+    useEffect(() => {
+      // TODO: remove superficial call to setEvents (to satisfy ESLint for now)
+      setEvents([{ name: "Cash", type: "Expense" }]);
+      // IIFE
+      // (async () => {
+      //   try {
+      //     const response = await fetch('/api/events');
+      //     const data = await response.json();
+          
+      //     const formattedEvents = data.map(type => ({
+      //       name: type.name,
+      //       type: type.name
+      //     }));
+  
+      //     setEvents(formattedEvents);
+      //   } catch (error) {
+      //     console.error('Error fetching events:', error);
+      //   }
+      // })();
+    }, []);
+    
   return (
     <div>
       <h2>Event Series</h2>
@@ -30,7 +44,6 @@ const EventSeries = () => {
         (income, expense, investment, or rebalancing) over a defined period.
         Only one asset allocation can be rebalanced in a scenario.
       </p>
-      {/* TODO: fix global table styling */}
       <table id={styles.inputTable}>
         <thead>
           <tr>

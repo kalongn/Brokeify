@@ -1,4 +1,5 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useRef } from "react";
 import Layout from "../components/Layout";
 import styles from "./ScenarioForm.module.css";
 
@@ -6,6 +7,8 @@ const ScenarioForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
+  // Enables access to children components (AKA form sections)
+  const childRef = useRef(null);
 
   // Define the sections and their paths
   const sections = [
@@ -27,29 +30,36 @@ const ScenarioForm = () => {
     (section) => path.endsWith(section.path)
   );
 
-  const handleNext = () => {
+  const handleNextSave = () => {
     if (currentSectionIndex < sections.length - 1) {
       navigate(`/ScenarioForm/${sections[currentSectionIndex + 1].path}`);
+    }
+    else {
+      navigate(`/Home`);
     }
   };
 
   const handleBack = () => {
-    if (currentSectionIndex > 0) {
-      navigate(`/ScenarioForm/${sections[currentSectionIndex - 1].path}`);
-    }
+    navigate(`/ScenarioForm/${sections[currentSectionIndex - 1].path}`);
   };
 
-  // TODO: Implement save functionality
-  const handleSave = () => {
-    navigate(`/Home`);
-    console.log("Save & Close clicked");
+  // Next/Save button acts as submission button
+  // Must const handleSubmit in child component
+  const handleSectionSubmit = () => {
+    // console.log(childRef.current);
+    if (childRef.current) {
+      childRef.current.handleSubmit();
+    }
+    // navigate to the next page
+    handleNextSave();
   };
+
   return (
     <Layout>
       <div id={styles.formBackground}>
         <div id={styles.formSection}>
-          {/* Render the current section */}
-          <Outlet />
+          {/* Render the current section and pass the childRef */}
+          <Outlet context={{ childRef }} />
 
           {/* Navigation buttons */}
           {/* Only appears if not creating a new investment type or event series */}
@@ -58,16 +68,13 @@ const ScenarioForm = () => {
               className={styles.deemphasizedButton}
               onClick={handleBack}
               disabled={currentSectionIndex === 0}
-              style={{ marginRight: "10px" }}
             >
               Back
             </button>
             {/* On the last section, next replaced by save & close */}
-            {currentSectionIndex !== sections.length - 1 ?
-              <button className={styles.emphasizedButton} onClick={handleNext}>Next</button>
-              :
-              <button className={styles.emphasizedButton} onClick={handleSave}>Save & Close</button>
-            }
+            <button type="submit" className={styles.emphasizedButton} onClick={handleSectionSubmit}>
+              {currentSectionIndex !== sections.length - 1 ? "Next" : "Save & Close"}
+            </button>
           </div>}
         </div>
       </div>
