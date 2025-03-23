@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import { Distribution, FixedDistribution, UniformDistribution, NormalDistribution, MarkovDistribution } from "../models/Distribution.js";
+import { Distribution, FixedDistribution, UniformDistribution, NormalDistribution } from "../models/Distribution.js";
 
 /**
- * @typedef {"FIXED_AMOUNT" | "FIXED_PERCENTAGE" | "UNIFORM_AMOUNT" | "UNIFORM_PERCENTAGE" | "NORMAL_AMOUNT" | "NORMAL_PERCENTAGE" | "MARKOV_PERCENTAGE"} DistributionType
+ * @typedef {"FIXED_AMOUNT" | "FIXED_PERCENTAGE" | "UNIFORM_AMOUNT" | "UNIFORM_PERCENTAGE" | "NORMAL_AMOUNT" | "NORMAL_PERCENTAGE"} DistributionType
  */
 
 /**
@@ -43,10 +43,6 @@ export default class DistributionController {
                 case "NORMAL_AMOUNT":
                 case "NORMAL_PERCENTAGE":
                     distribution = new NormalDistribution({ distributionType, ...data });
-                    break;
-
-                case "MARKOV_PERCENTAGE":
-                    distribution = new MarkovDistribution({ distributionType, ...data });
                     break;
 
                 default:
@@ -114,9 +110,6 @@ export default class DistributionController {
                 case "NORMAL_AMOUNT":
                 case "NORMAL_PERCENTAGE":
                     return await NormalDistribution.findByIdAndUpdate(id, data, { new: true });
-
-                case "MARKOV_PERCENTAGE":
-                    return await MarkovDistribution.findByIdAndUpdate(id, data, { new: true });
 
                 default:
                     throw new Error("Unhandled distribution type");

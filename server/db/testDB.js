@@ -1,3 +1,5 @@
+// DEPRICATED: This file is deprecated and will be removed in the future. DO NOT USE THIS AS REFERENCE
+
 import mongoose from "mongoose";
 import 'dotenv/config'
 
