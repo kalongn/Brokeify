@@ -5,7 +5,7 @@ import { BiSolidCircle } from "react-icons/bi";
 import { BiCircle } from "react-icons/bi";
 import { useParams, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { stateMap } from "../utils/ScenarioHelper"; // Importing utility functions for state mapping and distribution formatting
+import { stateMap } from "../utils/ScenarioHelper";
 import Axios from "axios";
 
 
@@ -112,63 +112,6 @@ const ViewScenario = () => {
       return <Navigate to="/Home" />;
     });
   }, [scenarioId]);
-
-  // {/**TO-DO: Middleware/Backend: populate an ordered spending array like below
-  // Note: event-id is being stored in orderedStrategy array in scenarioData, so that's why we need 
-  // seperate array; here u can just populate the events by id; in ordered Spending section, I call strategy.name,
-  //  which is event.name
-  // */}
-  // const orderedSpendingStrategy = [{ name: "Buy a mechanical keyboard", type: "Expense" },
-  // { name: "Buy a Ferrari", type: "Expense" }];
-
-
-  // {/**TO-DO: Middleware/Backend: create lists like the following (pull up name, value and taxStatus
-  //     as those will be the descriptors for each strategy element) <-- investments don't have a name
-  //    */}
-
-
-  // const orderedExpenseWithdrawalStrategy = [
-  //     { name: "Cash", value: 15000, taxStatus: "Non-Retirement" },
-  //     { name: "Cash", value: 25000, taxStatus: "Non-Retirement" },
-  // ]
-  // const orderedRMDStrategy = [
-  //     { name: "Cash", value: 1200, taxStatus: "Pre-Tax Retirement" },
-  //     { name: "Bonds", value: 200, taxStatus: "Pre-Tax Retirement" }
-
-  // ]
-  // const orderedRothStrategy = [
-  //     { name: "Bonds", value: 315, taxStatus: "Pre-Tax Retirement" },
-  //     { name: "Bonds", value: 200, taxStatus: "Pre-Tax Retirement" },
-  //     { name: "Cash", value: 1200, taxStatus: "Pre-Tax Retirement" }
-  // ]
-
-  // {/**Another Note: I just assumed that if startYearRothOptimizer is undefined,
-  //     then that must have meant the user disabled the Roth Optimizer. 
-  //    */}
-  // const scenarioData = {
-  //     name: "Ideal Future 2.0",
-  //     filingStatus: "MARRIEDJOINT",
-  //     userBirthYear: 2000,
-  //     spouseBirthYear: 1999,
-  //     userLifeExpectancy: 90,
-  //     spouseLifeExpectancy: 90,
-  //     userLifeExpectancyDistribution: { type: "NORMAL_AMOUNT", mean: 85, standardDeviation: 5 },
-  //     spouseLifeExpectancyDistribution: { type: "FIXED_AMOUNT", value: 90 },
-  //     stateOfResidence: "CA",
-  //     investmentTypes: ["Cash", "Domestic Stocks", "Bonds"],
-  //     events: events,
-  //     inflationAssumption: 0.22,
-  //     inflationAssumptionDistribution: { type: "UNIFORM_PERCENTAGE", lowerBound: 0.12, upperBound: 0.29 },
-  //     annualPreTaxContributionLimit: 19500,
-  //     annualPostTaxContributionLimit: 6000,
-  //     financialGoal: 1000000,
-  //     orderedSpendingStrategy: orderedSpendingStrategy,
-  //     orderedExpenseWithdrawalStrategy: orderedExpenseWithdrawalStrategy,
-  //     orderedRMDStrategy: orderedRMDStrategy,
-  //     orderedRothStrategy: orderedRothStrategy,
-  //     startYearRothOptimizer: 2021,
-  //     endYearRothOptimizer: 2021
-  // };
 
   return (
     <Layout>
