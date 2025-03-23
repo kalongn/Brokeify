@@ -54,7 +54,7 @@ const ViewScenario = () => {
     const orderedRMDStrategy = [
         { name: "Cash", value: 1200, taxStatus: "Pre-Tax Retirement" },
         { name: "Bonds", value: 200, taxStatus: "Pre-Tax Retirement" }
-       
+
     ]
     const orderedRothStrategy = [
         { name: "Bonds", value: 315, taxStatus: "Pre-Tax Retirement" },
@@ -62,7 +62,7 @@ const ViewScenario = () => {
         { name: "Cash", value: 1200, taxStatus: "Pre-Tax Retirement" }
     ]
 
-     {/**Another Note: I just assumed that if startYearRothOptimizer is undefined,
+    {/**Another Note: I just assumed that if startYearRothOptimizer is undefined,
         then that must have meant the user disabled the Roth Optimizer. 
        */}
     const scenarioData = {
@@ -154,7 +154,7 @@ const ViewScenario = () => {
                             </div>
                         )}
                     </div>
-                    
+
 
                     <h2>Investments</h2>
                     <p className={styles.description}>
@@ -242,7 +242,7 @@ const ViewScenario = () => {
 
                     <h2>Required Minimum Distribution Strategy</h2>
                     <p className={styles.description}>
-                    Specify the order in which investments should be transferred from pre-tax retirement accounts to non-retirement accounts when a Required Minimum Distribution (RMD) is triggered. 
+                        Specify the order in which investments should be transferred from pre-tax retirement accounts to non-retirement accounts when a Required Minimum Distribution (RMD) is triggered.
                     </p>
 
                     {orderedRMDStrategy?.map((strategy, index) => (
@@ -277,26 +277,26 @@ const ViewScenario = () => {
 
                     <p className={styles.question}>Roth Conversion Optimizer</p>
                     {(scenarioData.startYearRothOptimizer !== undefined) ? (
-                        <div>                               
+                        <div>
                             <div className={styles.icon}>
-                            <BsToggleOn size ={30}/><p className = {styles.iconText}>Enabled</p>
+                                <BsToggleOn size={30} /><p className={styles.iconText}>Enabled</p>
                             </div>
                             <div className={styles.columns}>
-                        <div className={styles.columnsp1}>
-                            <p className={styles.question}>Start Year</p>
-                            <div className={styles.textbox}>{scenarioData.startYearRothOptimizer}</div>
-                        </div>
-                        <div className={styles.columnsp2}>
-                            <p className={styles.question}>End Year</p>
-                            <div className={styles.textbox}>{scenarioData.endYearRothOptimizer}</div>
-                        </div>
-                    </div>
+                                <div className={styles.columnsp1}>
+                                    <p className={styles.question}>Start Year</p>
+                                    <div className={styles.textbox}>{scenarioData.startYearRothOptimizer}</div>
+                                </div>
+                                <div className={styles.columnsp2}>
+                                    <p className={styles.question}>End Year</p>
+                                    <div className={styles.textbox}>{scenarioData.endYearRothOptimizer}</div>
+                                </div>
+                            </div>
 
                         </div>
                     ) : (
                         <div className={styles.icon}>
-                            <BsToggleff size ={30}/><p className = {styles.iconText}>Disabled</p>
-                            </div>
+                            <BsToggleff size={30} /><p className={styles.iconText}>Disabled</p>
+                        </div>
                     )}
                 </div>
             </div>

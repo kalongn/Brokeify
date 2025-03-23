@@ -4,27 +4,28 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    
+
 }
 
-.columns{
+.columns {
     display: flex;
     gap: 5rem;
     align-items: flex-start;
-    
+
 }
 
-.columnsp1, .columnsp2{
-    min-width: 15rem; 
+.columnsp1,
+.columnsp2 {
+    min-width: 15rem;
 }
 
 .sections {
-   
+
     max-width: 42.125rem;
     padding: 2rem;
-    padding-top:0rem;
+    padding-top: 0rem;
     border-radius: 8px;
-    
+
 }
 
 .question {
@@ -47,7 +48,7 @@
     font-size: 1rem;
     background-color: #f8f8f8;
     color: #333;
-    
+
 }
 
 .selectedOption {
@@ -60,7 +61,7 @@
     width: fit-content;
 }
 
-.draggableItem{
+.draggableItem {
     width: 100%;
     padding: 0.75rem;
     margin-top: 0.25rem;
@@ -72,23 +73,25 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    
-  
+
+
 }
-.icon{
+
+.icon {
     display: flex;
     align-items: center;
     align-self: start;
-   
-    
+
+
 }
-.draggableItemText{
+
+.draggableItemText {
     margin: 0rem;
     margin-left: 1rem;
 }
 
 
-.lightText{
+.lightText {
     color: var(--color-silver);
     margin: 0rem;
     padding: 0rem;
@@ -105,7 +108,7 @@
     align-items: center;
     margin: 0.5rem;
 
-   
+
 }
 
 .eventRow {
@@ -119,20 +122,20 @@
     margin: 0.5rem;
 }
 
-.eventRow1{
-    grid-area: 1 / 1 / 2 / 3; 
+.eventRow1 {
+    grid-area: 1 / 1 / 2 / 3;
 }
 
 
-.eventRow2{
+.eventRow2 {
     grid-area: 1 / 3 / 2 / 4;
 }
 
 
 
 
-.iconText{
+.iconText {
     margin: 0rem;
-    padding:0rem;
+    padding: 0rem;
     margin-left: 1rem;
 }
