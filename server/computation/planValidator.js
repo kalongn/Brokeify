@@ -228,11 +228,7 @@ async function scrape() {
 }
 
 
-async function chooseEventTimeframe(scenarioID) {
-    //determine when events will start and end using sample, making sure that
-    //conflicting events do not overlap
-    //save determined start years and durations in {expexted...} variables
-}
+
 async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, rmdTable, csvFile, logFile) {
     //deep clone then run simulation then re-splice original scenario in simulation output
 
@@ -240,7 +236,6 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
     //console.log(unmodifiedScenario)
     let copiedScenario = await scenarioFactory.clone(unmodifiedScenario.id);
     //console.log(copiedScenario)
-    await chooseEventTimeframe(copiedScenario.id);
     let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, capitalGains, rmdTable, csvFile, logFile);
     await scenarioFactory.delete(copiedScenario.id);
     //console.log(simulationResult);

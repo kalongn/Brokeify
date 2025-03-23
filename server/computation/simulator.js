@@ -121,7 +121,11 @@ export async function sample(expectedValue, distributionID) {
     return expectedValue;
 
 }
-
+async function chooseEventTimeframe(scenario) {
+    //determine when events will start and end using sample, making sure that
+    //conflicting events do not overlap
+    //save determined start years and durations in {expexted...} variables
+}
 
 async function getCashInvestment(investmentTypes) {
     const cashName = "Cash";
