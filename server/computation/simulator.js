@@ -23,7 +23,7 @@ const distributionFactory = new DistributionController();
 const resultFactory = new ResultController();
 
 let csvFile, logFile;
-async function updateCSV(currentYear, investments, scenario) {
+export async function updateCSV(currentYear, investments, scenario) {
     //takes in current year of simulation and a list of investments
     //if an investment's id is not in the title row, it adds it at the end
     //inserts a row and puts currentYear, followed by investment values
@@ -72,7 +72,7 @@ async function updateCSV(currentYear, investments, scenario) {
     const csvString = csvContent.map(row => row.join(',')).join('\n');
     writeFileSync(csvFile, csvString, 'utf8');
 }
-function updateLog(eventDetails) {
+export function updateLog(eventDetails) {
     //const EVENT_TYPE = ['INCOME', 'EXPENSE', 'ROTH', 'RMD', 'TAX', 'INVEST', 'REBALANCE'];
     //details has data based on event type
     if (logFile === null || logFile === undefined) {
@@ -133,7 +133,7 @@ async function chooseEventTimeframe(scenario) {
 
 }
 
-async function getCashInvestment(investmentTypes) {
+export async function getCashInvestment(investmentTypes) {
     const cashName = "Cash";
     const investmentTypeFactory = new InvestmentTypeController();
     const investmentFactory = new InvestmentController();
@@ -172,7 +172,7 @@ async function getCashInvestment(investmentTypes) {
     return newCashInvestment;
 }
 
-async function createSimulation(scenario) {
+export async function createSimulation(scenario) {
 
 
     try {
