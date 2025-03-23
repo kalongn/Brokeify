@@ -37,3 +37,6 @@ header>h1 {
 .linkButton:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+.icon{
+  color: var(--color-black);
+}

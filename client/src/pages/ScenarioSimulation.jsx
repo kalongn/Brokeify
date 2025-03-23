@@ -5,6 +5,8 @@ import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
 import { TbEdit } from "react-icons/tb";
 import { TbFileSearch } from "react-icons/tb";
+import { Link } from "react-router-dom";
+
 const ScenarioSimulation = () => {
   {/* Note: for strategies, may need to set content to be a list of the names of events/investments*/ }
   {/* Note: for investments,not sure if I'm processing the data right... so confirm that too*/ }
@@ -132,8 +134,8 @@ const ScenarioSimulation = () => {
 
             <h2>Ideal Plan!!</h2>
             {/** To Do: Implement onClick for this later on */}
-            <TbFileSearch size={25} />
-            <TbEdit size={25} />
+            <Link to='/ViewScenario' className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
+            <TbEdit className={styles.icon} size={25} />
 
           </div>
 

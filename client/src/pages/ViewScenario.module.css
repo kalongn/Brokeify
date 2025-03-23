@@ -19,8 +19,10 @@
 }
 
 .sections {
+   
     max-width: 42.125rem;
     padding: 2rem;
+    padding-top:0rem;
     border-radius: 8px;
     
 }
