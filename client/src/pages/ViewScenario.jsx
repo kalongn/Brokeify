@@ -1,9 +1,9 @@
-import React from "react";
 import Layout from "../components/Layout";
 import styles from "./ViewScenario.module.css";
 import { CgMenuGridO } from "react-icons/cg";
 import { BsToggleOn } from "react-icons/bs";
 import { BsToggleOff } from "react-icons/bs";
+
 const ViewScenario = () => {
     {/**TO-DO: Middleware/Backend: populate an investments array like below for investments table: 
         Iterate through each investmentType, get list of investments in there, 
@@ -295,7 +295,7 @@ const ViewScenario = () => {
                         </div>
                     ) : (
                         <div className={styles.icon}>
-                            <BsToggleff size={30} /><p className={styles.iconText}>Disabled</p>
+                            <BsToggleOff size={30} /><p className={styles.iconText}>Disabled</p>
                         </div>
                     )}
                 </div>
