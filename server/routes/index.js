@@ -6,6 +6,8 @@ import UserController from '../db/controllers/UserController.js';
 import TaxController from '../db/controllers/TaxController.js';
 
 const router = express.Router();
+
+const scenarioController = new ScenarioController();
 const userController = new UserController();
 
 
@@ -47,6 +49,39 @@ router.get("/home", async (req, res) => {
         res.status(200).send("Guest user");
     }
 });
+
+router.get("/scenario/:scenarioId", async (req, res) => {
+    if (req.session.user) {
+        try {
+            const user = await userController.read(req.session.user);
+            const id = req.params.scenarioId;
+
+            // console.log(user);
+            // console.log("Scenario ID:", id);
+            
+            const isOwner = user.ownerScenarios.some(scenario => scenario._id.toString() === id) || false;
+            const isEditor = user.editorScenarios.some(scenario => scenario._id.toString() === id) || false;
+            const isViewer = user.viewerScenarios.some(scenario => scenario._id.toString() === id) || false;
+            
+            if (!isOwner && !isEditor && !isViewer) {
+                return res.status(403).send("You do not have permission to access this scenario.");
+            }
+
+            const scenario = await scenarioController.readWithPopulate(id);
+            if (!scenario) {
+                return res.status(404).send("Scenario not found.");
+            }
+
+            return res.status(200).send(scenario);
+        } catch (error) {
+            console.error("Error in scenario route:", error);
+            return res.status(500).send("Error retrieving scenario.");
+        }
+    } else {
+        res.status(401).send("Not logged in.");
+    }
+});
+
 
 router.get("/profile", async (req, res) => {
     if (req.session.user) {

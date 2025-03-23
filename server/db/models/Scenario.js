@@ -9,6 +9,7 @@ const ScenarioSchema = new mongoose.Schema({
     spouseBirthYear: { type: Number },
     userLifeExpectancy: { type: Number },
     spouseLifeExpectancy: { type: Number },
+    stateOfResidence: { type: String },
     investmentTypes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'InvestmentType' }],
     events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     inflationAssumption: { type: Number },
@@ -22,16 +23,6 @@ const ScenarioSchema = new mongoose.Schema({
     orderedRothStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     startYearRothOptimizer: { type: Number },
     endYearRothOptimizer: { type: Number }
-});
-
-ScenarioSchema.virtual('id').get(function get() {
-    return this._id.toHexString();
-});
-ScenarioSchema.set('toJSON', {
-    virtuals: true,
-});
-ScenarioSchema.set('toObject', {
-    virtuals: true,
 });
 
 const Scenario = mongoose.model('Scenario', ScenarioSchema);
