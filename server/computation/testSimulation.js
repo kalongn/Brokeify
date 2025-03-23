@@ -102,7 +102,7 @@ const testScenario = async () => {
             description: "Invest in the portfolio",
             startYear: 2021,
             startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
-            duration: 10,
+            duration: 100,
             durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", {
                 value:
                     1
@@ -120,7 +120,7 @@ const testScenario = async () => {
             startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
             duration: 1,
             durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
-            amount: 1000,
+            amount: 10000,
             expectedAnnualChange: 0.05,
             expectedAnnualChangeDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
             isinflationAdjusted: true,
@@ -181,7 +181,7 @@ const testScenario = async () => {
             startYearRothOptimizer: 2021,
             endYearRothOptimizer: 2070
         });
-        console.log(testScenario);
+        //console.log(testScenario);
 
         const scenarios = await factory.readAll();
         // console.log(scenarios);
@@ -213,10 +213,10 @@ const testRMDTable = async () => {
             ages: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79],
             distributionPeriods: [27.4, 26.5, 25.6, 24.7, 23.8, 22.9, 22.0, 21.2, 20.3, 19.5]
         });
-        console.log(rmd);
+        //console.log(rmd);
 
         let oneRmd = await factory.read();
-        console.log(oneRmd);
+        //console.log(oneRmd);
         return oneRmd;
 
 

@@ -22,6 +22,7 @@ import { scrapeFederalIncomeTaxBrackets, scrapeStandardDeductions, fetchCapitalG
 import { simulate } from "./simulator.js";
 
 const scenarioFactory = new ScenarioController();
+const eventFactory = new EventController();
 const taxFactory = new TaxController();
 const rmdFactory = new RMDTableController();
 const simulationFactory = new SimulationController();
@@ -235,8 +236,10 @@ async function chooseEventTimeframe(scenarioID) {
 async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, rmdTable, csvFile, logFile) {
     //deep clone then run simulation then re-splice original scenario in simulation output
 
-    //const unmodifiedScenario = await scenarioFactory.read(scenarioID);
-    let copiedScenario = await scenarioFactory.clone(scenarioID);
+    const unmodifiedScenario = await scenarioFactory.read(scenarioID);
+    //console.log(unmodifiedScenario)
+    let copiedScenario = await scenarioFactory.clone(unmodifiedScenario.id);
+    //console.log(copiedScenario)
     await chooseEventTimeframe(copiedScenario.id);
     let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, capitalGains, rmdTable, csvFile, logFile);
     await scenarioFactory.delete(copiedScenario.id);
