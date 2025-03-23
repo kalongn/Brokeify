@@ -2,7 +2,7 @@ import Layout from "../components/Layout";
 const SharedScenarios = () => {
   return (
     <Layout>
-        
+
     </Layout>
   );
 }

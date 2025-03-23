@@ -1,0 +1,36 @@
+.event h4 {
+  margin: 0;
+  padding: 0;
+  font-size: 1.0rem;
+
+}
+
+.event {
+
+  padding: 0.5rem;
+  border-bottom: solid 1px var(--color-silver);
+}
+
+.eventDetails {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  grid-column-gap: 1px;
+  grid-row-gap: 1px;
+}
+
+.eventInfo1 {
+  grid-area: 1 / 1 / 2 / 2;
+}
+
+.eventInfo2 {
+  grid-area: 1 / 2 / 2 / 3;
+}
+
+.eventInfo3 {
+  grid-area: 2 / 1 / 4 / 2;
+}
+
+.eventInfo4 {
+  grid-area: 2 / 2 / 3 / 3;
+}
