@@ -232,13 +232,13 @@ async function chooseEventTimeframe(scenarioID) {
     //conflicting events do not overlap
     //save determined start years and durations in {expexted...} variables
 }
-async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, stateDeduction, rmdTable, csvFile, logFile) {
+async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, rmdTable, csvFile, logFile) {
     //deep clone then run simulation then re-splice original scenario in simulation output
 
     //const unmodifiedScenario = await scenarioFactory.read(scenarioID);
     let copiedScenario = await scenarioFactory.clone(scenarioID);
     await chooseEventTimeframe(copiedScenario.id);
-    let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, stateDeduction, capitalGains, rmdTable, csvFile, logFile);
+    let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, capitalGains, rmdTable, csvFile, logFile);
     await scenarioFactory.delete(copiedScenario.id);
     //console.log(simulationResult);
     return simulationResult;
@@ -246,7 +246,7 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
 
 
 //recives ID of scenario in db
-export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandardDeductionID, username) {
+export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
     //first, validate scenario's invariants
     //console.log(process.cwd());
     try {
@@ -277,7 +277,6 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
     }
 
     const stateTax = await taxFactory.read(stateTaxID);
-    const stateDeduction = await taxFactory.read(stateStandardDeductionID)
 
     //Array of simulations
 
@@ -314,7 +313,6 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
             capitalGains,
             fedDeduction,
             stateTax,
-            stateDeduction,
             rmdTable,
             csvFile,
             logFile

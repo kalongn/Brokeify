@@ -449,7 +449,7 @@ async function performRothConversion(curYearIncome, curYearSS, federalIncomeTax,
 
     return { curYearIncome, curYearEarlyWithdrawals };
 }
-function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction, stateStandardDeduction, curYearIncome, curYearSS, earlyWithdrawalAmount, lastYearGains, currentYear) {
+function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction, curYearIncome, curYearSS, earlyWithdrawalAmount, lastYearGains, currentYear) {
     //given info, comes up with a single number
     let totalTax = 0;
     //The IRS imposes a 10% penalty on the portion of the distribution that's 
@@ -459,7 +459,7 @@ function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federa
     updateLog(eventDetails);
     const curYearFedTaxableIncome = curYearIncome - 0.15 * curYearSS - federalStandardDeduction;
     //TODO: Check if this is right?
-    const curYearStateTaxableIncome = curYearIncome - curYearSS - stateStandardDeduction; //41 states do not tax SS income
+    const curYearStateTaxableIncome = curYearIncome - curYearSS; //41 states do not tax SS income
 
     //calculate fed income taxes
     let fedIncomeTax = 0;
@@ -1015,7 +1015,6 @@ export async function simulate(
     federalIncomeTax,
     stateIncomeTax,
     federalStandardDeductionObject,
-    stateStandardDeductionObject,
     capitalGainTax,
     rmdTable,
     csvFileL,
@@ -1026,7 +1025,6 @@ export async function simulate(
     //console.log(csvFile);
     // console.log(rmdTable);
     let federalStandardDeduction = federalStandardDeductionObject.standardDeduction;
-    let stateStandardDeduction = stateStandardDeductionObject.standardDeduction;
 
     const simulation = await createSimulation(inputScenario);
     //console.log(simulation);
@@ -1075,7 +1073,6 @@ export async function simulate(
         await updateContributionLimitsForInflation(simulation.scenario, inflationRate);
 
         federalStandardDeduction *= (1 + inflationRate);
-        stateStandardDeduction *= (1 + inflationRate);
 
         let curYearIncome = 0;
         let curYearSS = 0;
@@ -1133,7 +1130,7 @@ export async function simulate(
 
         let thisYearTaxes = 0;
         let earlyWithdrawalTaxPaid = 0;
-        const calcTaxReturn = calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction, stateStandardDeduction, curYearIncome, curYearSS, rothConversion.curYearEarlyWithdrawals, lastYearGains, currentYear);
+        const calcTaxReturn = calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction, curYearIncome, curYearSS, rothConversion.curYearEarlyWithdrawals, lastYearGains, currentYear);
         thisYearTaxes = calcTaxReturn.t;
         earlyWithdrawalTaxPaid = calcTaxReturn.e;
         let nonDiscretionaryExpenses = 0;
