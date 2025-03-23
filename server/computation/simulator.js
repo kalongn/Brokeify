@@ -209,7 +209,7 @@ export async function adjustEventAmount(event, inflationRate) {
     }
 
     let amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
-    let distribution = await distributionFactory.read(type.expectedAnnualChangeDistribution);
+    let distribution = await distributionFactory.read(event.expectedAnnualChangeDistribution);
     if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {
         
     }
