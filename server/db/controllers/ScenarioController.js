@@ -78,7 +78,7 @@ export default class ScenarioController {
                         path: 'startYearTypeDistribution durationTypeDistribution',
                     }
                 })
-                .populate('inflationAssumptionDistribution');
+                .populate('inflationAssumptionDistribution userLifeExpectancyDistribution spouseLifeExpectancyDistribution');
         }
         catch (error) {
             throw new Error(error);

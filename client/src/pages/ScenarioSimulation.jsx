@@ -241,7 +241,7 @@ const ScenarioSimulation = () => {
                     </div>
                     <div className={styles.infoItem4}>
                       <p>Life Expenctancy: </p>
-                      <div className={styles.inputInfo}> {scenario.userLifeExpectancy} years </div>
+                      <div className={styles.inputInfo}> {distributionToString(scenario.userLifeExpectancyDistribution)} years </div>
                     </div>
                   </div>
                 </div>
