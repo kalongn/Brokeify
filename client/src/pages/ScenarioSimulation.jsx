@@ -86,7 +86,7 @@ const ScenarioSimulation = () => {
       case "NORMAL_AMOUNT":
         return `μ: ${distribution.mean}, σ: ${distribution.standardDeviation}`;
       case "NORMAL_PERCENTAGE":
-        return `μ: ${distribution.mean * 100}%, σ: ${distribution.stdDev * 100}%`;
+        return `μ: ${distribution.mean * 100}%, σ: ${distribution.standardDeviation * 100}%`;
       default:
         return "Unknown Distribution Type";
     }
