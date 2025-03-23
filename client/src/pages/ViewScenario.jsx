@@ -159,8 +159,10 @@ const ViewScenario = () => {
                                         <div>
                                             <BiSolidCircle /><span> Sample from Normal Distribution</span>
                                         </div>
-                                        Mean : <div className={styles.textbox}> {scenarioData.userLifeExpectancyDistribution.mean}</div>
-                                        Standard Deviation : <div className={styles.textbox}> {scenarioData.userLifeExpectancyDistribution.standardDeviation}</div>
+                                        <div className= {styles.distribution}>
+                                            Mean : <div className={styles.textbox}> {scenarioData.userLifeExpectancyDistribution.mean}</div>
+                                            Standard Deviation : <div className={styles.textbox}> {scenarioData.userLifeExpectancyDistribution.standardDeviation}</div>
+                                        </div>
                                     </>
                                 ) : (
                                     <>
@@ -170,7 +172,7 @@ const ViewScenario = () => {
                                         <div>
                                             <BiCircle /> <span> Sample from Normal Distribution</span>
                                         </div>
-                                        <div className={styles.textbox}>{scenarioData.userLifeExpectancyDistribution.value}</div>
+                                        Value: <div className={styles.textbox}>{scenarioData.userLifeExpectancyDistribution.value}</div>
                                     </>
                                 )
                             }
@@ -200,7 +202,7 @@ const ViewScenario = () => {
                                             <div>
                                                 <BiCircle /> <span> Sample from Normal Distribution</span>
                                             </div>
-                                            <div className={styles.textbox}>{scenarioData.spouseLifeExpectancyDistribution.value}</div>
+                                            Value: <div className={styles.textbox}>{scenarioData.spouseLifeExpectancyDistribution.value}</div>
                                         </>
                                     )
                                 }

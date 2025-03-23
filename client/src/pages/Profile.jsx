@@ -28,6 +28,19 @@ const Profile = () => {
 
   }, []);
 
+  const uploadTax = () => {
+    alert("TODO: Feature not IMPLEMENT YET.");
+  };
+
+
+  const downloadTax = (taxId) => {
+    alert(`TDOO: export the YAML file of ${taxId} to the client.`);
+  }
+
+  const deleteTax = (taxId) => {
+    alert(`TODO: delete the tax file with id ${taxId} from the database.`);
+  }
+
   return (
     < Layout >
       <div className={style.profileBackground} >
@@ -48,7 +61,7 @@ const Profile = () => {
         <div className={style.fileInfo}>
           <h2>File Upload</h2>
           <div>Here you can upload a YAML file containing information about state income taxes and brackets. Note that without this data, the financial projection will ignore state income taxes not in the database.</div>
-          <button className={style.uploadButton} onClick={() => alert("TODO: Feature not IMPLEMENT YET.")}> <FaUpload />  Upload YAML</button>
+          <button className={style.uploadButton} onClick={() => uploadTax()}> <FaUpload />  Upload YAML</button>
           <table>
             <thead>
               <tr>
@@ -61,9 +74,9 @@ const Profile = () => {
               user.userSpecificTaxes.map((tax, index) => (
                 <tbody key={index}>
                   <tr>
-                    <td>{tax.name}</td>
-                    <td>{tax.uploadDate}</td>
-                    <td className={style.fileActions}><button onClick={() => alert("TODO: Feature not IMPLEMENT YET.")}><FaDownload /></button><button onClick={() => alert("TODO: Feature not IMPLEMENT YET.")}><FaTrashAlt /></button></td>
+                    <td>{tax.state + "_" + tax.filingStatus}</td>
+                    <td>{tax.dateCreated}</td>
+                    <td className={style.fileActions}><button onClick={() => downloadTax(tax._id)}><FaDownload /></button><button onClick={() => deleteTax(tax._id)}><FaTrashAlt /></button></td>
                   </tr>
                 </tbody>
               )) : user && user.userSpecificTaxes && user.userSpecificTaxes.length === 0 ?

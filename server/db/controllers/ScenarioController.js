@@ -64,6 +64,27 @@ export default class ScenarioController {
         }
     }
 
+    async readWithPopulate(id) {
+        try {
+            return await Scenario.findById(id).populate({
+                path: 'investmentTypes',
+                populate: {
+                    path: 'expectedAnnualReturnDistribution expectedAnnualIncomeDistribution investments',
+                }
+            })
+                .populate({
+                    path: 'events',
+                    populate: {
+                        path: 'startYearTypeDistribution durationTypeDistribution',
+                    }
+                })
+                .populate('inflationAssumptionDistribution userLifeExpectancyDistribution spouseLifeExpectancyDistribution');
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
     /**
      * This function updates a Scenario with the given id
      * @param {mongoose.Types.ObjectId} id
@@ -138,18 +159,18 @@ export default class ScenarioController {
         }
     }
 
-    async clone(scenarioID){
+    async clone(scenarioID) {
         //deep clone scenario
         //Clone Investments
         //Clone Investment Types
         //Clone Events
-    
+
         //Change ref Ids in:
         //orderedSpendingStrategy
         //orderedExpenseWithdrawalStrategy
         //orderedRMDStrategy
         //orderedRothStrategy
-    
+
         //The following code was initially written by ChatGPT with the prompt:
         /*
             Write me a function that does a deep clone of scenario, making sure to clone 
@@ -163,7 +184,7 @@ export default class ScenarioController {
             - Did a decent job at using javascript functionality
     
         */
-       
+
         const scenarioFactory = new ScenarioController();
         const investmentTypeFactory = new InvestmentTypeController();
         const investmentFactory = new InvestmentController();
@@ -172,50 +193,50 @@ export default class ScenarioController {
         const originalScenario = await unmodifiedScenario.populate('investmentTypes events orderedSpendingStrategy orderedExpenseWithdrawalStrategy orderedRMDStrategy orderedRothStrategy');
         // console.log("ORIGINAL")
         // console.log(originalScenario);
-        
+
         if (!originalScenario) {
             throw new Error('Scenario not found');
         }
         //console.log(originalScenario);
         const idMap = new Map();
-        
+
         // Clone Investment Types and Investments
         const clonedInvestmentTypes = await Promise.all(
             originalScenario.investmentTypes.map(async (typeId) => {
                 const type = await investmentTypeFactory.read(typeId);
                 if (!type) return null;
-    
+
                 const clonedInvestments = await Promise.all(
                     type.investments.map(async (invId) => {
                         const clonedInvID = await investmentFactory.clone(invId);
-    
+
                         idMap.set(invId.toString(), clonedInvID);
                         return clonedInvID;
                     })
                 );
-    
+
                 const clonedTypeID = await investmentTypeFactory.clone(type.id)
-                await investmentTypeFactory.update(clonedTypeID, {investments: clonedInvestments.filter(Boolean)});
+                await investmentTypeFactory.update(clonedTypeID, { investments: clonedInvestments.filter(Boolean) });
                 idMap.set(typeId.toString(), clonedTypeID);
                 return clonedTypeID;
             })
         );
-    
+
         // Clone Events
         const clonedEvents = await Promise.all(
             originalScenario.events.map(async (eventId) => {
                 const clonedEventID = await eventFactory.clone(eventId);
                 const clonedEvent = await eventFactory.read(clonedEventID);
                 //console.log(clonedEvent);
-                if(clonedEvent.eventType=="REBALANCE"||clonedEvent.eventType=="INVEST"){
+                if (clonedEvent.eventType == "REBALANCE" || clonedEvent.eventType == "INVEST") {
                     //update allocatedInvestments
-                    await eventFactory.update(clonedEventID, {allocatedInvestments: await clonedEvent.allocatedInvestments.map(id => idMap.get(id.toString()))})
+                    await eventFactory.update(clonedEventID, { allocatedInvestments: await clonedEvent.allocatedInvestments.map(id => idMap.get(id.toString())) })
                 }
                 idMap.set(eventId.toString(), clonedEventID);
                 return clonedEventID;
             })
         );
-    
+
         // Clone Scenario
         //console.log(`CLONING: ${originalScenario.inflationAssumptionDistribution}`);
         const clonedScenario = await scenarioFactory.create({
@@ -237,8 +258,8 @@ export default class ScenarioController {
             orderedRMDStrategy: originalScenario.orderedRMDStrategy.map(id => idMap.get(id.toString()) || id),
             orderedRothStrategy: originalScenario.orderedRothStrategy.map(id => idMap.get(id.toString()) || id),
             startYearRothOptimizer: originalScenario.startYearRothOptimizer,
-            endYearRothOptimizer:originalScenario.endYearRothOptimizer,
-            
+            endYearRothOptimizer: originalScenario.endYearRothOptimizer,
+
         });
         //console.log("CLONED:");
         //console.log(await clonedScenario.populate('investmentTypes events orderedSpendingStrategy orderedExpenseWithdrawalStrategy orderedRMDStrategy orderedRothStrategy'));
@@ -246,7 +267,7 @@ export default class ScenarioController {
     }
 
 
-    async delete(scenarioID){
+    async delete(scenarioID) {
         //erase the scenario and all investments, events, investmentTypes associated with it
         const scenarioFactory = new ScenarioController();
         const investmentTypeFactory = new InvestmentTypeController();
@@ -254,15 +275,15 @@ export default class ScenarioController {
         const eventFactory = new EventController();
         const scenario = await scenarioFactory.read(scenarioID);
         //first, get & erase all investments & investmentTypes
-        for(const i in scenario.investmentTypes){
+        for (const i in scenario.investmentTypes) {
             const investmentType = await investmentTypeFactory.read(scenario.investmentTypes[i]);
-            for(const j in investmentType.investments){
+            for (const j in investmentType.investments) {
                 await investmentFactory.delete(investmentType.investments[j]);
             }
-            await investmentTypeFactory.shallowDelete(scenario.investmentTypes[i]); 
+            await investmentTypeFactory.shallowDelete(scenario.investmentTypes[i]);
         }
         //erase all events
-        for(const i in scenario.events){
+        for (const i in scenario.events) {
             await eventFactory.shallowDelete(scenario.events[i]);
         }
         //erase scenario

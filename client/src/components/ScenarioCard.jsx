@@ -6,9 +6,9 @@ import { FaPiggyBank } from "react-icons/fa6";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events }) => {
+const ScenarioCard = ({ id, title, maritalStatus, targetAmount, investments, events }) => {
   return (
-    <Link to='/Scenario' className={styles.scenarioCard} onClick={() => console.log("Card clicked")}>
+    <Link to={`/Scenario/${id}`} className={styles.scenarioCard} onClick={() => console.log("Card clicked")}>
       {/*Note: we will need to set these routes to be scenario id based!*/}
       <div className={styles.titleContainer}>
         {/*Note: This is what's shown originally, when the user isn't hovering 
@@ -23,7 +23,7 @@ const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events 
         </div>
         <div className={styles.info}>
           <div className={styles.infoRow}>
-            <IoPersonCircle size={30} /> <span>{martialStatus}</span>
+            <IoPersonCircle size={30} /> <span>{maritalStatus}</span>
           </div>
           <div className={styles.infoRow}>
             <TbTargetArrow size={30} /> <span>{targetAmount?.toLocaleString() ?? "N/A"}</span>
@@ -42,8 +42,9 @@ const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events 
 
 
 ScenarioCard.propTypes = {
+  id: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
-  martialStatus: PropTypes.string,
+  maritalStatus: PropTypes.string,
   targetAmount: PropTypes.number,
   investments: PropTypes.number,
   events: PropTypes.number,

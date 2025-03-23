@@ -1,262 +1,305 @@
+import { TbEdit } from "react-icons/tb";
+import { TbFileSearch } from "react-icons/tb";
+import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, Navigate } from "react-router-dom";
+import Axios from "axios";
+
 import styles from "./ScenarioSimulation.module.css";
 import Investment from "../components/Investment";
 import Event from "../components/Event";
 import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
-import { TbEdit } from "react-icons/tb";
-import { TbFileSearch } from "react-icons/tb";
-import { Link } from "react-router-dom";
+
 
 const ScenarioSimulation = () => {
-  {/* Note: for strategies, may need to set content to be a list of the names of events/investments*/ }
-  {/* Note: for investments,not sure if I'm processing the data right... so confirm that too*/ }
-  {/* Update the basic information with scenario information*/ }
-  const strategiesData = [
-    {
-      title: 'Spending Strategy',
-      content: [
-        "Buy a mechanical keyboard.",
-        "Buy a ferrari"]
-    },
-    {
-      title: 'Expense Withdrawal Strategy',
-      content: [
-        "Bonds",
-        "Domestic Stocks"]
-    },
-    {
-      title: 'RMD Strategy',
-      content: [
-        "Cash",
-        "Real Estate"]
-    },
-    {
-      title: 'Roth Conversion Strategy',
-      content: [
-        "Cash",
-        "Real Estate"]
+
+  const { scenarioId } = useParams(); // Get the scenario ID from the URL params
+  const [scenario, setScenario] = useState(null);
+  const [investments, setInvestments] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [strategies, setStrategies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const stateMap = {
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PA": "Pennsylvania",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming"
+  }
+
+  const distributionToString = (distribution) => {
+    switch (distribution.distributionType) {
+      case "FIXED_AMOUNT":
+        return `${distribution.value}`;
+      case "FIXED_PERCENTAGE":
+        return `${distribution.value * 100}%`;
+      case "UNIFORM_AMOUNT":
+        return `[${distribution.lowerBound}, ${distribution.upperBound}]`;
+      case "UNIFORM_PERCENTAGE":
+        return `[${distribution.lowerBound * 100}%, ${distribution.upperBound * 100}%]`;
+      case "NORMAL_AMOUNT":
+        return `μ: ${distribution.mean}, σ: ${distribution.standardDeviation}`;
+      case "NORMAL_PERCENTAGE":
+        return `μ: ${distribution.mean * 100}%, σ: ${distribution.standardDeviation * 100}%`;
+      default:
+        return "Unknown Distribution Type";
     }
-  ];
+  };
+
+  useEffect(() => {
+
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    Axios.get(`/scenario/${scenarioId}`).then((response) => {
+
+      const scenarioData = response.data;
+
+      console.log('Scenario data:', scenarioData);
+      setScenario(scenarioData);
+
+      const allInvestments = scenarioData.investmentTypes.flatMap(type =>
+        type.investments.map(investment => ({ type: type, investment }))
+      );
+
+      const allEvents = scenarioData.events;
+
+      const investIdNameMap = {};
+      for (let type of scenarioData.investmentTypes) {
+        for (let investment of type.investments) {
+          investIdNameMap[investment._id] = type.name;
+        }
+      }
+
+      const eventIdNameMap = {};
+      for (let event of allEvents) {
+        eventIdNameMap[event._id] = event.name;
+      }
+
+      const investments = allInvestments.map(investment => ({
+        investmentType: {
+          name: investment.type.name,
+          taxability: investment.type.taxability,
+          expectedAnnualReturn: distributionToString(investment.type.expectedAnnualReturnDistribution)
+        }
+        , value: investment.investment.value,
+        taxStatus: investment.investment.taxStatus
+      }));
+
+      const events = allEvents.map(event => ({
+        name: event.name,
+        amount: event.amount ?? event.maximumCash ?? 0,
+        duration: distributionToString(event.durationTypeDistribution),
+        startYear: distributionToString(event.startYearTypeDistribution),
+        eventType: event.eventType
+      }));
 
 
-  const investmentsData = [
-    {
-      investmentType: {
-        name: "Cash",
-        taxability: false, //tax-exempt
-        expectedAnnualReturn: 7,
-      },
-      value: 100000,
-      taxStatus: "Pre-tax retirement"
-    },
-    {
-      investmentType: {
-        name: "Domestic Stocks",
-        taxability: true, // Taxable 
-        expectedAnnualReturn: 12.8,
-      },
-      value: 9350,
-      taxStatus: "Non-retirement"
-    }
-  ];
+      setInvestments(investments);
+      setEvents(events);
 
+      const spendingStrategy = [];
+      for (let eventId of scenarioData.orderedSpendingStrategy) {
+        const eventName = eventIdNameMap[eventId] || "Unknown Event";
+        spendingStrategy.push(eventName);
+      }
 
-  const eventsData = [
-    {
-      name: "Buy a mechanical keyboard",
-      amount: 200,
-      duration: 1,
-      startYear: 2025,
-      eventType: "Discretionary Expense"
-    },
-    {
-      name: "Child's Education",
-      amount: 50000,
-      duration: 4,
-      startYear: 2028,
-      eventType: "Discretionary Expense"
-    },
-    {
-      name: "Buy S&P 500 Index Fund",
-      maximumCash: 10000,
-      duration: 10,
-      startYear: 2030,
-      eventType: "Investment"
+      const expenseWithdrawalStrategy = [];
+      for (let investmentId of scenarioData.orderedExpenseWithdrawalStrategy) {
+        const investmentName = investIdNameMap[investmentId] || "Unknown Investment";
+        expenseWithdrawalStrategy.push(investmentName);
+      }
 
-    },
-    {
-      name: "Buy S&P 500 Index Fund",
-      maximumCash: 10000,
-      duration: 10,
-      startYear: 2030,
-      eventType: "Investment"
+      const rmdStrategy = [];
+      for (let investmentId of scenarioData.orderedRMDStrategy) {
+        const investmentName = investIdNameMap[investmentId] || "Unknown Investment";
+        rmdStrategy.push(investmentName);
+      }
 
-    },
-    {
-      name: "Buy S&P 500 Index Fund",
-      maximumCash: 10000,
-      duration: 10,
-      startYear: 2030,
-      eventType: "Investment"
+      const rothConversionStrategy = [];
+      for (let investmentId of scenarioData.orderedRothStrategy) {
+        const investmentName = investIdNameMap[investmentId] || "Unknown Investment";
+        rothConversionStrategy.push(investmentName);
+      }
 
-    },
-    {
-      name: "Buy S&P 500 Index Fund",
-      maximumCash: 10000,
-      duration: 10,
-      startYear: 2030,
-      eventType: "Investment"
+      setStrategies([
+        {
+          title: "Spending Strategy",
+          content: spendingStrategy
+        },
+        {
+          title: "Expense Withdrawal Strategy",
+          content: expenseWithdrawalStrategy
+        },
+        {
+          title: "RMD Strategy",
+          content: rmdStrategy
+        },
+        {
+          title: "Roth Conversion Strategy",
+          content: rothConversionStrategy
+        }
+      ]);
 
-    },
-    {
-      name: "Buy S&P 500 Index Fund",
-      maximumCash: 10000,
-      duration: 10,
-      startYear: 2030,
-      eventType: "Investment"
+      setLoading(false);
 
-    },
-    {
-      name: "Buy S&P 500 Index Fund",
-      maximumCash: 10000,
-      duration: 10,
-      startYear: 2030,
-      eventType: "Investment"
-
-    }
-  ];
-
+    }).catch((error) => {
+      if (error.response && error.response.status === 403) {
+        console.error('You do not have permission to access this scenario.');
+      }
+      else if (error.response && error.response.status === 404) {
+        console.error('Scenario not found.');
+      } else {
+        console.error('Error fetching scenario:', error);
+      }
+      return <Navigate to="/Home" />;
+    });
+  }, [scenarioId]);
   return (
     <Layout>
       <div className={styles.container}>
-        <div className={styles.header}>
-          <div className={styles.title}>
+        {loading ? <h1>Loading...</h1>
+          :
+          <>
+            <div className={styles.header}>
+              <div className={styles.title}>
 
-            <h2>Ideal Plan!!</h2>
-            {/** To Do: Implement onClick for this later on */}
-            <Link to='/ViewScenario' className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
-            <TbEdit className={styles.icon} size={25} />
+                <h2>{scenario.name}</h2>
+                <Link to='/ViewScenario' className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
+                <TbEdit className={styles.icon} size={25} />
 
-          </div>
+              </div>
 
-          <div className={styles.buttons}>
-            <button className={styles.runSimulation}>Run Simulation</button>
-            <button className={styles.seeResults}>See Results</button>
-          </div>
-        </div>
-
-        <div>
-          <div className={styles.mainContent}>
-            <div className={styles.basicInfo}>
-              <h3>Basic Information</h3>
-              <div className={styles.info}>
-                <div className={styles.infoItem1}>
-                  <p>Financial Goal: </p>
-                  <div className={styles.inputInfo}> $1,000,000 </div>
-                </div>
-                <div className={styles.infoItem2}>
-                  <p>State of Residence: </p>
-                  <div className={styles.inputInfo}> California </div>
-                </div>
-                <div className={styles.infoItem3}>
-                  <p>Marital Status: </p>
-                  <div className={styles.inputInfo}> Married </div>
-                </div>
-                <div className={styles.infoItem4}>
-                  <p>Life Expenctancy: </p>
-                  <div className={styles.inputInfo}> 90 years </div>
-                </div>
+              <div className={styles.buttons}>
+                <button className={styles.runSimulation}>Run Simulation</button>
+                <button className={styles.seeResults}>See Results</button>
               </div>
             </div>
 
-            <div className={styles.strategies}>
+            <div>
+              <div className={styles.mainContent}>
+                <div className={styles.basicInfo}>
+                  <h3>Basic Information</h3>
+                  <div className={styles.info}>
+                    <div className={styles.infoItem1}>
+                      <p>Financial Goal: </p>
+                      <div className={styles.inputInfo}> ${scenario.financialGoal} </div>
+                    </div>
+                    <div className={styles.infoItem2}>
+                      <p>State of Residence: </p>
+                      <div className={styles.inputInfo}> {stateMap[scenario.stateOfResidence]} </div>
+                    </div>
+                    <div className={styles.infoItem3}>
+                      <p>Filing Status: </p>
+                      <div className={styles.inputInfo}> {scenario.filingStatus} </div>
+                    </div>
+                    <div className={styles.infoItem4}>
+                      <p>Life Expenctancy: </p>
+                      <div className={styles.inputInfo}> {distributionToString(scenario.userLifeExpectancyDistribution)} years </div>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="accordion">
-                {strategiesData.map(({ title, content }) => (
-                  <Accordion key={title} title={title} content={content} />
-                ))}
+                <div className={styles.strategies}>
+
+                  <div className="accordion">
+                    {strategies.map(({ title, content }) => (
+                      <Accordion key={title} title={title} content={content} />
+                    ))}
+                  </div>
+
+                </div>
+
+                <div className={styles.investments}>
+                  <h3 className={styles.investmentTitle}>Investments</h3>
+
+                  {investments.length > 0 ? (
+                    investments.map((investment, index) => (
+                      <Investment
+                        key={index}
+                        Type={investment.investmentType.name}
+                        DollarValue={investment.value}
+                        Taxability={investment.investmentType.taxability ? "Taxable" : "Tax-exempt"}
+                        AnnualReturn={investment.investmentType.expectedAnnualReturn}
+                        TaxStatus={investment.taxStatus}
+                      />
+                    ))
+                  ) : (
+                    <p>You currently have no investments. Edit the scenario to add.</p>
+                  )}
+
+                </div>
+
+                <div className={styles.events}>
+                  <h3 className={styles.eventTitle}>Events</h3>
+                  {events.length > 0 ? (
+                    events.map((event, index) => (
+                      <Event
+                        key={index}
+                        Name={event.name}
+                        DollarValue={event.amount ?? event.maximumCash ?? 0}
+                        Duration={event.duration}
+                        StartYear={event.startYear}
+                        Type={event.eventType}
+                      />
+                    ))
+
+                  )
+                    : (
+                      <p>You currently have no events. Edit the scenario to add.</p>
+                    )}
+                </div>
               </div>
-
             </div>
-
-            <div className={styles.investments}>
-              <h3 className={styles.investmentTitle}>Investments</h3>
-
-              {/* If below doesn't work w/ middleware, here is this as a reference:
-                <Investment 
-                    Type="Cash" 
-                    DollarValue= {100000}
-                    Taxability="Tax-exempt" 
-                    AnnualReturn={7}
-                    TaxStatus="Pre-tax retirement" 
-                />
-
-                <Investment 
-                    Type="Domestic Stocks" 
-                    DollarValue= {9350}
-                    Taxability="Taxable" 
-                    AnnualReturn={12.8}
-                    TaxStatus="Non-retirement" 
-                />
-                */}
-
-              {investmentsData.length > 0 ? (
-                investmentsData.map((investment, index) => (
-                  <Investment
-                    key={index}
-                    Type={investment.investmentType.name}
-                    DollarValue={investment.value}
-                    Taxability={investment.investmentType.taxability ? "Taxable" : "Tax-exempt"}
-                    AnnualReturn={investment.investmentType.expectedAnnualReturn}
-                    TaxStatus={investment.taxStatus}
-                  />
-                ))
-              ) : (
-                <p>You currently have no investments. Edit the scenario to add.</p>
-              )}
-
-            </div>
-
-            <div className={styles.events}>
-              <h3 className={styles.eventTitle}>Events</h3>
-              {/* If below doesn't work w/ middleware, here is this as a reference hardcoded: 
-                
-                <Event
-                    Name="Buy a mechanical keyboard" 
-                    DollarValue= {200}
-                    Duration={1}
-                    AnnualReturn={1.9}
-                    Type="Discretionary Expense"
-                />
-                <Event 
-                    Name="Child's Education" 
-                    DollarValue= {50000}
-                    Duration={4}
-                    AnnualReturn={5}
-                    Type="Discretionary Expense"
-                />
-                */}
-
-
-              {eventsData.length > 0 ? (
-                eventsData.map((event, index) => (
-                  <Event
-                    key={index}
-                    Name={event.name}
-                    DollarValue={event.amount ?? event.maximumCash ?? 0}
-                    Duration={event.duration}
-                    StartYear={event.startYear}
-                    Type={event.eventType}
-                  />
-                ))
-
-              )
-                : (
-                  <p>You currently have no events. Edit the scenario to add.</p>
-                )}
-            </div>
-          </div>
-        </div>
+          </>
+        }
 
       </div>
     </Layout>

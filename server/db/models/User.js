@@ -18,14 +18,4 @@ const UserSchema = new mongoose.Schema({
     userSimulations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Simulation' }],
 });
 
-UserSchema.virtual('id').get(function get() {
-    return this._id.toHexString();
-});
-UserSchema.set('toJSON', {
-    virtuals: true,
-});
-UserSchema.set('toObject', {
-    virtuals: true,
-});
-
 export default mongoose.model('User', UserSchema);
