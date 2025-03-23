@@ -26,6 +26,7 @@ a {
   font-weight: 500;
   color: var(--color-primary);
   text-decoration: None;
+  transition: color 0.3s;
 }
 
 a:hover {

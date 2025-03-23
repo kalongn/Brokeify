@@ -31,7 +31,7 @@ async function createSimulationCSV(user, datetime, folder) {
     const timestamp = format(datetime, 'yyyyMMdd_HHmmss');
     const filename = `${user}_${timestamp}.csv`;
     const filepath = join(folder, filename);
-    if (!fs.existsSync(folder)){
+    if (!fs.existsSync(folder)) {
         fs.mkdirSync(folder);
     }
     let csvContent = `Year\n`;
@@ -45,7 +45,7 @@ async function createEventLog(user, datetime, folder) {
     const timestamp = format(datetime, 'yyyyMMdd_HHmmss');
     const filename = `${user}_${timestamp}.log`;
     const filepath = join(folder, filename);
-    if (!fs.existsSync(folder)){
+    if (!fs.existsSync(folder)) {
         fs.mkdirSync(folder);
     }
     let logContent = `Simulation Log for ${user} - ${format(datetime, 'yyyy-MM-dd HH:mm:ss')}\n\n`;
@@ -238,7 +238,7 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
     //const unmodifiedScenario = await scenarioFactory.read(scenarioID);
     let copiedScenario = await scenarioFactory.clone(scenarioID);
     await chooseEventTimeframe(copiedScenario.id);
-    let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, stateDeduction, capitalGains, rmdTable,csvFile,logFile);
+    let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, stateDeduction, capitalGains, rmdTable, csvFile, logFile);
     await scenarioFactory.delete(copiedScenario.id);
     //console.log(simulationResult);
     return simulationResult;
@@ -298,16 +298,16 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
         //console.log(i);
         let csvFile;
         let logFile;
-        if(i===0){
+        if (i === 0) {
             //console.log("I IS 0");
-            
+
             //create logs on first run
             const datetime = new Date();
             csvFile = (await createSimulationCSV(username, datetime, "../logs")).toString();
-            
+
             logFile = await createEventLog(username, datetime, "../logs");
         }
-        
+
         let runResult = await run(
             scenarioID,
             fedIncome,
@@ -326,7 +326,6 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, stateStandar
         //console.log(compiledResults);
 
         compiledResults.results.push(runResult);
-
 
     }
     //console.log(compiledResults);

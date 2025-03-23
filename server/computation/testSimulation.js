@@ -308,7 +308,7 @@ const testTax = async (i) => {
 
 const populateDB = async () => {
     const factory = new ScenarioController();
-    const scenario = await testScenario();
+    
     //const scenarioID = await parseAndSaveYAML("../yaml_files/scenario.yaml");
     //const scenario = await factory.read(scenarioID);
     //console.log(scenario);
@@ -321,7 +321,9 @@ const populateDB = async () => {
     const federalStandardDeduction = await testTax(3);
     const stateStandardDeduction = await testTax(4);
     const capitalGainTax = await testTax(5);
-
+    const scenario = await testScenario();
+    //const scenario = await testScenario();
+    //console.log(scenario);
 
     console.log('====================== Simulation Test =====================');
     //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
