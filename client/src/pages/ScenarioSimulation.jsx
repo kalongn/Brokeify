@@ -80,7 +80,47 @@ const ScenarioSimulation = () => {
            startYear: 2030,
            eventType: "Investment"
 
-         }
+         },
+         { 
+          name: "Buy S&P 500 Index Fund",
+          maximumCash: 10000,
+          duration: 10,
+          startYear: 2030,
+          eventType: "Investment"
+
+        },
+        { 
+          name: "Buy S&P 500 Index Fund",
+          maximumCash: 10000,
+          duration: 10,
+          startYear: 2030,
+          eventType: "Investment"
+
+        },
+        { 
+          name: "Buy S&P 500 Index Fund",
+          maximumCash: 10000,
+          duration: 10,
+          startYear: 2030,
+          eventType: "Investment"
+
+        },
+        { 
+          name: "Buy S&P 500 Index Fund",
+          maximumCash: 10000,
+          duration: 10,
+          startYear: 2030,
+          eventType: "Investment"
+
+        },
+        { 
+          name: "Buy S&P 500 Index Fund",
+          maximumCash: 10000,
+          duration: 10,
+          startYear: 2030,
+          eventType: "Investment"
+
+        }
       ];
 
   return (

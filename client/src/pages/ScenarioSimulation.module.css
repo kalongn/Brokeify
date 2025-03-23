@@ -33,6 +33,7 @@
     grid-template-rows: repeat(3, 1fr);
     grid-column-gap: 1rem;
     grid-row-gap: 2rem;
+    height: calc(100vh - 14rem);
     
    
 }
@@ -91,7 +92,8 @@
     background-color: #d0ded9;
     border-radius: 10px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    height: auto;
+    overflow-y: auto;
+    scrollbar-width: thin;
 }
 
 .investments {
@@ -100,6 +102,8 @@
     padding: 1rem;
     border-radius: 10px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    scrollbar-width: thin;
 }
 .investmentTitle, .eventTitle{
     padding-bottom: 1rem;
@@ -111,6 +115,8 @@
     padding: 1rem;
     border-radius: 10px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    scrollbar-width: thin;
 }
 
 
