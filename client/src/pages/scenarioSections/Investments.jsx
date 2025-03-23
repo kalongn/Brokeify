@@ -10,6 +10,9 @@ const Investments = () => {
   useImperativeHandle(childRef, () => ({
     handleSubmit,
   }));
+  const [errors, setErrors] = useState({
+    investments: ""
+  });
 
   const [investmentTypes, setInvestmentTypes] = useState([
     { value: "Cash", label: "Cash" },
@@ -29,7 +32,7 @@ const Investments = () => {
     //   try {
     //     const response = await fetch('/api/investment-types');
     //     const data = await response.json();
-        
+
     //     // Transform the data into the format needed for react-select
     //     const formattedTypes = data.map(type => ({
     //       value: type.name,
@@ -59,17 +62,57 @@ const Investments = () => {
   const addNewInvestment = () => {
     setFormData([...formData, { type: "", dollarValue: "", taxStatus: "" }]);
   };
+  // TODO: fix bug where deleting a row above actually removes the one below
   const removeInvestment = (index) => {
     const updatedInvestments = formData.filter((_, i) => i !== index);
     setFormData(updatedInvestments);
   };
 
   const validateFields = () => {
-    console.log("============= validated");
-    console.log(formData);
+    let isValid = true;
+    const newErrors = {};
+
+    // Check if there are any investments
+    if (formData.length === 0) {
+      newErrors.investments = "At least one investment must be added";
+      isValid = false;
+      setErrors(newErrors);
+      return isValid;
+    }
+
+    // Validate each investment
+    formData.forEach((investment, index) => {
+      newErrors[index] = {};
+
+      // Validate Investment Type
+      if (!investment.type) {
+        newErrors[index].type = "Investment type is required";
+        isValid = false;
+      }
+
+      // Validate Dollar Value
+      if (investment.dollarValue === null || investment.dollarValue === "") {
+        newErrors[index].dollarValue = "Dollar value is required";
+        isValid = false;
+      } else if (isNaN(investment.dollarValue)) {
+        newErrors[index].dollarValue = "Dollar value must be a number";
+        isValid = false;
+      } else if (investment.dollarValue < 0) {
+        newErrors[index].dollarValue = "Dollar value cannot be negative";
+        isValid = false;
+      }
+      // Validate Tax Status
+      if (!investment.taxStatus) {
+        newErrors[index].taxStatus = "Tax status is required";
+        isValid = false;
+      }
+    });
+
+    setErrors(newErrors);
+    return isValid;
   };
   const handleSubmit = () => {
-    validateFields();
+    return validateFields();
   };
 
   return (
@@ -101,6 +144,7 @@ const Investments = () => {
                     handleInputChange(index, "type", e.value)
                   }
                 />
+                {errors[index]?.type && <span className={styles.error}>{errors[index].type}</span>}
               </td>
               <td>
                 <input
@@ -112,6 +156,7 @@ const Investments = () => {
                   }
                   placeholder="$"
                 />
+                {errors[index]?.dollarValue && <span className={styles.error}>{errors[index].dollarValue}</span>}
               </td>
               <td>
                 <Select
@@ -122,6 +167,7 @@ const Investments = () => {
                     handleInputChange(index, "taxStatus", e.value)
                   }
                 />
+                {errors[index]?.taxStatus && <span className={styles.error}>{errors[index].taxStatus}</span>}
               </td>
               <td>
                 <button

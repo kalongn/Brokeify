@@ -47,7 +47,9 @@ const ScenarioForm = () => {
   const handleSectionSubmit = () => {
     // console.log(childRef.current);
     if (childRef.current) {
-      childRef.current.handleSubmit();
+      if(!childRef.current.handleSubmit()) {
+        return;
+      }
     }
     // navigate to the next page
     handleNextSave();
