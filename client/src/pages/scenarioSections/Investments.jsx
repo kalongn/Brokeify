@@ -1,5 +1,7 @@
 import { useState } from "react";
 import Select from "react-select";
+import { FaTimes } from 'react-icons/fa';
+import styles from "./Form.module.css";
 
 const Investments = () => {
   // TODO: replace with investments from db
@@ -30,6 +32,10 @@ const Investments = () => {
   const addNewInvestment = () => {
     setInvestments([...investments, { type: "", value: "", taxStatus: "" }]);
   };
+  const removeInvestment = (index) => {
+    const updatedInvestments = investments.filter((_, i) => i !== index);
+    setInvestments(updatedInvestments);
+  };
 
   return (
     <div>
@@ -38,12 +44,13 @@ const Investments = () => {
         If married, investments will automatically be assumed as jointly owned.
       </p>
 
-      <table>
+      <table id={styles.inputTable}>
         <thead>
           <tr>
             <th>Investment Type</th>
             <th>Dollar Value</th>
             <th>Tax Status</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -52,6 +59,7 @@ const Investments = () => {
             <tr key={index}>
               <td>
                 <Select
+                  className={`${styles.selectTable} ${styles.select}`}
                   options={investmentTypes}
                   value={investmentTypes.find((option) => option.value === investments[index].type)}
                   onChange={(e) =>
@@ -70,7 +78,9 @@ const Investments = () => {
                 />
               </td>
               <td>
+                {/* TODO: Selects seem to be connected */}
                 <Select
+                  className={`${styles.selectTable} ${styles.select}`}
                   options={taxStatuses}
                   value={investmentTypes.find((option) => option.value === investments[index].type)}
                   onChange={(e) =>
@@ -78,12 +88,19 @@ const Investments = () => {
                   }
                 />
               </td>
+              <td>
+                <button
+                  onClick={() => removeInvestment(index)}
+                  className={styles.tableButton}>
+                  <FaTimes />
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <button type="button" onClick={addNewInvestment}>
+      <button id={styles.addButton} type="button" onClick={addNewInvestment}>
         Add New Investment
       </button>
     </div>

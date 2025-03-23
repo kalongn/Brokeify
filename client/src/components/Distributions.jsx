@@ -115,22 +115,28 @@ const Distributions = ({
       )}
       {value === "uniform" && (
         <>
-          <label className={styles.newline}>
-            Lower Bound
-            <input
-              type="number"
-              name={`${name}Lower`}
-              min="0"
-              onChange={(e) => handleInputChange("lowerBound", e.target.value)}
-            />
-            Upper Bound
-            <input
-              type="number"
-              name={`${name}Upper`}
-              min="0"
-              onChange={(e) => handleInputChange("upperBound", e.target.value)}
-            />
-          </label>
+          <div className={styles.columns}>
+            <label className={styles.newline}>
+              Lower Bound
+              <br />
+              <input
+                type="number"
+                name={`${name}Lower`}
+                min="0"
+                onChange={(e) => handleInputChange("lowerBound", e.target.value)}
+              />
+            </label>
+            <label>
+              Upper Bound
+              <br />
+              <input
+                type="number"
+                name={`${name}Upper`}
+                min="0"
+                onChange={(e) => handleInputChange("upperBound", e.target.value)}
+              />
+            </label>
+          </div>
           <label>
             {calculatedLabel}
             <input type="number" name={`${name}Calculated`} className={styles.newline} disabled />
@@ -139,22 +145,28 @@ const Distributions = ({
       )}
       {value === "normal" && (
         <>
-          <label className={styles.newline}>
-            Mean
-            <input
-              type="number"
-              name={`${name}Mean`}
-              min="1"
-              onChange={(e) => handleInputChange("mean", e.target.value)}
-            />
-            Standard Deviation
-            <input
-              type="number"
-              name={`${name}StdDev`}
-              min="0"
-              onChange={(e) => handleInputChange("stdDev", e.target.value)}
-            />
-          </label>
+          <div className={styles.columns}>
+            <label className={styles.newline}>
+              Mean
+              <br />
+              <input
+                type="number"
+                name={`${name}Mean`}
+                min="1"
+                onChange={(e) => handleInputChange("mean", e.target.value)}
+              />
+            </label>
+            <label>
+              Standard Deviation
+              <br />
+              <input
+                type="number"
+                name={`${name}StdDev`}
+                min="0"
+                onChange={(e) => handleInputChange("stdDev", e.target.value)}
+              />
+            </label>
+          </div>
           <label>
             {calculatedLabel}
             <input type="number" name={`${name}Calculated`} className={styles.newline} disabled />

@@ -1,5 +1,33 @@
-.formSection {
-  background-color: rgb(244, 202, 202);
-  margin: 7% auto 0 auto;
-  width: 80%;
+#formBackground {
+  background-color: #E9EFED;
+  height: 100%;
+  width: 100%;
+}
+
+#formSection {
+  width: 75%;
+  margin: 4rem auto auto auto;
+}
+
+#navButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+
+.deemphasizedButton,
+.emphasizedButton {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+
+.deemphasizedButton:disabled {
+  background-color: var(--color-white);
+}
+
+.emphasizedButton {
+  background-color: var(--color-black);
+  color: var(--color-white);
+  border-color: var(--color-black);
 }

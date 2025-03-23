@@ -1,7 +1,8 @@
 /* This file contains the global styles for the application. */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Montserrat", system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -9,7 +10,7 @@
   --color-black: #2E2D2D;
   --color-silver: #A3A2A2;
   --color-primary: #77E1B8;
-  --color-primary-muted: #AED7C7;
+  --color-primary-muted: #D0DED9;
   --color-primary-light: #BCF0DC;
 
 
@@ -46,12 +47,13 @@ h1 {
 
 button {
   border-radius: 6px;
-  border: 2px solid var(--color-silver);
+  border: 1px solid var(--color-silver);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   cursor: pointer;
   transition: border-color 0.25s;
+  box-shadow: 0 2px 4px var(--color-silver);
 }
 
 button:hover {

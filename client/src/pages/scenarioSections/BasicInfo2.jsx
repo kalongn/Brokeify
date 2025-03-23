@@ -37,8 +37,9 @@ const BasicInfo2 = () => {
       <form>
         <label className={styles.newline}>
           Martial Status
-        </label>
-        <label>
+        </label>  
+        <div className={styles.radioButtonContainer}>
+        <label className={styles.radioButton}>
           <input
             type="radio"
             name="maritalStatus"
@@ -47,7 +48,7 @@ const BasicInfo2 = () => {
           />
           Single
         </label>
-        <label>
+        <label className={styles.radioButton}>
           <input
             type="radio"
             name="maritalStatus"
@@ -56,12 +57,12 @@ const BasicInfo2 = () => {
           />
           Married
         </label>
-        <br />
-
-        <div>
-          <label>
+        </div>
+        <div className={styles.columns}>
+          <div>
+          <label className={styles.newline}>
             Your Birth Year
-            <input type="number" name="birthYear" className={styles.newline} />
+            <input type="number" name="birthYear" />
           </label>
           <Distributions
             label="Your Life Expectancy"
@@ -71,13 +72,11 @@ const BasicInfo2 = () => {
             onChange={handleDistributionsChange}
             calculatedLabel={"Calculated Life Expectancy"}
           />
-        </div>
-
-        {maritalStatus === "married" && <div>
-          <div>
-            <label>
+          </div>
+          {maritalStatus === "married" && <div>
+            <label className={styles.newline}>
               Spouse Birth Year
-              <input type="number" name="spouseBirthYear" className={styles.newline} min="1" />
+              <input type="number" name="spouseBirthYear" min="1" />
             </label>
             <Distributions
               label="Spouse Life Expectancy"
@@ -89,7 +88,8 @@ const BasicInfo2 = () => {
               calculatedLabel={"Calculated Life Expectancy"}
             />
           </div>
-        </div>}
+          }
+        </div>
         <br />
       </form>
     </div>

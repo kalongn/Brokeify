@@ -1,5 +1,7 @@
-import { useState } from "react";
+// import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { HiDotsVertical } from 'react-icons/hi';
+import styles from "./Form.module.css";
 
 const EventSeries = () => {
   const navigate = useNavigate();
@@ -7,14 +9,19 @@ const EventSeries = () => {
     navigate("/ScenarioForm/event-series/new");
   }
   // TODO: remove cash from initial state when done testing
-  const [events, setEvents] = useState([
+  const events = [
     { name: "Cash", type: "Expense" },
-  ]);
-  const handleInputChange = (index, field, value) => {
-    const updatedEvents = [...events];
-    updatedEvents[index][field] = value;
-    setEvents(updatedEvents);
-  };
+    { name: "Cash", type: "Expense" },
+    { name: "Cash", type: "Expense" },
+  ];
+  // const [events, setEvents] = useState([
+  //   { name: "Cash", type: "Expense" },
+  // ]);
+  // const handleInputChange = (index, field, value) => {
+  //   const updatedEvents = [...events];
+  //   updatedEvents[index][field] = value;
+  //   setEvents(updatedEvents);
+  // };
   return (
     <div>
       <h2>Event Series</h2>
@@ -24,38 +31,36 @@ const EventSeries = () => {
         Only one asset allocation can be rebalanced in a scenario.
       </p>
       {/* TODO: fix global table styling */}
-      <table>
+      <table id={styles.inputTable}>
         <thead>
           <tr>
             <th>Event Series Name</th>
             <th>Type</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           {events.map((event, index) => (
             <tr key={index}>
               <td>
-                <input
-                  type="text"
-                  value={event.name}
-                  onChange={(e) =>
-                    handleInputChange(index, "name", e.target.value)
-                  }
-                  placeholder={event.name}
-                />
+                {event.name}
               </td>
               <td>
-                <input
-                  type="text"
-                  value={event.type}
-                  disabled
-                />
+                {event.type}
+              </td>
+              <td>
+                <button
+                  className={styles.tableButton}
+                  onClick={() => alert("NOT IMPLEMENTED YET")}
+                >
+                  <HiDotsVertical />
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <button onClick={newEventSeries}>
+      <button id={styles.addButton} onClick={newEventSeries}>
         Add New Event Series
       </button>
     </div>

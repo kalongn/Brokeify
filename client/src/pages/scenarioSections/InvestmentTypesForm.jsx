@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
+import buttonStyles from "../ScenarioForm.module.css";
 
 // TODO: add edit/delete buttons for investment types
 
@@ -27,16 +28,16 @@ const InvestmentTypesForm = () => {
     navigate("/ScenarioForm/investment-types");
   };
   return (
-    <div>
+    <div id={styles.newItemContainer}>
       <h2>New Investment Type</h2>
       <form>
         <label>
           Investment Type Name
           <input type="text" name="investmentType" className={styles.newline} />
         </label>
-        <label className={styles.newline}>
+        <label>
           Description
-          <input type="text" name="description" className={styles.newline} />
+          <textarea name="description" />
         </label>
 
         <Distributions
@@ -64,22 +65,29 @@ const InvestmentTypesForm = () => {
         <label className={styles.newline}>
           Taxability
         </label>
-        <label>
-          <input type="radio" value="taxExempt" />
+        <label className={styles.radioButton}>
+          <input type="radio" name="taxability" value="taxExempt" />
           Tax-exempt
-          <input type="radio" value="taxable" />
+        </label>
+        <label className={styles.radioButton}>
+          <input type="radio" name="taxability" value="taxable" />
           Taxable
         </label>
       </form>
 
-      <div style={{ marginTop: "20px" }}>
+      <div id={buttonStyles.navButtons} style={{margin: "1rem 0"}}>
         <button
           onClick={handleClick}
-          style={{ marginRight: "10px" }}
+          className={buttonStyles.deemphasizedButton}
         >
           Cancel
         </button>
-        <button onClick={handleClick}>Create</button>
+        <button
+          onClick={handleClick}
+          className={buttonStyles.emphasizedButton}
+        >
+          Create
+        </button>
       </div>
     </div>
   );

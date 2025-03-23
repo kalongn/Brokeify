@@ -1,5 +1,6 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/Layout";
+import styles from "./ScenarioForm.module.css";
 
 const ScenarioForm = () => {
   const navigate = useNavigate();
@@ -45,27 +46,30 @@ const ScenarioForm = () => {
   };
   return (
     <Layout>
-      <div>
-        {/* Render the current section */}
-        <Outlet />
+      <div id={styles.formBackground}>
+        <div id={styles.formSection}>
+          {/* Render the current section */}
+          <Outlet />
 
-        {/* Navigation buttons */}
-        {/* Only appears if not creating a new investment type or event series */}
-        {!path.includes("new") && <div style={{ marginTop: "20px" }}>
-          <button
-            onClick={handleBack}
-            disabled={currentSectionIndex === 0}
-            style={{ marginRight: "10px" }}
-          >
-            Back
-          </button>
-          {/* On the last section, next replaced by save & close */}
-          {currentSectionIndex !== sections.length - 1 ?
-            <button onClick={handleNext}>Next</button>
-            :
-            <button onClick={handleSave}>Save & Close</button>
-          }
-        </div>}
+          {/* Navigation buttons */}
+          {/* Only appears if not creating a new investment type or event series */}
+          {!path.includes("new") && <div id={styles.navButtons}>
+            <button
+              className={styles.deemphasizedButton}
+              onClick={handleBack}
+              disabled={currentSectionIndex === 0}
+              style={{ marginRight: "10px" }}
+            >
+              Back
+            </button>
+            {/* On the last section, next replaced by save & close */}
+            {currentSectionIndex !== sections.length - 1 ?
+              <button className={styles.emphasizedButton} onClick={handleNext}>Next</button>
+              :
+              <button className={styles.emphasizedButton} onClick={handleSave}>Save & Close</button>
+            }
+          </div>}
+        </div>
       </div>
     </Layout>
   );

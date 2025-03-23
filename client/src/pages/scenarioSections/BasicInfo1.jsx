@@ -57,32 +57,36 @@ const BasicInfo1 = () => {
     { value: "WY", label: "Wyoming" }
   ];
   return (
-    <div>
-      <h2>Basic Information</h2>
+    <div id={styles.formSection}>
+      <h2 id={styles.heading}>Basic Information</h2>
       <form>
         <label>
           Scenario Name
           <input type="text" name="name" className={styles.newline} />
         </label>
-        <label>
-          First Name
-          <input type="text" name="first-name" className={styles.newline} />
-        </label>
-        <label>
-          Last Name
-          <input type="text" name="last-name" className={styles.newline} />
-        </label>
+        <div className={styles.columns}>
+          <label>
+            First Name
+            <input type="text" name="first-name" className={styles.newline} />
+          </label>
+          <label>
+            Last Name
+            <input type="text" name="last-name" className={styles.newline} />
+          </label>
+        </div>
         <label>
           Financial Goal
-          <p>
+          <p className={styles.description}>
             Specify a non-negative number representing the desired yearly
             minimum total value of your investments.
           </p>
-          <input type="number" name="financial-goal" min="0" />
+          <div className={`${styles.moneyInputContainer} ${styles.shortInput}`}>
+            <input type="number" name="financial-goal" min="0" />
+          </div>
         </label>
         <label className={styles.newline}>
           State of Residence
-          <Select options={states} isSearchable />
+          <Select className={`${styles.shortInput} ${styles.select}`} options={states} isSearchable />
         </label>
       </form>
     </div>

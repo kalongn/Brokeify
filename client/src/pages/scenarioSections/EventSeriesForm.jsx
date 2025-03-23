@@ -2,7 +2,9 @@ import Select from "react-select";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Distributions from "../../components/Distributions";
+import { FaTimes } from 'react-icons/fa';
 import styles from "./Form.module.css";
+import buttonStyles from "../ScenarioForm.module.css";
 
 const EventSeriesForm = () => {
   const [eventType, setEventType] = useState("");
@@ -66,7 +68,7 @@ const EventSeriesForm = () => {
   };
 
   return (
-    <div>
+    <div id={styles.newItemContainer}>
       <h2>New Event Series</h2>
       <form>
         <label>
@@ -75,7 +77,7 @@ const EventSeriesForm = () => {
         </label>
         <label>
           Description
-          <input type="text" name="description" className={styles.newline} />
+          <textarea name="description" />
         </label>
         <Distributions
           label="Start Year"
@@ -97,21 +99,21 @@ const EventSeriesForm = () => {
           Type
         </label>
         <div>
-          <label>
+          <label className={styles.radioButton}>
             <input type="radio" name="type" value="income" onChange={(e) => setEventType(e.target.value)} />
             Income
           </label>
-          <label>
+          <label className={styles.radioButton}>
             <input type="radio" name="type" value="expense" onChange={(e) => setEventType(e.target.value)} />
             Expense
           </label>
         </div>
         <div>
-          <label>
+          <label className={styles.radioButton}>
             <input type="radio" name="type" value="invest" onChange={(e) => setEventType(e.target.value)} />
             Invest
           </label>
-          <label>
+          <label className={styles.radioButton}>
             <input type="radio" name="type" value="rebalance" onChange={(e) => setEventType(e.target.value)} />
             Rebalance
           </label>
@@ -168,7 +170,7 @@ const EventSeriesForm = () => {
             <label className={styles.newline}>
               Investment Allocation Method
             </label>
-            <label>
+            <label className={styles.radioButton}>
               <input
                 type="radio"
                 name="allocationMethod"
@@ -178,7 +180,7 @@ const EventSeriesForm = () => {
               />
               Fixed Percentages
             </label>
-            <label>
+            <label className={styles.radioButton}>
               <input
                 type="radio"
                 name="allocationMethod"
@@ -190,13 +192,13 @@ const EventSeriesForm = () => {
             {eventType === "rebalance" && (
               <label className={styles.newline}>
                 Tax Status
-                <Select options={taxStatuses} />
+                <Select options={taxStatuses} className={styles.select} />
               </label>
             )}
             {/* Render inputs based on the selected allocation method */}
             {allocationMethod === "fixed" && (
-              <div>
-                <table>
+              <div id={styles.inputTable}>
+                <table id={styles.inputTable}>
                   <thead>
                     <tr>
                       <th>Investment</th>
@@ -216,6 +218,7 @@ const EventSeriesForm = () => {
                               handleInvestmentChange(index, "investment", selectedOption.value)
                             }
                             placeholder="Select Investment"
+                            className={styles.select}
                           />
                         </td>
                         <td>
@@ -231,15 +234,23 @@ const EventSeriesForm = () => {
                           />
                         </td>
                         <td>
-                          <button type="button" onClick={() => removeInvestmentRow(index)}>
-                            Remove
+                          <button
+                            type="button"
+                            onClick={() => removeInvestmentRow(index)}
+                            className={styles.tableButton}
+                          >
+                            <FaTimes />
                           </button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                <button type="button" onClick={addInvestmentRow}>
+                <button id={styles.addButton}
+                  type="button"
+                  onClick={addInvestmentRow}
+                  style={{ backgroundColor: "var(--color-white)" }}
+                >
                   Add Investment
                 </button>
               </div>
@@ -247,7 +258,7 @@ const EventSeriesForm = () => {
 
             {allocationMethod === "glidePath" && (
               <div>
-                <table>
+                <table id={styles.inputTable}>
                   <thead>
                     <tr>
                       <th>Investment</th>
@@ -267,6 +278,7 @@ const EventSeriesForm = () => {
                               handleInvestmentChange(index, "investment", selectedOption.value)
                             }
                             placeholder="Select Investment"
+                            className={styles.select}
                           />
                         </td>
                         <td>
@@ -294,15 +306,24 @@ const EventSeriesForm = () => {
                           />
                         </td>
                         <td>
-                          <button type="button" onClick={() => removeInvestmentRow(index)}>
-                            Remove
+                          <button
+                            type="button"
+                            onClick={() => removeInvestmentRow(index)}
+                            className={styles.tableButton}
+                          >
+                            <FaTimes />
                           </button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                <button type="button" onClick={addInvestmentRow}>
+                <button
+                  id={styles.addButton}
+                  type="button"
+                  onClick={addInvestmentRow}
+                  style={{ backgroundColor: "var(--color-white)" }}
+                >
                   Add Investment
                 </button>
               </div>
@@ -315,10 +336,10 @@ const EventSeriesForm = () => {
         )}
       </form>
 
-      <div style={{ marginTop: "20px" }}>
+      <div id={buttonStyles.navButtons} style={{ margin: "1rem 0" }}>
         <button
           onClick={handleClick}
-          style={{ marginRight: "10px" }}
+          className={buttonStyles.deemphasizedButton}
         >
           Cancel
         </button>
@@ -326,6 +347,7 @@ const EventSeriesForm = () => {
           // type="submit"
           // TODO: remove handleClick here when submission is handled
           onClick={handleClick}
+          className={buttonStyles.emphasizedButton}
         >
           Create
         </button>
