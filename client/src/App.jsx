@@ -7,6 +7,7 @@ import Login from './pages/Login.jsx';
 import Home from './pages/Home.jsx';
 import Profile from './pages/Profile.jsx';
 import RouteTesting from './pages/RouteTesting.jsx';
+import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
 
 const App = () => {
   useEffect(() => {
@@ -28,7 +29,8 @@ const App = () => {
         <Route path="/" element={<Login />} />
         <Route path="/Home" element={<Home />} />
         <Route path="/Profile" element={<Profile />} />
-        <Route path="/RouteTesting" element={<RouteTesting />}></Route>
+        <Route path="/Scenario" element={<ScenarioSimulation />} />
+        <Route path="/RouteTesting" element={<RouteTesting />} />
       </Routes>
     </>
   )
