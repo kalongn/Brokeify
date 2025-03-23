@@ -39,13 +39,4 @@ const NormalDistributionSchema = new mongoose.Schema({
 });
 const NormalDistribution = Distribution.discriminator('NormalDistribution', NormalDistributionSchema);
 
-const MarkovDistributionSchema = new mongoose.Schema({
-    initialValue: { type: Number },
-    driftMu: { type: Number },
-    volatileSigma: { type: Number },
-    timeStepDeltaT: { type: Number },
-    randomEpsilon: { type: mongoose.Schema.Types.ObjectId, ref: 'NormalDistribution' }
-});
-const MarkovDistribution = Distribution.discriminator('MarkovDistribution', MarkovDistributionSchema);
-
-export { Distribution, FixedDistribution, UniformDistribution, NormalDistribution, MarkovDistribution };
+export { Distribution, FixedDistribution, UniformDistribution, NormalDistribution };
