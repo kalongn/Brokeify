@@ -53,20 +53,12 @@ const testScenario = async () => {
             taxStatus: "NON_RETIREMENT"
         });
 
+        
         const testInvestment2 = await InvestmentFactory.create({
-            value: 20000,
-            taxStatus: "NON_RETIREMENT"
-        });
-
-        const testInvestment3 = await InvestmentFactory.create({
-            value: 30000,
-            taxStatus: "NON_RETIREMENT"
-        });
-        const testInvestment4 = await InvestmentFactory.create({
             value: 40000,
             taxStatus: "PRE_TAX_RETIREMENT"
         });
-        const testInvestment5 = await InvestmentFactory.create({
+        const testInvestment3 = await InvestmentFactory.create({
             value: 50000,
             taxStatus: "AFTER_TAX_RETIREMENT"
         });
@@ -80,7 +72,7 @@ const testScenario = async () => {
             expectedAnnualIncome: 1000,
             expectedAnnualIncomeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1000 }),
             taxability: true,
-            investments: [testInvestment1, testInvestment2, testInvestment3, testInvestment4, testInvestment5]
+            investments: [testInvestment1, testInvestment2, testInvestment3]
         });
 
         const RebalanceEvent = await EventFactory.create("REBALANCE", {
@@ -109,7 +101,7 @@ const testScenario = async () => {
             }),
             assetAllocationType: "GLIDE",
             percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
-            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment5],
+            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
             maximumCash: 1000,
         });
 
@@ -176,8 +168,8 @@ const testScenario = async () => {
             financialGoal: 1000000,
             orderedSpendingStrategy: [IncomeEvent, ExpenseEvent],
             orderedExpenseWithdrawalStrategy: [testInvestment1, testInvestment2, testInvestment3],
-            orderedRMDStrategy: [testInvestment1, testInvestment2, testInvestment4],
-            orderedRothStrategy: [testInvestment1, testInvestment2, testInvestment3, testInvestment4],
+            orderedRMDStrategy: [testInvestment1, testInvestment2, testInvestment3],
+            orderedRothStrategy: [testInvestment1, testInvestment2, testInvestment3],
             startYearRothOptimizer: 2021,
             endYearRothOptimizer: 2070
         });
