@@ -14,6 +14,13 @@ const TaxBracketSchema = new mongoose.Schema({
 const TaxSchema = new mongoose.Schema({
     taxType: { type: String, enum: TAX_TYPE, required: true },
     filingStatus: { type: String, enum: FILING_STATUS, required: true },
+    dateCreated: {
+        type: String,
+        default: () => {
+            const date = new Date();
+            return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+        }
+    },
 });
 
 TaxSchema.virtual('id').get(function get() {
