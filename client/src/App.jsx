@@ -31,7 +31,7 @@ const App = () => {
         <Route path="/Home" element={<Home />} />
         <Route path="/Profile" element={<Profile />} />
         <Route path="/Scenario/:scenarioId" element={<ScenarioSimulation />} />
-        <Route path="/ViewScenario" element={<ViewScenario />} ></Route>
+        <Route path="/ViewScenario/:scenarioId" element={<ViewScenario />} ></Route>
         <Route path="/RouteTesting" element={<RouteTesting />} />
       </Routes>
     </>

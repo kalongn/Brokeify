@@ -58,20 +58,22 @@ router.get("/scenario/:scenarioId", async (req, res) => {
 
             // console.log(user);
             // console.log("Scenario ID:", id);
-            
+
             const isOwner = user.ownerScenarios.some(scenario => scenario._id.toString() === id) || false;
             const isEditor = user.editorScenarios.some(scenario => scenario._id.toString() === id) || false;
             const isViewer = user.viewerScenarios.some(scenario => scenario._id.toString() === id) || false;
-            
+
             if (!isOwner && !isEditor && !isViewer) {
                 return res.status(403).send("You do not have permission to access this scenario.");
             }
 
-            const scenario = await scenarioController.readWithPopulate(id);
+            let scenario = await scenarioController.readWithPopulate(id);
             if (!scenario) {
                 return res.status(404).send("Scenario not found.");
             }
-
+            scenario = scenario.toObject();
+            scenario.firstName = user.firstName;
+            scenario.lastName = user.lastName;
             return res.status(200).send(scenario);
         } catch (error) {
             console.error("Error in scenario route:", error);
