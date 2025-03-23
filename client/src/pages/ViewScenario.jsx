@@ -43,12 +43,9 @@ const ViewScenario = () => {
 
 
     {/**TO-DO: Middleware/Backend: create lists like the following (pull up name, value and taxStatus
-        as those will be the descriptors for each strategy element) <-- investments
-        don't have a name
+        as those will be the descriptors for each strategy element) <-- investments don't have a name
        */}
 
-    {/*Side note: The expense withdrawal strategy can include investments in accounts 
-        with any tax status.**/}
 
     const orderedExpenseWithdrawalStrategy = [
         { name: "Cash", value: 15000, taxStatus: "Non-Retirement" },
@@ -64,6 +61,10 @@ const ViewScenario = () => {
         { name: "Bonds", value: 200, taxStatus: "Pre-Tax Retirement" },
         { name: "Cash", value: 1200, taxStatus: "Pre-Tax Retirement" }
     ]
+
+     {/**Another Note: I just assumed that if startYearRothOptimizer is undefined,
+        then that must have meant the user disabled the Roth Optimizer. 
+       */}
     const scenarioData = {
         name: "Ideal Future 2.0",
         filingStatus: "MARRIEDJOINT",
@@ -143,7 +144,7 @@ const ViewScenario = () => {
  */}
                     <div className={styles.columns}>
                         <div className={styles.columnsp1}>
-                            <p className={styles.question}>Your Life Expentancy</p>
+                            <p className={styles.question}>Your Life Expectancy</p>
                             <div className={styles.textbox}>{scenarioData.userLifeExpectancy}</div>
                         </div>
                         {scenarioData?.filingStatus === "MARRIEDJOINT" && (

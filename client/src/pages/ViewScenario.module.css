@@ -10,6 +10,12 @@
 .columns{
     display: flex;
     gap: 5rem;
+    align-items: flex-start;
+    
+}
+
+.columnsp1, .columnsp2{
+    min-width: 15rem; 
 }
 
 .sections {
