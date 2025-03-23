@@ -305,7 +305,6 @@ const EventSeriesForm = () => {
           name="startYear"
           value={distributions.startYear.type}
           onChange={handleDistributionsChange}
-          calculatedLabel={"Calculated Start Year"}
         />
         {errors.startYear && <span className={styles.error}>{errors.startYear}</span>}
         <Distributions
@@ -314,7 +313,6 @@ const EventSeriesForm = () => {
           name="duration"
           value={distributions.duration.type}
           onChange={handleDistributionsChange}
-          calculatedLabel={"Calculated Duration"}
         />
         {errors.duration && <span className={styles.error}>{errors.duration}</span>}
         <label className={styles.newline}>
@@ -369,7 +367,6 @@ const EventSeriesForm = () => {
               value={distributions.expectedAnnualChange.type}
               onChange={handleDistributionsChange}
               fixedLabel="Fixed Value or Percentage"
-              calculatedLabel={"Calculated Annual Change"}
             />
             {errors.expectedAnnualChange && <span className={styles.error}>{errors.expectedAnnualChange}</span>}
             <label>

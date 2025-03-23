@@ -10,7 +10,6 @@ const Distributions = ({
   value,
   onChange,
   fixedLabel = "Fixed Value",
-  calculatedLabel,
 }) => {
   // isPercentage is for fixed value
   // Pass the name of the label, name of form field, input value of the field, and isPercentage to the parent
@@ -114,7 +113,6 @@ const Distributions = ({
         </>
       )}
       {value === "uniform" && (
-        <>
           <div className={styles.columns}>
             <label className={styles.newline}>
               Lower Bound
@@ -137,14 +135,8 @@ const Distributions = ({
               />
             </label>
           </div>
-          <label>
-            {calculatedLabel}
-            <input type="number" name={`${name}Calculated`} className={styles.newline} disabled />
-          </label>
-        </>
       )}
       {value === "normal" && (
-        <>
           <div className={styles.columns}>
             <label className={styles.newline}>
               Mean
@@ -167,11 +159,6 @@ const Distributions = ({
               />
             </label>
           </div>
-          <label>
-            {calculatedLabel}
-            <input type="number" name={`${name}Calculated`} className={styles.newline} disabled />
-          </label>
-        </>
       )}
       {(value === "eventStart" || value === "eventEnd") && (
         <label className={styles.newline}>
@@ -195,7 +182,6 @@ Distributions.propTypes = {
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   fixedLabel: PropTypes.string,
-  calculatedLabel: PropTypes.string,
 };
 
 export default Distributions;

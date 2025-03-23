@@ -271,7 +271,6 @@ const BasicInfo1 = () => {
               name="lifeExpectancy"
               value={distributions.lifeExpectancy.type}
               onChange={handleDistributionsChange}
-              calculatedLabel={"Calculated Life Expectancy"}
             />
             {errors.lifeExpectancy && <span className={styles.error}>{errors.lifeExpectancy}</span>}
           </div>
@@ -288,7 +287,6 @@ const BasicInfo1 = () => {
               value={distributions.spouseLifeExpectancy.type}
               onChange={handleDistributionsChange}
               fixedLabel={"Fixed Value"}
-              calculatedLabel={"Calculated Life Expectancy"}
             />
             {errors.spouseLifeExpectancy && <span className={styles.error}>{errors.spouseLifeExpectancy}</span>}
           </div>

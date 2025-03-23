@@ -94,7 +94,6 @@ const Limits = () => {
           value={distributions.inflationAssumption.type}
           onChange={handleDistributionsChange}
           fixedLabel="Fixed Percentage"
-          calculatedLabel={"Calculated Inflation Assumption"}
         />
         {errors.inflationAssumption && <span className={styles.error}>{errors.inflationAssumption}</span>}
         <hr />

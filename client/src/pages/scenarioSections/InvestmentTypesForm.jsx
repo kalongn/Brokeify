@@ -142,7 +142,6 @@ const InvestmentTypesForm = () => {
           value={distributions.expectedAnnualReturn.type}
           onChange={handleDistributionsChange}
           fixedLabel={"Fixed Value or Percentage"}
-          calculatedLabel={"Calculated Annual Return"}
         />
         {errors.expectedAnnualReturn && <div className={styles.error}>{errors.expectedAnnualReturn}</div>}
         <label className={styles.newline}>
@@ -157,7 +156,6 @@ const InvestmentTypesForm = () => {
           value={distributions.expectedDividendsInterest.type}
           onChange={handleDistributionsChange}
           fixedLabel={"Fixed Value or Percentage"}
-          calculatedLabel={"Calculated Annual Income"}
         />
         {errors.expectedDividendsInterest && <div className={styles.error}>{errors.expectedDividendsInterest}</div>}
         <label className={styles.newline}>
