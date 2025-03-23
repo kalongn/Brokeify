@@ -1,5 +1,6 @@
 import styles from './Header.module.css';
 import { useLocation, Link } from 'react-router-dom';
+import { VscChromeClose } from "react-icons/vsc";
 
 const Header = () => {
     const location = useLocation();
@@ -16,6 +17,8 @@ const Header = () => {
                 return 'My Profile';
             case '/Scenario':
                 return 'Scenario Simulation';
+            case '/ViewScenario':
+                return 'View Scenario';
             default:
                 return 'Brokeify';
         }
@@ -44,6 +47,12 @@ const Header = () => {
                             <button onClick={() => console.log('Share Scenario')}>Share </button>
                             <button onClick={() => console.log('Export Scenario')}>Export </button>
                         </div>
+                    </>
+                );
+            case '/ViewScenario':
+                return (
+                    <>
+                        <Link to='/Scenario' className={styles.icon}><VscChromeClose /></Link>
                     </>
                 );
             default:

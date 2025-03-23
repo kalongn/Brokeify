@@ -1,0 +1,146 @@
+.background {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.columns {
+    display: flex;
+    gap: 5rem;
+    align-items: flex-start;
+
+}
+
+.columnsp1,
+.columnsp2 {
+    min-width: 15rem;
+}
+
+.distributionValues {
+    display: flex;
+
+}
+
+.sections {
+
+    max-width: 42.125rem;
+    padding: 2rem;
+    padding-top: 0rem;
+    border-radius: 8px;
+
+}
+
+.question {
+    font-size: 1.1rem;
+    margin-top: 1rem;
+}
+
+.description {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+.textbox {
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 0.25rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: #f8f8f8;
+    color: #333;
+
+}
+
+.selectedOption {
+    background-color: #f8f8f8;
+    border: 1px solid #ccc;
+    padding: 0.75rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: #333;
+    width: fit-content;
+}
+
+.draggableItem {
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 0.25rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: #f8f8f8;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    align-self: start;
+
+
+}
+
+.draggableItemText {
+    margin: 0rem;
+    margin-left: 1rem;
+}
+
+
+.lightText {
+    color: var(--color-silver);
+    margin: 0rem;
+    padding: 0rem;
+}
+
+
+.investmentRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 1fr;
+    grid-column-gap: 2rem;
+    grid-row-gap: 0px;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.5rem;
+
+
+}
+
+.eventRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 1fr;
+    grid-column-gap: 2rem;
+    grid-row-gap: 0px;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.5rem;
+}
+
+.eventRow1 {
+    grid-area: 1 / 1 / 2 / 3;
+}
+
+
+.eventRow2 {
+    grid-area: 1 / 3 / 2 / 4;
+}
+
+
+
+
+.iconText {
+    margin: 0rem;
+    padding: 0rem;
+    margin-left: 1rem;
+}

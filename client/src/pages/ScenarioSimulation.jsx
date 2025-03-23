@@ -1,5 +1,6 @@
 import { TbEdit } from "react-icons/tb";
 import { TbFileSearch } from "react-icons/tb";
+import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import Axios from "axios";
@@ -211,8 +212,8 @@ const ScenarioSimulation = () => {
               <div className={styles.title}>
 
                 <h2>{scenario.name}</h2>
-                <TbFileSearch size={25} />
-                <TbEdit size={25} />
+                <Link to='/ViewScenario' className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
+                <TbEdit className={styles.icon} size={25} />
 
               </div>
 
