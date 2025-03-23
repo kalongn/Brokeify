@@ -1071,6 +1071,9 @@ export async function simulate(
 
 
         const inflationRate = await sample(simulation.scenario.inflationAssumption, simulation.scenario.inflationAssumptionDistribution);
+        const inflationeEventDetails = `Year: ${currentYear} - Inflation Rate: ${Math.ceil(inflationRate * 1000) / 1000}\n`;
+        updateLog(inflationeEventDetails);
+        
         updateTaxBracketsForInflation(federalIncomeTax, inflationRate);
         updateTaxBracketsForInflation(stateIncomeTax, inflationRate);
         await updateContributionLimitsForInflation(simulation.scenario, inflationRate);
@@ -1155,7 +1158,7 @@ export async function simulate(
 
 
         thisYearGains += await rebalanceInvestments(simulation.scenario, currentYear);
-        console.log(thisYearGains);
+        //console.log(thisYearGains);
         lastYearGains = thisYearGains;
         thisYearGains = 0;
 
