@@ -38,14 +38,14 @@ const Header = () => {
             case '/SharedScenarios':
             case '/ScenarioForm':
             case '/Scenario':
-            return (
-                <>
-                <div className={styles.buttonGroupSimulation}>
-                    <button onClick={() => console.log('Share Scenario')}>Share </button>
-                    <button onClick={() => console.log('Export Scenario')}>Export </button>
-                </div>
-                </>
-            );
+                return (
+                    <>
+                        <div className={styles.buttonGroupSimulation}>
+                            <button onClick={() => console.log('Share Scenario')}>Share </button>
+                            <button onClick={() => console.log('Export Scenario')}>Export </button>
+                        </div>
+                    </>
+                );
             default:
                 return null;
         }

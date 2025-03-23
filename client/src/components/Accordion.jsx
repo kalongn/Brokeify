@@ -10,7 +10,7 @@ const Accordion = ({ title, content }) => {
   return (
     <div className={styles.accordion}>
       <div className={styles.accordionTitle} onClick={() => setIsActive(!isActive)}>
-        <h3>{title}</h3> 
+        <h3>{title}</h3>
         <div>{isActive ? <RiArrowUpSFill /> : <RiArrowDownSFill />}</div>
       </div>
       {isActive && (
@@ -31,12 +31,12 @@ const Accordion = ({ title, content }) => {
 };
 
 Accordion.propTypes = {
-    title: PropTypes.string, 
-    content: PropTypes.oneOfType([
-      PropTypes.string, 
-      PropTypes.arrayOf(PropTypes.string) 
-    ])
-  };
-  
+  title: PropTypes.string,
+  content: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.arrayOf(PropTypes.string)
+  ])
+};
+
 
 export default Accordion;

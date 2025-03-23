@@ -1,17 +1,18 @@
-.accordion h4{
+.accordion h4 {
     margin: 0;
     padding: 0;
     font-size: 1.0rem;
 
-    
+
 }
-.accordionTitle{
+
+.accordionTitle {
     display: flex;
     justify-content: space-between;
     margin-top: 1rem;
-    border-bottom:solid 1px var(--color-silver);
+    border-bottom: solid 1px var(--color-silver);
 }
 
-.accordionContent{
+.accordionContent {
     padding: 0.5rem;
 }

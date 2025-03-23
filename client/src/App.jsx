@@ -28,7 +28,7 @@ const App = () => {
         <Route path="/" element={<Login />} />
         <Route path="/Home" element={<Home />} />
         <Route path="/Profile" element={<Profile />} />
-        
+
         <Route path="/Scenario" element={<ScenarioSimulation />} />
       </Routes>
     </>
