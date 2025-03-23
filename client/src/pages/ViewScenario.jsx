@@ -3,6 +3,8 @@ import styles from "./ViewScenario.module.css";
 import { CgMenuGridO } from "react-icons/cg";
 import { BsToggleOn } from "react-icons/bs";
 import { BsToggleOff } from "react-icons/bs";
+import { BiSolidCircle } from "react-icons/bi";
+import { BiCircle } from "react-icons/bi";
 
 const ViewScenario = () => {
     {/**TO-DO: Middleware/Backend: populate an investments array like below for investments table: 
@@ -72,11 +74,13 @@ const ViewScenario = () => {
         spouseBirthYear: 1999,
         userLifeExpectancy: 90,
         spouseLifeExpectancy: 90,
+        userLifeExpectancyDistribution: { type: "NORMAL_AMOUNT", mean: 85, standardDeviation: 5 },
+        spouseLifeExpectancyDistribution: { type: "FIXED_AMOUNT", value: 90 },
         stateOfResidence: "CA",
         investmentTypes: ["Cash", "Domestic Stocks", "Bonds"],
         events: events,
         inflationAssumption: 0.22,
-        inflationAssumptionDistribution: { type: "FIXED_PERCENTAGE", value: 0.02 },
+        inflationAssumptionDistribution: { type: "UNIFORM_PERCENTAGE", lowerBound: 0.12, upperBound: 0.29 },
         annualPreTaxContributionLimit: 19500,
         annualPostTaxContributionLimit: 6000,
         financialGoal: 1000000,
@@ -86,7 +90,8 @@ const ViewScenario = () => {
         orderedRothStrategy: orderedRothStrategy,
         startYearRothOptimizer: 2021,
         endYearRothOptimizer: 2021
-    }
+    };
+
 
 
 
@@ -145,12 +150,61 @@ const ViewScenario = () => {
                     <div className={styles.columns}>
                         <div className={styles.columnsp1}>
                             <p className={styles.question}>Your Life Expectancy</p>
-                            <div className={styles.textbox}>{scenarioData.userLifeExpectancy}</div>
+                            {
+                                scenarioData.userLifeExpectancyDistribution.type === "NORMAL_AMOUNT" ? (
+                                    <>
+                                        <div>
+                                            <BiCircle /> <span> Fixed Value</span>
+                                        </div>
+                                        <div>
+                                            <BiSolidCircle /><span> Sample from Normal Distribution</span>
+                                        </div>
+                                        Mean : <div className={styles.textbox}> {scenarioData.userLifeExpectancyDistribution.mean}</div>
+                                        Standard Deviation : <div className={styles.textbox}> {scenarioData.userLifeExpectancyDistribution.standardDeviation}</div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <BiSolidCircle /><span> Fixed Value</span>
+                                        </div>
+                                        <div>
+                                            <BiCircle /> <span> Sample from Normal Distribution</span>
+                                        </div>
+                                        <div className={styles.textbox}>{scenarioData.userLifeExpectancyDistribution.value}</div>
+                                    </>
+                                )
+                            }
+
+
                         </div>
                         {scenarioData?.filingStatus === "MARRIEDJOINT" && (
                             <div className={styles.columnsp2}>
                                 <p className={styles.question}>Spouse Life Expectancy</p>
-                                <div className={styles.textbox}>{scenarioData.spouseLifeExpectancy}</div>
+                                {
+                                    scenarioData.spouseLifeExpectancyDistribution.type === "NORMAL_AMOUNT" ? (
+                                        <>
+                                            <div>
+                                                <BiCircle /> <span> Fixed Value</span>
+                                            </div>
+                                            <div>
+                                                <BiSolidCircle /><span> Sample from Normal Distribution</span>
+                                            </div>
+                                            Mean : <div className={styles.textbox}> {scenarioData.spouseLifeExpectancyDistribution.mean}</div>
+                                            Standard Deviation : <div className={styles.textbox}> {scenarioData.spouseLifeExpectancyDistribution.standardDeviation}</div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div>
+                                                <BiSolidCircle /><span> Fixed Value</span>
+                                            </div>
+                                            <div>
+                                                <BiCircle /> <span> Sample from Normal Distribution</span>
+                                            </div>
+                                            <div className={styles.textbox}>{scenarioData.spouseLifeExpectancyDistribution.value}</div>
+                                        </>
+                                    )
+                                }
+
                             </div>
                         )}
                     </div>
@@ -195,7 +249,54 @@ const ViewScenario = () => {
 
                     <h2>Inflation & Contribution Limits</h2>
                     <p className={styles.question}>Inflation Assumption</p>
-                    <div className={styles.textbox}>{scenarioData.inflationAssumption}</div>
+                    {
+                        scenarioData.inflationAssumptionDistribution.type === "NORMAL_PERCENTAGE" ? (
+                            <>
+                                <div>
+                                    <BiCircle /> <span> Fixed Percentage</span>
+                                </div>
+                                <div>
+                                    <BiSolidCircle /><span> Sample from Normal Distribution</span>
+                                </div>
+                                <div>
+                                <BiCircle /><span> Sample from Uniform Distribution</span>
+                                </div>
+                                Mean : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.mean} </div>
+                                Standard Deviation : <div className={styles.textbox}> {scenarioData.inflationAssumption.standardDeviation} </div>
+                            </>
+                        ) : 
+                        
+                        scenarioData.inflationAssumptionDistribution.type === "UNIFORM_PERCENTAGE" ? (
+                            <>
+                                <div>
+                                    <BiCircle /> <span> Fixed Percentage</span>
+                                </div>
+                                <div>
+                                <BiCircle /><span> Sample from Normal Distribution</span>
+                                </div>
+                                <div>
+                                <BiSolidCircle /><span> Sample from Uniform Distribution</span>
+                                </div>
+                                Lower Bound : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.lowerBound}</div>
+                               Upper Bound : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.upperBound}</div>
+                            </>
+                        ) : 
+                        (
+                            <>
+                                <div>
+                                <BiSolidCircle /> <span> Fixed Percentage</span>
+                                </div>
+                                <div>
+                                <BiCircle /><span> Sample from Normal Distribution</span>
+                                </div>
+                                <div>
+                                    <BiCircle /><span> Sample from Uniform Distribution</span>
+                                </div>
+                                Percentage: <div className={styles.textbox}>{scenarioData.inflationAssumptionDistribution.value}</div>
+                            </>
+                        )
+                    }
+
 
                     <p className={styles.question}>Retirement Accounts Initial Limit on Annual Contributions</p>
                     <p className={styles.question}>Pre-Tax</p>
