@@ -6,6 +6,8 @@ import UserController from '../db/controllers/UserController.js';
 import TaxController from '../db/controllers/TaxController.js';
 
 const router = express.Router();
+const userController = new UserController();
+
 
 router.get("/", async (req, res) => {
     let state = "Not logged in";
@@ -38,18 +40,16 @@ router.get("/logout", (req, res) => {
     });
 });
 
-
-// router.get("/home", (req, res) => {
-//     if (req.session.user) {
-//         const 
-//     } else {
-//         res.status(200).send("Guest user");
-//     }
-// });
+router.get("/home", async (req, res) => {
+    if (req.session.user) {
+        return res.status(200).send(await userController.readWithScenarios(req.session.user));
+    } else {
+        res.status(200).send("Guest user");
+    }
+});
 
 router.get("/profile", async (req, res) => {
     if (req.session.user) {
-        const userController = new UserController();
         try {
             const user = await userController.readWithTaxes(req.session.user);
             return res.status(200).send(user);

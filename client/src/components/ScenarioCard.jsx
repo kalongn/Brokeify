@@ -6,9 +6,9 @@ import { FaPiggyBank } from "react-icons/fa6";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events }) => {
+const ScenarioCard = ({ id, title, martialStatus, targetAmount, investments, events }) => {
   return (
-    <Link to='/Scenario' className={styles.scenarioCard} onClick={() => console.log("Card clicked")}>
+    <Link to={`/Scenario${id}`} className={styles.scenarioCard} onClick={() => console.log("Card clicked")}>
       {/*Note: we will need to set these routes to be scenario id based!*/}
       <div className={styles.titleContainer}>
         {/*Note: This is what's shown originally, when the user isn't hovering 
@@ -42,6 +42,7 @@ const ScenarioCard = ({ title, martialStatus, targetAmount, investments, events 
 
 
 ScenarioCard.propTypes = {
+  id: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   martialStatus: PropTypes.string,
   targetAmount: PropTypes.number,

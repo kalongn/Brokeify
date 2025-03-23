@@ -71,7 +71,7 @@ export default class UserController {
      * @param {mongoose.Types.ObjectId} id 
      *      Id of the User to be read
      * @returns 
-     *      Returns the User with the given id
+     *      Returns the User with the given id and populated userSpecificTaxes
      * @throws Error
      *      Throws error if the User is not found or if any error occurs
      */
@@ -92,6 +92,52 @@ export default class UserController {
             }
 
             return user;
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
+     * This function reads a User with the given id, populating the ownerScenarios and their investmentTypes
+     *      This is used to get the User with all the scenarios associated with it
+     *      and to get the number of investments and events in each scenario
+     *      and meant to use for the route /home to load all the scenariocards for the User
+     *      and to show the number of investments and events in each scenario
+     * @param {mongoose.Types.ObjectId} id 
+     *      Id of the User to be read
+     * @returns 
+     *      Returns an array of objects containing the scenario id, name, filingStatus, financialGoal, investmentsLength and eventsLength
+     *      for each scenario associated with the User
+     * @throws Error
+     *      Throws error if the User is not found or if any error occurs
+     */
+    async readWithScenarios(id) {
+        try {
+            const user = await User.findById(id).populate({
+                path: 'ownerScenarios',
+                populate: { path: 'investmentTypes' }
+            });
+            const returnList = [];
+            for (let i = 0; i < user.ownerScenarios.length; i++) {
+                const scenario = user.ownerScenarios[i];
+
+                let investmentsLength = 0;
+                for (let type of scenario.investmentTypes) {
+                    console.log(type);
+                    investmentsLength += type.investments.length;
+                }
+
+                returnList.push({
+                    id: scenario._id,
+                    name: scenario.name,
+                    filingStatus: scenario.filingStatus,
+                    financialGoal: scenario.financialGoal,
+                    investmentsLength: investmentsLength,
+                    eventsLength: scenario.events.length,
+                });
+            }
+            return returnList;
         }
         catch (error) {
             throw new Error(error);
