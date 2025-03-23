@@ -10,8 +10,7 @@ import ScenarioForm from './pages/ScenarioForm.jsx';
 import SharedScenarios from './pages/SharedScenarios.jsx';
 
 // Sections for the scenario form
-import BasicInfo1 from './pages/scenarioSections/BasicInfo1.jsx';
-import BasicInfo2 from './pages/scenarioSections/BasicInfo2.jsx';
+import BasicInfo from './pages/scenarioSections/BasicInfo.jsx';
 import InvestmentTypes from './pages/scenarioSections/InvestmentTypes.jsx';
 import InvestmentTypesForm from './pages/scenarioSections/InvestmentTypesForm.jsx';
 import Investments from './pages/scenarioSections/Investments.jsx';
@@ -48,8 +47,7 @@ const App = () => {
         <Route path="/ScenarioForm" element={<ScenarioForm />}>
           {/* Redirect /ScenarioForm to /ScenarioForm/basic-information */}
           <Route index element={<Navigate to="basic-information" replace />} />
-          <Route path="basic-information" element={<BasicInfo1 />} />
-          <Route path="basic-information-continued" element={<BasicInfo2 />} />
+          <Route path="basic-information" element={<BasicInfo />} />
           <Route path="investment-types" element={<InvestmentTypes />} />
           <Route path="investment-types/new" element={<InvestmentTypesForm />} />
           <Route path="investments" element={<Investments />} />

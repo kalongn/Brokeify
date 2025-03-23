@@ -1,6 +1,7 @@
 import { useState, useImperativeHandle } from "react";
 import { useOutletContext } from "react-router-dom";
 import Select from "react-select";
+import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 
 // TODO: add scenario name validation (no duplicates at the very least)
@@ -14,7 +15,7 @@ const BasicInfo1 = () => {
   }));
   // For parsing to number
   const FIELD_TYPES = {
-    NUMBER: new Set(["financialGoal"]),
+    NUMBER: new Set(["financialGoal", "birthYear", "spouseBirthYear"]),
   };
 
   const states = [
@@ -69,10 +70,36 @@ const BasicInfo1 = () => {
     { value: "WI", label: "Wisconsin" },
     { value: "WY", label: "Wyoming" }
   ];
+
+  // Determine if what distribution fields are shown and contain values for backend
+  // Based on the type field, only the relevant fields should be read
+  const [distributions, setDistributions] = useState({
+    lifeExpectancy: { type: null, fixedValue: null, mean: null, stdDev: null },
+    spouseLifeExpectancy: { type: null, fixedValue: null, mean: null, stdDev: null },
+  });
+
+  const handleDistributionsChange = (name, field, value) => {
+    setDistributions((prev) => {
+      const updatedDistributions = { ...prev };
+      // Check if name is a number field and parse if so
+      let processedValue = value;
+      if (field !== "type" && value.length > 0) {
+        processedValue = Number(value);
+      }
+      updatedDistributions[name][field] = processedValue;
+      return updatedDistributions;
+    });
+  };
+
   const [formData, setFormData] = useState({
     name: null,
     financialGoal: null,
     state: null,
+    maritalStatus: null,
+    birthYear: null,
+    lifeExpectancy: distributions.lifeExpectancy,
+    spouseBirthYear: null,
+    spouseLifeExpectancy: distributions.spouseLifeExpectancy,
   });
 
   const handleChange = (e) => {
@@ -120,6 +147,62 @@ const BasicInfo1 = () => {
           State of Residence
           <Select options={states} className={`${styles.shortInput} ${styles.select}`} onChange={handleSelectChange} />
         </label>
+        <label className={styles.newline}>
+          Martial Status
+        </label>
+        <div className={styles.radioButtonContainer}>
+          <label className={styles.radioButton}>
+            <input
+              type="radio"
+              name="maritalStatus"
+              value="single"
+              onChange={handleChange}
+            />
+            Single
+          </label>
+          <label className={styles.radioButton}>
+            <input
+              type="radio"
+              name="maritalStatus"
+              value="married"
+              onChange={handleChange}
+            />
+            Married
+          </label>
+        </div>
+        <div className={styles.columns}>
+          <div>
+            <label className={styles.newline}>
+              Your Birth Year
+              <input type="number" name="birthYear" onChange={handleChange} />
+            </label>
+            <Distributions
+              label="Your Life Expectancy"
+              options={["fixed", "normal"]}
+              name="lifeExpectancy"
+              value={distributions.lifeExpectancy.type}
+              onChange={handleDistributionsChange}
+              calculatedLabel={"Calculated Life Expectancy"}
+            />
+          </div>
+          {formData.maritalStatus === "married" && <div>
+            <label className={styles.newline}>
+              Spouse Birth Year
+              <input type="number" name="spouseBirthYear" onChange={handleChange} />
+            </label>
+            <Distributions
+              label="Spouse Life Expectancy"
+              options={["fixed", "normal"]}
+              name="spouseLifeExpectancy"
+              value={distributions.spouseLifeExpectancy.type}
+              onChange={handleDistributionsChange}
+              fixedLabel={"Fixed Value"}
+              calculatedLabel={"Calculated Life Expectancy"}
+            />
+          </div>
+          }
+        </div>
+        <br />
       </form>
     </div>
   );

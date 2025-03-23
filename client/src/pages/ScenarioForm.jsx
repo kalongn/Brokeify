@@ -13,7 +13,6 @@ const ScenarioForm = () => {
   // Define the sections and their paths
   const sections = [
     { path: "basic-information", label: "Basic Information" },
-    { path: "basic-information-continued", label: "Basic Information Continued" },
     { path: "investment-types", label: "Investment Types" },
     { path: "investments", label: "Investments" },
     { path: "event-series", label: "Event Series" },
