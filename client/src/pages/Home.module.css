@@ -4,8 +4,6 @@
     padding: 1rem;
     flex-direction: column;
     flex-grow: 1;
-    height: 100%;
-
     display: grid;
     /*I did 350 below because that's bigger than size of scenario (250px x 300px)
     and it gives a good fit*/
