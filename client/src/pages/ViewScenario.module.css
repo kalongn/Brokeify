@@ -19,10 +19,11 @@
     min-width: 15rem;
 }
 
-.distributionValues{
+.distributionValues {
     display: flex;
-    
+
 }
+
 .sections {
 
     max-width: 42.125rem;

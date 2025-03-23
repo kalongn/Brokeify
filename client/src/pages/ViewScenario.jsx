@@ -159,7 +159,7 @@ const ViewScenario = () => {
                                         <div>
                                             <BiSolidCircle /><span> Sample from Normal Distribution</span>
                                         </div>
-                                        <div className= {styles.distribution}>
+                                        <div className={styles.distribution}>
                                             Mean : <div className={styles.textbox}> {scenarioData.userLifeExpectancyDistribution.mean}</div>
                                             Standard Deviation : <div className={styles.textbox}> {scenarioData.userLifeExpectancyDistribution.standardDeviation}</div>
                                         </div>
@@ -261,42 +261,42 @@ const ViewScenario = () => {
                                     <BiSolidCircle /><span> Sample from Normal Distribution</span>
                                 </div>
                                 <div>
-                                <BiCircle /><span> Sample from Uniform Distribution</span>
+                                    <BiCircle /><span> Sample from Uniform Distribution</span>
                                 </div>
                                 Mean : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.mean} </div>
                                 Standard Deviation : <div className={styles.textbox}> {scenarioData.inflationAssumption.standardDeviation} </div>
                             </>
-                        ) : 
-                        
-                        scenarioData.inflationAssumptionDistribution.type === "UNIFORM_PERCENTAGE" ? (
-                            <>
-                                <div>
-                                    <BiCircle /> <span> Fixed Percentage</span>
-                                </div>
-                                <div>
-                                <BiCircle /><span> Sample from Normal Distribution</span>
-                                </div>
-                                <div>
-                                <BiSolidCircle /><span> Sample from Uniform Distribution</span>
-                                </div>
-                                Lower Bound : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.lowerBound}</div>
-                               Upper Bound : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.upperBound}</div>
-                            </>
-                        ) : 
-                        (
-                            <>
-                                <div>
-                                <BiSolidCircle /> <span> Fixed Percentage</span>
-                                </div>
-                                <div>
-                                <BiCircle /><span> Sample from Normal Distribution</span>
-                                </div>
-                                <div>
-                                    <BiCircle /><span> Sample from Uniform Distribution</span>
-                                </div>
-                                Percentage: <div className={styles.textbox}>{scenarioData.inflationAssumptionDistribution.value}</div>
-                            </>
-                        )
+                        ) :
+
+                            scenarioData.inflationAssumptionDistribution.type === "UNIFORM_PERCENTAGE" ? (
+                                <>
+                                    <div>
+                                        <BiCircle /> <span> Fixed Percentage</span>
+                                    </div>
+                                    <div>
+                                        <BiCircle /><span> Sample from Normal Distribution</span>
+                                    </div>
+                                    <div>
+                                        <BiSolidCircle /><span> Sample from Uniform Distribution</span>
+                                    </div>
+                                    Lower Bound : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.lowerBound}</div>
+                                    Upper Bound : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.upperBound}</div>
+                                </>
+                            ) :
+                                (
+                                    <>
+                                        <div>
+                                            <BiSolidCircle /> <span> Fixed Percentage</span>
+                                        </div>
+                                        <div>
+                                            <BiCircle /><span> Sample from Normal Distribution</span>
+                                        </div>
+                                        <div>
+                                            <BiCircle /><span> Sample from Uniform Distribution</span>
+                                        </div>
+                                        Percentage: <div className={styles.textbox}>{scenarioData.inflationAssumptionDistribution.value}</div>
+                                    </>
+                                )
                     }
 
 
