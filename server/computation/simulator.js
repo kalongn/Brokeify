@@ -125,6 +125,12 @@ async function chooseEventTimeframe(scenario) {
     //determine when events will start and end using sample, making sure that
     //conflicting events do not overlap
     //save determined start years and durations in {expexted...} variables
+
+    //first, sort events by those that are reliant on other events
+    //and those that are independant
+    //between the ones that arent, 
+
+
 }
 
 async function getCashInvestment(investmentTypes) {
@@ -214,12 +220,15 @@ export async function adjustEventAmount(event, inflationRate) {
 
     let amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
     let distribution = await distributionFactory.read(event.expectedAnnualChangeDistribution);
+    
     if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {
         
     }
     else {
-        amountRate = (1+amountRate) * event.amount;
+        
+        amountRate = (amountRate) * event.amount;
     }
+    
     event.amount = event.amount + amountRate;
 
     await eventFactory.update(event.id, event);
@@ -345,7 +354,7 @@ export async function updateInvestments(investmentTypes, inflationRate) {
             if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {
             }
             else {
-                generatedIncome = investment.value * (1 + generatedIncome);
+                generatedIncome = investment.value * (generatedIncome);
             }
             //add income to curYearIncome if 'non-retirement' and 'taxable'
             if (investment.taxStatus === "NON_RETIREMENT" && type.taxability) {
