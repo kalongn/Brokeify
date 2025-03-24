@@ -1108,6 +1108,11 @@ export async function simulate(
     let thisYearTaxes = 0;
     let lastYearGains = 0;
     let thisYearGains = 0;
+    let curYearIncome = 0;
+    let curYearSS = 0;
+    let lastYearIncome = 0;
+    let lastYearSS = 0;
+    let lastYearEarlyWithdrawl = 0;
     while (currentYear <= endYear) {
         //console.log(`Simulating year: ${currentYear}`);
         investmentTypes = await Promise.all(
@@ -1129,8 +1134,7 @@ export async function simulate(
 
         federalStandardDeduction *= (1 + inflationRate);
 
-        let curYearIncome = 0;
-        let curYearSS = 0;
+        
         //update events
         for (const event of events) {
             if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
@@ -1186,7 +1190,7 @@ export async function simulate(
 
         let thisYearTaxes = 0;
         let earlyWithdrawalTaxPaid = 0;
-        const calcTaxReturn = calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction, curYearIncome, curYearSS, rothConversion.curYearEarlyWithdrawals, lastYearGains, currentYear);
+        const calcTaxReturn = calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction, lastYearIncome, lastYearSS, lastYearEarlyWithdrawl, lastYearGains, currentYear);
         thisYearTaxes = calcTaxReturn.t;
         earlyWithdrawalTaxPaid = calcTaxReturn.e;
         let nonDiscretionaryExpenses = 0;
@@ -1260,6 +1264,9 @@ export async function simulate(
 
         await resultFactory.update(simulation.results.id, { yearlyResults: simulation.results.yearlyResults });
         await updateCSV(currentYear, investments, simulation.scenario);
+        lastYearIncome = curYearIncome;
+        lastYearSS = curYearSS;
+        lastYearEarlyWithdrawl = rothConversion.curYearEarlyWithdrawals;
         currentYear++;
 
     }
