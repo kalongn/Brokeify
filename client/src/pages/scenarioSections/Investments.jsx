@@ -61,6 +61,8 @@ const Investments = () => {
 
   const addNewInvestment = () => {
     setFormData([...formData, { type: "", dollarValue: "", taxStatus: "" }]);
+    // Clear errors when user makes changes
+    setErrors(prev => ({ ...prev, investments: "" }));
   };
   // TODO: fix bug where deleting a row above actually removes the one below
   const removeInvestment = (index) => {
@@ -86,29 +88,30 @@ const Investments = () => {
 
       // Validate Investment Type
       if (!investment.type) {
-        newErrors[index].type = "Investment type is required";
+        newErrors[index].type = "This field is required";
         isValid = false;
       }
 
       // Validate Dollar Value
       if (investment.dollarValue === null || investment.dollarValue === "") {
-        newErrors[index].dollarValue = "Dollar value is required";
+        newErrors[index].dollarValue = "This field is required";
         isValid = false;
       } else if (isNaN(investment.dollarValue)) {
         newErrors[index].dollarValue = "Dollar value must be a number";
         isValid = false;
       } else if (investment.dollarValue < 0) {
-        newErrors[index].dollarValue = "Dollar value cannot be negative";
+        newErrors[index].dollarValue = "Dollar value must be non-negative";
         isValid = false;
       }
       // Validate Tax Status
       if (!investment.taxStatus) {
-        newErrors[index].taxStatus = "Tax status is required";
+        newErrors[index].taxStatus = "This field is required";
         isValid = false;
       }
     });
 
     setErrors(newErrors);
+    console.log(newErrors);
     return isValid;
   };
   const handleSubmit = () => {
@@ -180,7 +183,7 @@ const Investments = () => {
           ))}
         </tbody>
       </table>
-
+      {errors.investments && <span className={styles.error}>{errors.investments}</span>}
       <button id={styles.addButton} type="button" onClick={addNewInvestment}>
         Add New Investment
       </button>

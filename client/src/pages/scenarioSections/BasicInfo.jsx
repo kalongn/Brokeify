@@ -127,78 +127,87 @@ const BasicInfo1 = () => {
   const validateFields = () => {
     const newErrors = {};
     const currentYear = new Date().getFullYear();
-
-    if (!formData.name) {
-      newErrors.name = "Scenario name is required";
-    }
-    if (!formData.financialGoal && formData.financialGoal !== 0) {
-      newErrors.financialGoal = "Financial goal is required";
-    } else if (formData.financialGoal < 0) {
+    // General check for if all required fields are filled out
+    // TODO: fix for whitespace
+    const requiredFields = ['name', 'financialGoal', 'state', 'maritalStatus', 'birthYear', 'lifeExpectancy'];
+    requiredFields.forEach(field => {
+      if (formData[field] === null || formData[field] === undefined || formData[field] === "") {
+          newErrors[field] = "This field is required";
+      }
+      else {
+        // Adds errors for distribution fields
+        if (formData[field].type === null) {
+          newErrors[field] = "This field is required";
+        }
+      }
+    });
+    // Validate financial goal
+    if (formData.financialGoal < 0) {
       newErrors.financialGoal = "Financial goal must be non-negative";
     }
-    // TODO: add error checking for state if it is in db
-    if (!formData.state) {
-      newErrors.state = "State selection is required";
-    }
-    if (!formData.maritalStatus) {
-      newErrors.maritalStatus = "Marital status is required";
-    }
-    if (!formData.birthYear) {
-      newErrors.birthYear = "Birth year is required";
-    } else {
-      if (formData.birthYear < 1900 || formData.birthYear > currentYear) {
-        newErrors.birthYear = `Birth year must be between 1900 and ${currentYear}`;
-      }
+    // // TODO: add error checking for state if it is in db
+
+    // Validate birth year
+    if (formData.birthYear && (formData.birthYear < 1900 || formData.birthYear > currentYear)) {
+      newErrors.birthYear = `Birth year must be between 1900 and ${currentYear}`;
     }
     // Validate life expectancy distribution
-    if (!distributions.lifeExpectancy.type) {
-      newErrors.lifeExpectancy = "Life expectancy distribution type is required";
-    } else {
-      if (distributions.lifeExpectancy.type === "fixed") {
-        if (!distributions.lifeExpectancy.fixedValue) {
-          newErrors.lifeExpectancy = "Fixed life expectancy value is required";
-        } else if (formData.birthYear + distributions.lifeExpectancy.fixedValue < currentYear) {
-          newErrors.lifeExpectancy = "Life expectancy cannot result in a death year in the past";
-        }
-
+    const life = distributions.lifeExpectancy;
+    if (life.type === "fixed") {
+      if (!life.fixedValue) {
+        newErrors.lifeExpectancy = "Fixed life expectancy value is required";
+      } else if (formData.birthYear + life.fixedValue < currentYear) {
+        newErrors.lifeExpectancy = "Life expectancy cannot result in a death year in the past";
       }
-      if (distributions.lifeExpectancy.type === "normal") {
-        if (!distributions.lifeExpectancy.mean || !distributions.lifeExpectancy.stdDev) {
-          newErrors.lifeExpectancy = "Mean and standard deviation are required for normal distribution";
-        } else if (formData.birthYear + distributions.lifeExpectancy.mean + distributions.lifeExpectancy.stdDev < currentYear) {
-          newErrors.lifeExpectancy = "Mean life expectancy cannot result in a death year in the past";
-        }
+      else if (life.fixedValue > 122) {
+        newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
       }
     }
+    if (life.type === "normal") {
+      if (!life.mean || (!life.stdDev && life.stdDev !== 0)) {
+        newErrors.lifeExpectancy = "Mean and standard deviation are required";
+      } else if (formData.birthYear + life.mean < currentYear) {
+        newErrors.lifeExpectancy = "Mean life expectancy cannot result in a death year in the past";
+      }
+      else if (life.mean > 122) {
+        newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
+      }
+    }
+
+    // Validate spouse fields
     if (formData.maritalStatus === "married") {
-      if (!formData.spouseBirthYear) {
-        newErrors.spouseBirthYear = "Birth year is required";
-      } else {
-        if (formData.spouseBirthYear < 1900 || formData.spouseBirthYear > currentYear) {
-          newErrors.spouseBirthYear = `Birth year must be between 1900 and ${currentYear}`;
-        }
+      if (formData.spouseBirthYear === null || formData.spouseBirthYear === undefined || formData.spouseBirthYear === "") {
+        newErrors.spouseBirthYear = "This field is required";
+      }
+      if (formData.spouseBirthYear && (formData.spouseBirthYear < 1900 || formData.spouseBirthYear > currentYear)) {
+        newErrors.spouseBirthYear = `Birth year must be between 1900 and ${currentYear}`;
       }
       // Validate spouse life expectancy distribution
-      if (!distributions.spouseLifeExpectancy.type) {
-        newErrors.spouseLifeExpectancy = "Spouse life expectancy distribution type is required";
-      } else {
-        if (distributions.spouseLifeExpectancy.type === "fixed") {
-          if (!distributions.spouseLifeExpectancy.fixedValue) {
-            newErrors.spouseLifeExpectancy = "Fixed spouse life expectancy value is required";
-          }
-          else if (formData.spouseBirthYear + distributions.spouseLifeExpectancy.fixedValue < currentYear) {
-            newErrors.spouseLifeExpectancy = "Life expectancy cannot result in a death year in the past";
-          }
+      const sLife = distributions.spouseLifeExpectancy;
+      if(!sLife.type) {
+        newErrors.spouseLifeExpectancy = "This field is required";
+      }
+      console.log(sLife);
+      if (sLife.type === "fixed") {
+        if (!sLife.fixedValue) {
+          newErrors.spouseLifeExpectancy = "Fixed spouse life expectancy value is required";
         }
-        if (distributions.spouseLifeExpectancy.type === "normal") {
-          if (!distributions.spouseLifeExpectancy.mean || !distributions.spouseLifeExpectancy.stdDev) {
-            newErrors.spouseLifeExpectancy = "Mean and standard deviation are required for normal distribution";
-          } else if (formData.spouseBirthYear + distributions.spouseLifeExpectancy.mean + distributions.spouseLifeExpectancy.stdDev < currentYear) {
-            newErrors.spouseLifeExpectancy = "Mean life expectancy cannot result in a death year in the past";
-          }
+        else if (formData.spouseBirthYear + sLife.fixedValue < currentYear) {
+          newErrors.spouseLifeExpectancy = "Life expectancy cannot result in a death year in the past";
+        }
+        else if (sLife.fixedValue > 122) {
+          newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
+        }
+      }
+      if (sLife.type === "normal") {
+        if (!sLife.mean || (!sLife.stdDev && sLife.stdDev !== 0)) {
+          newErrors.spouseLifeExpectancy = "Mean and standard deviation are required";
+        } else if (formData.spouseBirthYear + sLife.mean < currentYear) {
+          newErrors.spouseLifeExpectancy = "Mean life expectancy cannot result in a death year in the past";
         }
       }
     }
+
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
@@ -215,7 +224,13 @@ const BasicInfo1 = () => {
       <form>
         <label>
           Scenario Name
-          <input type="text" name="name" className={styles.newline} onChange={handleChange} />
+          <input
+            type="text"
+            name="name"
+            className={styles.newline}
+            onChange={handleChange}
+            required
+          />
           {errors.name && <span className={styles.error}>{errors.name}</span>}
         </label>
         <label>

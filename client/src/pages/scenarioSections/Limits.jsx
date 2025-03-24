@@ -50,20 +50,26 @@ const Limits = () => {
   const validateFields = () => {
     const newErrors = {};
     // Validate Expected Dividends/Interest
-    if (!distributions.inflationAssumption.type) {
+    const inflation = distributions.inflationAssumption;
+    if (!inflation.type) {
       newErrors.inflationAssumption = "Expected Dividends/Interest is required";
     } else {
-      if (distributions.inflationAssumption.type === "fixed") {
-        if (distributions.inflationAssumption.fixedValue === "") {
+      if (inflation.type === "fixed") {
+        if (inflation.fixedValue === "") {
           newErrors.inflationAssumption = "Fixed percentage is required";
+        } else if (inflation.fixedValue < 0 || inflation.fixedValue > 100) {
+          newErrors.inflationAssumption = "Percentage must be between 0 and 100";
         }
-      } else if (distributions.inflationAssumption.type === "uniform") {
-        if (!distributions.inflationAssumption.lowerBound ||
-          !distributions.inflationAssumption.upperBound) {
+      } else if (inflation.type === "uniform") {
+        if ((!inflation.lowerBound || !inflation.upperBound) && (inflation.lowerBound !== 0) && (inflation.upperBound !== 0)) {
           newErrors.inflationAssumption = "Both lower and upper bounds are required";
+        } else if (inflation.lowerBound < 0 || inflation.upperBound < 0) {
+          newErrors.inflationAssumption = "Bounds must be non-negative";
+        } else if (inflation.lowerBound > inflation.upperBound) {
+          newErrors.inflationAssumption = "Lower bound must be less than or equal to upper bound";
         }
-      } else if (distributions.inflationAssumption.type === "normal") {
-        if (!distributions.inflationAssumption.mean || !distributions.inflationAssumption.stdDev) {
+      } else if (inflation.type === "normal") {
+        if (!inflation.mean || !inflation.stdDev) {
           newErrors.inflationAssumption = "Mean and standard deviation are required for normal distribution";
         }
       }
@@ -80,7 +86,7 @@ const Limits = () => {
     return Object.keys(newErrors).length === 0;
   };
   const handleSubmit = () => {
-    validateFields();
+    return validateFields();
   };
 
   return (

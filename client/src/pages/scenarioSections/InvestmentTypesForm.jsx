@@ -63,55 +63,74 @@ const InvestmentTypesForm = () => {
   const validateFields = () => {
     const newErrors = {};
 
-    // Validate Investment Type Name
+    // Validate investment type name
     if (!formData.investmentType?.trim()) {
-      newErrors.investmentType = "Investment Type Name is required";
+      newErrors.investmentType = "This field is required";
     }
 
-    // Validate Expected Annual Return
-    if (!distributions.expectedAnnualReturn.type) {
-      newErrors.expectedAnnualReturn = "Expected Annual Return is required";
+    // Validate expected annual return distribution
+    const expReturn = distributions.expectedAnnualReturn;
+    if (!expReturn.type) {
+      newErrors.expectedAnnualReturn = "This field is required";
     } else {
-      if (distributions.expectedAnnualReturn.type === "fixed") {
-        if (distributions.expectedAnnualReturn.fixedValue === "") {
-          newErrors.expectedAnnualReturn = "Fixed value or percentage is required";
+      if (expReturn.type === "fixed") {
+        if (expReturn.fixedValue === "") {
+          newErrors.expectedAnnualReturn = "This field is required";
+        } else if (expReturn.fixedValue < 0) {
+          newErrors.expectedAnnualReturn = "Expected annual return must be non-negative";
+        } else if (expReturn.isPercentage && expReturn.fixedValue > 100) {
+          newErrors.expectedAnnualReturn = "Percentage must be between 0 and 100";
         }
-      } else if (distributions.expectedAnnualReturn.type === "normal") {
-        if (!distributions.expectedAnnualReturn.mean || !distributions.expectedAnnualReturn.stdDev) {
-          newErrors.expectedAnnualReturn = "Mean and standard deviation are required for normal distribution";
+      } else if (expReturn.type === "normal") {
+        if (!expReturn.mean || !expReturn.stdDev) {
+          newErrors.expectedAnnualReturn = "Mean and standard deviation are required";
+        } else if (expReturn.mean < 0) {
+          newErrors.expectedAnnualReturn = "Mean must be non-negative";
+        } else if (expReturn.stdDev < 0) {
+          newErrors.expectedAnnualReturn = "Standard deviation must be non-negative";
         }
       }
     }
 
     // Validate Expense Ratio
     if (formData.expenseRatio === null || formData.expenseRatio === "") {
-      newErrors.expenseRatio = "Expense Ratio is required";
+      newErrors.expenseRatio = "This field is required";
     } else if (formData.expenseRatio < 0) {
-      newErrors.expenseRatio = "Expense Ratio cannot be negative";
+      newErrors.expenseRatio = "Expense Ratio must be non-negative";
     }
 
-    // Validate Expected Dividends/Interest
-    if (!distributions.expectedDividendsInterest.type) {
-      newErrors.expectedDividendsInterest = "Expected Dividends/Interest is required";
+    // Validate expected dividends/interest distribution
+    const expDiv = distributions.expectedDividendsInterest;
+    if (!expDiv.type) {
+      newErrors.expectedDividendsInterest = "This field is required";
     } else {
-      if (distributions.expectedDividendsInterest.type === "fixed") {
-        if (distributions.expectedDividendsInterest.fixedValue === "") {
-          newErrors.expectedDividendsInterest = "Fixed value or percentage is required";
+      if (expDiv.type === "fixed") {
+        if (expDiv.fixedValue === "") {
+          newErrors.expectedDividendsInterest = "This field is required";
+        } else if (expDiv.fixedValue < 0) {
+          newErrors.expectedDividendsInterest = "Expected annual income from dividends/interest must be non-negative";
+        } else if (expDiv.isPercentage && expDiv.fixedValue > 100) {
+          newErrors.expectedDividendsInterest = "Percentage must be between 0 and 100";
         }
-      } else if (distributions.expectedDividendsInterest.type === "normal") {
-        if (!distributions.expectedDividendsInterest.mean || !distributions.expectedDividendsInterest.stdDev) {
-          newErrors.expectedDividendsInterest = "Mean and standard deviation are required for normal distribution";
+      } else if (expDiv.type === "normal") {
+        if (!expDiv.mean || !expDiv.stdDev) {
+          newErrors.expectedDividendsInterest = "Mean and standard deviation are required";
+        } else if (expDiv.mean < 0) {
+          newErrors.expectedDividendsInterest = "Mean must be non-negative";
+        } else if (expDiv.stdDev < 0) {
+          newErrors.expectedDividendsInterest = "Standard deviation must be non-negative";
         }
       }
     }
 
     // Validate Taxability
     if (!formData.taxability) {
-      newErrors.taxability = "Taxability is required";
+      newErrors.taxability = "This field is required";
     }
 
     // Set all errors at once
     setErrors(newErrors);
+    console.log(newErrors);
     // Everything is valid if there are no error messages
     return Object.keys(newErrors).length === 0;
   };

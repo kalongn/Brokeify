@@ -99,7 +99,7 @@ const EventSeriesForm = () => {
   const addInvestmentRow = () => {
     setFormData(prev => ({
       ...prev,
-      investmentRows: [...prev.investmentRows, { investment: "" }]
+      investmentRows: [...prev.investmentRows, { investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }]
     }));
   };
   const removeInvestmentRow = (index) => {
@@ -125,7 +125,7 @@ const EventSeriesForm = () => {
     allocationMethod: null,
     taxStatus: null,
     // percentage, initialPercentage, and finalPercentage are not in the initial states
-    investmentRows: [{}],
+    investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }],
     maxCash: null
   });
 
@@ -155,128 +155,186 @@ const EventSeriesForm = () => {
 
     // Validate required basic fields
     if (!formData.eventSeriesName?.trim()) {
-      newErrors.eventSeriesName = "Event series name is required";
+      newErrors.eventSeriesName = "This field is required";
     }
 
-    // Start Year validation
-    if (!distributions.startYear.type) {
-      newErrors.startYear = "Start year type is required";
+    // Validate start year
+    // TODO: must pull birth year and life expectancy to check validity
+    const start = distributions.startYear;
+    if (start.type === null) {
+      newErrors.startYear = "This field is required";
     } else {
-      if (distributions.startYear.type === "fixed") {
-        if (!distributions.startYear.fixedValue && distributions.startYear.fixedValue !== 0) {
-          newErrors.startYear = "Fixed start year value is required";
+      if (start.type === "fixed") {
+        if (!start.fixedValue && start.fixedValue !== 0) {
+          newErrors.startYear = "This field is required";
+        } else if (start.fixedValue < 0) {
+          newErrors.startYear = "Value must be non-negative";
         }
-      } else if (distributions.startYear.type === "uniform") {
-        if (!distributions.startYear.lowerBound || !distributions.startYear.upperBound) {
-          newErrors.startYear = "Both lower and upper bounds are required for uniform distribution";
+      } else if (start.type === "uniform") {
+        if ((!start.lowerBound || !start.upperBound) && (start.lowerBound !== 0) && (start.upperBound !== 0)) {
+          newErrors.startYear = "Both lower and upper bounds are required";
+        } else if (start.lowerBound < 0 || start.upperBound < 0) {
+          newErrors.startYear = "Bounds must be non-negative";
+        } else if (start.lowerBound > start.upperBound) {
+          newErrors.startYear = "Lower bound must be less than or equal to upper bound";
         }
-      } else if (distributions.startYear.type === "normal") {
-        if (!distributions.startYear.mean || !distributions.startYear.stdDev) {
-          newErrors.startYear = "Both mean and standard deviation are required for normal distribution";
+      } else if (start.type === "normal") {
+        if (!start.mean || !start.stdDev) {
+          newErrors.startYear = "Both mean and standard deviation are required";
+        } else if (start.mean < 0) {
+          newErrors.startYear = "Mean must be non-negative";
+        } else if (start.stdDev < 0) {
+          newErrors.startYear = "Standard deviation must be non-negative";
         }
-      } else if (distributions.startYear.type === "eventStart" || distributions.startYear.type === "eventEnd") {
-        if (!distributions.startYear.event) {
-          newErrors.startYear = "Event specification is required";
+      } else if (start.type === "eventStart" || start.type === "eventEnd") {
+        if (!start.event) {
+          newErrors.startYear = "This field is required";
         }
       }
     }
 
-    // Duration validation
-    if (!distributions.duration.type) {
-      newErrors.duration = "Duration type is required";
+    // Validate duration
+    const duration = distributions.duration;
+    if (!duration.type) {
+      newErrors.duration = "This field is required";
     } else {
-      if (distributions.duration.type === "fixed") {
-        if (!distributions.duration.fixedValue && distributions.duration.fixedValue !== 0) {
-          newErrors.duration = "Fixed duration value is required";
-        } else if (distributions.duration.fixedValue < 0) {
-          newErrors.duration = "Duration cannot be negative";
+      if (duration.type === "fixed") {
+        if (!duration.fixedValue && duration.fixedValue !== 0) {
+          newErrors.duration = "This field is required";
+        } else if (duration.fixedValue < 0) {
+          newErrors.duration = "Value must be non-negative";
         }
-      } else if (distributions.duration.type === "uniform") {
-        if (!distributions.duration.lowerBound || !distributions.duration.upperBound) {
-          newErrors.duration = "Both lower and upper bounds are required for uniform distribution";
-        } else if (distributions.duration.lowerBound < 0 || distributions.duration.upperBound < 0) {
-          newErrors.duration = "Duration bounds cannot be negative";
+      } else if (duration.type === "uniform") {
+        if ((!duration.lowerBound || !duration.upperBound) && (duration.lowerBound !== 0) && (duration.upperBound !== 0)) {
+          newErrors.duration = "Both lower and upper bounds are required";
+        } else if (duration.lowerBound < 0 || duration.upperBound < 0) {
+          newErrors.duration = "Bounds must be non-negative";
+        } else if (duration.lowerBound > duration.upperBound) {
+          newErrors.duration = "Lower bound must be less than or equal to upper bound";
         }
-      } else if (distributions.duration.type === "normal") {
-        if (!distributions.duration.mean || !distributions.duration.stdDev) {
-          newErrors.duration = "Both mean and standard deviation are required for normal distribution";
-        } else if (distributions.duration.mean < 0) {
-          newErrors.duration = "Mean duration cannot be negative";
+      } else if (duration.type === "normal") {
+        if (!duration.mean || !duration.stdDev) {
+          newErrors.duration = "Both mean and standard deviation are required";
+        } else if (duration.mean < 0) {
+          newErrors.duration = "Mean duration must be non-negative";
+        } else if (duration.stdDev < 0) {
+          newErrors.duration = "Standard deviation must be non-negative";
         }
       }
     }
 
     if (!formData.eventType) {
-      newErrors.eventType = "Event type is required";
+      newErrors.eventType = "This field is required";
     }
 
     // Validate based on event type
     if (formData.eventType === "income" || formData.eventType === "expense") {
+      // Validate initial value
       if (!formData.initialValue && formData.initialValue !== 0) {
-        newErrors.initialValue = "Initial value is required";
+        newErrors.initialValue = "This field is required";
       } else if (formData.initialValue < 0) {
-        newErrors.initialValue = "Initial value cannot be negative";
+        newErrors.initialValue = "Initial value must be non-negative";
       }
 
-      // Initial Value validation
-      if (!formData.initialValue && formData.initialValue !== 0) {
-        newErrors.initialValue = "Initial value is required";
-      } else if (formData.initialValue < 0) {
-        newErrors.initialValue = "Initial value cannot be negative";
-      }
-
-      // Expected Annual Change validation
-      if (!distributions.expectedAnnualChange.type) {
-        newErrors.expectedAnnualChange = "Expected annual change type is required";
+      // Validate expected annual change
+      const expAnnual = distributions.expectedAnnualChange;
+      if (!expAnnual.type) {
+        newErrors.expectedAnnualChange = "This field is required";
       } else {
         // Only validate the specific distribution type if one is selected
-        if (distributions.expectedAnnualChange.type === "fixed") {
-          if (!distributions.expectedAnnualChange.fixedValue &&
-            distributions.expectedAnnualChange.fixedValue !== 0) {
-            newErrors.expectedAnnualChange = "Fixed value is required";
+        if (expAnnual.type === "fixed") {
+          if (!expAnnual.fixedValue && expAnnual.fixedValue !== 0) {
+            newErrors.expectedAnnualChange = "This field is required";
+          } else if (expAnnual.fixedValue < 0) {
+            newErrors.expectedAnnualChange = "Value must be non-negative";
           }
-        } else if (distributions.expectedAnnualChange.type === "uniform") {
-          if (!distributions.expectedAnnualChange.lowerBound ||
-            !distributions.expectedAnnualChange.upperBound) {
+        } else if (expAnnual.type === "uniform") {
+          if ((!expAnnual.lowerBound || !expAnnual.upperBound) && (expAnnual.lowerBound !== 0) && (expAnnual.upperBound !== 0)) {
             newErrors.expectedAnnualChange = "Both lower and upper bounds are required";
+          } else if (expAnnual.lowerBound < 0 || expAnnual.upperBound < 0) {
+            newErrors.expectedAnnualChange = "Bounds must be non-negative";
+          } else if (expAnnual.lowerBound > expAnnual.upperBound) {
+            newErrors.expectedAnnualChange = "Lower bound must be less than or equal to upper bound";
           }
-        } else if (distributions.expectedAnnualChange.type === "normal") {
-          if (!distributions.expectedAnnualChange.mean ||
-            !distributions.expectedAnnualChange.stdDev) {
+        } else if (expAnnual.type === "normal") {
+          if (!expAnnual.mean || !expAnnual.stdDev) {
             newErrors.expectedAnnualChange = "Both mean and standard deviation are required";
+          } else if (expAnnual.mean < 0) {
+            newErrors.expectedAnnualChange = "Mean must be non-negative";
+          } else if (expAnnual.stdDev < 0) {
+            newErrors.expectedAnnualChange = "Standard deviation must be non-negative";
           }
         }
       }
 
       // Percentage Increase validation
-      if (!formData.percentageIncrease) {
-        newErrors.percentageIncrease = "Percentage increase is required";
+      const pInc = formData.percentageIncrease;
+      if (!pInc) {
+        newErrors.percentageIncrease = "This field is required";
+      } else if (pInc < 0 || pInc > 100) {
+        newErrors.percentageIncrease = "Percentage must be between 0 and 100";
       }
 
+      // TODO: pull marital status and hide this field if single
       // Spouse Percentage Increase validation
-      if (!formData.spousePercentageIncrease) {
-        newErrors.spousePercentageIncrease = "Spouse percentage increase is required";
-      } 
+      const spInc = formData.spousePercentageIncrease;
+      if (!spInc) {
+        newErrors.spousePercentageIncrease = "This field is required";
+      } else if (spInc < 0 || spInc > 100) {
+        newErrors.percentageIncrease = "Percentage must be between 0 and 100";
+      }
     }
 
     // Validate investment/rebalance specific fields
     if (formData.eventType === "invest" || formData.eventType === "rebalance") {
       if (!formData.allocationMethod) {
-        newErrors.allocationMethod = "Allocation method is required";
+        newErrors.allocationMethod = "This field is required";
       }
-      // TODO: add error validation for investment rows
-  
+
+      // Validate investment rows
+      const invRows = formData.investmentRows;
+      const allocMethod = formData.allocationMethod;
+      let totalPercentage = 0;
+      let totalInitialPercentage = 0;
+      let totalFinalPercentage = 0;
+      invRows.forEach((row) => {
+        const fixedMethod = row.percentage === "";
+        const glideMethod = row.initialPercentage === "" || row.finalPercentage === "";
+        // Check if investment is set and if all fields are filled depending on allocationMethod
+        if (!row.investment || (fixedMethod && allocMethod === "fixed") || (glideMethod && allocMethod === "glidePath")) {
+          newErrors.investmentRow = "All row fields are required";
+        } else if (allocMethod === "fixed")  {
+          if (row.percentage < 0 || row.percentage > 100) {
+            newErrors.investmentRow = "All percentages must be between 0 and 100";
+          }
+          totalPercentage += row.percentage;
+        } else if (allocMethod === "glidePath")  {
+          if ((row.initialPercentage < 0 || row.initialPercentage > 100) || (row.finalPercentage < 0 || row.finalPercentage > 100)) {
+            newErrors.investmentRow = "All percentages must be between 0 and 100";
+          }
+          totalInitialPercentage += row.initialPercentage;
+          totalFinalPercentage += row.finalPercentage;
+        }
+      });
+      if(allocMethod === "fixed" && totalPercentage !== 100) {
+        newErrors.investmentRow = "Total percentage must be 100";
+      } else if (allocMethod === "glidePath" && (totalInitialPercentage !== 100 || totalFinalPercentage !== 100)) {
+          newErrors.investmentRow = "Total initial percentage and total final percentage must be 100 each";
+      }
+
       if (!formData.maxCash || formData.maxCash < 0) {
         newErrors.maxCash = "Maximum cash must be 0 or greater";
       }
     }
-    if (formData.eventType  === "rebalance" && !formData.taxStatus) {
-      newErrors.taxStatus = "Please select a tax status";
+    if (formData.eventType === "rebalance" && !formData.taxStatus) {
+      newErrors.taxStatus = "This field is required";
     }
 
     // Set all errors at once
+    console.log(newErrors.investmentRow);
     setErrors(newErrors);
     // Everything is valid if there are no error messages
+    console.log(errors);
     return Object.keys(newErrors).length === 0;
   };
   const handleSubmit = () => {
@@ -452,7 +510,6 @@ const EventSeriesForm = () => {
                             placeholder="Select Investment"
                             className={styles.select}
                           />
-                          {errors.investmentRows?.[index]?.investment && (<span className={styles.error}>{errors.investmentRows[index].investment}</span>)}
                         </td>
                         <td>
                           <input
@@ -480,7 +537,7 @@ const EventSeriesForm = () => {
                     ))}
                   </tbody>
                 </table>
-                {errors.investmentRows && <span className={styles.error}>{errors.investmentRows}</span>}
+                {errors.investmentRow && (<span className={styles.error}>{errors.investmentRow}</span>)}
                 <button id={styles.addButton}
                   type="button"
                   onClick={addInvestmentRow}
@@ -515,7 +572,7 @@ const EventSeriesForm = () => {
                             placeholder="Select Investment"
                             className={styles.select}
                           />
-                          {errors.investmentRows?.[index]?.investment && (<span className={styles.error}>{errors.investmentRows[index].investment}</span>)}
+
                         </td>
                         <td>
                           <input
@@ -525,10 +582,7 @@ const EventSeriesForm = () => {
                               handleInvestmentRowChange(index, "initialPercentage", e.target.value)
                             }
                             placeholder="Initial %"
-                            min="0"
-                            max="100"
                           />
-                          {errors.investmentRows?.[index]?.initialPercentage && (<span className={styles.error}>{errors.investmentRows[index].initialPercentage}</span>)}
                         </td>
                         <td>
                           <input
@@ -538,10 +592,7 @@ const EventSeriesForm = () => {
                               handleInvestmentRowChange(index, "finalPercentage", e.target.value)
                             }
                             placeholder="Final %"
-                            min="0"
-                            max="100"
                           />
-                          {errors.investmentRows?.[index]?.finalPercentage && (<span className={styles.error}>{errors.investmentRows[index].finalPercentage}</span>)}
                         </td>
                         <td>
                           <button
@@ -556,7 +607,7 @@ const EventSeriesForm = () => {
                     ))}
                   </tbody>
                 </table>
-                {errors.investmentRows && <span className={styles.error}>{errors.investmentRows}</span>}
+                {errors.investmentRow && (<span className={styles.error}>{errors.investmentRow}</span>)}
                 <button
                   id={styles.addButton}
                   type="button"
