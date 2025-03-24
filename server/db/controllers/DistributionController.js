@@ -98,6 +98,12 @@ export default class DistributionController {
     async update(id, data) {
         try {
             const distribution = await Distribution.findById(id);
+
+            if (distribution.distributionType !== data.distributionType) {
+                await this.delete(id);
+                return await this.create(data.distributionType, data);
+            }
+
             switch (distribution.distributionType) {
                 case "FIXED_AMOUNT":
                 case "FIXED_PERCENTAGE":

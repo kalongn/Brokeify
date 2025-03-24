@@ -159,7 +159,6 @@ router.get("/basicInfo/:scenarioId", async (req, res) => {
 });
 
 router.post("/basicInfo/:scenarioId", async (req, res) => {
-
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
     }
@@ -173,29 +172,40 @@ router.post("/basicInfo/:scenarioId", async (req, res) => {
 
         const { name, financialGoal, state, maritalStatus, birthYear, lifeExpectancy, spouseBirthYear, spouseLifeExpectancy } = req.body;
         const currentScenario = await scenarioController.read(id);
-        console.log(lifeExpectancy.type);
-        // const lifeExpectanyDistribution = lifeExpectancy.type === ""
 
-        // if (currentScenario.userLifeExpectancyDistribution) {
-        //     await distributionController.update(currentScenario.userLifeExpectancyDistribution, {
-        //         distributionType: lifeExpectancy.type,
+        if (!currentScenario) {
+            return res.status(404).send("Scenario not found.");
+        }
 
-        //     });
-        // }
+        const newUserLifeExpectancy = await distributionController.update(currentScenario.userLifeExpectancyDistribution, lifeExpectancy);
 
-        // const updatedScenario = await scenarioController.update(id, {
-        //     name,
-        //     financialGoal,
-        //     stateOfResidence: state,
-        //     filingStatus: maritalStatus,
-        //     userBirthYear: birthYear,
-        //     userLifeExpectancy: ,
-        //     spouseBirthYear,
-        //     spouseLifeExpectancy: spouseLifeExpectancy.mean
-        // });
+        let spouseLifeExpectancyDistribution = null;
+        if (!spouseLifeExpectancy) {
+            await distributionController.delete(currentScenario.spouseLifeExpectancyDistribution);
+        } else {
+            if (!currentScenario.spouseLifeExpectancyDistribution) {
+                const type = spouseLifeExpectancy.distributionType;
+                const data = spouseLifeExpectancy;
+                delete data.distributionType;
+                spouseLifeExpectancyDistribution = await distributionController.create(type, data);
+            } else {
+                spouseLifeExpectancyDistribution = await distributionController.update(currentScenario.spouseLifeExpectancyDistribution, spouseLifeExpectancy);
+            }
+        }
 
-        return res.status(200);
-    } catch {
+        const newScenario = await scenarioController.update(id, {
+            name: name,
+            financialGoal: financialGoal,
+            stateOfResidence: state,
+            filingStatus: maritalStatus,
+            userBirthYear: birthYear,
+            userLifeExpectancyDistribution: newUserLifeExpectancy,
+            spouseBirthYear: spouseBirthYear === undefined ? null : spouseBirthYear,
+            spouseLifeExpectancyDistribution: spouseLifeExpectancyDistribution
+        });
+
+        return res.status(200).send("Basic info updated.");
+    } catch (error) {
         console.error("Error in basic info route:", error);
         return res.status(500).send("Error updating basic info.");
     }

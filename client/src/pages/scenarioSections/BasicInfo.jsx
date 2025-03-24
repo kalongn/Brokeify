@@ -51,17 +51,17 @@ const BasicInfo1 = () => {
         const data = response.data;
 
         const lifeExpectancyCast = {
-          type: distributionMap[data.lifeExpectancy.distributionType] || null,
-          fixedValue: data.lifeExpectancy.value || null,
-          mean: data.lifeExpectancy.mean || null,
-          stdDev: data.lifeExpectancy.standardDeviation || null
+          type: distributionMap[data.lifeExpectancy?.distributionType] || null,
+          fixedValue: data.lifeExpectancy?.value || null,
+          mean: data.lifeExpectancy?.mean || null,
+          stdDev: data.lifeExpectancy?.standardDeviation || null
         }
 
         const spouseLifeExpectancyCast = {
-          type: distributionMap[data.spouseLifeExpectancy.distributionType] || null,
-          fixedValue: data.spouseLifeExpectancy.value || null,
-          mean: data.spouseLifeExpectancy.mean || null,
-          stdDev: data.spouseLifeExpectancy.standardDeviation || null
+          type: distributionMap[data.spouseLifeExpectancy?.distributionType] || null,
+          fixedValue: data.spouseLifeExpectancy?.value || null,
+          mean: data.spouseLifeExpectancy?.mean || null,
+          stdDev: data.spouseLifeExpectancy?.standardDeviation || null
         }
 
         setDistributions((prev) => ({
@@ -247,7 +247,6 @@ const BasicInfo1 = () => {
       if (!sLife.type) {
         newErrors.spouseLifeExpectancy = "This field is required";
       }
-      console.log(sLife);
       if (sLife.type === "fixed") {
         if (!sLife.fixedValue) {
           newErrors.spouseLifeExpectancy = "Fixed spouse life expectancy value is required";
@@ -275,6 +274,47 @@ const BasicInfo1 = () => {
   };
 
   const uploadToBackend = () => {
+    const distributionMap = {
+      "fixed": "FIXED_AMOUNT",
+      "normal": "NORMAL_AMOUNT",
+    }
+
+    const maritalStatusMap = {
+      "single": "SINGLE",
+      "married": "MARRIEDJOINT",
+    }
+
+    const lifeExpectancyCast = {
+      distributionType: distributionMap[distributions.lifeExpectancy.type],
+      ...(distributions.lifeExpectancy.type === "fixed" && { value: distributions.lifeExpectancy.fixedValue }),
+      ...(distributions.lifeExpectancy.type === "normal" && { mean: distributions.lifeExpectancy.mean, standardDeviation: distributions.lifeExpectancy.stdDev })
+    }
+
+    const spouseLifeExpectancyCast = {
+      distributionType: distributionMap[distributions.spouseLifeExpectancy.type],
+      ...(distributions.spouseLifeExpectancy.type === "fixed" && { value: distributions.spouseLifeExpectancy.fixedValue }),
+      ...(distributions.spouseLifeExpectancy.type === "normal" && { mean: distributions.spouseLifeExpectancy.mean, standardDeviation: distributions.spouseLifeExpectancy.stdDev })
+    }
+
+    const data = {
+      name: formData.name,
+      financialGoal: formData.financialGoal,
+      state: formData.state,
+      maritalStatus: maritalStatusMap[formData.maritalStatus],
+      birthYear: formData.birthYear,
+      lifeExpectancy: lifeExpectancyCast,
+      spouseBirthYear: formData.maritalStatus === "single" ? undefined : formData.spouseBirthYear,
+      spouseLifeExpectancy: formData.maritalStatus === "single" ? undefined : spouseLifeExpectancyCast,
+    };
+
+    return Axios.post(`/basicInfo/${scenarioId}`, data)
+      .then((response) => {
+        console.log(response.data);
+        return true;
+      }).catch((error) => {
+        console.error("Error uploading basic info:", error);
+        return false; // Handle server error to display an error message
+      });
   }
 
 
@@ -282,7 +322,7 @@ const BasicInfo1 = () => {
     if (!validateFields()) {
       return false;
     }
-    return validateFields();
+    return uploadToBackend();
   };
 
   // TODO: apply the heading style to all other section components
