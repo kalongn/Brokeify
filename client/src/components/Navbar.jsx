@@ -13,7 +13,7 @@ const Navbar = () => {
       </div>
       <Link
         id={style.createButton}
-        to="/ScenarioForm"
+        to="/NewScenario"
         className={style.createButton}
       >
         <FaPlus /> Create Scenario
