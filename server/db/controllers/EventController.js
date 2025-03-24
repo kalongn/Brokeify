@@ -159,6 +159,7 @@ export default class EventController {
         try{
             
             const event = await Event.findById(id);
+            
             if (!event) return null;
             //console.log({...event});
             let clonedEvent = null;
@@ -229,6 +230,7 @@ export default class EventController {
                     isDiscretionary: event.isDiscretionary,
                 });
             }
+            
             return clonedEvent.id;
         } catch (err){
             throw new Error(err);

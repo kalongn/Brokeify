@@ -64,6 +64,87 @@ export default class UserController {
     }
 
     /**
+     * This function reads a User with the given id, stripping sensitive information and populating userSpecificTaxes
+     *      This is used to get the User with all the taxes associated with it
+     *      and to remove sensitive information from the User object
+     *      and meant to use for the route /profile
+     * @param {mongoose.Types.ObjectId} id 
+     *      Id of the User to be read
+     * @returns 
+     *      Returns the User with the given id and populated userSpecificTaxes
+     * @throws Error
+     *      Throws error if the User is not found or if any error occurs
+     */
+    async readWithTaxes(id) {
+        try {
+            const user = await User.findById(id).populate('userSpecificTaxes');
+            user.googleId = undefined;
+            user.refreshToken = undefined;
+            user.accessToken = undefined;
+            user.permission = undefined;
+            user.ownerScenarios = undefined;
+            user.editorScenarios = undefined;
+            user.viewerScenarios = undefined;
+            user.userSimulations = undefined;
+
+            for (let i = 0; i < user.userSpecificTaxes.length; i++) {
+                user.userSpecificTaxes[i].taxBrackets = undefined;
+            }
+
+            return user;
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
+     * This function reads a User with the given id, populating the ownerScenarios and their investmentTypes
+     *      This is used to get the User with all the scenarios associated with it
+     *      and to get the number of investments and events in each scenario
+     *      and meant to use for the route /home to load all the scenariocards for the User
+     *      and to show the number of investments and events in each scenario
+     * @param {mongoose.Types.ObjectId} id 
+     *      Id of the User to be read
+     * @returns 
+     *      Returns an array of objects containing the scenario id, name, filingStatus, financialGoal, investmentsLength and eventsLength
+     *      for each scenario associated with the User
+     * @throws Error
+     *      Throws error if the User is not found or if any error occurs
+     */
+    async readWithScenarios(id) {
+        try {
+            const user = await User.findById(id).populate({
+                path: 'ownerScenarios',
+                populate: { path: 'investmentTypes' }
+            });
+            const returnList = [];
+            for (let i = 0; i < user.ownerScenarios.length; i++) {
+                const scenario = user.ownerScenarios[i];
+
+                let investmentsLength = 0;
+                for (let type of scenario.investmentTypes) {
+                    console.log(type);
+                    investmentsLength += type.investments.length;
+                }
+
+                returnList.push({
+                    id: scenario._id,
+                    name: scenario.name,
+                    filingStatus: scenario.filingStatus,
+                    financialGoal: scenario.financialGoal,
+                    investmentsLength: investmentsLength,
+                    eventsLength: scenario.events.length,
+                });
+            }
+            return returnList;
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
      * This function finds a User with the given googleId
      *      This is used for authentication with Google
      *      and to check if the User already exists in the database

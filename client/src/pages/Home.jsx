@@ -1,35 +1,49 @@
 import Layout from "../components/Layout";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import Axios from "axios";
+import ScenarioCard from "../components/ScenarioCard";
+import style from './Home.module.css';
 const Home = () => {
+
+  const [scenarios, setScenarios] = useState([]);
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    Axios.get("/home")
+      .then((response) => {
+        console.log("User Scenarios:", response.data);
+        setScenarios(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching user scenarios:', error);
+      });
+  }, []);
 
   return (
     <Layout>
-      <h1>Home Page</h1>
-      <p>Welcome to the home page!</p>
-      <Link to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Go back to Login</Link>
-      <div>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed tincidunt sem sed metus ornare facilisis. Quisque tortor purus, accumsan feugiat cursus at, pharetra in eros. Praesent ut neque vitae diam vulputate fringilla ac sit amet magna. Morbi eleifend mattis blandit. Nunc volutpat nulla a leo hendrerit posuere. Curabitur pharetra, mauris et efficitur auctor, ipsum nisl consectetur mi, blandit pretium dolor enim sed lorem. Donec vel semper erat, quis cursus tellus. Etiam blandit consequat urna. Morbi lobortis rutrum odio et efficitur. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean eget ante sit amet nulla accumsan consectetur sed id justo. Pellentesque eu ligula a purus auctor vulputate et et erat.
-
-          Duis at consectetur neque. Nam tempus aliquam orci, sit amet facilisis ligula tempor vel. Quisque mollis sit amet arcu fringilla rutrum. Duis at interdum felis, laoreet condimentum nibh. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; In cursus sit amet sem sed efficitur. Sed fermentum, metus eu venenatis maximus, erat mi pellentesque lectus, eget mattis lorem metus quis odio. Pellentesque quis dui quis eros porttitor blandit.
-
-          Suspendisse ac magna laoreet ex sollicitudin luctus et sit amet libero. Nam eu nisi tincidunt, varius nunc at, vulputate justo. Quisque lobortis lacinia scelerisque. Vestibulum maximus lacinia justo. Nam semper ante pretium, laoreet nisl varius, feugiat orci. Pellentesque egestas tellus vitae velit feugiat, quis suscipit mi condimentum. Nunc ante turpis, mollis eu purus non, vehicula finibus nisl. Sed tempus ut dui quis tempor. Fusce suscipit felis et ultrices facilisis. Vivamus nec leo accumsan, porttitor erat et, venenatis purus. Donec sodales ultricies libero, quis sagittis est facilisis vitae. Phasellus ut pulvinar erat, sed fringilla libero. Fusce ut placerat ligula. Vestibulum nec quam ligula. Vivamus placerat, eros vel consectetur cursus, nunc ligula consectetur lacus, ac lobortis enim tortor ac sapien.
-
-          Sed urna nisi, auctor id ipsum eleifend, sodales sagittis felis. Praesent fermentum non mi vitae lacinia. Donec sit amet semper felis. Cras felis tortor, tempus sit amet venenatis et, eleifend sit amet magna. Sed feugiat felis sed nibh placerat suscipit. Morbi nec mattis sem. Sed nec volutpat nisi. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec justo nisi, ornare nec orci dictum, sollicitudin tincidunt velit. Quisque vel dolor enim. Suspendisse ultrices justo feugiat lacus cursus, non molestie est hendrerit.
-
-          Nulla in metus eu tortor rhoncus elementum. Integer vestibulum libero nec dui scelerisque lacinia. Aliquam viverra auctor euismod. Quisque tempor ut sapien sed lobortis. In massa ex, tempus eget interdum placerat, cursus et erat. Mauris eu ultricies arcu, nec rutrum felis. Fusce vehicula faucibus magna, sit amet gravida mauris vestibulum et. Maecenas mollis dapibus dolor egestas faucibus. Aenean in elementum mauris. Pellentesque rutrum felis laoreet tempor euismod. Maecenas eu lacus vel metus fringilla consectetur. Phasellus vel malesuada lectus. Ut vulputate odio nec nisl auctor, vel imperdiet magna vestibulum. Nulla tincidunt velit vitae tincidunt ultricies. Etiam tempus, erat id ultricies lobortis, urna dolor dapibus sem, ut tristique nisl leo vitae dolor. Praesent tristique ex arcu, id pulvinar erat commodo quis.
-
-          Etiam et eros eu tellus cursus tempor. Etiam sit amet posuere ligula. Vestibulum non feugiat purus. Duis at massa nunc. Cras ac tellus auctor, scelerisque nulla nec, euismod eros. Etiam et diam at dui maximus congue non sit amet felis. Curabitur maximus nisi mattis ornare consequat. Proin mollis pharetra mi. Ut sapien urna, hendrerit quis velit eu, porta rhoncus velit. Integer sit amet molestie nunc. Aenean eget molestie augue, nec ultrices augue. Aenean posuere scelerisque convallis. Quisque blandit fermentum risus. Phasellus ullamcorper ullamcorper urna. Pellentesque interdum vel enim ac vehicula.
-
-          Nam ullamcorper viverra orci, id posuere orci dignissim lobortis. Duis sed faucibus lorem. Mauris commodo elit a molestie ultricies. Integer aliquam tortor purus, a blandit augue rhoncus eget. Quisque rutrum velit in dolor interdum gravida. Praesent pharetra euismod erat ut vehicula. Duis feugiat, enim vitae facilisis faucibus, odio turpis placerat mauris, sit amet hendrerit dolor dolor ac dui.
-
-          Pellentesque vitae nunc a urna dignissim scelerisque quis a dui. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam et ornare nisi. Sed auctor pretium justo tempus vehicula. Sed consequat luctus eros, id aliquet orci scelerisque id. Proin sagittis, ipsum eget auctor ornare, tortor tortor scelerisque mauris, eget posuere mi ipsum sit amet quam. Vestibulum ligula mi, auctor vel vestibulum vel, aliquet eu nibh. Vivamus imperdiet vel nunc sed bibendum. Integer fermentum leo vitae orci vehicula laoreet. Integer vulputate justo orci, id egestas nibh congue ac. Donec a libero id orci aliquam rhoncus ut sed ex. Maecenas nulla turpis, rhoncus et egestas sed, venenatis a tellus. Sed est lectus, vulputate non hendrerit eget, accumsan ac urna. Ut volutpat non urna at facilisis.
-
-          Praesent tincidunt lorem quis mi molestie eleifend. Fusce rutrum lobortis fringilla. Fusce tincidunt nisl eget pretium tempus. Vivamus fringilla diam in efficitur porta. Suspendisse nibh turpis, blandit eget egestas sed, posuere id dui. Mauris et hendrerit quam. Donec in dui a turpis maximus luctus. Sed et magna magna. Proin quis magna porttitor, mollis nisi suscipit, volutpat felis. Proin porta rutrum urna, et condimentum dui elementum vel. Nullam id lobortis dolor.
-
-          Sed feugiat, diam tempus bibendum faucibus, mi massa sagittis diam, eget scelerisque mauris orci maximus arcu. Etiam euismod laoreet dui eu bibendum. Suspendisse at nulla quis enim ornare luctus. Maecenas sit amet magna ac ante vehicula gravida vel at diam. Ut varius metus vel purus consequat, sit amet varius elit blandit. Aenean lorem elit, ornare id ante eget, lacinia aliquet ante. In hac habitasse platea dictumst. Cras nec finibus lacus, non porttitor mi.
-        </p>
+      <div className={style.background}>
+        {
+          scenarios.length === 0 ?
+            <>
+              <h1>No Scenarios Found</h1>
+            </>
+            :
+            scenarios.map((scenario, index) => (
+              <ScenarioCard
+                key={index}
+                id={scenario.id}
+                title={scenario.name}
+                maritalStatus={scenario.filingStatus}
+                targetAmount={scenario.financialGoal}
+                investments={scenario.investmentsLength}
+                events={scenario.eventsLength}
+              />
+            ))
+        }
       </div>
-
+      <div className={style.background}>
+      </div>
     </Layout>
   );
 }
