@@ -1,0 +1,36 @@
+.investment h4 {
+    margin: 0;
+    padding: 0;
+    font-size: 1.0rem;
+
+}
+
+.investment {
+
+    padding: 0.5rem;
+    border-bottom: solid 1px var(--color-silver);
+}
+
+.investmentDetails {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-column-gap: 1px;
+    grid-row-gap: 1px;
+}
+
+.investmentInfo1 {
+    grid-area: 1 / 1 / 2 / 2;
+}
+
+.investmentInfo2 {
+    grid-area: 1 / 2 / 2 / 3;
+}
+
+.investmentInfo3 {
+    grid-area: 2 / 1 / 4 / 2;
+}
+
+.investmentInfo4 {
+    grid-area: 2 / 2 / 3 / 3;
+}

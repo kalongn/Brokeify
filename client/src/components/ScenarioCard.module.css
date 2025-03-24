@@ -1,13 +1,13 @@
 .scenarioCard {
-    width: 250px; 
-    height: 300px; 
+    width: 250px;
+    height: 300px;
     background: var(--color-black);
     color: var(--color-white);
     text-align: center;
     border-radius: 10px;
     font-size: 1rem;
     transition: all 0.3s ease-in-out;
-    
+
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -35,16 +35,18 @@
     text-align: center;
     transition: opacity 0.3s ease-in-out;
 }
+
 .detailContainer {
     opacity: 0;
     visibility: hidden;
     text-align: left;
-    background: var(--color-white); /* Background is now white */
+    background: var(--color-white);
+    /* Background is now white */
     color: var(--color-black);
     width: 100%;
     height: 100%;
     border-radius: 10px;
-    
+
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     position: absolute;
     top: 0;
@@ -53,7 +55,8 @@
 }
 
 .detailHeader {
-    background: var(--color-black); /* Only the top is black */
+    background: var(--color-black);
+    /* Only the top is black */
     color: var(--color-white);
     padding: 0.5rem 2rem;
     font-size: 1.05rem;
@@ -75,7 +78,8 @@
 
 .infoRow {
     display: flex;
-    gap: 1rem; /* Space between icon and text */
+    gap: 1rem;
+    /* Space between icon and text */
     margin: 0.5rem 0.5rem;
     align-items: center;
 }
