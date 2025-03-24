@@ -279,7 +279,7 @@ const ViewScenario = () => {
                     <BiCircle /><span> Sample from Uniform Distribution</span>
                   </div>
                   Mean : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.mean} </div>
-                  Standard Deviation : <div className={styles.textbox}> {scenarioData.inflationAssumption.standardDeviation} </div>
+                  Standard Deviation : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.standardDeviation} </div>
                 </>
               ) :
 
