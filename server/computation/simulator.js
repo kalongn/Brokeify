@@ -23,6 +23,9 @@ const distributionFactory = new DistributionController();
 const resultFactory = new ResultController();
 
 let csvFile, logFile;
+
+
+
 export async function updateCSV(currentYear, investments, scenario) {
     //takes in current year of simulation and a list of investments
     //if an investment's id is not in the title row, it adds it at the end
