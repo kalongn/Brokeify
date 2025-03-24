@@ -6,7 +6,7 @@ import { FaPiggyBank } from "react-icons/fa6";
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-const ScenarioCard = ({ id, title, martialStatus, targetAmount, investments, events }) => {
+const ScenarioCard = ({ id, title, maritalStatus, targetAmount, investments, events }) => {
   return (
     <Link to={`/Scenario/${id}`} className={styles.scenarioCard} onClick={() => console.log("Card clicked")}>
       {/*Note: we will need to set these routes to be scenario id based!*/}
@@ -23,7 +23,7 @@ const ScenarioCard = ({ id, title, martialStatus, targetAmount, investments, eve
         </div>
         <div className={styles.info}>
           <div className={styles.infoRow}>
-            <IoPersonCircle size={30} /> <span>{martialStatus}</span>
+            <IoPersonCircle size={30} /> <span>{maritalStatus}</span>
           </div>
           <div className={styles.infoRow}>
             <TbTargetArrow size={30} /> <span>{targetAmount?.toLocaleString() ?? "N/A"}</span>
@@ -44,7 +44,7 @@ const ScenarioCard = ({ id, title, martialStatus, targetAmount, investments, eve
 ScenarioCard.propTypes = {
   id: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
-  martialStatus: PropTypes.string,
+  maritalStatus: PropTypes.string,
   targetAmount: PropTypes.number,
   investments: PropTypes.number,
   events: PropTypes.number,

@@ -25,6 +25,7 @@ import Sharing from './pages/scenarioSections/Sharing.jsx';
 
 import RouteTesting from './pages/RouteTesting.jsx';
 import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
+import ViewScenario from './pages/ViewScenario.jsx';
 
 const App = () => {
   useEffect(() => {
@@ -64,6 +65,7 @@ const App = () => {
         <Route path="/SharedScenarios" element={<SharedScenarios />} />
         <Route path="/Profile" element={<Profile />} />
         <Route path="/Scenario/:scenarioId" element={<ScenarioSimulation />} />
+        <Route path="/ViewScenario/:scenarioId" element={<ViewScenario />} ></Route>
         <Route path="/RouteTesting" element={<RouteTesting />} />
       </Routes>
     </>

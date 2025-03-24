@@ -34,7 +34,7 @@ const Home = () => {
                 key={index}
                 id={scenario.id}
                 title={scenario.name}
-                martialStatus={scenario.filingStatus}
+                maritalStatus={scenario.filingStatus}
                 targetAmount={scenario.financialGoal}
                 investments={scenario.investmentsLength}
                 events={scenario.eventsLength}
