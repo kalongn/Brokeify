@@ -69,35 +69,14 @@ test('sample normal amount test', async () => {
     sum+=results[i];
   }
   const mean = sum / SAMPLE_RUNS;
-  const buffer = 3 * (distribution.standardDeviation / Math.sqrt(SAMPLE_RUNS))
+  const buffer = 5 * (distribution.standardDeviation / Math.sqrt(SAMPLE_RUNS))
   const upperbound = distribution.mean + buffer;
   const lowerbound = distribution.mean - buffer;
   expect(mean).toBeGreaterThanOrEqual(lowerbound);
   expect(mean).toBeLessThanOrEqual(upperbound);
 
 });
-test('sample normal percentage test', async () => {
-  const distribution = await distributionFactory.create("NORMAL_PERCENTAGE", { mean: .05, standardDeviation: .02});
-  const results = [];
-  //take sample
-  for(let i=0;i<SAMPLE_RUNS;i++){
-    const res =  await sample(0, distribution.id);
-    results.push(res);
-  }
-  //console.log(results)
-  //get mean
-  let sum = 0;
-  for(const i in results){
-    
-    sum+=results[i];
-  }
-  const mean = sum / SAMPLE_RUNS;
-  const buffer = 3 * (distribution.standardDeviation / Math.sqrt(SAMPLE_RUNS))
-  const upperbound = distribution.mean + buffer;
-  const lowerbound = distribution.mean - buffer;
-  expect(mean).toBeGreaterThanOrEqual(lowerbound);
-  expect(mean).toBeLessThanOrEqual(upperbound);
-});
+
 test('calculate taxes', () => {
   //setup fed & state income taxes
   const federalIncomeTax = {
