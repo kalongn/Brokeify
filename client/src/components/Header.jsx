@@ -6,6 +6,13 @@ const Header = () => {
     const location = useLocation();
     const path = location.pathname;
     const getHeaderTitle = () => {
+
+        if (path.startsWith('/Scenario')) {
+            return 'Scenario Simulation';
+        }
+        if (path.startsWith('/ViewScenario')) {
+            return 'View Scenario';
+        }
         switch (path) {
             case '/Home':
                 return 'My Scenarios';
@@ -25,6 +32,28 @@ const Header = () => {
     };
     // TODO: implement the IMPORT SCENARIO button functionality
     const getHeaderButtons = () => {
+        
+        if (path.startsWith('/Scenario')) {
+            
+            return (
+                <>
+                    <div className={styles.buttonGroupSimulation}>
+                        <button onClick={() => console.log('Share Scenario')}>Share </button>
+                        <button onClick={() => console.log('Export Scenario')}>Export </button>
+                    </div>
+                </>
+            );
+        }
+        if (path.startsWith('/ViewScenario')) {
+            const pathParts = path.split('/');
+            const id = pathParts[pathParts.length - 1];
+            return (
+                <>
+                    <Link to={`/Scenario/${id}`} className={styles.icon}><VscChromeClose /></Link>
+                </>
+            );
+        }
+        
         switch (path) {
             case '/Home':
                 return (
