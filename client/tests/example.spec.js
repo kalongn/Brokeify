@@ -9,9 +9,14 @@ test('testLogIn', async ({ page }) => {
 test('goToProfilePage', async ({ page }) => {
   await page.goto('http://localhost:5173/Home');
   await page.getByRole('link', { name: 'My Profile' }).click();
-  await page.getByText('brokeify416@gmail.com').click();
+  await expect(page).toHaveURL('http://localhost:5173/Profile');
+});
+
+
+test('profileDataUpdated', async ({ page }) => {
+  await page.goto('http://localhost:5173/Home');
+  await page.getByRole('link', { name: 'My Profile' }).click();
   await expect(page.getByText('Brokeify Doe')).toBeVisible();
   await page.getByText('brokeify416@gmail.com').click();
-  await expect(page.getByText('brokeify416@gmail.com')).toBeVi
-
+  await expect(page.getByText('brokeify416@gmail.com')).toBeVisible();
 });
