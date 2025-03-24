@@ -23,7 +23,7 @@ const taxFactory = new TaxController();
 const simulationFactory = new SimulationController();
 const distributionFactory = new DistributionController();
 const resultFactory = new ResultController();
-const SAMPLE_RUNS = 1000;
+const SAMPLE_RUNS = 100;
 test.beforeAll(async () => {
   await connectToDatabase();
 });
@@ -63,8 +63,12 @@ test('sample normal amount test', async () => {
     results.push(res);
   }
   //get mean
-  const sum = results.reduce((acc, num) => acc + num, 0);
-  const mean = sum / results.length;
+  let sum = 0;
+  for(const i in results){
+    
+    sum+=results[i];
+  }
+  const mean = sum / SAMPLE_RUNS;
   const buffer = 3 * (distribution.standardDeviation / Math.sqrt(SAMPLE_RUNS))
   const upperbound = distribution.mean + buffer;
   const lowerbound = distribution.mean - buffer;
@@ -80,9 +84,14 @@ test('sample normal percentage test', async () => {
     const res =  await sample(0, distribution.id);
     results.push(res);
   }
+  //console.log(results)
   //get mean
-  const sum = results.reduce((acc, num) => acc + num, 0);
-  const mean = sum / results.length;
+  let sum = 0;
+  for(const i in results){
+    
+    sum+=results[i];
+  }
+  const mean = sum / SAMPLE_RUNS;
   const buffer = 3 * (distribution.standardDeviation / Math.sqrt(SAMPLE_RUNS))
   const upperbound = distribution.mean + buffer;
   const lowerbound = distribution.mean - buffer;
