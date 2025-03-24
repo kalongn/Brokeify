@@ -317,7 +317,6 @@ const BasicInfo1 = () => {
       });
   }
 
-
   const handleSubmit = () => {
     if (!validateFields()) {
       return false;

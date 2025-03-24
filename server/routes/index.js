@@ -193,7 +193,7 @@ router.post("/basicInfo/:scenarioId", async (req, res) => {
             }
         }
 
-        const newScenario = await scenarioController.update(id, {
+        await scenarioController.update(id, {
             name: name,
             financialGoal: financialGoal,
             stateOfResidence: state,
