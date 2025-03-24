@@ -13,6 +13,8 @@ const EventSchema = new mongoose.Schema({
     startYearTypeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
     duration: { type: Number },
     durationTypeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
+    startsWith: {type: mongoose.Schema.Types.ObjectId, ref: 'startsWith' },
+    startsAfter: {type: mongoose.Schema.Types.ObjectId, ref: 'startsAfter' },
 }, EventOptions);
 
 EventSchema.virtual('id').get(function get() {
