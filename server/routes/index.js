@@ -177,7 +177,15 @@ router.post("/basicInfo/:scenarioId", async (req, res) => {
             return res.status(404).send("Scenario not found.");
         }
 
-        const newUserLifeExpectancy = await distributionController.update(currentScenario.userLifeExpectancyDistribution, lifeExpectancy);
+        let newUserLifeExpectancy = null;
+        if (currentScenario.userLifeExpectancyDistribution) {
+            newUserLifeExpectancy = await distributionController.update(currentScenario.userLifeExpectancyDistribution, lifeExpectancy);
+        } else {
+            const type = lifeExpectancy.distributionType;
+            const data = lifeExpectancy;
+            delete data.distributionType;
+            newUserLifeExpectancy = await distributionController.create(type, data);
+        }
 
         let spouseLifeExpectancyDistribution = null;
         if (!spouseLifeExpectancy) {
