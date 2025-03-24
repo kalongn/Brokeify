@@ -27,6 +27,12 @@
     gap: 0.75rem;
 }
 
+.icon {
+    color: var(--color-black);
+    margin: 0rem;
+    padding: 0rem;
+}
+
 .mainContent {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -57,6 +63,7 @@
     grid-column-gap: 1px;
     grid-row-gap: 1px;
 }
+
 
 .basicInfo>div {
     color: var(--color-black);

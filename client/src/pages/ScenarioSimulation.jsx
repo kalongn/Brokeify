@@ -1,7 +1,9 @@
 import { TbEdit } from "react-icons/tb";
 import { TbFileSearch } from "react-icons/tb";
+import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useParams, Navigate } from "react-router-dom";
+import { stateMap, distributionToString } from "../utils/ScenarioHelper";
 import Axios from "axios";
 
 import styles from "./ScenarioSimulation.module.css";
@@ -19,78 +21,6 @@ const ScenarioSimulation = () => {
   const [events, setEvents] = useState([]);
   const [strategies, setStrategies] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const stateMap = {
-    "AL": "Alabama",
-    "AK": "Alaska",
-    "AZ": "Arizona",
-    "AR": "Arkansas",
-    "CA": "California",
-    "CO": "Colorado",
-    "CT": "Connecticut",
-    "DE": "Delaware",
-    "FL": "Florida",
-    "GA": "Georgia",
-    "HI": "Hawaii",
-    "ID": "Idaho",
-    "IL": "Illinois",
-    "IN": "Indiana",
-    "IA": "Iowa",
-    "KS": "Kansas",
-    "KY": "Kentucky",
-    "LA": "Louisiana",
-    "ME": "Maine",
-    "MD": "Maryland",
-    "MA": "Massachusetts",
-    "MI": "Michigan",
-    "MN": "Minnesota",
-    "MS": "Mississippi",
-    "MO": "Missouri",
-    "MT": "Montana",
-    "NE": "Nebraska",
-    "NV": "Nevada",
-    "NH": "New Hampshire",
-    "NJ": "New Jersey",
-    "NM": "New Mexico",
-    "NY": "New York",
-    "NC": "North Carolina",
-    "ND": "North Dakota",
-    "OH": "Ohio",
-    "OK": "Oklahoma",
-    "OR": "Oregon",
-    "PA": "Pennsylvania",
-    "RI": "Rhode Island",
-    "SC": "South Carolina",
-    "SD": "South Dakota",
-    "TN": "Tennessee",
-    "TX": "Texas",
-    "UT": "Utah",
-    "VT": "Vermont",
-    "VA": "Virginia",
-    "WA": "Washington",
-    "WV": "West Virginia",
-    "WI": "Wisconsin",
-    "WY": "Wyoming"
-  }
-
-  const distributionToString = (distribution) => {
-    switch (distribution.distributionType) {
-      case "FIXED_AMOUNT":
-        return `${distribution.value}`;
-      case "FIXED_PERCENTAGE":
-        return `${distribution.value * 100}%`;
-      case "UNIFORM_AMOUNT":
-        return `[${distribution.lowerBound}, ${distribution.upperBound}]`;
-      case "UNIFORM_PERCENTAGE":
-        return `[${distribution.lowerBound * 100}%, ${distribution.upperBound * 100}%]`;
-      case "NORMAL_AMOUNT":
-        return `μ: ${distribution.mean}, σ: ${distribution.standardDeviation}`;
-      case "NORMAL_PERCENTAGE":
-        return `μ: ${distribution.mean * 100}%, σ: ${distribution.standardDeviation * 100}%`;
-      default:
-        return "Unknown Distribution Type";
-    }
-  };
 
   useEffect(() => {
 
@@ -211,8 +141,8 @@ const ScenarioSimulation = () => {
               <div className={styles.title}>
 
                 <h2>{scenario.name}</h2>
-                <TbFileSearch size={25} />
-                <TbEdit size={25} />
+                <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
+                <Link className={styles.icon} onClick={() => { alert("NOT IMPLEMENTED: Edit Scenario Button Clicked") }}> <TbEdit size={25} /> </Link>
 
               </div>
 
