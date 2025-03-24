@@ -120,7 +120,7 @@ const Investments = () => {
 
   return (
     <div>
-      <h2>Investments</h2>
+      <h2  id={styles.heading}>Investments</h2>
       <p>
         If married, investments will automatically be assumed as jointly owned.
       </p>
@@ -140,6 +140,7 @@ const Investments = () => {
             <tr key={index}>
               <td>
                 <Select
+                  id="selectInvestment"
                   className={`${styles.selectTable} ${styles.select}`}
                   options={investmentTypes}
                   value={investmentTypes.find((option) => option.value === formData[index].type)}
@@ -163,6 +164,7 @@ const Investments = () => {
               </td>
               <td>
                 <Select
+                  id="selectTaxStatus"
                   className={`${styles.selectTable} ${styles.select}`}
                   options={taxStatuses}
                   value={taxStatuses.find((option) => option.value === formData[index].type)}

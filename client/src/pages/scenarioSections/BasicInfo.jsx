@@ -246,7 +246,7 @@ const BasicInfo1 = () => {
         </label>
         <label className={styles.newline}>
           State of Residence
-          <Select options={states} className={`${styles.shortInput} ${styles.select}`} onChange={handleSelectChange} />
+          <Select id="state" options={states} className={`${styles.shortInput} ${styles.select}`} onChange={handleSelectChange} />
           {errors.state && <span className={styles.error}>{errors.state}</span>}
         </label>
         <label className={styles.newline}>
