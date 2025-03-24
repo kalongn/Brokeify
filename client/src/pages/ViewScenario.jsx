@@ -172,7 +172,7 @@ const ViewScenario = () => {
               <div className={styles.columnsp1}>
                 <p className={styles.question}>Your Life Expectancy</p>
                 {
-                  scenarioData.userLifeExpectancyDistribution.type === "NORMAL_AMOUNT" ? (
+                  scenarioData.userLifeExpectancyDistribution.distributionType === "NORMAL_AMOUNT" ? (
                     <>
                       <div>
                         <BiCircle /> <span> Fixed Value</span>
@@ -204,7 +204,7 @@ const ViewScenario = () => {
                 <div className={styles.columnsp2}>
                   <p className={styles.question}>Spouse Life Expectancy</p>
                   {
-                    scenarioData.spouseLifeExpectancyDistribution.type === "NORMAL_AMOUNT" ? (
+                    scenarioData.spouseLifeExpectancyDistribution.distributionType === "NORMAL_AMOUNT" ? (
                       <>
                         <div>
                           <BiCircle /> <span> Fixed Value</span>
@@ -273,7 +273,7 @@ const ViewScenario = () => {
             <h2>Inflation & Contribution Limits</h2>
             <p className={styles.question}>Inflation Assumption</p>
             {
-              scenarioData.inflationAssumptionDistribution.type === "NORMAL_PERCENTAGE" ? (
+              scenarioData.inflationAssumptionDistribution.distributionType === "NORMAL_PERCENTAGE" ? (
                 <>
                   <div>
                     <BiCircle /> <span> Fixed Percentage</span>
@@ -289,7 +289,7 @@ const ViewScenario = () => {
                 </>
               ) :
 
-                scenarioData.inflationAssumptionDistribution.type === "UNIFORM_PERCENTAGE" ? (
+                scenarioData.inflationAssumptionDistribution.distributionType === "UNIFORM_PERCENTAGE" ? (
                   <>
                     <div>
                       <BiCircle /> <span> Fixed Percentage</span>
