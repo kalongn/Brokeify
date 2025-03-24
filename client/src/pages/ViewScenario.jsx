@@ -334,7 +334,6 @@ const ViewScenario = () => {
               {orderedSpendingStrategy.map((strategy, index) => (
                 <div key={index} className={styles.draggableItem}>
                   <div className={styles.icon}>
-                    <CgMenuGridO size={20} />
                     <span className={styles.draggableItemText}>{strategy.name}</span>
                   </div>
                 </div>
@@ -350,7 +349,7 @@ const ViewScenario = () => {
               {orderedExpenseWithdrawalStrategy.map((strategy, index) => (
                 <div key={index} className={styles.draggableItem}>
                   <div className={styles.icon}>
-                    <CgMenuGridO size={20} />
+                    
                     <p className={styles.draggableItemText}>{strategy.name}</p>
                   </div>
                   <p className={styles.lightText}> Value: {strategy.value} </p>
@@ -369,7 +368,7 @@ const ViewScenario = () => {
             {orderedRMDStrategy?.map((strategy, index) => (
               <div key={index} className={styles.draggableItem}>
                 <div className={styles.icon}>
-                  <CgMenuGridO size={20} />
+                  
                   <p className={styles.draggableItemText}>{strategy.name}</p>
                 </div>
                 <p className={styles.lightText}> Value: {strategy.value} </p>
@@ -387,7 +386,7 @@ const ViewScenario = () => {
             {orderedRothStrategy?.map((strategy, index) => (
               <div key={index} className={styles.draggableItem}>
                 <div className={styles.icon}>
-                  <CgMenuGridO size={20} />
+                  
                   <p className={styles.draggableItemText}>{strategy.name}</p>
                 </div>
                 <p className={styles.lightText}> Value: {strategy.value} </p>
