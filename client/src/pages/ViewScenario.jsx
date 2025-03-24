@@ -122,10 +122,7 @@ const ViewScenario = () => {
           :
           <div className={styles.sections}>
             <h2>Basic Information</h2>
-            <h2>Type of userLifeExpectancyDistribution:{(scenarioData.userLifeExpectancyDistribution.type)}</h2>
-            <h2>Type of spouseLifeExpectancyDistribution:{(scenarioData.spouseLifeExpectancyDistribution.type)}</h2>
-            <h2>Type of inflationAssumptionDistribution:{(scenarioData.inflationAssumptionDistribution.type)}</h2>
-            
+                
             <p className={styles.question}>Scenario Name</p>
             <div className={styles.textbox}>{scenarioData.name}</div>
 
