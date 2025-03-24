@@ -26,3 +26,6 @@ dist-ssr
 
 # environment
 .env
+
+# Ka Long Defined local file
+init.js
