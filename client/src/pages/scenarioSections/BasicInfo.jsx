@@ -167,7 +167,6 @@ const BasicInfo1 = () => {
         processedValue = Number(value);
       }
       updatedDistributions[name][field] = processedValue;
-      console.log(updatedDistributions);
       return updatedDistributions;
     });
     // Clear errors when user makes changes
@@ -200,9 +199,6 @@ const BasicInfo1 = () => {
     // TODO: fix for whitespace
     const requiredFields = ['name', 'financialGoal', 'state', 'maritalStatus', 'birthYear', 'lifeExpectancy'];
     requiredFields.forEach(field => {
-
-      console.log(formData[field]);
-
       if (formData[field] === null || formData[field] === undefined || formData[field] === "") {
         newErrors[field] = "This field is required";
       }
