@@ -65,6 +65,10 @@ const ScenarioForm = () => {
           <Outlet context={{ childRef, scenarioId }} />
           {/* Navigation buttons */}
           {/* Only appears if not creating a new investment type or event series */}
+          {/* 
+            Prompt to AI (Copilot): Create navigation buttons to go between sections
+            Generated code worked and only condensed Next and Save & Close buttons code
+           */}
           {!path.includes("new") && <div id={styles.navButtons}>
             <button
               className={styles.deemphasizedButton}

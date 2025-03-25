@@ -1,3 +1,4 @@
+/** Referenced ChatGPT to generate a part of the design of this code.**/
 import { CgMenuGridO } from "react-icons/cg";
 import { BsToggleOn } from "react-icons/bs";
 import { BsToggleOff } from "react-icons/bs";

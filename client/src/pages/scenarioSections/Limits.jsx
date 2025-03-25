@@ -19,6 +19,8 @@ const Limits = () => {
     inflationAssumption: { type: "", fixedValue: "", isPercentage: true, lowerBound: "", upperBound: "", mean: "", stdDev: "" },
   });
 
+  // Below handler copied and pasted from AI code generation from BasicInfo.jsx
+
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
@@ -39,6 +41,7 @@ const Limits = () => {
     initialLimit: null,
   });
 
+  // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
   const handleChange = (e) => {
     const { name, value } = e.target;
     const processedValue = name === "initialLimit" ? Number(value) : value;
@@ -49,6 +52,9 @@ const Limits = () => {
 
   const validateFields = () => {
     const newErrors = {};
+    // Field validation from AI code generation using same prompt (and in-line help) as in BasicInfo.jsx
+    // Further modifications were similarly necessary especially for the distributions
+
     // Validate Expected Dividends/Interest
     const inflation = distributions.inflationAssumption;
     if (!inflation.type) {
