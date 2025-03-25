@@ -432,11 +432,31 @@ router.post("/investments/:scenarioId", async (req, res) => {
                     }
                 }
             } else {
+                let currentInvestmentType = null;
+                for (let type of scenario.investmentTypes) {
+                    for (let inv of type.investments) {
+                        if (inv._id.toString() === investment.id) {
+                            currentInvestmentType = type.name;
+                            break;
+                        }
+                    }
+                }
+                if (currentInvestmentType !== investment.type) {
+                    const currentType = scenario.investmentTypes.find(type => type.name === currentInvestmentType);
+                    const newType = scenario.investmentTypes.find(type => type.name === investment.type);
+                    await investmentTypeController.update(currentType._id, {
+                        $pull: { investments: investment.id }
+                    });
+                    await investmentTypeController.update(newType._id, {
+                        $push: { investments: investment.id }
+                    });
+                }
                 await investmentController.update(investment.id, {
                     value: investment.dollarValue,
                     taxStatus: taxStatusMap[investment.taxStatus]
                 });
             }
+
         }
         return res.status(200).send("Investments updated.");
     } catch (error) {
