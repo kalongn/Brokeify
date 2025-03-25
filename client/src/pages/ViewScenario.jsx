@@ -1,4 +1,5 @@
-//import { CgMenuGridO } from "react-icons/cg";
+/** Referenced ChatGPT to generate a part of the design of this code.**/
+import { CgMenuGridO } from "react-icons/cg";
 import { BsToggleOn } from "react-icons/bs";
 import { BsToggleOff } from "react-icons/bs";
 import { BiSolidCircle } from "react-icons/bi";
@@ -113,7 +114,7 @@ const ViewScenario = () => {
     });
   }, [scenarioId]);
 
-  
+
 
   return (
     <Layout>
@@ -122,18 +123,18 @@ const ViewScenario = () => {
           :
           <div className={styles.sections}>
             <h2>Basic Information</h2>
-                
+
             <p className={styles.question}>Scenario Name</p>
-            <div className={styles.textbox}>{scenarioData.name}</div>
+            <div className={styles.textbox}>{scenarioData.name || "N/A"}</div>
 
             <div className={styles.columns}>
               <div className={styles.columnsp1}>
                 <p className={styles.question}>First Name</p>
-                <div className={styles.textbox}>{scenarioData.firstName}</div>
+                <div className={styles.textbox}>{scenarioData.ownerFirstName}</div>
               </div>
               <div className={styles.columnsp2}>
                 <p className={styles.question}>Last Name</p>
-                <div className={styles.textbox}>{scenarioData.lastName}</div>
+                <div className={styles.textbox}>{scenarioData.ownerLastName}</div>
               </div>
             </div>
 
@@ -169,7 +170,7 @@ const ViewScenario = () => {
               <div className={styles.columnsp1}>
                 <p className={styles.question}>Your Life Expectancy</p>
                 {
-                  scenarioData.userLifeExpectancyDistribution.distributionType === "NORMAL_AMOUNT" ? (
+                  scenarioData.userLifeExpectancyDistribution?.distributionType === "NORMAL_AMOUNT" ? (
                     <>
                       <div>
                         <BiCircle /> <span> Fixed Value</span>
@@ -190,7 +191,7 @@ const ViewScenario = () => {
                       <div>
                         <BiCircle /> <span> Sample from Normal Distribution</span>
                       </div>
-                      Value: <div className={styles.textbox}>{scenarioData.userLifeExpectancyDistribution.value}</div>
+                      Value: <div className={styles.textbox}>{scenarioData.userLifeExpectancyDistribution?.value}</div>
                     </>
                   )
                 }
@@ -201,7 +202,7 @@ const ViewScenario = () => {
                 <div className={styles.columnsp2}>
                   <p className={styles.question}>Spouse Life Expectancy</p>
                   {
-                    scenarioData.spouseLifeExpectancyDistribution.distributionType === "NORMAL_AMOUNT" ? (
+                    scenarioData.spouseLifeExpectancyDistribution?.distributionType === "NORMAL_AMOUNT" ? (
                       <>
                         <div>
                           <BiCircle /> <span> Fixed Value</span>
@@ -270,7 +271,7 @@ const ViewScenario = () => {
             <h2>Inflation & Contribution Limits</h2>
             <p className={styles.question}>Inflation Assumption</p>
             {
-              scenarioData.inflationAssumptionDistribution.distributionType === "NORMAL_PERCENTAGE" ? (
+              scenarioData.inflationAssumptionDistribution?.distributionType === "NORMAL_PERCENTAGE" ? (
                 <>
                   <div>
                     <BiCircle /> <span> Fixed Percentage</span>
@@ -286,7 +287,7 @@ const ViewScenario = () => {
                 </>
               ) :
 
-                scenarioData.inflationAssumptionDistribution.distributionType === "UNIFORM_PERCENTAGE" ? (
+                scenarioData.inflationAssumptionDistribution?.distributionType === "UNIFORM_PERCENTAGE" ? (
                   <>
                     <div>
                       <BiCircle /> <span> Fixed Percentage</span>
@@ -312,7 +313,7 @@ const ViewScenario = () => {
                       <div>
                         <BiCircle /><span> Sample from Uniform Distribution</span>
                       </div>
-                      Percentage: <div className={styles.textbox}>{scenarioData.inflationAssumptionDistribution.value}</div>
+                      Percentage: <div className={styles.textbox}>{scenarioData.inflationAssumptionDistribution?.value}</div>
                     </>
                   )
             }
@@ -334,6 +335,7 @@ const ViewScenario = () => {
               {orderedSpendingStrategy.map((strategy, index) => (
                 <div key={index} className={styles.draggableItem}>
                   <div className={styles.icon}>
+                    <CgMenuGridO size={20} />
                     <span className={styles.draggableItemText}>{strategy.name}</span>
                   </div>
                 </div>
@@ -349,7 +351,7 @@ const ViewScenario = () => {
               {orderedExpenseWithdrawalStrategy.map((strategy, index) => (
                 <div key={index} className={styles.draggableItem}>
                   <div className={styles.icon}>
-                    
+                    <CgMenuGridO size={20} />
                     <p className={styles.draggableItemText}>{strategy.name}</p>
                   </div>
                   <p className={styles.lightText}> Value: {strategy.value} </p>
@@ -368,7 +370,7 @@ const ViewScenario = () => {
             {orderedRMDStrategy?.map((strategy, index) => (
               <div key={index} className={styles.draggableItem}>
                 <div className={styles.icon}>
-                  
+                  <CgMenuGridO size={20} />
                   <p className={styles.draggableItemText}>{strategy.name}</p>
                 </div>
                 <p className={styles.lightText}> Value: {strategy.value} </p>
@@ -386,7 +388,7 @@ const ViewScenario = () => {
             {orderedRothStrategy?.map((strategy, index) => (
               <div key={index} className={styles.draggableItem}>
                 <div className={styles.icon}>
-                  
+                  <CgMenuGridO size={20} />
                   <p className={styles.draggableItemText}>{strategy.name}</p>
                 </div>
                 <p className={styles.lightText}> Value: {strategy.value} </p>

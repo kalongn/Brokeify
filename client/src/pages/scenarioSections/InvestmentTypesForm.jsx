@@ -1,27 +1,43 @@
-import { useState, useImperativeHandle } from "react";
+import { useState, useEffect, useImperativeHandle } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
+import Axios from "axios";
+
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
 
 const InvestmentTypesForm = () => {
-  // Get ref from the context 
-  const { childRef } = useOutletContext();
+  // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
+  const navigate = useNavigate();
+  const { childRef, scenarioId } = useOutletContext();
+  const [distributions, setDistributions] = useState({
+    expectedAnnualReturn: { type: "", fixedValue: "", isPercentage: false, mean: "", stdDev: "" },
+    expectedDividendsInterest: { type: "", fixedValue: "", isPercentage: false, mean: "", stdDev: "" },
+  });
+  const [formData, setFormData] = useState({
+    investmentType: null,
+    description: null,
+    expectedAnnualReturn: distributions.expectedAnnualReturn,
+    expenseRatio: null,
+    expectedDividendsInterest: distributions.expectedDividendsInterest,
+    taxability: null,
+  });
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      expectedAnnualReturn: distributions.expectedAnnualReturn,
+      expectedDividendsInterest: distributions.expectedDividendsInterest
+    }));
+  }, [distributions]);
+
   // Expose the validateFields function to the parent component
   useImperativeHandle(childRef, () => ({
     handleSubmit,
   }));
 
-  // Add error state
-  const [errors, setErrors] = useState({});
-
-  // Determine if what distribution fields are shown and contain values for backend
-  // Based on the type field, only the relevant fields should be read
-  const [distributions, setDistributions] = useState({
-    expectedAnnualReturn: { type: "", fixedValue: "", isPercentage: false, mean: "", stdDev: "" },
-    expectedDividendsInterest: { type: "", fixedValue: "", isPercentage: false, mean: "", stdDev: "" },
-  });
-
+  // Below handler copied and pasted from AI code generation from BasicInfo.jsx
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
@@ -38,15 +54,7 @@ const InvestmentTypesForm = () => {
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
-  const [formData, setFormData] = useState({
-    investmentType: null,
-    description: null,
-    expectedAnnualReturn: distributions.expectedAnnualReturn,
-    expenseRatio: null,
-    expectedDividendsInterest: distributions.expectedDividendsInterest,
-    taxability: null,
-  });
-
+  // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
   const handleChange = (e) => {
     const { name, value } = e.target;
     // Check if name is a number field and parse if so
@@ -56,12 +64,14 @@ const InvestmentTypesForm = () => {
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
-  const navigate = useNavigate();
   const handleNavigate = () => {
-    navigate("/ScenarioForm/investment-types");
+    navigate(`/ScenarioForm/${scenarioId}/investment-types`);
   };
+
   const validateFields = () => {
     const newErrors = {};
+    // Field validation from AI code generation using same prompt (and in-line help) as in BasicInfo.jsx
+    // Further modifications were similarly necessary especially for the distributions
 
     // Validate investment type name
     if (!formData.investmentType?.trim()) {
@@ -134,12 +144,37 @@ const InvestmentTypesForm = () => {
     // Everything is valid if there are no error messages
     return Object.keys(newErrors).length === 0;
   };
-  const handleSubmit = () => {
+
+  const uploadToBackEnd = async () => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    const data = {
+      name: formData.investmentType,
+      description: formData.description,
+      expectedAnnualReturn: distributions.expectedAnnualReturn,
+      expenseRatio: formData.expenseRatio,
+      expectedDividendsInterest: distributions.expectedDividendsInterest,
+      taxability: formData.taxability === "taxable",
+    };
+
+    try {
+      const response = await Axios.post(`/investmentType/${scenarioId}`, data);
+      console.log(response.data);
+      handleNavigate();
+    } catch (error) {
+      console.error('Error creating investment type:', error); //TODO: handle error on duplicate Investment Type name
+      return false;
+    }
+  }
+
+  const handleSubmit = async () => {
     if (!validateFields()) {
       return;
     }
-    handleNavigate();
+    await uploadToBackEnd();
   };
+
   return (
     <div id={styles.newItemContainer}>
       <h2>New Investment Type</h2>

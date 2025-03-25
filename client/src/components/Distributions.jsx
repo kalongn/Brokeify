@@ -10,6 +10,7 @@ const Distributions = ({
   value,
   onChange,
   fixedLabel = "Fixed Value",
+  defaultValue = {}, // Default value for the select input (if any)
 }) => {
   // isPercentage is for fixed value
   // Pass the name of the label, name of form field, input value of the field, and isPercentage to the parent
@@ -35,6 +36,7 @@ const Distributions = ({
               type="radio"
               name={name}
               value="fixed"
+              checked={value === "fixed"}
               onChange={(e) => handleInputChange("type", e.target.value)}
             />
             {fixedLabel}
@@ -57,6 +59,7 @@ const Distributions = ({
               type="radio"
               name={name}
               value="normal"
+              checked={value === "normal"}
               onChange={(e) => handleInputChange("type", e.target.value)}
             />
             Sample from Normal Distribution
@@ -97,6 +100,7 @@ const Distributions = ({
               name={`${name}Fixed`}
               className={styles.newline}
               min="1"
+              defaultValue={defaultValue.fixedValue}
               onChange={(e) => handleInputChange("fixedValue", e.target.value)}
             />
           </label>
@@ -113,52 +117,63 @@ const Distributions = ({
         </>
       )}
       {value === "uniform" && (
-          <div className={styles.columns}>
-            <label className={styles.newline}>
-              Lower Bound
-              <br />
-              <input
-                type="number"
-                name={`${name}Lower`}
-                min="0"
-                onChange={(e) => handleInputChange("lowerBound", e.target.value)}
-              />
-            </label>
-            <label>
-              Upper Bound
-              <br />
-              <input
-                type="number"
-                name={`${name}Upper`}
-                min="0"
-                onChange={(e) => handleInputChange("upperBound", e.target.value)}
-              />
-            </label>
-          </div>
+        <div className={styles.columns}>
+          <label className={styles.newline}>
+            Lower Bound
+            <br />
+            <input
+              type="number"
+              name={`${name}Lower`}
+              min="0"
+              onChange={(e) => handleInputChange("lowerBound", e.target.value)}
+            />
+          </label>
+          <label>
+            Upper Bound
+            <br />
+            <input
+              type="number"
+              name={`${name}Upper`}
+              min="0"
+              onChange={(e) => handleInputChange("upperBound", e.target.value)}
+            />
+          </label>
+        </div>
       )}
       {value === "normal" && (
-          <div className={styles.columns}>
-            <label className={styles.newline}>
-              Mean
-              <br />
-              <input
-                type="number"
-                name={`${name}Mean`}
-                min="1"
-                onChange={(e) => handleInputChange("mean", e.target.value)}
-              />
-            </label>
-            <label>
-              Standard Deviation
-              <br />
-              <input
-                type="number"
-                name={`${name}StdDev`}
-                min="0"
-                onChange={(e) => handleInputChange("stdDev", e.target.value)}
-              />
-            </label>
-          </div>
+        <div className={styles.columns}>
+          <label className={styles.newline}>
+            Mean
+            <br />
+            <input
+              type="number"
+              name={`${name}Mean`}
+              min="1"
+              defaultValue={defaultValue.mean}
+              onChange={(e) => handleInputChange("mean", e.target.value)}
+            />
+          </label>
+          <label>
+            Standard Deviation
+            <br />
+            <input
+              type="number"
+              name={`${name}StdDev`}
+              min="0"
+              defaultValue={defaultValue.stdDev}
+              onChange={(e) => handleInputChange("stdDev", e.target.value)}
+            />
+          </label>
+          {fixedLabel === "Fixed Value or Percentage" && (<label>
+            <input
+              type="checkbox"
+              name={`${name}Percent`}
+              onChange={(e) => handleInputChange("isPercentage", e.target.checked)}
+            />
+            Percentage
+          </label>
+          )}
+        </div>
       )}
       {(value === "eventStart" || value === "eventEnd") && (
         <label className={styles.newline}>
@@ -174,7 +189,8 @@ const Distributions = ({
   );
 };
 
-// PropTypes validation
+// Prompt to AI (Amazon Q): Pasted the error ___ is missing in props validation
+// No changes made
 Distributions.propTypes = {
   label: PropTypes.string.isRequired,
   options: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -182,6 +198,7 @@ Distributions.propTypes = {
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   fixedLabel: PropTypes.string,
+  defaultValue: PropTypes.object
 };
 
 export default Distributions;

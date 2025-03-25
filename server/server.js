@@ -6,6 +6,19 @@ import passport from 'passport';
 import MongoStore from 'connect-mongo';
 import 'dotenv/config'
 
+/*
+    AI generated code usage here
+
+    Context: this file contains all the route and google authentication setup for the server all in here
+    we dislike the lack of organization. So I provide this file as context to Copilot and prompt it "
+    refactor this code to be more organized and modular, separating the concerns of route handling and authentication setup
+    into their own files.
+    
+    Result: It generated 2 new file `routes/index.js` and `auth/google.js` to handle the routes and google authentication setup respectively
+    and imported them into this file to keep the server.js file clean and organized.
+    The routes/index.js file contains all the route handling logic and the auth/google.js file contains the google authentication setup
+    This is a good example of how AI can help with code organization and modularization, making it easier to maintain and understand"
+*/
 import './auth/google.js'; // Import the Google OAuth configuration
 import routes from './routes/index.js'; // Import the routes
 

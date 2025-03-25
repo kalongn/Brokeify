@@ -7,6 +7,8 @@ import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
 
 const EventSeriesForm = () => {
+  // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
+
   // Get ref from the context 
   const { childRef } = useOutletContext();
   // Expose the handleSubmit function to the parent component
@@ -66,6 +68,7 @@ const EventSeriesForm = () => {
     expectedAnnualChange: { type: null, fixedValue: null, lowerBound: null, upperBound: null, mean: null, stdDev: null },
   });
 
+  // Below handler copied and pasted from AI code generation from BasicInfo.jsx
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
@@ -80,6 +83,11 @@ const EventSeriesForm = () => {
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
+
+  // Prompt for AI (Amazon Q): I have a table with 3 or 4 input fields when 
+  // add button is clicked a new row with all the input fields should be added to the table.
+  // The number of input fields are dependent on the allocation method.
+  // There were no changes needed for the generated code.
 
   // InvestmentRow functions are for invest and rebalance types
   const handleInvestmentRowChange = (index, field, value) => {
@@ -124,11 +132,11 @@ const EventSeriesForm = () => {
     isAdjustInflation: null,
     allocationMethod: null,
     taxStatus: null,
-    // percentage, initialPercentage, and finalPercentage are not in the initial states
     investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }],
     maxCash: null
   });
 
+  // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
   const handleChange = (e) => {
     const { name, value } = e.target;
     // Check if name is a number field and parse if so
@@ -152,6 +160,9 @@ const EventSeriesForm = () => {
   };
   const validateFields = () => {
     const newErrors = {};
+
+    // Field validation from AI code generation using same prompt (and in-line help) as in BasicInfo.jsx
+    // Further modifications were similarly necessary especially for the distributions
 
     // Validate required basic fields
     if (!formData.eventSeriesName?.trim()) {

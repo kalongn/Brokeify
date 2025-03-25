@@ -1,9 +1,12 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation, useParams } from "react-router-dom";
 import { useRef } from "react";
 import Layout from "../components/Layout";
 import styles from "./ScenarioForm.module.css";
 
 const ScenarioForm = () => {
+
+  const { scenarioId } = useParams(); // Get the scenario ID from the URL params
+
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
@@ -31,7 +34,7 @@ const ScenarioForm = () => {
 
   const handleNextSave = () => {
     if (currentSectionIndex < sections.length - 1) {
-      navigate(`/ScenarioForm/${sections[currentSectionIndex + 1].path}`);
+      navigate(`/ScenarioForm/${scenarioId}/${sections[currentSectionIndex + 1].path}`);
     }
     else {
       navigate(`/Home`);
@@ -39,15 +42,15 @@ const ScenarioForm = () => {
   };
 
   const handleBack = () => {
-    navigate(`/ScenarioForm/${sections[currentSectionIndex - 1].path}`);
+    navigate(`/ScenarioForm/${scenarioId}/${sections[currentSectionIndex - 1].path}`);
   };
 
   // Next/Save button acts as submission button
   // Must const handleSubmit in child component
-  const handleSectionSubmit = () => {
+  const handleSectionSubmit = async () => {
     // console.log(childRef.current);
     if (childRef.current) {
-      if(!childRef.current.handleSubmit()) {
+      if (!await childRef.current.handleSubmit()) {
         return;
       }
     }
@@ -59,11 +62,13 @@ const ScenarioForm = () => {
     <Layout>
       <div id={styles.formBackground}>
         <div id={styles.formSection}>
-          {/* Render the current section and pass the childRef */}
-          <Outlet context={{ childRef }} />
-
+          <Outlet context={{ childRef, scenarioId }} />
           {/* Navigation buttons */}
           {/* Only appears if not creating a new investment type or event series */}
+          {/* 
+            Prompt to AI (Copilot): Create navigation buttons to go between sections
+            Generated code worked and only condensed Next and Save & Close buttons code
+           */}
           {!path.includes("new") && <div id={styles.navButtons}>
             <button
               className={styles.deemphasizedButton}

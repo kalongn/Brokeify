@@ -1,25 +1,114 @@
-import { useState, useImperativeHandle } from "react";
+import { useState, useImperativeHandle, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import Select from "react-select";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
+import Axios from "axios";
 
 // TODO: add scenario name validation (no duplicates at the very least)
 
 const BasicInfo1 = () => {
+  // Prompt to AI (Amazon Q): I want field validation in the children and the submit button is in the parent
+  // It took multiple rounds of prompts and adding context to get the solution with useOutletContext and useImperativeHandler
+
   // Get ref from the context 
-  const { childRef } = useOutletContext();
+  const { childRef, scenarioId } = useOutletContext();
   // Expose the validateFields function to the parent component
+
+  // Determine if what distribution fields are shown and contain values for backend
+  // Based on the type field, only the relevant fields should be read
+  const [distributions, setDistributions] = useState({
+    lifeExpectancy: { type: null, fixedValue: null, mean: null, stdDev: null },
+    spouseLifeExpectancy: { type: null, fixedValue: null, mean: null, stdDev: null },
+  });
+  const [formData, setFormData] = useState({
+    name: null,
+    financialGoal: null,
+    state: null,
+    maritalStatus: null,
+    birthYear: null,
+    lifeExpectancy: distributions.lifeExpectancy,
+    spouseBirthYear: null,
+    spouseLifeExpectancy: distributions.spouseLifeExpectancy,
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Initialize formData with default values for the scenario
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    const distributionMap = {
+      "FIXED_AMOUNT": "fixed",
+      "NORMAL_AMOUNT": "normal",
+    }
+
+    const maritalStatusMap = {
+      "SINGLE": "single",
+      "MARRIEDJOINT": "married",
+    }
+
+    Axios.get(`/basicInfo/${scenarioId}`)
+      .then((response) => {
+        const data = response.data;
+
+        const lifeExpectancyCast = {
+          type: distributionMap[data.lifeExpectancy?.distributionType] || null,
+          fixedValue: data.lifeExpectancy?.value || null,
+          mean: data.lifeExpectancy?.mean || null,
+          stdDev: data.lifeExpectancy?.standardDeviation || null
+        }
+
+        const spouseLifeExpectancyCast = {
+          type: distributionMap[data.spouseLifeExpectancy?.distributionType] || null,
+          fixedValue: data.spouseLifeExpectancy?.value || null,
+          mean: data.spouseLifeExpectancy?.mean || null,
+          stdDev: data.spouseLifeExpectancy?.standardDeviation || null
+        }
+
+        setDistributions((prev) => ({
+          ...prev,
+          lifeExpectancy: lifeExpectancyCast || prev.lifeExpectancy,
+          spouseLifeExpectancy: spouseLifeExpectancyCast || prev.spouseLifeExpectancy
+        }));
+
+        setFormData((prev) => ({
+          ...prev,
+          name: data.name || prev.name,
+          financialGoal: data.financialGoal || prev.financialGoal,
+          state: data.state || prev.state,
+          maritalStatus: maritalStatusMap[data.maritalStatus] || prev.maritalStatus,
+          birthYear: data.birthYear || prev.birthYear,
+          spouseBirthYear: data.spouseBirthYear || prev.spouseBirthYear,
+          lifeExpectancy: data.lifeExpectancy || prev.lifeExpectancy,
+          spouseLifeExpectancy: data.spouseLifeExpectancy || prev.spouseLifeExpectancy
+        }));
+      }).catch((error) => {
+        console.error("Error fetching basic info:", error);
+      });
+
+    setLoading(false);
+  }, [scenarioId]);
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      lifeExpectancy: distributions.lifeExpectancy,
+      spouseLifeExpectancy: distributions.spouseLifeExpectancy
+    }));
+  }, [distributions]);
+
   useImperativeHandle(childRef, () => ({
     handleSubmit,
   }));
   // For error validation
-  const [errors, setErrors] = useState({});
   // For parsing to number
   const FIELD_TYPES = {
     NUMBER: new Set(["financialGoal", "birthYear", "spouseBirthYear"]),
   };
 
+  // AI (Amazon Q) In-line code generation for list of states
   const states = [
     { value: "AL", label: "Alabama" },
     { value: "AK", label: "Alaska" },
@@ -73,13 +162,8 @@ const BasicInfo1 = () => {
     { value: "WY", label: "Wyoming" }
   ];
 
-  // Determine if what distribution fields are shown and contain values for backend
-  // Based on the type field, only the relevant fields should be read
-  const [distributions, setDistributions] = useState({
-    lifeExpectancy: { type: null, fixedValue: null, mean: null, stdDev: null },
-    spouseLifeExpectancy: { type: null, fixedValue: null, mean: null, stdDev: null },
-  });
-
+  // Prompt to AI (Amazon Q): How do I get the form fields for the distributions to save to the distributions data set?
+  // There were no changes needed for this code snippet
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
@@ -95,18 +179,9 @@ const BasicInfo1 = () => {
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
-  const [formData, setFormData] = useState({
-    name: null,
-    financialGoal: null,
-    state: null,
-    maritalStatus: null,
-    birthYear: null,
-    lifeExpectancy: distributions.lifeExpectancy,
-    spouseBirthYear: null,
-    spouseLifeExpectancy: distributions.spouseLifeExpectancy,
-  });
-
-  const handleChange = (e) => {
+  // Prompt to AI (Amazon Q): How do I get the form fields for the fields to be saved? Number fields should be parsed to numbers
+  // There were no changes needed for both the handlers below
+  const handleTextChange = (e) => {
     const { name, value } = e.target;
     // Check if name is a number field and parse if so
     let processedValue = value;
@@ -132,7 +207,7 @@ const BasicInfo1 = () => {
     const requiredFields = ['name', 'financialGoal', 'state', 'maritalStatus', 'birthYear', 'lifeExpectancy'];
     requiredFields.forEach(field => {
       if (formData[field] === null || formData[field] === undefined || formData[field] === "") {
-          newErrors[field] = "This field is required";
+        newErrors[field] = "This field is required";
       }
       else {
         // Adds errors for distribution fields
@@ -141,6 +216,11 @@ const BasicInfo1 = () => {
         }
       }
     });
+
+    // Prompt to AI (Amazon Q): Write error checking to see if the values are non-negative. All of the fields are required.
+    // Additionally, some minor AI (Amazon Q) in-line code generation (e.g. completing error message)
+    // The generation worked well as a skeleton but the logic needed to be refined for each  field
+
     // Validate financial goal
     if (formData.financialGoal < 0) {
       newErrors.financialGoal = "Financial goal must be non-negative";
@@ -184,10 +264,9 @@ const BasicInfo1 = () => {
       }
       // Validate spouse life expectancy distribution
       const sLife = distributions.spouseLifeExpectancy;
-      if(!sLife.type) {
+      if (!sLife.type) {
         newErrors.spouseLifeExpectancy = "This field is required";
       }
-      console.log(sLife);
       if (sLife.type === "fixed") {
         if (!sLife.fixedValue) {
           newErrors.spouseLifeExpectancy = "Fixed spouse life expectancy value is required";
@@ -213,102 +292,154 @@ const BasicInfo1 = () => {
     // Everything is valid if there are no error messages
     return Object.keys(newErrors).length === 0;
   };
-  const handleSubmit = () => {
-    return validateFields();
+
+  const uploadToBackend = async () => {
+    const distributionMap = {
+      "fixed": "FIXED_AMOUNT",
+      "normal": "NORMAL_AMOUNT",
+    }
+
+    const maritalStatusMap = {
+      "single": "SINGLE",
+      "married": "MARRIEDJOINT",
+    }
+
+    const lifeExpectancyCast = {
+      distributionType: distributionMap[distributions.lifeExpectancy.type],
+      ...(distributions.lifeExpectancy.type === "fixed" && { value: distributions.lifeExpectancy.fixedValue }),
+      ...(distributions.lifeExpectancy.type === "normal" && { mean: distributions.lifeExpectancy.mean, standardDeviation: distributions.lifeExpectancy.stdDev })
+    }
+
+    const spouseLifeExpectancyCast = {
+      distributionType: distributionMap[distributions.spouseLifeExpectancy.type],
+      ...(distributions.spouseLifeExpectancy.type === "fixed" && { value: distributions.spouseLifeExpectancy.fixedValue }),
+      ...(distributions.spouseLifeExpectancy.type === "normal" && { mean: distributions.spouseLifeExpectancy.mean, standardDeviation: distributions.spouseLifeExpectancy.stdDev })
+    }
+
+    const data = {
+      name: formData.name,
+      financialGoal: formData.financialGoal,
+      state: formData.state,
+      maritalStatus: maritalStatusMap[formData.maritalStatus],
+      birthYear: formData.birthYear,
+      lifeExpectancy: lifeExpectancyCast,
+      spouseBirthYear: formData.maritalStatus === "single" ? undefined : formData.spouseBirthYear,
+      spouseLifeExpectancy: formData.maritalStatus === "single" ? undefined : spouseLifeExpectancyCast,
+    };
+
+    try {
+      const response = await Axios.post(`/basicInfo/${scenarioId}`, data);
+      console.log(response.data);
+      return true;
+    } catch (error) {
+      console.error("Error uploading basic info:", error);
+      return false;
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!validateFields()) {
+      return false;
+    }
+    return await uploadToBackend();
   };
 
   // TODO: apply the heading style to all other section components
   return (
     <div id={styles.formSection}>
       <h2 id={styles.heading}>Basic Information</h2>
-      <form>
-        <label>
-          Scenario Name
-          <input
-            type="text"
-            name="name"
-            className={styles.newline}
-            onChange={handleChange}
-            required
-          />
-          {errors.name && <span className={styles.error}>{errors.name}</span>}
-        </label>
-        <label>
-          Financial Goal
-          <p className={styles.description}>
-            Specify a non-negative number representing the desired yearly
-            minimum total value of your investments.
-          </p>
-          <div className={`${styles.moneyInputContainer} ${styles.shortInput}`}>
-            <input type="number" name="financialGoal" min="0" onChange={handleChange} />
-          </div>
-          {errors.financialGoal && <span className={styles.error}>{errors.financialGoal}</span>}
-        </label>
-        <label className={styles.newline}>
-          State of Residence
-          <Select id="state" options={states} className={`${styles.shortInput} ${styles.select}`} onChange={handleSelectChange} />
-          {errors.state && <span className={styles.error}>{errors.state}</span>}
-        </label>
-        <label className={styles.newline}>
-          Martial Status
-        </label>
-        <div className={styles.radioButtonContainer}>
-          <label className={styles.radioButton}>
+      {loading ? <div> Loading...</div> :
+        <form>
+          <label>
+            Scenario Name
             <input
-              type="radio"
-              name="maritalStatus"
-              value="single"
-              onChange={handleChange}
+              type="text"
+              name="name"
+              className={styles.newline}
+              onChange={handleTextChange}
+              defaultValue={formData.name || undefined}
+              required
             />
-            Single
+            {errors.name && <span className={styles.error}>{errors.name}</span>}
           </label>
-          <label className={styles.radioButton}>
-            <input
-              type="radio"
-              name="maritalStatus"
-              value="married"
-              onChange={handleChange}
-            />
-            Married
+          <label>
+            Financial Goal
+            <p className={styles.description}>
+              Specify a non-negative number representing the desired yearly
+              minimum total value of your investments.
+            </p>
+            <div className={`${styles.moneyInputContainer} ${styles.shortInput}`}>
+              <input type="number" name="financialGoal" min="0"
+                defaultValue={formData.financialGoal || undefined} onChange={handleTextChange} />
+            </div>
+            {errors.financialGoal && <span className={styles.error}>{errors.financialGoal}</span>}
           </label>
-          {errors.maritalStatus && <span className={styles.error}>{errors.maritalStatus}</span>}
-        </div>
-        <div className={styles.columns}>
-          <div>
-            <label className={styles.newline}>
-              Your Birth Year
-              <input type="number" name="birthYear" onChange={handleChange} />
-              {errors.birthYear && <span className={styles.error}>{errors.birthYear}</span>}
+          <label className={styles.newline}>
+            State of Residence
+            <Select options={states} className={`${styles.shortInput} ${styles.select}`} onChange={handleSelectChange}
+              value={states.find(state => state.value === formData.state) || undefined} />
+            {errors.state && <span className={styles.error}>{errors.state}</span>}
+          </label>
+          <label className={styles.newline}>
+            Martial Status
+          </label>
+          <div className={styles.radioButtonContainer}>
+            <label className={styles.radioButton}>
+              <input
+                type="radio"
+                checked={formData.maritalStatus === "single"}
+                onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "single" }))}
+              />
+              Single
             </label>
-            <Distributions
-              label="Your Life Expectancy"
-              options={["fixed", "normal"]}
-              name="lifeExpectancy"
-              value={distributions.lifeExpectancy.type}
-              onChange={handleDistributionsChange}
-            />
-            {errors.lifeExpectancy && <span className={styles.error}>{errors.lifeExpectancy}</span>}
-          </div>
-          {formData.maritalStatus === "married" && <div>
-            <label className={styles.newline}>
-              Spouse Birth Year
-              <input type="number" name="spouseBirthYear" onChange={handleChange} />
-              {errors.spouseBirthYear && <span className={styles.error}>{errors.spouseBirthYear}</span>}
+            <label className={styles.radioButton}>
+              <input
+                type="radio"
+                checked={formData.maritalStatus === "married"}
+                onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "married" }))}
+              />
+              Married
             </label>
-            <Distributions
-              label="Spouse Life Expectancy"
-              options={["fixed", "normal"]}
-              name="spouseLifeExpectancy"
-              value={distributions.spouseLifeExpectancy.type}
-              onChange={handleDistributionsChange}
-              fixedLabel={"Fixed Value"}
-            />
-            {errors.spouseLifeExpectancy && <span className={styles.error}>{errors.spouseLifeExpectancy}</span>}
+            {errors.maritalStatus && <span className={styles.error}>{errors.maritalStatus}</span>}
           </div>
-          }
-        </div>
-        <br />
-      </form>
+          <div className={styles.columns}>
+            <div>
+              <label className={styles.newline}>
+                Your Birth Year
+                <input type="number" name="birthYear" onChange={handleTextChange} defaultValue={formData.birthYear} />
+                {errors.birthYear && <span className={styles.error}>{errors.birthYear}</span>}
+              </label>
+              <Distributions
+                label="Your Life Expectancy"
+                options={["fixed", "normal"]}
+                name="lifeExpectancy"
+                value={distributions.lifeExpectancy.type}
+                onChange={handleDistributionsChange}
+                defaultValue={distributions.lifeExpectancy}
+              />
+              {errors.lifeExpectancy && <span className={styles.error}>{errors.lifeExpectancy}</span>}
+            </div>
+            {formData.maritalStatus === "married" && <div>
+              <label className={styles.newline}>
+                Spouse Birth Year
+                <input type="number" name="spouseBirthYear" onChange={handleTextChange} defaultValue={formData.spouseBirthYear} />
+                {errors.spouseBirthYear && <span className={styles.error}>{errors.spouseBirthYear}</span>}
+              </label>
+              <Distributions
+                label="Spouse Life Expectancy"
+                options={["fixed", "normal"]}
+                name="spouseLifeExpectancy"
+                value={distributions.spouseLifeExpectancy.type}
+                onChange={handleDistributionsChange}
+                fixedLabel={"Fixed Value"}
+                defaultValue={distributions.spouseLifeExpectancy}
+              />
+              {errors.spouseLifeExpectancy && <span className={styles.error}>{errors.spouseLifeExpectancy}</span>}
+            </div>
+            }
+          </div>
+          <br />
+        </form>}
     </div>
   );
 };
