@@ -106,12 +106,14 @@ router.get("/profile", async (req, res) => {
 
 // Scenario Form
 
+// Permission verifier
 const canEdit = async (userId, scenarioId) => {
     const user = await userController.read(userId);
     return user.ownerScenarios.some(scenario => scenario._id.toString() === scenarioId) ||
         user.editorScenarios.some(scenario => scenario._id.toString() === scenarioId);
 }
 
+// create new default scenario
 router.post("/newScenario", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
@@ -144,6 +146,7 @@ router.post("/newScenario", async (req, res) => {
     }
 });
 
+// obtain the basic info of the scenario
 router.get("/basicInfo/:scenarioId", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
@@ -173,6 +176,8 @@ router.get("/basicInfo/:scenarioId", async (req, res) => {
     }
 });
 
+
+// update the basic info of the scenario, (created if part of the basic info is missing)
 router.post("/basicInfo/:scenarioId", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
@@ -234,6 +239,7 @@ router.post("/basicInfo/:scenarioId", async (req, res) => {
     }
 });
 
+// obtain the investment types of the scenario
 router.get("/investmentTypes/:scenarioId", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
@@ -261,6 +267,7 @@ router.get("/investmentTypes/:scenarioId", async (req, res) => {
     }
 });
 
+// create a new investment type for the scenario
 router.post("/investmentType/:scenarioId", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
@@ -344,6 +351,96 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
         console.error("Error in investment type route:", error);
         return res.status(500).send("Error retrieving investment type.");
     }
+});
+
+// obtain all the investments of the scenario
+router.get("/investments/:scenarioId", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+        if (!await canEdit(userId, id)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
+        }
+
+        const taxStatusMap = {
+            "CASH": "Cash",
+            "NON_RETIREMENT": "Non-Retirement",
+            "PRE_TAX_RETIREMENT": "Pre-Tax Retirement",
+            "AFTER_TAX_RETIREMENT": "After-Tax Retirement",
+        }
+
+        const scenario = await scenarioController.readWithPopulate(id);
+        const investments = scenario.investmentTypes.flatMap(type => {
+            return type.investments.map(investment => {
+                return {
+                    id: investment._id,
+                    type: type.name,
+                    dollarValue: investment.value,
+                    taxStatus: taxStatusMap[investment.taxStatus]
+                }
+            });
+        });
+        return res.status(200).send(investments);
+    } catch (error) {
+        console.error("Error in investments route:", error);
+        return res.status(500).send("Error retrieving investments.");
+    }
+});
+
+// update the investments of the scenario
+router.post("/investments/:scenarioId", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+        if (!await canEdit(userId, id)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
+        }
+
+        const taxStatusMap = {
+            "Cash": "CASH",
+            "Non-Retirement": "NON_RETIREMENT",
+            "Pre-Tax Retirement": "PRE_TAX_RETIREMENT",
+            "After-Tax Retirement": "AFTER_TAX_RETIREMENT",
+        }
+
+        const scenario = await scenarioController.readWithPopulate(id);
+        const { investments } = req.body;
+
+        for (let investment of investments) {
+            if (investment.id === undefined) {
+                const investmentDB = await investmentController.create({
+                    value: investment.dollarValue,
+                    taxStatus: taxStatusMap[investment.taxStatus]
+                });
+
+                for (let type of scenario.investmentTypes) {
+                    if (type.name === investment.type) {
+                        await investmentTypeController.update(type._id, {
+                            $push: { investments: investmentDB._id }
+                        });
+                        break;
+                    }
+                }
+            } else {
+                await investmentController.update(investment.id, {
+                    value: investment.dollarValue,
+                    taxStatus: taxStatusMap[investment.taxStatus]
+                });
+            }
+        }
+        return res.status(200).send("Investments updated.");
+    } catch (error) {
+        console.error("Error in investments route:", error);
+        return res.status(500).send("Error updating investments.");
+    }
+
+
 });
 
 export default router;

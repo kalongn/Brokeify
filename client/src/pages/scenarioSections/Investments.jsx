@@ -1,55 +1,55 @@
 import { useState, useEffect, useImperativeHandle } from "react";
-import { useOutletContext } from "react-router-dom"; import Select from "react-select";
+import { useOutletContext } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
+import Axios from 'axios';
+import Select from "react-select";
+
 import styles from "./Form.module.css";
 
 const Investments = () => {
-  // Get ref from the context 
-  const { childRef } = useOutletContext();
-  // Expose the validateFields function to the parent component
-  useImperativeHandle(childRef, () => ({
-    handleSubmit,
-  }));
+  const { childRef, scenarioId } = useOutletContext();
+
+  const [formData, setFormData] = useState([]);
+
   const [errors, setErrors] = useState({
     investments: ""
   });
 
-  const [investmentTypes, setInvestmentTypes] = useState([
-    { value: "Cash", label: "Cash" },
-  ]);
+  const [investmentTypes, setInvestmentTypes] = useState([]);
+
+  // Expose the validateFields function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
 
   const taxStatuses = [
+    { value: "Cash", label: "Cash" },
     { value: "Non-Retirement", label: "Non-Retirement" },
     { value: "Pre-Tax Retirement", label: "Pre-Tax Retirement" },
     { value: "After-Tax Retirement", label: "After-Tax Retirement" },
   ];
-  // TODO: uncomment out and modify when route has been set up
+
   useEffect(() => {
-    // TODO: remove superficial call to setInvestmentTypes (to satisfy ESLint for now)
-    setInvestmentTypes([{ value: "Cash", label: "Cash" }]);
-    // IIFE
-    // (async () => {
-    //   try {
-    //     const response = await fetch('/api/investment-types');
-    //     const data = await response.json();
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
 
-    //     // Transform the data into the format needed for react-select
-    //     const formattedTypes = data.map(type => ({
-    //       value: type.name,
-    //       label: type.name
-    //     }));
+    Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
+      const investmentTypeOptions = response.data.map((investmentType) => {
+        return { value: investmentType.name, label: investmentType.name };
+      });
+      setInvestmentTypes(investmentTypeOptions);
+    }).catch((error) => {
+      console.error('Error fetching investment types:', error);
+    });
 
-    //     setInvestmentTypes(formattedTypes);
-    //   } catch (error) {
-    //     console.error('Error fetching investment types:', error);
-    //   }
-    // })();
-  }, []);
+    Axios.get(`/investments/${scenarioId}`).then((response) => {
+      const investments = response.data;
+      setFormData(investments);
+    }).catch((error) => {
+      console.error('Error fetching investments:', error);
+    });
+  }, [scenarioId]);
 
-  // Form data is only investments
-  const [formData, setFormData] = useState(
-    [{ type: "Cash", dollarValue: "", taxStatus: "" }],
-  );
 
   const handleInputChange = (index, field, value) => {
     const updatedInvestments = [...formData];
@@ -60,14 +60,15 @@ const Investments = () => {
   };
 
   const addNewInvestment = () => {
-    setFormData([...formData, { type: "", dollarValue: "", taxStatus: "" }]);
+    setFormData([...formData, { id: undefined, type: "", dollarValue: "", taxStatus: "" }]);
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, investments: "" }));
   };
   // TODO: fix bug where deleting a row above actually removes the one below
   const removeInvestment = (index) => {
-    const updatedInvestments = formData.filter((_, i) => i !== index);
-    setFormData(updatedInvestments);
+    alert("NOT IMPLEMENTED YET + index clicked: " + index);
+    // const updatedInvestments = formData.filter((_, i) => i !== index);
+    // setFormData(updatedInvestments);
   };
 
   const validateFields = () => {
@@ -114,8 +115,24 @@ const Investments = () => {
     console.log(newErrors);
     return isValid;
   };
+
+  const uploadToBackend = () => {
+    const investments = formData;
+    console.log('Uploading investments:', investments);
+    Axios.post(`/investments/${scenarioId}`, { investments }).then((response) => {
+      console.log('Investments uploaded:', response.data);
+      return true;
+    }).catch((error) => {
+      console.error('Error uploading investments:', error);
+      return false;
+    });
+  };
+
   const handleSubmit = () => {
-    return validateFields();
+    if (!validateFields()) {
+      return false;
+    }
+    return uploadToBackend();
   };
 
   return (
@@ -154,6 +171,7 @@ const Investments = () => {
                   type="number"
                   name="dollarValue"
                   value={investment.value}
+                  defaultValue={investment.dollarValue}
                   onChange={(e) =>
                     handleInputChange(index, "dollarValue", e.target.value)
                   }
@@ -165,7 +183,7 @@ const Investments = () => {
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={taxStatuses}
-                  value={taxStatuses.find((option) => option.value === formData[index].type)}
+                  value={taxStatuses.find((option) => option.value === formData[index].taxStatus)}
                   onChange={(e) =>
                     handleInputChange(index, "taxStatus", e.value)
                   }
