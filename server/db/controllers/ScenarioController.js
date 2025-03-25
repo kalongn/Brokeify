@@ -220,9 +220,11 @@ export default class ScenarioController {
         // Clone Investment Types and Investments
         const clonedInvestmentTypes = []
         for(const typeIndex in originalScenario.investmentTypes){
-            let typeId = originalScenario.investmentTypes[typeIndex];
+            let typeId = originalScenario.investmentTypes[typeIndex].hasOwnProperty('id') ? originalScenario.investmentTypes[typeIndex].id : originalScenario.investmentTypes[typeIndex];
+            
             const type = await investmentTypeFactory.read(typeId);
-            //if (!type) return null;
+            
+            if (!type) continue;
             const clonedInvestments = []
             for(const invIdIndex in type.investments){
                 const invId = type.investments[invIdIndex]
@@ -233,7 +235,7 @@ export default class ScenarioController {
                 //return clonedInvID;
             }
             
-
+            
             const clonedTypeID = await investmentTypeFactory.clone(type.id)
             await investmentTypeFactory.update(clonedTypeID, {investments: clonedInvestments.filter(Boolean)});
             idMap.set(typeId.toString(), clonedTypeID);
@@ -251,6 +253,7 @@ export default class ScenarioController {
             //console.log(clonedEventID);
             let clonedEvent = await eventFactory.read(clonedEventID);
             //console.log(clonedEvent);
+            if(!clonedEvent) continue;
             if(clonedEvent.eventType=="REBALANCE"||clonedEvent.eventType=="INVEST"){
                 //update allocatedInvestments
                 let updatedAllocatedInvestmnets = await clonedEvent.allocatedInvestments.map(id => idMap.get(id.toString()));
