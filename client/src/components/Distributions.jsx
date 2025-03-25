@@ -189,7 +189,8 @@ const Distributions = ({
   );
 };
 
-// PropTypes validation
+// Prompt to AI (Amazon Q): Pasted the error ___ is missing in props validation
+// No changes made
 Distributions.propTypes = {
   label: PropTypes.string.isRequired,
   options: PropTypes.arrayOf(PropTypes.string).isRequired,

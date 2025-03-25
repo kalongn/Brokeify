@@ -7,6 +7,7 @@ import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
 
 const InvestmentTypesForm = () => {
+  // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   const navigate = useNavigate();
   const { childRef, scenarioId } = useOutletContext();
   const [distributions, setDistributions] = useState({
@@ -36,6 +37,7 @@ const InvestmentTypesForm = () => {
     handleSubmit,
   }));
 
+  // Below handler copied and pasted from AI code generation from BasicInfo.jsx
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
@@ -52,6 +54,7 @@ const InvestmentTypesForm = () => {
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
+  // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
   const handleChange = (e) => {
     const { name, value } = e.target;
     // Check if name is a number field and parse if so
@@ -67,6 +70,8 @@ const InvestmentTypesForm = () => {
 
   const validateFields = () => {
     const newErrors = {};
+    // Field validation from AI code generation using same prompt (and in-line help) as in BasicInfo.jsx
+    // Further modifications were similarly necessary especially for the distributions
 
     // Validate investment type name
     if (!formData.investmentType?.trim()) {

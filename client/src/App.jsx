@@ -50,6 +50,10 @@ const App = () => {
         <Route path="/NewScenario" element={<NewScenario />} />
 
         <Route path="/ScenarioForm/:scenarioId" element={<ScenarioForm />}>
+          {/* 
+            Prompt to AI (Copilot): How do I redirect /ScenarioForm/ to the first section /basic-information
+            Worked without any further changes.
+           */}
           {/* Redirect /ScenarioForm to /ScenarioForm/basic-information */}
           <Route index element={<Navigate to="basic-information" replace />} />
           <Route path="basic-information" element={<BasicInfo />} />

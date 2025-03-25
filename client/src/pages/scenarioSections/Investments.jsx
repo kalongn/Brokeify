@@ -7,6 +7,7 @@ import Select from "react-select";
 import styles from "./Form.module.css";
 
 const Investments = () => {
+  // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   const { childRef, scenarioId } = useOutletContext();
 
   const [formData, setFormData] = useState([]);
@@ -50,7 +51,8 @@ const Investments = () => {
     });
   }, [scenarioId]);
 
-
+  // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
+  // removeInvestment function did not work and has not been fixed yet since this feature's priority is low
   const handleInputChange = (index, field, value) => {
     const updatedInvestments = [...formData];
     // Check if name is a number field and parse if so
@@ -152,6 +154,11 @@ const Investments = () => {
           </tr>
         </thead>
         <tbody>
+          {/* 
+            Prompt for AI (Amazon Q): I want a table with 3 input fields (Select, number, and Select) that can
+            be dynamically added and removed.
+            The frontend appears as intended and needed no changes.
+           */}
           {/* Dynamically render rows of investments */}
           {formData.map((investment, index) => (
             <tr key={index}>

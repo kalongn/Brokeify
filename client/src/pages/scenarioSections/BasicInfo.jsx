@@ -8,6 +8,9 @@ import Axios from "axios";
 // TODO: add scenario name validation (no duplicates at the very least)
 
 const BasicInfo1 = () => {
+  // Prompt to AI (Amazon Q): I want field validation in the children and the submit button is in the parent
+  // It took multiple rounds of prompts and adding context to get the solution with useOutletContext and useImperativeHandler
+
   // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
   // Expose the validateFields function to the parent component
@@ -105,6 +108,7 @@ const BasicInfo1 = () => {
     NUMBER: new Set(["financialGoal", "birthYear", "spouseBirthYear"]),
   };
 
+  // AI (Amazon Q) In-line code generation for list of states
   const states = [
     { value: "AL", label: "Alabama" },
     { value: "AK", label: "Alaska" },
@@ -158,6 +162,8 @@ const BasicInfo1 = () => {
     { value: "WY", label: "Wyoming" }
   ];
 
+  // Prompt to AI (Amazon Q): How do I get the form fields for the distributions to save to the distributions data set?
+  // There were no changes needed for this code snippet
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
@@ -173,6 +179,8 @@ const BasicInfo1 = () => {
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
+  // Prompt to AI (Amazon Q): How do I get the form fields for the fields to be saved? Number fields should be parsed to numbers
+  // There were no changes needed for both the handlers below
   const handleTextChange = (e) => {
     const { name, value } = e.target;
     // Check if name is a number field and parse if so
@@ -184,7 +192,6 @@ const BasicInfo1 = () => {
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
-
 
   const handleSelectChange = (selectedOption) => {
     setFormData((prev) => ({ ...prev, state: selectedOption.value }));
@@ -209,6 +216,11 @@ const BasicInfo1 = () => {
         }
       }
     });
+
+    // Prompt to AI (Amazon Q): Write error checking to see if the values are non-negative. All of the fields are required.
+    // Additionally, some minor AI (Amazon Q) in-line code generation (e.g. completing error message)
+    // The generation worked well as a skeleton but the logic needed to be refined for each  field
+
     // Validate financial goal
     if (formData.financialGoal < 0) {
       newErrors.financialGoal = "Financial goal must be non-negative";
