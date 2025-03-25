@@ -1,4 +1,15 @@
+import Select from 'react-select';
+import styles from "./Form.module.css";
+
 const Sharing = () => {
+  const permissions = [
+    { value: 'Viewer', label: 'Viewer' },
+    { value: 'Editor', label: 'Editor' },
+  ];
+  const users = [
+    { value: 'William Shakespige', label: 'William Shakespige' },
+    { value: 'EB White', label: 'EB White' },
+  ];
   return (
     <div>
       <h2>Sharing Settings</h2>
@@ -7,8 +18,21 @@ const Sharing = () => {
         and define their access to this scenario.
       </p>
       <h3>People with access</h3>
-      {/* TODO: replace this with list of people with access*/}
-      <div>list item 1</div>
+      <div id={styles.newItemContainer} style={{ backgroundColor: 'var(--color-white)' }} >
+        <div className={styles.columns}>
+          <p>Sharlotte Webb (you)</p>
+          <p>Owner</p>
+        </div>
+        {users.map((user) => (
+          <div key={user.value} className={styles.columns}>
+            <p>{user.value}</p>
+            <Select options={permissions} />
+          </div>
+        ))}
+      </div>
+      <button id={styles.addButton} onClick={() => alert("NOT IMPLEMENTED YET")}>
+        Add with Email
+      </button>
     </div>
   );
 };
