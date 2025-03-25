@@ -47,10 +47,10 @@ const ScenarioForm = () => {
 
   // Next/Save button acts as submission button
   // Must const handleSubmit in child component
-  const handleSectionSubmit = () => {
+  const handleSectionSubmit = async () => {
     // console.log(childRef.current);
     if (childRef.current) {
-      if (!childRef.current.handleSubmit()) {
+      if (!await childRef.current.handleSubmit()) {
         return;
       }
     }

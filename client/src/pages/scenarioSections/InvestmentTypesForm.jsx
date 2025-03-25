@@ -140,7 +140,7 @@ const InvestmentTypesForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const uploadToBackEnd = () => {
+  const uploadToBackEnd = async () => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
 
@@ -153,22 +153,21 @@ const InvestmentTypesForm = () => {
       taxability: formData.taxability === "taxable",
     };
 
-    Axios.post(`/investmentType/${scenarioId}`, data)
-      .then((response) => {
-        console.log(response.data);
-        handleNavigate();
-      }
-      ).catch((error) => {
-        console.error('Error creating investment type:', error); //TODO: handle error on duplicate Investment Type name
-        return false;
-      });
+    try {
+      const response = await Axios.post(`/investmentType/${scenarioId}`, data);
+      console.log(response.data);
+      handleNavigate();
+    } catch (error) {
+      console.error('Error creating investment type:', error); //TODO: handle error on duplicate Investment Type name
+      return false;
+    }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateFields()) {
       return;
     }
-    uploadToBackEnd();
+    await uploadToBackEnd();
   };
 
   return (

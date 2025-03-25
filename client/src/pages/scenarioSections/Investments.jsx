@@ -116,23 +116,24 @@ const Investments = () => {
     return isValid;
   };
 
-  const uploadToBackend = () => {
+  const uploadToBackend = async () => {
     const investments = formData;
     console.log('Uploading investments:', investments);
-    Axios.post(`/investments/${scenarioId}`, { investments }).then((response) => {
+    try {
+      const response = await Axios.post(`/investments/${scenarioId}`, { investments });
       console.log('Investments uploaded:', response.data);
       return true;
-    }).catch((error) => {
+    } catch (error) {
       console.error('Error uploading investments:', error);
       return false;
-    });
+    }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateFields()) {
       return false;
     }
-    return uploadToBackend();
+    return await uploadToBackend();
   };
 
   return (

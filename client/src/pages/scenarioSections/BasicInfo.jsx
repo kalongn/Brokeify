@@ -281,7 +281,7 @@ const BasicInfo1 = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const uploadToBackend = () => {
+  const uploadToBackend = async () => {
     const distributionMap = {
       "fixed": "FIXED_AMOUNT",
       "normal": "NORMAL_AMOUNT",
@@ -315,21 +315,21 @@ const BasicInfo1 = () => {
       spouseLifeExpectancy: formData.maritalStatus === "single" ? undefined : spouseLifeExpectancyCast,
     };
 
-    return Axios.post(`/basicInfo/${scenarioId}`, data)
-      .then((response) => {
-        console.log(response.data);
-        return true;
-      }).catch((error) => {
-        console.error("Error uploading basic info:", error);
-        return false; // Handle server error to display an error message
-      });
+    try {
+      const response = await Axios.post(`/basicInfo/${scenarioId}`, data);
+      console.log(response.data);
+      return true;
+    } catch (error) {
+      console.error("Error uploading basic info:", error);
+      return false;
+    }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateFields()) {
       return false;
     }
-    return uploadToBackend();
+    return await uploadToBackend();
   };
 
   // TODO: apply the heading style to all other section components
