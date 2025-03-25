@@ -23,10 +23,12 @@ const ScenarioSchema = new mongoose.Schema({
     orderedExpenseWithdrawalStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     orderedRMDStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     orderedRothStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
+
     startYearRothOptimizer: { type: Number, default: undefined },
     endYearRothOptimizer: { type: Number },
     ownerFirstName: { type: String },
     ownerLastName: { type: String },
+
 });
 
 const Scenario = mongoose.model('Scenario', ScenarioSchema);
