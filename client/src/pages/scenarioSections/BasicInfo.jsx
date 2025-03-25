@@ -5,8 +5,6 @@ import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import Axios from "axios";
 
-// TODO: add scenario name validation (no duplicates at the very least)
-
 const BasicInfo1 = () => {
   // Prompt to AI (Amazon Q): I want field validation in the children and the submit button is in the parent
   // It took multiple rounds of prompts and adding context to get the solution with useOutletContext and useImperativeHandler
@@ -409,11 +407,10 @@ const BasicInfo1 = () => {
                 <input type="number" name="birthYear" onChange={handleTextChange} defaultValue={formData.birthYear} />
                 {errors.birthYear && <span className={styles.error}>{errors.birthYear}</span>}
               </label>
+              <label>Your Life Expectancy</label>
               <Distributions
-                label="Your Life Expectancy"
-                options={["fixed", "normal"]}
+                options={["fixed", "normal", "percentage"]}
                 name="lifeExpectancy"
-                value={distributions.lifeExpectancy.type}
                 onChange={handleDistributionsChange}
                 defaultValue={distributions.lifeExpectancy}
               />
@@ -425,7 +422,14 @@ const BasicInfo1 = () => {
                 <input type="number" name="spouseBirthYear" onChange={handleTextChange} defaultValue={formData.spouseBirthYear} />
                 {errors.spouseBirthYear && <span className={styles.error}>{errors.spouseBirthYear}</span>}
               </label>
+              <label>Spouse Life Expectancy</label>
               <Distributions
+                options={["fixed", "normal"]}
+                name="spouseLifeExpectancy"
+                onChange={handleDistributionsChange}
+                defaultValue={distributions.spouseLifeExpectancy}
+              />
+              {/* <Distributions
                 label="Spouse Life Expectancy"
                 options={["fixed", "normal"]}
                 name="spouseLifeExpectancy"
@@ -433,7 +437,7 @@ const BasicInfo1 = () => {
                 onChange={handleDistributionsChange}
                 fixedLabel={"Fixed Value"}
                 defaultValue={distributions.spouseLifeExpectancy}
-              />
+              /> */}
               {errors.spouseLifeExpectancy && <span className={styles.error}>{errors.spouseLifeExpectancy}</span>}
             </div>
             }
