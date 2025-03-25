@@ -164,6 +164,15 @@ const Distributions = ({
               onChange={(e) => handleInputChange("stdDev", e.target.value)}
             />
           </label>
+          {fixedLabel === "Fixed Value or Percentage" && (<label>
+            <input
+              type="checkbox"
+              name={`${name}Percent`}
+              onChange={(e) => handleInputChange("isPercentage", e.target.checked)}
+            />
+            Percentage
+          </label>
+          )}
         </div>
       )}
       {(value === "eventStart" || value === "eventEnd") && (
