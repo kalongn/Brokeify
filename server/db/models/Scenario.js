@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { FILING_STATUS } from "./Enums.js";
 
 const ScenarioSchema = new mongoose.Schema({
-    name: { type: String },
+    name: { type: String, default: "Untitle Scenario" },
     filingStatus: { type: String, enum: FILING_STATUS },
     userBirthYear: { type: Number },
     spouseBirthYear: { type: Number },
@@ -25,7 +25,9 @@ const ScenarioSchema = new mongoose.Schema({
     orderedRothStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
 
     startYearRothOptimizer: { type: Number, default: undefined },
-    endYearRothOptimizer: { type: Number }
+    endYearRothOptimizer: { type: Number },
+    ownerFirstName: { type: String },
+    ownerLastName: { type: String },
 
 });
 
