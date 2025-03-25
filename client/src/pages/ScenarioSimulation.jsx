@@ -142,7 +142,7 @@ const ScenarioSimulation = () => {
 
                 <h2>{scenario.name}</h2>
                 <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
-                <Link className={styles.icon} onClick={() => { alert("NOT IMPLEMENTED: Edit Scenario Button Clicked") }}> <TbEdit size={25} /> </Link>
+                <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon} onClick={() => { console.log('Edit Scenario Page') }}> <TbEdit size={25} /> </Link>
 
               </div>
 
@@ -159,19 +159,19 @@ const ScenarioSimulation = () => {
                   <div className={styles.info}>
                     <div className={styles.infoItem1}>
                       <p>Financial Goal: </p>
-                      <div className={styles.inputInfo}> ${scenario.financialGoal} </div>
+                      <div className={styles.inputInfo}> ${scenario.financialGoal || "N/A"} </div>
                     </div>
                     <div className={styles.infoItem2}>
                       <p>State of Residence: </p>
-                      <div className={styles.inputInfo}> {stateMap[scenario.stateOfResidence]} </div>
+                      <div className={styles.inputInfo}> {stateMap[scenario.stateOfResidence] || "N/A"} </div>
                     </div>
                     <div className={styles.infoItem3}>
                       <p>Filing Status: </p>
-                      <div className={styles.inputInfo}> {scenario.filingStatus} </div>
+                      <div className={styles.inputInfo}> {scenario.filingStatus || "N/A"} </div>
                     </div>
                     <div className={styles.infoItem4}>
                       <p>Life Expenctancy: </p>
-                      <div className={styles.inputInfo}> {distributionToString(scenario.userLifeExpectancyDistribution)} years </div>
+                      <div className={styles.inputInfo}> {scenario.userLifeExpectancyDistribution ? distributionToString(scenario.userLifeExpectancyDistribution) : "N/A"} years </div>
                     </div>
                   </div>
                 </div>

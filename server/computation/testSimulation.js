@@ -19,7 +19,7 @@ import SimulationController from "../db/controllers/SimulationController.js";
 
 import { simulate } from "./simulator.js";
 import { validateRun } from "./planValidator.js";
-
+import { parseAndSaveYAML } from "../yaml_parsers/scenarioParser.js";
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
 
@@ -53,20 +53,12 @@ const testScenario = async () => {
             taxStatus: "NON_RETIREMENT"
         });
 
+        
         const testInvestment2 = await InvestmentFactory.create({
-            value: 20000,
-            taxStatus: "NON_RETIREMENT"
-        });
-
-        const testInvestment3 = await InvestmentFactory.create({
-            value: 30000,
-            taxStatus: "NON_RETIREMENT"
-        });
-        const testInvestment4 = await InvestmentFactory.create({
             value: 40000,
             taxStatus: "PRE_TAX_RETIREMENT"
         });
-        const testInvestment5 = await InvestmentFactory.create({
+        const testInvestment3 = await InvestmentFactory.create({
             value: 50000,
             taxStatus: "AFTER_TAX_RETIREMENT"
         });
@@ -80,7 +72,7 @@ const testScenario = async () => {
             expectedAnnualIncome: 1000,
             expectedAnnualIncomeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1000 }),
             taxability: true,
-            investments: [testInvestment1, testInvestment2, testInvestment3, testInvestment4, testInvestment5]
+            investments: [testInvestment1, testInvestment2, testInvestment3]
         });
 
         const RebalanceEvent = await EventFactory.create("REBALANCE", {
@@ -102,14 +94,14 @@ const testScenario = async () => {
             description: "Invest in the portfolio",
             startYear: 2021,
             startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
-            duration: 10,
+            duration: 100,
             durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", {
                 value:
                     1
             }),
             assetAllocationType: "GLIDE",
             percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
-            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment5],
+            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
             maximumCash: 1000,
         });
 
@@ -120,7 +112,7 @@ const testScenario = async () => {
             startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
             duration: 1,
             durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
-            amount: 1000,
+            amount: 10000,
             expectedAnnualChange: 0.05,
             expectedAnnualChangeDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
             isinflationAdjusted: true,
@@ -177,11 +169,11 @@ const testScenario = async () => {
             orderedSpendingStrategy: [IncomeEvent, ExpenseEvent],
             orderedExpenseWithdrawalStrategy: [testInvestment1, testInvestment2, testInvestment3],
             orderedRMDStrategy: [testInvestment1, testInvestment2, testInvestment3],
-            orderedRothStrategy: [testInvestment1, testInvestment2, testInvestment3, testInvestment4],
+            orderedRothStrategy: [testInvestment1, testInvestment2, testInvestment3],
             startYearRothOptimizer: 2021,
             endYearRothOptimizer: 2070
         });
-        console.log(testScenario);
+        //console.log(testScenario);
 
         const scenarios = await factory.readAll();
         // console.log(scenarios);
@@ -213,10 +205,10 @@ const testRMDTable = async () => {
             ages: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79],
             distributionPeriods: [27.4, 26.5, 25.6, 24.7, 23.8, 22.9, 22.0, 21.2, 20.3, 19.5]
         });
-        console.log(rmd);
+        //console.log(rmd);
 
         let oneRmd = await factory.read();
-        console.log(oneRmd);
+        //console.log(oneRmd);
         return oneRmd;
 
 
@@ -243,7 +235,7 @@ const testTax = async (i) => {
                     { lowerBound: 518401, upperBound: Infinity, rate: 0.37 }
                 ]
             });
-            console.log(federalIncomeTax);
+            //console.log(federalIncomeTax);
             return federalIncomeTax;
         }
         else if (i == 2) {
@@ -263,7 +255,7 @@ const testTax = async (i) => {
                     { lowerBound: 572981, upperBound: Infinity, rate: 0.123 }
                 ]
             });
-            console.log(stateIncomeTax);
+            //console.log(stateIncomeTax);
             return stateIncomeTax;
         }
         else if (i == 3) {
@@ -271,7 +263,7 @@ const testTax = async (i) => {
                 filingStatus: "SINGLE",
                 standardDeduction: 12400
             });
-            console.log(federalStandardDeduction);
+            //console.log(federalStandardDeduction);
             return federalStandardDeduction;
         }
         else if (i == 4) {
@@ -280,7 +272,7 @@ const testTax = async (i) => {
                 state: "CA",
                 standardDeduction: 4601
             });
-            console.log(stateStandardDeduction);
+            ///console.log(stateStandardDeduction);
             return stateStandardDeduction;
         }
 
@@ -293,7 +285,7 @@ const testTax = async (i) => {
                     { lowerBound: 441451, upperBound: Infinity, rate: 0.2 }
                 ]
             });
-            console.log(capitalGainTax);
+            //console.log(capitalGainTax);
             return capitalGainTax;
         }
 
@@ -307,22 +299,27 @@ const testTax = async (i) => {
 
 
 const populateDB = async () => {
-
-    const scenario = await testScenario();
-
+    const factory = new ScenarioController();
+    
+    //const scenarioID = await parseAndSaveYAML("../yaml_files/scenario.yaml");
+    //const scenario = await factory.read(scenarioID);
+    //console.log(scenario);
+    //const res1 = await connection.dropDatabase();
+    //throw("eee");
     const RMDTable = await testRMDTable();
 
     const federalIncomeTax = await testTax(1);
     const stateIncomeTax = await testTax(2);
     const federalStandardDeduction = await testTax(3);
-    const stateStandardDeduction = await testTax(4);
     const capitalGainTax = await testTax(5);
-
+    const scenario = await testScenario();
+    //const scenario = await testScenario();
+    //console.log(scenario);
 
     console.log('====================== Simulation Test =====================');
-    await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
+    //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
-        await validateRun(scenario.id, 100, stateIncomeTax.id, stateStandardDeduction.id);
+        await validateRun(scenario.id, 1, stateIncomeTax.id, "GUEST");
     }
     catch (err) {
         const res = await connection.dropDatabase();
