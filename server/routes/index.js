@@ -125,10 +125,10 @@ router.post("/newScenario", async (req, res) => {
                 name: "Cash",
                 description: "HERE COMES THE MONEY",
                 expectedAnnualReturn: 0,
-                expectedAnnualReturnDistribution: await distributionController.create("FIXED_AMOUNT", { amount: 0 }),
+                expectedAnnualReturnDistribution: await distributionController.create("FIXED_AMOUNT", { value: 0 }),
                 exprenseRatio: 0,
                 expectedAnnualIncome: 0,
-                expectedAnnualIncomeDistribution: await distributionController.create("FIXED_AMOUNT", { amount: 0 }),
+                expectedAnnualIncomeDistribution: await distributionController.create("FIXED_AMOUNT", { values: 0 }),
                 taxability: false,
                 investments: [await investmentController.create({ value: 0, taxStatus: "CASH" })],
             })],
@@ -313,7 +313,9 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
                     break;
             }
         }
+        data.standardDeviation = data.stdDev;
         delete data.type;
+        delete data.stdDev;
         const expectedAnnualReturnDistribution = await distributionController.create(type, data);
 
         type = expectedDividendsInterest.isPercentage ? distributionPercentageMap[expectedDividendsInterest.type] : distributionValueMap[expectedDividendsInterest.type];
@@ -330,6 +332,8 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
                     break;
             }
         }
+        data.standardDeviation = data.stdDev;
+        delete data.stdDev;
         const expectedAnnualIncomeDistribution = await distributionController.create(type, data);
 
         const newInvestmentType = await investmentTypeController.create({

@@ -118,10 +118,9 @@ const Investments = () => {
 
   const uploadToBackend = async () => {
     const investments = formData;
-    console.log('Uploading investments:', investments);
     try {
       const response = await Axios.post(`/investments/${scenarioId}`, { investments });
-      console.log('Investments uploaded:', response.data);
+      console.log(response.data);
       return true;
     } catch (error) {
       console.error('Error uploading investments:', error);
