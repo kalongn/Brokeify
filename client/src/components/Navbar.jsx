@@ -8,7 +8,7 @@ const Navbar = () => {
   return (
     <div className={style.navbar}>
       <div className={style.title}>
-        <img id={style.iconImg} src="icon.svg"></img>
+        <img id={style.iconImg} src="/icon.svg"></img>
         <h2 id={style.navTitle}> Brokeify</h2>
       </div>
       <Link
