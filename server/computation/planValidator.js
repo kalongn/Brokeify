@@ -246,7 +246,7 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
 //recives ID of scenario in db
 export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
     //first, validate scenario's invariants
-    //console.log(process.cwd());
+    
     try {
         await validate(scenarioID);
 
