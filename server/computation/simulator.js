@@ -99,8 +99,7 @@ export async function sample(expectedValue, distributionID) {
 
         return expectedValue;
     }
-    // console.log("dist:");
-    // console.log(distribution);
+    
     //depends on distribution type:
     if (distribution.distributionType === 'FIXED_AMOUNT' || distribution.distributionType === 'FIXED_PERCENTAGE') {
         return distribution.value;
@@ -113,11 +112,10 @@ export async function sample(expectedValue, distributionID) {
         let u = 0, v = 0;
         while (u === 0) u = Math.random();
         while (v === 0) v = Math.random();
-        //use this weird function i found to approximate normal curve with mean 0 stddev 1
+        //use Box-Muller transform
         const num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
         let toReturn = (num * distribution.standardDeviation) + distribution.mean;
-        // console.log(toReturn);
-        // throw("eee");
+        
         return toReturn;
     }
 
@@ -196,7 +194,7 @@ export async function createSimulation(scenario) {
 }
 export function updateTaxBracketsForInflation(taxData, inflationRate) {
     //Multiplies tax brackes by 1+inflationRate
-    //console.log(taxData);
+    
     taxData.taxBrackets.forEach(bracket => {
         bracket.lowerBound = Math.floor(bracket.lowerBound * (1 + inflationRate));
         if (bracket.upperBound !== Infinity) {
@@ -205,7 +203,7 @@ export function updateTaxBracketsForInflation(taxData, inflationRate) {
     });
 
 
-    //console.log(taxData);
+    
 }
 export async function updateContributionLimitsForInflation(scenario, inflationRate) {
     scenario.annualPreTaxContributionLimit = scenario.annualPreTaxContributionLimit * (1 + inflationRate);
@@ -1071,12 +1069,11 @@ export async function simulate(
 ) {
     csvFile = csvFileL;
     logFile = logFileL;
-    //console.log(csvFile);
-    // console.log(rmdTable);
+    
     let federalStandardDeduction = federalStandardDeductionObject.standardDeduction;
 
     const simulation = await createSimulation(inputScenario);
-    //console.log(simulation);
+    
 
     let currentYear = 0;
     const realYear = new Date().getFullYear();
@@ -1092,8 +1089,7 @@ export async function simulate(
 
 
 
-    //console.log(investmentTypes);
-    //return;
+    
     let investmentIds = investmentTypes.flatMap(type => type.investments);
 
     let investments = await Promise.all(
@@ -1114,7 +1110,7 @@ export async function simulate(
     let lastYearSS = 0;
     let lastYearEarlyWithdrawl = 0;
     while (currentYear <= endYear) {
-        //console.log(`Simulating year: ${currentYear}`);
+        
         investmentTypes = await Promise.all(
             simulation.scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
         );
@@ -1154,7 +1150,7 @@ export async function simulate(
                 name: event.id,
                 values: income
             });
-            //console.log(`Cash investment: ${cashInvestment.id}`);
+            
             const a = await investmentFactory.read(cashInvestment.id);
 
             await investmentFactory.update(cashInvestment.id, { value: a.value + income });
@@ -1172,7 +1168,7 @@ export async function simulate(
         //await processRMDs(rmdTable, currentYear, simulation.scenario.userBirthYear, simulation.scenario);
         const shouldPerformRMDs = await shouldPerformRMD(currentYear, simulation.scenario.userBirthYear, investments);
         if (shouldPerformRMDs) {
-            //console.log("PERFORMING RMDS");
+            
             const rmd = await processRMDs(rmdTable, currentYear, simulation.scenario.userBirthYear, simulation.scenario);
 
             curYearIncome += rmd;
@@ -1186,7 +1182,7 @@ export async function simulate(
 
 
         curYearIncome += rothConversion.curYearIncome;
-        //console.log(investmentTypes);
+        
 
         let thisYearTaxes = 0;
         let earlyWithdrawalTaxPaid = 0;
@@ -1243,7 +1239,7 @@ export async function simulate(
         if (discretionaryAmountIgnored + discretionaryAmountPaid != 0) {
             discretionaryExpensesPercentage = (discretionaryAmountPaid + 0.0) / (discretionaryAmountIgnored + discretionaryAmountPaid);
         }
-        //console.log(discretionaryAmountPaid);
+        
         const yearlyRes = {
             year: currentYear + realYear,
             investmentValues: investmentValuesArray,
