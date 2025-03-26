@@ -122,6 +122,7 @@ const ViewScenario = () => {
         {loading ? <div className={styles.loading}>Loading...</div>
           :
           <div className={styles.sections}>
+            {/**Basic Information Section */}
             <h2>Basic Information</h2>
 
             <p className={styles.question}>Scenario Name</p>
@@ -230,7 +231,7 @@ const ViewScenario = () => {
               )}
             </div>
 
-
+            {/**Investments Section */}
             <h2>Investments</h2>
             <p className={styles.description}>
               If married, investments will automatically be assumed as jointly owned.
@@ -249,7 +250,8 @@ const ViewScenario = () => {
                 </div>
               ))}
             </div>
-
+            
+            {/**Event Series Section */}
             <h2>Event Series</h2>
             <p className={styles.description}>
               An event series is a sequence of recurring financial events (income, expense, investment, or rebalancing) over a defined period.
@@ -267,9 +269,11 @@ const ViewScenario = () => {
                 </div>
               ))}
             </div>
-
+              
+            {/**Inflation and Contribution Limits Section */}
             <h2>Inflation & Contribution Limits</h2>
             <p className={styles.question}>Inflation Assumption</p>
+            
             {
               scenarioData.inflationAssumptionDistribution?.distributionType === "NORMAL_PERCENTAGE" ? (
                 <>
@@ -318,7 +322,7 @@ const ViewScenario = () => {
                   )
             }
 
-
+            
             <p className={styles.question}>Retirement Accounts Initial Limit on Annual Contributions</p>
             <p className={styles.question}>Pre-Tax</p>
             <div className={styles.textbox}>{scenarioData.annualPreTaxContributionLimit}</div>
@@ -326,6 +330,8 @@ const ViewScenario = () => {
             <p className={styles.question}>After-Tax</p>
             <div className={styles.textbox}>{scenarioData.annualPostTaxContributionLimit}</div>
 
+            
+            {/**Spending Strategy Section */}
             <h2>Spending Strategy</h2>
             <p className={styles.description}>
               Specify the order of discretionary expenses to be paid as cash allows.
@@ -342,7 +348,8 @@ const ViewScenario = () => {
               ))}
             </div>
 
-
+              
+            {/**Expense Withdrawl Section */}
             <h2>Expense Withdrawal Strategy</h2>
             <p className={styles.description}>
               Specify the order in which the set of investments should be sold when cash is insufficient.
@@ -362,6 +369,8 @@ const ViewScenario = () => {
               ))}
             </div>
 
+
+            {/**RMD Stategy Section */}
             <h2>Required Minimum Distribution Strategy</h2>
             <p className={styles.description}>
               Specify the order in which investments should be transferred from pre-tax retirement accounts to non-retirement accounts when a Required Minimum Distribution (RMD) is triggered.
@@ -379,7 +388,8 @@ const ViewScenario = () => {
 
               </div>
             ))}
-
+            
+            {/**Roth Optimizer Section */}
             <h2>Roth Conversion Strategy & Optimizer</h2>
             <p className={styles.description}>
               Specify the order in which investments should be transferred from pre-tax to after-tax retirement accounts when a conversion is triggered.
