@@ -1,0 +1,162 @@
+/* Instead of repeatedly using <br />, opting for CSS solution */
+.newline {
+  display: block;
+}
+
+#heading {
+  font-size: 1.7em;
+}
+
+textarea {
+  font-size: 1rem;
+  width: 100%;
+  height: 3rem;
+  font-family: inherit;
+  padding: 0.5rem;
+  margin-bottom: 2%;
+  resize: none;
+  background-color: var(--color-white);
+  border-radius: 0.2rem;
+}
+
+label {
+  font-weight: 550;
+  box-sizing: border-box;
+}
+
+input {
+  font-family: inherit;
+  padding: 0.5rem;
+  margin-bottom: 1%;
+  box-sizing: border-box;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-black);
+  border-radius: 0.2rem;
+}
+
+input:disabled {
+  border-color: var(--color-silver);
+  background-color: var(--color-primary-muted);
+}
+
+#formSection input[type=text] {
+  width: 100%;
+}
+
+.description {
+  margin-top: 0;
+  margin-bottom: 0.5%;
+  font-weight: 400;
+}
+
+/* TODO: columns can overflow e.g. Basic Information Continued */
+.columns {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5%;
+}
+
+.columns label,
+.shortInput {
+  width: 48%;
+}
+
+.moneyInputContainer {
+  position: relative;
+  display: inline-block;
+}
+
+/* TODO: reevaluate this CSS */
+.moneyInputContainer::before {
+  content: "$";
+  position: absolute;
+  left: 0.5rem;
+  top: 15%;
+  font-size: 1em;
+  color: var(--color-silver);
+  pointer-events: none;
+}
+
+.moneyInputContainer input {
+  padding-left: 1.5rem;
+  width: 100%;
+}
+
+.radioButton {
+  background-color: var(--color-white);
+  display: inline-block;
+  padding: 0.5rem;
+  border: 1px solid var(--color-black);
+  border-radius: 0.2rem;
+  margin-right: 1rem;
+  margin-bottom: 1%;
+}
+
+#inputTable {
+  text-align: left;
+  margin-bottom: 3%;
+}
+
+#inputTable td {
+  padding: 0.5rem;
+}
+
+.selectTable {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Equal width for the first three columns */
+#inputTable td:nth-child(1),
+#inputTable td:nth-child(2),
+#inputTable td:nth-child(3) {
+  width: 30%;
+}
+
+/* Make the last column smaller */
+#inputTable td:last-child {
+  width: 10%;
+}
+
+.tableButton {
+  padding: 0.7rem;
+  box-shadow: none;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+}
+
+.tableButton:hover {
+  background-color: var(--color-primary-muted);
+}
+
+.select>div {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-black);
+  border-radius: 0.2rem;
+}
+
+#addButton {
+  width: 100%;
+  background-color: var(--color-primary-muted);
+}
+
+#newItemContainer {
+  background-color: var(--color-primary-muted);
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 10px var(--color-silver);
+  margin-bottom: 4rem;
+}
+.error {
+  color: #dc3545;
+  font-size: 0.8em;
+  font-weight: 550;
+  margin-bottom: 1%;
+  display: block;
+}

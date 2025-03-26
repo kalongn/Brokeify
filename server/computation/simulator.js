@@ -23,6 +23,9 @@ const distributionFactory = new DistributionController();
 const resultFactory = new ResultController();
 
 let csvFile, logFile;
+
+
+
 export async function updateCSV(currentYear, investments, scenario) {
     //takes in current year of simulation and a list of investments
     //if an investment's id is not in the title row, it adds it at the end
@@ -229,12 +232,12 @@ export async function adjustEventAmount(event, inflationRate) {
         amountRate = (amountRate) * event.amount;
     }
     
-    event.amount = event.amount + amountRate;
+    event.amount = Math.round((event.amount + amountRate)*100)/100;
 
     await eventFactory.update(event.id, event);
     return event.amount;
 }
-export async function shouldPerformRMD(currentYear, birthYear, rmdTable, investments) {
+export async function shouldPerformRMD(currentYear, birthYear, investments) {
     // If the user’s age is at least 74 and at the end of the previous
     // year, there is at least one investment with tax status = “pre-tax” 
     // and with a positive value
@@ -380,7 +383,7 @@ export async function updateInvestments(investmentTypes, inflationRate) {
 
             //subtract expens
             investment.value -= expenses;
-
+            investment.value = Math.round((investment.value)*100)/100;
             await investmentFactory.update(investment._id, { value: investment.value });
         }
     }
@@ -491,7 +494,6 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
     const curYearFedTaxableIncome = curYearIncome - 0.15 * curYearSS - federalStandardDeduction;
     //TODO: Check if this is right?
     const curYearStateTaxableIncome = curYearIncome - curYearSS; //41 states do not tax SS income
-
     //calculate fed income taxes
     let fedIncomeTax = 0;
     for (const bracketIndex in federalIncomeTax.taxBrackets) {
@@ -517,7 +519,6 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
     }
     eventDetails = `Year: ${currentYear} - TAX - Paying $${Math.ceil(fedIncomeTax * 100) / 100} in federal income tax.\n`;
     updateLog(eventDetails);
-
     totalTax += fedIncomeTax;
 
     let sIncomeTax = 0;
@@ -561,7 +562,8 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
     eventDetails = `Year: ${currentYear} - TAX - Paying $${Math.ceil(capitalTax * 100) / 100} in capital gains tax.\n`;
     updateLog(eventDetails);
     totalTax += capitalTax;
-
+    totalTax = Math.round((totalTax)*100)/100;
+    earlyWithdrawalAmount = Math.round((earlyWithdrawalAmount)*100)/100;
     //console.log(`The total tax for this year is ${totalTax}`);
     return { t: totalTax, e: .1 * earlyWithdrawalAmount };
 }
@@ -586,6 +588,7 @@ export async function processExpenses(scenario, previousYearTaxes, currentYear) 
             updateLog(eventDetails);
         }
     }
+    totalExpenses = Math.round((totalExpenses)*100)/100;
     let toReturn = { t: totalExpenses, c: 0 };
     //pay expenses, starting with cash and going to expense strategy:
     //get cash investment:
@@ -665,6 +668,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
     }
     //console.log(`TOTAL DISCRETIONARY EXPENSES: ${totalExpenses}`);
     //find sum of value of investments:
+    totalExpenses = Math.round((totalExpenses)*100)/100;
     let totalValue = 0;
     for (const investmentTypeIDIndex in scenario.investmentTypes) {
         const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
@@ -675,7 +679,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
         }
 
     }
-
+    totalValue = Math.round((totalValue)*100)/100;
 
     let totalInStrategy = 0;
     for (const investmentIDIndex in scenario.orderedExpenseWithdrawalStrategy) {
@@ -686,7 +690,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
         totalInStrategy += investment.value;
 
     }
-
+    totalInStrategy = Math.round((totalInStrategy)*100)/100;
 
     let amountICanPay = Math.max(totalValue - scenario.financialGoal, totalInStrategy);
     if (amountICanPay <= 0) {
@@ -738,7 +742,8 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
 
     //pay from cash:
     if (cashInvestment.value >= leftToPay) {
-        await investmentFactory.update(cashInvestment.id, { value: cashInvestment.value -= leftToPay });
+        
+        await investmentFactory.update(cashInvestment.id, { value: Math.round((cashInvestment.value - leftToPay)*100)/100 });
         leftToPay = 0;
     }
     else {
@@ -756,7 +761,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
 
         //take out as much value as posssible
         if (investment.value > leftToPay) {
-            await investmentFactory.update(investment.id, { value: investment.value -= leftToPay });
+            await investmentFactory.update(investment.id, { value: Math.round((investment.value - leftToPay)*100)/100 });
             leftToPay = 0;
             toReturn.c += leftToPay;
             break;
@@ -834,7 +839,8 @@ export async function processInvestmentEvents(scenario, currentYear) {
             amountToInvest = Math.max(scenario.annualPostTaxContributionLimit, amountToInvest);
 
         }
-        await investmentFactory.update(cashInvestment.id, { value: cashInvestment.value - amountToInvest });
+        
+        await investmentFactory.update(cashInvestment.id, { value: Math.round((cashInvestment.value - amountToInvest)*100)/100 });
         //determine percantage to invest in each:
         let proportions = [];
         if (event.assetAllocationType === "FIXED") {
@@ -900,7 +906,8 @@ export async function processInvestmentEvents(scenario, currentYear) {
         for (const investmentIDIndex in event.allocatedInvestments) {
             const investmentID = event.allocatedInvestments[investmentIDIndex];
             const investment = await investmentFactory.read(investmentID);
-            await investmentFactory.update(investment.id, { value: investment.value += tentativeInvestmentAmounts[investmentIDIndex] });
+            
+            await investmentFactory.update(investment.id, { value: Math.round((investment.value + tentativeInvestmentAmounts[investmentIDIndex])*100)/100 });
             //get investment type:
             for (const investmentTypeIDIndex in scenario.investmentTypes) {
                 const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
@@ -1011,7 +1018,8 @@ export async function rebalanceInvestments(scenario, currentYear) {
 
 
                 investment.value = targetValues[investmentIDIndex];
-                await investmentFactory.update(investment.id, { value: investment.value });
+                
+                await investmentFactory.update(investment.id, { value: Math.round((investment.value)*100)/100 });
             }
         }
 
@@ -1024,7 +1032,7 @@ export async function rebalanceInvestments(scenario, currentYear) {
             if (targetValues[investmentIDIndex] > actualValues[investmentIDIndex]) {
                 //buy difference
                 let buyValue = targetValues[investmentIDIndex] - actualValues[investmentIDIndex];
-                await investmentFactory.update(investment.id, { value: targetValues[investmentIDIndex] });
+                await investmentFactory.update(investment.id, { value: Math.round((targetValues[investmentIDIndex])*100)/100 });
                 //get investment type:
                 for (const investmentTypeIDIndex in scenario.investmentTypes) {
                     const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
@@ -1100,10 +1108,21 @@ export async function simulate(
     let thisYearTaxes = 0;
     let lastYearGains = 0;
     let thisYearGains = 0;
+    let curYearIncome = 0;
+    let curYearSS = 0;
+    let lastYearIncome = 0;
+    let lastYearSS = 0;
+    let lastYearEarlyWithdrawl = 0;
     while (currentYear <= endYear) {
         //console.log(`Simulating year: ${currentYear}`);
+        investmentTypes = await Promise.all(
+            simulation.scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
+        );
+        investmentIds = investmentTypes.flatMap(type => type.investments);
 
-
+        investments = await Promise.all(
+            investmentIds.map(async (id) => await investmentFactory.read(id))
+        );
 
         const inflationRate = await sample(simulation.scenario.inflationAssumption, simulation.scenario.inflationAssumptionDistribution);
         const inflationeEventDetails = `Year: ${currentYear} - INFLATION - ${Math.ceil(inflationRate * 1000) / 1000}\n`;
@@ -1115,8 +1134,7 @@ export async function simulate(
 
         federalStandardDeduction *= (1 + inflationRate);
 
-        let curYearIncome = 0;
-        let curYearSS = 0;
+        
         //update events
         for (const event of events) {
             if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
@@ -1152,7 +1170,8 @@ export async function simulate(
 
 
         //await processRMDs(rmdTable, currentYear, simulation.scenario.userBirthYear, simulation.scenario);
-        if (await shouldPerformRMD(currentYear, simulation.scenario.userBirthYear, rmdTable, investments)) {
+        const shouldPerformRMDs = await shouldPerformRMD(currentYear, simulation.scenario.userBirthYear, investments);
+        if (shouldPerformRMDs) {
             //console.log("PERFORMING RMDS");
             const rmd = await processRMDs(rmdTable, currentYear, simulation.scenario.userBirthYear, simulation.scenario);
 
@@ -1171,7 +1190,7 @@ export async function simulate(
 
         let thisYearTaxes = 0;
         let earlyWithdrawalTaxPaid = 0;
-        const calcTaxReturn = calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction, curYearIncome, curYearSS, rothConversion.curYearEarlyWithdrawals, lastYearGains, currentYear);
+        const calcTaxReturn = calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction, lastYearIncome, lastYearSS, lastYearEarlyWithdrawl, lastYearGains, currentYear);
         thisYearTaxes = calcTaxReturn.t;
         earlyWithdrawalTaxPaid = calcTaxReturn.e;
         let nonDiscretionaryExpenses = 0;
@@ -1245,6 +1264,9 @@ export async function simulate(
 
         await resultFactory.update(simulation.results.id, { yearlyResults: simulation.results.yearlyResults });
         await updateCSV(currentYear, investments, simulation.scenario);
+        lastYearIncome = curYearIncome;
+        lastYearSS = curYearSS;
+        lastYearEarlyWithdrawl = rothConversion.curYearEarlyWithdrawals;
         currentYear++;
 
     }

@@ -1,5 +1,12 @@
 // DEPRICATED: This file is deprecated and will be removed in the future. DO NOT USE THIS AS REFERENCE
 
+/*
+This file is partially generated with Copilot in the autocomplete mode, we realize that Copilot excells at completing code snippets but not at generating full files.
+For example, there's time where I felt like it read my mine as to the variable name I was typing.
+But generating full files is not its strong suit, the generated code sometimes does not match the schema we created and therefore requires me paste in the 
+Schema for it to generate the correct code for verification that storage into DB is working and correct.
+*/
+
 import mongoose from "mongoose";
 import 'dotenv/config'
 
