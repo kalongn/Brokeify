@@ -336,7 +336,7 @@ export async function processRMDs(rmdTable, currentYear, birthYear, scenario) {
     return rmd;
 
 }
-export async function updateInvestments(investmentTypes, inflationRate) {
+export async function updateInvestments(investmentTypes) {
     let curYearIncome = 0; // Track taxable income for 'non-retirement' investments
     //const investmentFactory = new InvestmentController(); // Initialize DB controller
 
@@ -489,7 +489,6 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
     let eventDetails = `Year: ${currentYear} - TAX - Paying $${Math.ceil(totalTax * 100) / 100} in early withdrawl tax.\n`;
     updateLog(eventDetails);
     const curYearFedTaxableIncome = curYearIncome - 0.15 * curYearSS - federalStandardDeduction;
-    //TODO: Check if this is right?
     const curYearStateTaxableIncome = curYearIncome - curYearSS; //41 states do not tax SS income
     //calculate fed income taxes
     let fedIncomeTax = 0;
