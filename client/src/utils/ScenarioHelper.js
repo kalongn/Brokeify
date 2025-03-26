@@ -72,3 +72,64 @@ export const distributionToString = (distribution) => {
             return "Unknown Distribution Type";
     }
 };
+// This file contains utility functions for field validation for scenarios
+
+export const validateRequired = (newErrors, field, value) => {
+  if (value === null || value === undefined) {
+    newErrors[field] = "This field is required";
+  } else if (typeof value === "string" && value.trim() === "") {
+    newErrors[field] = "This field is required";
+  } else if (typeof value === "number" && value < 0) {
+    newErrors[field] = "Value must be non-negative";
+  }
+  // if(bound1 !== null && bound2 !== null) {
+  //   newErrors[field] = `This value must be between ${bound1} and ${bound2}`;
+  // }
+  return newErrors;
+} 
+
+export const validatePercentage = (newErrors, field) => {
+  if (field < 0 || field > 100) {
+    newErrors[field] = "Percentage must be between 0 and 100";
+  }
+  return newErrors;
+}
+
+export const validateDistribution = (newErrors, field, dist, isPercentage) => {
+  const type = dist.type;
+  if (type === null || type === undefined) {
+    newErrors[field] = "This field is required";
+    return;
+  }
+  switch(type) {
+    case "fixed":
+      if (dist.fixedValue === null || dist.fixedValue === undefined) {
+        newErrors[field] = "This field is required";
+      } else if (dist.fixedValue < 0) {
+        newErrors[field] = "Value must be non-negative";
+      }
+      break;
+    case "uniform":
+      if ((dist.lowerBound === null || dist.upperBound === null) || (dist.lowerBound === undefined || dist.upperBound === undefined)) {
+        newErrors[field] = "Both lower and upper bounds are required";
+      } else if (dist.lowerBound < 0 || dist.upperBound < 0) {
+        newErrors[field] = "Bounds must be non-negative";
+      } else if (dist.lowerBound > dist.upperBound) {
+        newErrors[field] = "Lower bound must be less than or equal to upper bound";
+      }
+      break;
+    case "normal":
+      if ((dist.mean === null || dist.stdDev === null) || (dist.mean === undefined || dist.stdDev === undefined)) {
+        newErrors[field] = "Both mean and standard deviation are required";
+      } else if (dist.mean < 0 || dist.stdDev < 0) {
+        newErrors[field] = "Both mean and standard deviation must be non-negative";
+      }
+      break;
+    default:
+      break;
+  }
+  if (isPercentage && (newErrors[field] === null || newErrors[field] === undefined)) {
+    validatePercentage(newErrors, dist);
+  }
+  return newErrors;
+};
