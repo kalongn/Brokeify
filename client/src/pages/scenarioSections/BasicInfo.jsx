@@ -1,5 +1,6 @@
 import { useState, useImperativeHandle, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
+import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Select from "react-select";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
@@ -202,91 +203,43 @@ const BasicInfo1 = () => {
   const validateFields = () => {
     const newErrors = {};
     const currentYear = new Date().getFullYear();
-    // General check for if all required fields are filled out
-    // TODO: fix for whitespace
-    const requiredFields = ['name', 'financialGoal', 'state', 'maritalStatus', 'birthYear', 'lifeExpectancy'];
-    requiredFields.forEach(field => {
-      if (formData[field] === null || formData[field] === undefined || formData[field] === "") {
-        newErrors[field] = "This field is required";
+    for (const [field, value] of Object.entries(formData)) {
+      // Spouse fields are dependent on maritalStatus
+      if (formData.maritalStatus !== "married" && field.includes("spouse")) {
+        continue;
       }
-      else {
-        // Adds errors for distribution fields
-        if (formData[field].type === null) {
-          newErrors[field] = "This field is required";
-        }
+      // Distribution fields require a different function to validate
+      if (field !== "lifeExpectancy" && field !== "spouseLifeExpectancy") {
+        validateRequired(newErrors, field, value);
+      } else {
+        validateDistribution(newErrors, field, value, false);
       }
-    });
-
-    // Prompt to AI (Amazon Q): Write error checking to see if the values are non-negative. All of the fields are required.
-    // Additionally, some minor AI (Amazon Q) in-line code generation (e.g. completing error message)
-    // The generation worked well as a skeleton but the logic needed to be refined for each  field
-
-    // Validate financial goal
-    if (formData.financialGoal < 0) {
-      newErrors.financialGoal = "Financial goal must be non-negative";
     }
     // // TODO: add error checking for state if it is in db
 
     // Validate birth year
-    if (formData.birthYear && (formData.birthYear < 1900 || formData.birthYear > currentYear)) {
+    if (!newErrors.birthYear && (formData.birthYear < 1900 || formData.birthYear > currentYear)) {
       newErrors.birthYear = `Birth year must be between 1900 and ${currentYear}`;
     }
     // Validate life expectancy distribution
-    const life = distributions.lifeExpectancy;
-    if (life.type === "fixed") {
-      if (!life.fixedValue) {
-        newErrors.lifeExpectancy = "Fixed life expectancy value is required";
-      } else if (formData.birthYear + life.fixedValue < currentYear) {
+    if(!newErrors.birthYear) {
+      if (formData.birthYear + distributions.lifeExpectancy.fixedValue < currentYear) {
         newErrors.lifeExpectancy = "Life expectancy cannot result in a death year in the past";
       }
-      else if (life.fixedValue > 122) {
+      else if (distributions.lifeExpectancy.fixedValue > 122) {
         newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
       }
     }
-    if (life.type === "normal") {
-      if (!life.mean || (!life.stdDev && life.stdDev !== 0)) {
-        newErrors.lifeExpectancy = "Mean and standard deviation are required";
-      } else if (formData.birthYear + life.mean < currentYear) {
-        newErrors.lifeExpectancy = "Mean life expectancy cannot result in a death year in the past";
+    // Validate spouse life expectancy distribution
+    if(formData.maritalStatus === "married" && !newErrors.spouseBirthYear) {
+      if (formData.spouseBirthYear + distributions.spouseLifeExpectancy.fixedValue < currentYear) {
+        newErrors.spouseLifeExpectancy = "Life expectancy cannot result in a death year in the past";
       }
-      else if (life.mean > 122) {
-        newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
-      }
-    }
-
-    // Validate spouse fields
-    if (formData.maritalStatus === "married") {
-      if (formData.spouseBirthYear === null || formData.spouseBirthYear === undefined || formData.spouseBirthYear === "") {
-        newErrors.spouseBirthYear = "This field is required";
-      }
-      if (formData.spouseBirthYear && (formData.spouseBirthYear < 1900 || formData.spouseBirthYear > currentYear)) {
-        newErrors.spouseBirthYear = `Birth year must be between 1900 and ${currentYear}`;
-      }
-      // Validate spouse life expectancy distribution
-      const sLife = distributions.spouseLifeExpectancy;
-      if (!sLife.type) {
-        newErrors.spouseLifeExpectancy = "This field is required";
-      }
-      if (sLife.type === "fixed") {
-        if (!sLife.fixedValue) {
-          newErrors.spouseLifeExpectancy = "Fixed spouse life expectancy value is required";
-        }
-        else if (formData.spouseBirthYear + sLife.fixedValue < currentYear) {
-          newErrors.spouseLifeExpectancy = "Life expectancy cannot result in a death year in the past";
-        }
-        else if (sLife.fixedValue > 122) {
-          newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
-        }
-      }
-      if (sLife.type === "normal") {
-        if (!sLife.mean || (!sLife.stdDev && sLife.stdDev !== 0)) {
-          newErrors.spouseLifeExpectancy = "Mean and standard deviation are required";
-        } else if (formData.spouseBirthYear + sLife.mean < currentYear) {
-          newErrors.spouseLifeExpectancy = "Mean life expectancy cannot result in a death year in the past";
-        }
+      else if (distributions.spouseLifeExpectancy.fixedValue > 122) {
+        newErrors.spouseLifeExpectancy = "Life expectancy cannot reasonably exceed 122";
       }
     }
-
+    // console.log(newErrors);
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
