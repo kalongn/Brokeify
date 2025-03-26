@@ -410,8 +410,6 @@ export async function performRothConversion(curYearIncome, curYearSS, federalInc
 
     let rc = u - curYearFedTaxableIncome;
     if (rc <= 0) return { curYearIncome, curYearEarlyWithdrawals: 0 }; // No room for Roth conversion
-    // console.log("curYearFedTaxableIncome");
-    // console.log(curYearFedTaxableIncome);
 
     
 
@@ -689,7 +687,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
     let amountICanPay = Math.max(totalValue - scenario.financialGoal, totalInStrategy);
     if (amountICanPay <= 0) {
         
-        return { np: totalExpenses, p: 0 };
+        return { np: totalExpenses, p: 0, c:0 };
     }
     let toReturn = { np: 0, p: totalExpenses, c: 0 };
     let leftToPay = totalExpenses;
@@ -1188,7 +1186,7 @@ export async function simulate(
         thisYearGains += expensesReturn.c;    //if you sell investments
 
         lastYearTaxes = thisYearTaxes;
-        //returns amount not paid
+        //returns amount not paid, paid, and capital gains
         let discretionaryAmountIgnored, discretionaryAmountPaid;
         const processDiscretionaryResult = await processDiscretionaryExpenses(simulation.scenario, currentYear);
         discretionaryAmountIgnored = processDiscretionaryResult.np;
