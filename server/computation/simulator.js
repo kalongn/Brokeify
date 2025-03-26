@@ -1168,7 +1168,7 @@ export async function simulate(
         }
 
 
-        curYearIncome += await updateInvestments(investmentTypes, inflationRate);
+        curYearIncome += await updateInvestments(investmentTypes);
 
 
         const rothConversion = await performRothConversion(curYearIncome, curYearSS, federalIncomeTax, currentYear, simulation.scenario.userBirthYear, simulation.scenario.orderedRothStrategy, investmentTypes);
