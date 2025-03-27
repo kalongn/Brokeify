@@ -210,7 +210,7 @@ const BasicInfo1 = () => {
       if (field !== "lifeExpectancy" && field !== "spouseLifeExpectancy") {
         validateRequired(newErrors, field, value);
       } else {
-        validateDistribution(newErrors, field, value, false);
+        validateDistribution(newErrors, field, value, value.isPercentage);
       }
     }
     // // TODO: add error checking for state if it is in db
@@ -228,10 +228,15 @@ const BasicInfo1 = () => {
         newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
       }
     }
+
+    // Validate spouse birth year
+    if (!newErrors.spouseBirthYear && (formData.spouseBirthYear < 1900 || formData.spouseBirthYear > currentYear)) {
+      newErrors.spouseBirthYear = `Birth year must be between 1900 and ${currentYear}`;
+    }
     // Validate spouse life expectancy distribution
     if(formData.maritalStatus === "married" && !newErrors.spouseBirthYear) {
       if (formData.spouseBirthYear + distributions.spouseLifeExpectancy.fixedValue < currentYear) {
-        newErrors.spouseLifeExpectancy = "Life expectancy cannot result in a death year in the past";
+        newErrors.spouseLifeExpectancy = "Life expectancy cannot result in death in the past";
       }
       else if (distributions.spouseLifeExpectancy.fixedValue > 122) {
         newErrors.spouseLifeExpectancy = "Life expectancy cannot reasonably exceed 122";

@@ -72,7 +72,6 @@ export const distributionToString = (distribution) => {
             return "Unknown Distribution Type";
     }
 };
-// This file contains utility functions for field validation for scenarios
 
 export const validateRequired = (newErrors, field, value) => {
   if (value === null || value === undefined) {
@@ -88,25 +87,24 @@ export const validateRequired = (newErrors, field, value) => {
   return newErrors;
 } 
 
-export const validatePercentage = (newErrors, field) => {
-  if (field < 0 || field > 100) {
-    newErrors[field] = "Percentage must be between 0 and 100";
-  }
-  return newErrors;
-}
 
 export const validateDistribution = (newErrors, field, dist, isPercentage) => {
+  // Check if a type of distribution has been selected
   const type = dist.type;
   if (type === null || type === undefined) {
     newErrors[field] = "This field is required";
     return;
   }
+  
   switch(type) {
     case "fixed":
       if (dist.fixedValue === null || dist.fixedValue === undefined) {
         newErrors[field] = "This field is required";
       } else if (dist.fixedValue < 0) {
         newErrors[field] = "Value must be non-negative";
+      }
+      if (isPercentage && dist.fixedValue > 100) {
+        newErrors[field] = "Percentage must be between 0 and 100";
       }
       break;
     case "uniform":
@@ -123,13 +121,20 @@ export const validateDistribution = (newErrors, field, dist, isPercentage) => {
         newErrors[field] = "Both mean and standard deviation are required";
       } else if (dist.mean < 0 || dist.stdDev < 0) {
         newErrors[field] = "Both mean and standard deviation must be non-negative";
+      } else if (isPercentage) {
+        if (dist.mean > 100) {
+          newErrors[field] = "Mean must be between 0 and 100";
+        }
+        // If too large, significant portions of the distribution will fall outside the range
+        // Normal distributions should have 99.7% of values fall within 3 * stdDev
+        const maxStdDev = Math.min(dist.mean / 3, (100 - dist.mean) / 3);
+        if (dist.stdDev > maxStdDev) {
+          newErrors[field] = "Standard deviation is too large (99.7% of values must stay within [0, 100]).";
+        }
       }
       break;
     default:
       break;
-  }
-  if (isPercentage && (newErrors[field] === null || newErrors[field] === undefined)) {
-    validatePercentage(newErrors, dist);
   }
   return newErrors;
 };
