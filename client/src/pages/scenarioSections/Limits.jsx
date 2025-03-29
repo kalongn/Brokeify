@@ -5,23 +5,29 @@ import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 
 const Limits = () => {
+  // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
   const { childRef } = useOutletContext();
+
+  const [errors, setErrors] = useState({});
+  // Determine if what distribution fields are shown and contain values for backend
+  // Based on the type field, only the relevant fields should be read
+  const [distributions, setDistributions] = useState({
+    // inflationAssumption can have fixedValue, lowerBound, upperBound, mean, or stdDev fields
+    inflationAssumption: { type: "" },
+  });
+
+  const [formData, setFormData] = useState({
+    inflationAssumption: distributions.inflationAssumption,
+    initialLimit: null,
+  });
+
   // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
     handleSubmit,
   }));
-  // For error validation
-  const [errors, setErrors] = useState({});
-
-  // Determine if what distribution fields are shown and contain values for backend
-  // Based on the type field, only the relevant fields should be read
-  const [distributions, setDistributions] = useState({
-    inflationAssumption: { type: null, fixedValue: null, lowerBound: null, upperBound: null, mean: null, stdDev: null },
-  });
 
   // Below handler copied and pasted from AI code generation from BasicInfo.jsx
-
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
@@ -36,11 +42,6 @@ const Limits = () => {
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
-
-  const [formData, setFormData] = useState({
-    inflationAssumption: distributions.inflationAssumption,
-    initialLimit: null,
-  });
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
   const handleChange = (e) => {

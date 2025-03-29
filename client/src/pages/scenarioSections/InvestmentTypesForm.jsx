@@ -8,13 +8,21 @@ import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
 
 const InvestmentTypesForm = () => {
-  // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   const navigate = useNavigate();
+
+  // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
+  // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
+
+  const [errors, setErrors] = useState({});
+  // Determine if what distribution fields are shown and contain values for backend
+  // Based on the type field, only the relevant fields should be read
   const [distributions, setDistributions] = useState({
-    expectedAnnualReturn: { type: null, fixedValue: null, mean: null, stdDev: null },
-    expectedDividendsInterest: { type: null, fixedValue: null, mean: null, stdDev: null },
+    // expectedAnnualReturn and expectedDividendsInterest can have fixedValue, mean, or stdDev fields
+    expectedAnnualReturn: { type: "" },
+    expectedDividendsInterest: { type: "" },
   });
+
   const [formData, setFormData] = useState({
     investmentType: null,
     description: null,
@@ -23,7 +31,11 @@ const InvestmentTypesForm = () => {
     expectedDividendsInterest: distributions.expectedDividendsInterest,
     taxability: null,
   });
-  const [errors, setErrors] = useState({});
+
+  // Expose the validateFields function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -32,11 +44,6 @@ const InvestmentTypesForm = () => {
       expectedDividendsInterest: distributions.expectedDividendsInterest
     }));
   }, [distributions]);
-
-  // Expose the validateFields function to the parent component
-  useImperativeHandle(childRef, () => ({
-    handleSubmit,
-  }));
 
   // Below handler copied and pasted from AI code generation from BasicInfo.jsx
   const handleDistributionsChange = (name, field, value) => {
@@ -86,10 +93,8 @@ const InvestmentTypesForm = () => {
     if(formData.expenseRatio !== null && formData.expenseRatio > 100) {
       newErrors.expenseRatio = "Expense ratio must be between 0 and 100";
     }
-
     // Set all errors at once
     setErrors(newErrors);
-    console.log(newErrors);
     // Everything is valid if there are no error messages
     return Object.keys(newErrors).length === 0;
   };

@@ -8,26 +8,25 @@ import styles from "./Form.module.css";
 
 const Investments = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
+  // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
-
   const [formData, setFormData] = useState([]);
-
   const [errors, setErrors] = useState([]);
 
   const [investmentTypes, setInvestmentTypes] = useState({
     investmentRow: [{ investmentType: null, dollarValue: null, taxStatus: null }]
   });
 
-  // Expose the handleSubmit function to the parent component
-  useImperativeHandle(childRef, () => ({
-    handleSubmit,
-  }));
-
   const taxStatuses = [
     { value: "Non-Retirement", label: "Non-Retirement" },
     { value: "Pre-Tax Retirement", label: "Pre-Tax Retirement" },
     { value: "After-Tax Retirement", label: "After-Tax Retirement" },
   ];
+
+  // Expose the handleSubmit function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -66,6 +65,7 @@ const Investments = () => {
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, investments: "" }));
   };
+
   // TODO: fix bug where deleting a row above actually removes the one below
   const removeInvestment = (index) => {
     alert("NOT IMPLEMENTED YET + index clicked: " + index);
@@ -74,9 +74,7 @@ const Investments = () => {
   };
 
   const validateFields = () => {
-    // let isValid = true;s
     const newErrors = {};
-
     // Check if there are any investments
     if (!formData[0]) {
       newErrors.investmentRow = "At least one investment must be added";
@@ -92,9 +90,9 @@ const Investments = () => {
         }
       });
     }
-    
+    // Set all errors at once
     setErrors(newErrors);
-    // console.log(newErrors);
+    // Everything is valid if there are no error messages
     return Object.keys(newErrors).length === 0;
   };
 

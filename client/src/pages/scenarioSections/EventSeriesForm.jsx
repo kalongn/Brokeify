@@ -8,25 +8,63 @@ import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
 
 const EventSeriesForm = () => {
-  // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
+  const navigate = useNavigate();
 
+  // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
   const { childRef } = useOutletContext();
-  // Expose the handleSubmit function to the parent component
-  useImperativeHandle(childRef, () => ({
-    handleSubmit,
-  }));
-  // Add error state
-  const [errors, setErrors] = useState({});
+
   // For parsing to number
   const FIELD_TYPES = {
     NUMBER: new Set(["initialValue", "percentageIncrease", "spousePercentageIncrease", "maxCash"]),
   };
 
+  const taxStatuses = [
+    { value: "Non-Retirement", label: "Non-Retirement" },
+    { value: "Pre-Tax Retirement", label: "Pre-Tax Retirement" },
+    { value: "After-Tax Retirement", label: "After-Tax Retirement" },
+  ];
+
+  const [errors, setErrors] = useState({});
+  // Determine if what distribution fields are shown and contain values for backend
+  // Based on the type field, only the relevant fields should be added and read
+  const [distributions, setDistributions] = useState({
+    // startYear can have fixedValue, lowerBound, upperBound, mean, stdDev, or event fields
+    startYear: { type: "" },
+    // duration and expectedAnnualChange can have fixedValue, lowerBound, upperBound, mean, or stdDev fields
+    duration: { type: "" },
+    expectedAnnualChange: { type: "" },
+  });
+
+  const [formData, setFormData] = useState({
+    eventSeriesName: null,
+    description: null,
+    startYear: distributions.startYear,
+    duration: distributions.duration,
+    eventType: null,
+    isSocialSecurity: null,
+    isDiscretionary: null,
+    initialValue: null,
+    expectedAnnualChange: distributions.expectedAnnualChange,
+    percentageIncrease: null,
+    spousePercentageIncrease: null,
+    isAdjustInflation: null,
+    allocationMethod: null,
+    taxStatus: null,
+    investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }],
+    maxCash: null
+  });
+
+  // Expose the handleSubmit function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
+
   // TODO: replace with investments from db
   const [investments, setInvestments] = useState([
     { value: "Cash", label: "Cash" },
   ]);
+
   // TODO: uncomment out and modify when route has been set up
   useEffect(() => {
     // TODO: remove superficial call to setInvestments (to satisfy ESLint for now)
@@ -54,27 +92,12 @@ const EventSeriesForm = () => {
     //   }
     // })();
   }, []);
-  const taxStatuses = [
-    { value: "Non-Retirement", label: "Non-Retirement" },
-    { value: "Pre-Tax Retirement", label: "Pre-Tax Retirement" },
-    { value: "After-Tax Retirement", label: "After-Tax Retirement" },
-  ];
+  // TODO: replace with events from db
   const events = [
     { value: "Event1", label: "Event1" },
     { value: "Event2", label: "Event2" },
     { value: "Event3", label: "Event3" },
   ];
-
-  // Determine if what distribution fields are shown and contain values for backend
-  // Based on the type field, only the relevant fields should be added and read
-  const [distributions, setDistributions] = useState({
-    // startYear can have fixedValue, lowerBound, upperBound, mean, stdDev, or event fields
-    startYear: { type: "" },
-    // duration can have fixedValue, lowerBound, upperBound, mean, or stdDev fields
-    duration: { type: "" },
-    // expectedAnnualChange can have fixedValue, lowerBound, upperBound, mean, or stdDev fields
-    expectedAnnualChange: { type: "" },
-  });
 
   // Below handler copied and pasted from AI code generation from BasicInfo.jsx
   const handleDistributionsChange = (name, field, value) => {
@@ -125,25 +148,6 @@ const EventSeriesForm = () => {
     }));
   };
 
-  const [formData, setFormData] = useState({
-    eventSeriesName: null,
-    description: null,
-    startYear: distributions.startYear,
-    duration: distributions.duration,
-    eventType: null,
-    isSocialSecurity: null,
-    isDiscretionary: null,
-    initialValue: null,
-    expectedAnnualChange: distributions.expectedAnnualChange,
-    percentageIncrease: null,
-    spousePercentageIncrease: null,
-    isAdjustInflation: null,
-    allocationMethod: null,
-    taxStatus: null,
-    investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }],
-    maxCash: null
-  });
-
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -164,23 +168,20 @@ const EventSeriesForm = () => {
 
   const handleSelectChange = (selectedOption, field) => {
     // For start year's event options
-    if(field === "event") {
+    if (field === "event") {
       handleDistributionsChange("startYear", "event", selectedOption.value);
     }
     else {
       setFormData((prev) => ({ ...prev, [field]: selectedOption.value }));
     }
     // Clear errors when user makes changes
-    // console.log(field, selectedOption.value);
-    // console.log(formData);
     setErrors(prev => ({ ...prev, state: "" }));
-    console.log(errors);
   };
 
-  const navigate = useNavigate();
   const handleNavigate = () => {
     navigate("/ScenarioForm/event-series");
   };
+
   const validateFields = () => {
     const newErrors = {};
     const eventType = formData.eventType;
@@ -215,26 +216,25 @@ const EventSeriesForm = () => {
         validateDistribution(newErrors, field, value, value.isPercentage);
       }
     }
-    if(distributions.startYear.type.includes("event") && distributions.startYear.event === undefined) {
+    if (distributions.startYear.type.includes("event") && distributions.startYear.event === undefined) {
       newErrors.startYearEvent = "This field is required";
     }
-    // Percentage Increase validation
-    //   const pInc = formData.percentageIncrease;
-    //   if (!pInc) {
-    //     newErrors.percentageIncrease = "This field is required";
-    //   } else if (pInc < 0 || pInc > 100) {
-    //     newErrors.percentageIncrease = "Percentage must be between 0 and 100";
-    //   }
+    // Percentage increase validation
+    const pInc = formData.percentageIncrease;
+    if (!pInc) {
+      newErrors.percentageIncrease = "This field is required";
+    } else if (pInc < 0 || pInc > 100) {
+      newErrors.percentageIncrease = "Percentage must be between 0 and 100";
+    }
 
-    //   // TODO: pull marital status and hide this field if single
-    //   // Spouse Percentage Increase validation
-    //   const spInc = formData.spousePercentageIncrease;
-    //   if (!spInc) {
-    //     newErrors.spousePercentageIncrease = "This field is required";
-    //   } else if (spInc < 0 || spInc > 100) {
-    //     newErrors.percentageIncrease = "Percentage must be between 0 and 100";
-    //   }
-    // }
+    // TODO: pull marital status and hide this field if single
+    // Spouse percentage increase validation
+    const spInc = formData.spousePercentageIncrease;
+    if (!spInc) {
+      newErrors.spousePercentageIncrease = "This field is required";
+    } else if (spInc < 0 || spInc > 100) {
+      newErrors.percentageIncrease = "Percentage must be between 0 and 100";
+    }
 
     // Validate investment/rebalance specific fields
     if (formData.eventType === "invest" || formData.eventType === "rebalance") {
@@ -275,7 +275,6 @@ const EventSeriesForm = () => {
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
-    // console.log(newErrors);
     return Object.keys(newErrors).length === 0;
   };
   const handleSubmit = () => {

@@ -74,25 +74,13 @@ export const distributionToString = (distribution) => {
 };
 
 export const validateRequired = (newErrors, field, value) => {
-  if (value === null || value === undefined) {
-    newErrors[field] = "This field is required";
-  } else if (typeof value === "string" && value.trim() === "") {
+  if (value === null || value === undefined || (typeof value === "string" && value.trim() === "")) {
     newErrors[field] = "This field is required";
   } else if (typeof value === "number" && value < 0) {
     newErrors[field] = "Value must be non-negative";
   }
-  // if(bound1 !== null && bound2 !== null) {
-  //   newErrors[field] = `This value must be between ${bound1} and ${bound2}`;
-  // }
   return newErrors;
 } 
-
-export const validatePercentage = (newErrors, field, value) => {
-  if (value > 100) {
-    newErrors[field] = "Percentage must be between 0 and 100";
-  }
-  return newErrors;
-}
 
 export const validateDistribution = (newErrors, field, dist, isPercentage) => {
   // Check if a type of distribution has been selected
@@ -109,7 +97,7 @@ export const validateDistribution = (newErrors, field, dist, isPercentage) => {
       } else if (dist.fixedValue < 0) {
         newErrors[field] = "Value must be non-negative";
       }
-      if (isPercentage && dist.fixedValue > 100) {
+      if (isPercentage) {
         newErrors[field] = "Percentage must be between 0 and 100";
       }
       break;

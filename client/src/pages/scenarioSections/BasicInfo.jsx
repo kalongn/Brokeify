@@ -1,6 +1,6 @@
 import { useState, useImperativeHandle, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
-import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
+import { stateMap, validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Select from "react-select";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
@@ -12,14 +12,17 @@ const BasicInfo1 = () => {
 
   // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
-  // Expose the validateFields function to the parent component
 
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
   // Determine if what distribution fields are shown and contain values for backend
   // Based on the type field, only the relevant fields should be read
   const [distributions, setDistributions] = useState({
-    lifeExpectancy: { type: null, fixedValue: null, mean: null, stdDev: null },
-    spouseLifeExpectancy: { type: null, fixedValue: null, mean: null, stdDev: null },
+    // lifeExpectancy and spouseLifeExpectancy can have fixedValue, mean, or stdDev fields
+    lifeExpectancy: { type: "" },
+    spouseLifeExpectancy: { type: "" },
   });
+
   const [formData, setFormData] = useState({
     name: null,
     financialGoal: null,
@@ -30,8 +33,11 @@ const BasicInfo1 = () => {
     spouseBirthYear: null,
     spouseLifeExpectancy: distributions.spouseLifeExpectancy,
   });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(true);
+
+  // Expose the validateFields function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
 
   useEffect(() => {
     // Initialize formData with default values for the scenario
@@ -98,68 +104,10 @@ const BasicInfo1 = () => {
     }));
   }, [distributions]);
 
-  useImperativeHandle(childRef, () => ({
-    handleSubmit,
-  }));
-  // For error validation
-  // For parsing to number
+  // For field validation and parsing to number
   const FIELD_TYPES = {
     NUMBER: new Set(["financialGoal", "birthYear", "spouseBirthYear"]),
   };
-
-  // AI (Amazon Q) In-line code generation for list of states
-  const states = [
-    { value: "AL", label: "Alabama" },
-    { value: "AK", label: "Alaska" },
-    { value: "AZ", label: "Arizona" },
-    { value: "AR", label: "Arkansas" },
-    { value: "CA", label: "California" },
-    { value: "CO", label: "Colorado" },
-    { value: "CT", label: "Connecticut" },
-    { value: "DE", label: "Delaware" },
-    { value: "FL", label: "Florida" },
-    { value: "GA", label: "Georgia" },
-    { value: "HI", label: "Hawaii" },
-    { value: "ID", label: "Idaho" },
-    { value: "IL", label: "Illinois" },
-    { value: "IN", label: "Indiana" },
-    { value: "IA", label: "Iowa" },
-    { value: "KS", label: "Kansas" },
-    { value: "KY", label: "Kentucky" },
-    { value: "LA", label: "Louisiana" },
-    { value: "ME", label: "Maine" },
-    { value: "MD", label: "Maryland" },
-    { value: "MA", label: "Massachusetts" },
-    { value: "MI", label: "Michigan" },
-    { value: "MN", label: "Minnesota" },
-    { value: "MS", label: "Mississippi" },
-    { value: "MO", label: "Missouri" },
-    { value: "MT", label: "Montana" },
-    { value: "NE", label: "Nebraska" },
-    { value: "NV", label: "Nevada" },
-    { value: "NH", label: "New Hampshire" },
-    { value: "NJ", label: "New Jersey" },
-    { value: "NM", label: "New Mexico" },
-    { value: "NY", label: "New York" },
-    { value: "NC", label: "North Carolina" },
-    { value: "ND", label: "North Dakota" },
-    { value: "OH", label: "Ohio" },
-    { value: "OK", label: "Oklahoma" },
-    { value: "OR", label: "Oregon" },
-    { value: "PA", label: "Pennsylvania" },
-    { value: "RI", label: "Rhode Island" },
-    { value: "SC", label: "South Carolina" },
-    { value: "SD", label: "South Dakota" },
-    { value: "TN", label: "Tennessee" },
-    { value: "TX", label: "Texas" },
-    { value: "UT", label: "Utah" },
-    { value: "VT", label: "Vermont" },
-    { value: "VA", label: "Virginia" },
-    { value: "WA", label: "Washington" },
-    { value: "WV", label: "West Virginia" },
-    { value: "WI", label: "Wisconsin" },
-    { value: "WY", label: "Wyoming" }
-  ];
 
   // Prompt to AI (Amazon Q): How do I get the form fields for the distributions to save to the distributions data set?
   // There were no changes needed for this code snippet
@@ -216,11 +164,11 @@ const BasicInfo1 = () => {
     // // TODO: add error checking for state if it is in db
 
     // Validate birth year
-    if(!newErrors.birthYear && (formData.birthYear < 1900 || formData.birthYear > currentYear)) {
+    if (!newErrors.birthYear && (formData.birthYear < 1900 || formData.birthYear > currentYear)) {
       newErrors.birthYear = `Birth year must be between 1900 and ${currentYear}`;
     }
     // Validate life expectancy distribution
-    if(!newErrors.birthYear) {
+    if (!newErrors.birthYear) {
       if (formData.birthYear + distributions.lifeExpectancy.fixedValue < currentYear) {
         newErrors.lifeExpectancy = "Life expectancy cannot result in a death year in the past";
       }
@@ -243,7 +191,6 @@ const BasicInfo1 = () => {
       }
     }
 
-    // console.log(newErrors);
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
@@ -333,8 +280,17 @@ const BasicInfo1 = () => {
           </label>
           <label className={styles.newline}>
             State of Residence
-            <Select options={states} className={`${styles.shortInput} ${styles.select}`} onChange={handleSelectChange}
-              value={states.find(state => state.value === formData.state) || undefined} />
+            {/* 
+              Prompt to AI (Amazon Q): Rewrite the highlighted code to account for the structure
+              of stateMap in the utility file: <PASTED_UTILITY_FILE_CODE>
+            */}
+            <Select
+              options={Object.entries(stateMap).map(([value, label]) => ({ value, label }))}
+              className={`${styles.shortInput} ${styles.select}`}
+              onChange={handleSelectChange}
+              value={formData.state ? { value: formData.state, label: stateMap[formData.state] } : undefined}
+            />
+
             {errors.state && <span className={styles.error}>{errors.state}</span>}
           </label>
           <label className={styles.newline}>
