@@ -1,5 +1,6 @@
 import { useState, useImperativeHandle } from "react";
 import { useOutletContext } from "react-router-dom";
+import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 
@@ -16,7 +17,7 @@ const Limits = () => {
   // Determine if what distribution fields are shown and contain values for backend
   // Based on the type field, only the relevant fields should be read
   const [distributions, setDistributions] = useState({
-    inflationAssumption: { type: "", fixedValue: "", isPercentage: true, lowerBound: "", upperBound: "", mean: "", stdDev: "" },
+    inflationAssumption: { type: null, fixedValue: null, lowerBound: null, upperBound: null, mean: null, stdDev: null },
   });
 
   // Below handler copied and pasted from AI code generation from BasicInfo.jsx
@@ -52,38 +53,13 @@ const Limits = () => {
 
   const validateFields = () => {
     const newErrors = {};
-    // Field validation from AI code generation using same prompt (and in-line help) as in BasicInfo.jsx
-    // Further modifications were similarly necessary especially for the distributions
-
-    // Validate Expected Dividends/Interest
-    const inflation = distributions.inflationAssumption;
-    if (!inflation.type) {
-      newErrors.inflationAssumption = "Expected Dividends/Interest is required";
-    } else {
-      if (inflation.type === "fixed") {
-        if (inflation.fixedValue === "") {
-          newErrors.inflationAssumption = "Fixed percentage is required";
-        } else if (inflation.fixedValue < 0 || inflation.fixedValue > 100) {
-          newErrors.inflationAssumption = "Percentage must be between 0 and 100";
-        }
-      } else if (inflation.type === "uniform") {
-        if ((!inflation.lowerBound || !inflation.upperBound) && (inflation.lowerBound !== 0) && (inflation.upperBound !== 0)) {
-          newErrors.inflationAssumption = "Both lower and upper bounds are required";
-        } else if (inflation.lowerBound < 0 || inflation.upperBound < 0) {
-          newErrors.inflationAssumption = "Bounds must be non-negative";
-        } else if (inflation.lowerBound > inflation.upperBound) {
-          newErrors.inflationAssumption = "Lower bound must be less than or equal to upper bound";
-        }
-      } else if (inflation.type === "normal") {
-        if (!inflation.mean || !inflation.stdDev) {
-          newErrors.inflationAssumption = "Mean and standard deviation are required for normal distribution";
-        }
+    for (const [field, value] of Object.entries(formData)) {
+      // Distribution fields require a different function to validate
+      if (field !== "inflationAssumption") {
+        validateRequired(newErrors, field, value);
+      } else {
+        validateDistribution(newErrors, field, value, value.isPercentage);
       }
-    }
-    if (!formData.initialLimit && formData.initialLimit !== 0) {
-      newErrors.initialLimit = "Initial limit is required";
-    } else if (formData.initialLimit < 0) {
-      newErrors.initialLimit = "Initial limit must be non-negative";
     }
 
     // Set all errors at once
@@ -99,13 +75,12 @@ const Limits = () => {
     <div>
       <h2>Inflation & Contribution Limits</h2>
       <form>
+        <label>Inflation Assumption</label>
         <Distributions
-          label="Inflation Assumption"
           options={["fixed", "uniform", "normal"]}
           name="inflationAssumption"
-          value={distributions.inflationAssumption.type}
           onChange={handleDistributionsChange}
-          fixedLabel="Fixed Percentage"
+          defaultValuevalue={distributions.inflationAssumption}
         />
         {errors.inflationAssumption && <span className={styles.error}>{errors.inflationAssumption}</span>}
         <hr />

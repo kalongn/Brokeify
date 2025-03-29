@@ -72,6 +72,7 @@ const Distributions = ({
           <input
             type="radio"
             value="uniform"
+            checked={type === "uniform"}
             onChange={(e) => handleRadio("type", e.target.value)}
           />
           Sample from Uniform Distribution

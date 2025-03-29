@@ -1,5 +1,6 @@
 import { useState, useEffect, useImperativeHandle } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
+import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Axios from "axios";
 
 import Distributions from "../../components/Distributions";
@@ -11,8 +12,8 @@ const InvestmentTypesForm = () => {
   const navigate = useNavigate();
   const { childRef, scenarioId } = useOutletContext();
   const [distributions, setDistributions] = useState({
-    expectedAnnualReturn: { type: "", fixedValue: "", isPercentage: false, mean: "", stdDev: "" },
-    expectedDividendsInterest: { type: "", fixedValue: "", isPercentage: false, mean: "", stdDev: "" },
+    expectedAnnualReturn: { type: null, fixedValue: null, mean: null, stdDev: null },
+    expectedDividendsInterest: { type: null, fixedValue: null, mean: null, stdDev: null },
   });
   const [formData, setFormData] = useState({
     investmentType: null,
@@ -70,72 +71,20 @@ const InvestmentTypesForm = () => {
 
   const validateFields = () => {
     const newErrors = {};
-    // Field validation from AI code generation using same prompt (and in-line help) as in BasicInfo.jsx
-    // Further modifications were similarly necessary especially for the distributions
-
-    // Validate investment type name
-    if (!formData.investmentType?.trim()) {
-      newErrors.investmentType = "This field is required";
-    }
-
-    // Validate expected annual return distribution
-    const expReturn = distributions.expectedAnnualReturn;
-    if (!expReturn.type) {
-      newErrors.expectedAnnualReturn = "This field is required";
-    } else {
-      if (expReturn.type === "fixed") {
-        if (expReturn.fixedValue === "") {
-          newErrors.expectedAnnualReturn = "This field is required";
-        } else if (expReturn.fixedValue < 0) {
-          newErrors.expectedAnnualReturn = "Expected annual return must be non-negative";
-        } else if (expReturn.isPercentage && expReturn.fixedValue > 100) {
-          newErrors.expectedAnnualReturn = "Percentage must be between 0 and 100";
-        }
-      } else if (expReturn.type === "normal") {
-        if (!expReturn.mean || !expReturn.stdDev) {
-          newErrors.expectedAnnualReturn = "Mean and standard deviation are required";
-        } else if (expReturn.mean < 0) {
-          newErrors.expectedAnnualReturn = "Mean must be non-negative";
-        } else if (expReturn.stdDev < 0) {
-          newErrors.expectedAnnualReturn = "Standard deviation must be non-negative";
-        }
+    for (const [field, value] of Object.entries(formData)) {
+      // Description is optional
+      if (field === "description") {
+        continue;
+      }
+      // Distribution fields require a different function to validate
+      if (field !== "expectedAnnualReturn" && field !== "expectedDividendsInterest") {
+        validateRequired(newErrors, field, value);
+      } else {
+        validateDistribution(newErrors, field, value, value.isPercentage);
       }
     }
-
-    // Validate Expense Ratio
-    if (formData.expenseRatio === null || formData.expenseRatio === "") {
-      newErrors.expenseRatio = "This field is required";
-    } else if (formData.expenseRatio < 0) {
-      newErrors.expenseRatio = "Expense Ratio must be non-negative";
-    }
-
-    // Validate expected dividends/interest distribution
-    const expDiv = distributions.expectedDividendsInterest;
-    if (!expDiv.type) {
-      newErrors.expectedDividendsInterest = "This field is required";
-    } else {
-      if (expDiv.type === "fixed") {
-        if (expDiv.fixedValue === "") {
-          newErrors.expectedDividendsInterest = "This field is required";
-        } else if (expDiv.fixedValue < 0) {
-          newErrors.expectedDividendsInterest = "Expected annual income from dividends/interest must be non-negative";
-        } else if (expDiv.isPercentage && expDiv.fixedValue > 100) {
-          newErrors.expectedDividendsInterest = "Percentage must be between 0 and 100";
-        }
-      } else if (expDiv.type === "normal") {
-        if (!expDiv.mean || !expDiv.stdDev) {
-          newErrors.expectedDividendsInterest = "Mean and standard deviation are required";
-        } else if (expDiv.mean < 0) {
-          newErrors.expectedDividendsInterest = "Mean must be non-negative";
-        } else if (expDiv.stdDev < 0) {
-          newErrors.expectedDividendsInterest = "Standard deviation must be non-negative";
-        }
-      }
-    }
-
-    // Validate Taxability
-    if (!formData.taxability) {
-      newErrors.taxability = "This field is required";
+    if(formData.expenseRatio !== null && formData.expenseRatio > 100) {
+      newErrors.expenseRatio = "Expense ratio must be between 0 and 100";
     }
 
     // Set all errors at once
@@ -188,14 +137,12 @@ const InvestmentTypesForm = () => {
           Description
           <textarea name="description" onChange={handleChange} />
         </label>
-
+        <label>Expected Annual Return</label>
         <Distributions
-          label="Expected Annual Return"
-          options={["fixed", "normal"]}
+          options={["fixed", "normal", "percentage"]}
           name="expectedAnnualReturn"
-          value={distributions.expectedAnnualReturn.type}
           onChange={handleDistributionsChange}
-          fixedLabel={"Fixed Value or Percentage"}
+          defaultValue={distributions.expectedAnnualReturn}
         />
         {errors.expectedAnnualReturn && <div className={styles.error}>{errors.expectedAnnualReturn}</div>}
         <label className={styles.newline}>
@@ -203,13 +150,12 @@ const InvestmentTypesForm = () => {
           <input type="number" name="expenseRatio" className={styles.newline} onChange={handleChange} />
           {errors.expenseRatio && <div className={styles.error}>{errors.expenseRatio}</div>}
         </label>
+        <label>Expected Annual Income from Dividends or Interests</label>
         <Distributions
-          label="Expected Annual Income from Dividends or Interests"
-          options={["fixed", "normal"]}
+          options={["fixed", "normal", "percentage"]}
           name="expectedDividendsInterest"
-          value={distributions.expectedDividendsInterest.type}
           onChange={handleDistributionsChange}
-          fixedLabel={"Fixed Value or Percentage"}
+          defaultValue={distributions.expectedDividendsInterest}
         />
         {errors.expectedDividendsInterest && <div className={styles.error}>{errors.expectedDividendsInterest}</div>}
         <label className={styles.newline}>

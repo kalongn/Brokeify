@@ -12,19 +12,18 @@ const Investments = () => {
 
   const [formData, setFormData] = useState([]);
 
-  const [errors, setErrors] = useState({
-    investments: ""
+  const [errors, setErrors] = useState([]);
+
+  const [investmentTypes, setInvestmentTypes] = useState({
+    investmentRow: [{ investmentType: null, dollarValue: null, taxStatus: null }]
   });
 
-  const [investmentTypes, setInvestmentTypes] = useState([]);
-
-  // Expose the validateFields function to the parent component
+  // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
     handleSubmit,
   }));
 
   const taxStatuses = [
-    { value: "Cash", label: "Cash" },
     { value: "Non-Retirement", label: "Non-Retirement" },
     { value: "Pre-Tax Retirement", label: "Pre-Tax Retirement" },
     { value: "After-Tax Retirement", label: "After-Tax Retirement" },
@@ -59,10 +58,11 @@ const Investments = () => {
     const processedValue = field === "dollarValue" ? Number(value) : value;
     updatedInvestments[index][field] = processedValue;
     setFormData(updatedInvestments);
+    console.log(updatedInvestments);
   };
 
   const addNewInvestment = () => {
-    setFormData([...formData, { id: undefined, type: "", dollarValue: "", taxStatus: "" }]);
+    setFormData([...formData, { id: undefined, investmentType: null, dollarValue: null, taxStatus: null }]);
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, investments: "" }));
   };
@@ -74,48 +74,28 @@ const Investments = () => {
   };
 
   const validateFields = () => {
-    let isValid = true;
+    // let isValid = true;s
     const newErrors = {};
 
     // Check if there are any investments
-    if (formData.length === 0) {
-      newErrors.investments = "At least one investment must be added";
-      isValid = false;
-      setErrors(newErrors);
-      return isValid;
+    if (!formData[0]) {
+      newErrors.investmentRow = "At least one investment must be added";
+    } 
+    else {
+      formData.forEach((row) => {
+        // Check if investment is set and if all fields are filled
+        if (!row.investmentType || !row.dollarValue || !row.taxStatus) {
+          newErrors.investmentRow = "All row fields are required";
+        }
+        else if (row.dollarValue < 0) {
+          newErrors.investmentRow = "Dollar values must be non-negative";
+        }
+      });
     }
-
-    // Validate each investment
-    formData.forEach((investment, index) => {
-      newErrors[index] = {};
-
-      // Validate Investment Type
-      if (!investment.type) {
-        newErrors[index].type = "This field is required";
-        isValid = false;
-      }
-
-      // Validate Dollar Value
-      if (investment.dollarValue === null || investment.dollarValue === "") {
-        newErrors[index].dollarValue = "This field is required";
-        isValid = false;
-      } else if (isNaN(investment.dollarValue)) {
-        newErrors[index].dollarValue = "Dollar value must be a number";
-        isValid = false;
-      } else if (investment.dollarValue < 0) {
-        newErrors[index].dollarValue = "Dollar value must be non-negative";
-        isValid = false;
-      }
-      // Validate Tax Status
-      if (!investment.taxStatus) {
-        newErrors[index].taxStatus = "This field is required";
-        isValid = false;
-      }
-    });
-
+    
     setErrors(newErrors);
-    console.log(newErrors);
-    return isValid;
+    // console.log(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const uploadToBackend = async () => {
@@ -166,12 +146,10 @@ const Investments = () => {
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={investmentTypes}
-                  value={investmentTypes.find((option) => option.value === formData[index].type)}
                   onChange={(e) =>
-                    handleInputChange(index, "type", e.value)
+                    handleInputChange(index, "investmentType", e.value)
                   }
                 />
-                {errors[index]?.type && <span className={styles.error}>{errors[index].type}</span>}
               </td>
               <td>
                 <input
@@ -184,18 +162,15 @@ const Investments = () => {
                   }
                   placeholder="$"
                 />
-                {errors[index]?.dollarValue && <span className={styles.error}>{errors[index].dollarValue}</span>}
               </td>
               <td>
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={taxStatuses}
-                  value={taxStatuses.find((option) => option.value === formData[index].taxStatus)}
                   onChange={(e) =>
                     handleInputChange(index, "taxStatus", e.value)
                   }
                 />
-                {errors[index]?.taxStatus && <span className={styles.error}>{errors[index].taxStatus}</span>}
               </td>
               <td>
                 <button
@@ -208,7 +183,7 @@ const Investments = () => {
           ))}
         </tbody>
       </table>
-      {errors.investments && <span className={styles.error}>{errors.investments}</span>}
+      {errors.investmentRow && <span className={styles.error}>{errors.investmentRow}</span>}
       <button id={styles.addButton} type="button" onClick={addNewInvestment}>
         Add New Investment
       </button>
