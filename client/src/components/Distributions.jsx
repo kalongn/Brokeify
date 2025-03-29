@@ -41,7 +41,6 @@ const Distributions = ({
       case "uniform":
         return <Uniform
           handleChange={handleChange}
-          hasPercentage={options.includes("percentage")}
           defaultValue={defaultValue}
         />
       case "normal":
