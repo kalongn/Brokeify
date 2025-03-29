@@ -17,8 +17,7 @@ const EventSeriesForm = () => {
     handleSubmit,
   }));
   // Add error state
-  const [errors, setErrors] = useState({
-  });
+  const [errors, setErrors] = useState({});
   // For parsing to number
   const FIELD_TYPES = {
     NUMBER: new Set(["initialValue", "percentageIncrease", "spousePercentageIncrease", "maxCash"]),
@@ -60,13 +59,21 @@ const EventSeriesForm = () => {
     { value: "Pre-Tax Retirement", label: "Pre-Tax Retirement" },
     { value: "After-Tax Retirement", label: "After-Tax Retirement" },
   ];
+  const events = [
+    { value: "Event1", label: "Event1" },
+    { value: "Event2", label: "Event2" },
+    { value: "Event3", label: "Event3" },
+  ];
 
   // Determine if what distribution fields are shown and contain values for backend
-  // Based on the type field, only the relevant fields should be read
+  // Based on the type field, only the relevant fields should be added and read
   const [distributions, setDistributions] = useState({
-    startYear: { type: null, fixedValue: null, lowerBound: null, upperBound: null, mean: null, stdDev: null, event: null },
-    duration: { type: null, fixedValue: null, lowerBound: null, upperBound: null, mean: null, stdDev: null },
-    expectedAnnualChange: { type: null, fixedValue: null, lowerBound: null, upperBound: null, mean: null, stdDev: null },
+    // startYear can have fixedValue, lowerBound, upperBound, mean, stdDev, or event fields
+    startYear: { type: "" },
+    // duration can have fixedValue, lowerBound, upperBound, mean, or stdDev fields
+    duration: { type: "" },
+    // expectedAnnualChange can have fixedValue, lowerBound, upperBound, mean, or stdDev fields
+    expectedAnnualChange: { type: "" },
   });
 
   // Below handler copied and pasted from AI code generation from BasicInfo.jsx
@@ -75,7 +82,7 @@ const EventSeriesForm = () => {
       const updatedDistributions = { ...prev };
       // Check if name is a number field and parse if so
       let processedValue = value;
-      if (field !== "type" && field !== "event" && value.length > 0) {
+      if (field !== "type" && value !== "event" && value.length > 0) {
         processedValue = Number(value);
       }
       updatedDistributions[name][field] = processedValue;
@@ -139,36 +146,35 @@ const EventSeriesForm = () => {
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
   const handleChange = (e) => {
-    if(!e || !e.target) {
-      // setFormData((prev) => ({ ...prev, eventType: null }));
-      return;
+    const { name, value } = e.target;
+    if (value.includes("event")) {
+      handleDistributionsChange(name, "type", value);
     }
-    const { name, type, value, checked } = e.target;
-    // Checkbox inputs are handled differently
-    if (type === "checkbox") {
-      // const { name, checked } = e.target;
-      setFormData((prev) => ({ ...prev, [name]: checked }));
+    else {
+      // Check if name is a number field and parse if so
+      let processedValue = value;
+      if (FIELD_TYPES.NUMBER.has(name)) {
+        processedValue = Number(value);
+      }
+      setFormData((prev) => ({ ...prev, [name]: processedValue }));
       // Clear errors when user makes changes
-      setErrors(prev => ({ ...prev, [e.target.name]: "" }));
-      return;
+      setErrors(prev => ({ ...prev, [name]: "" }));
     }
-
-    // const { name, value } = e.target;
-    // Check if name is a number field and parse if so
-    let processedValue = value;
-    if (FIELD_TYPES.NUMBER.has(name)) {
-      processedValue = Number(value);
-    }
-    setFormData((prev) => ({ ...prev, [name]: processedValue }));
-
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
   };
-  console.log(formData);
-  const handleSelectChange = (selectedOption) => {
-    setFormData((prev) => ({ ...prev, taxStatus: selectedOption.value }));
+
+  const handleSelectChange = (selectedOption, field) => {
+    // For start year's event options
+    if(field === "event") {
+      handleDistributionsChange("startYear", "event", selectedOption.value);
+    }
+    else {
+      setFormData((prev) => ({ ...prev, [field]: selectedOption.value }));
+    }
     // Clear errors when user makes changes
+    // console.log(field, selectedOption.value);
+    // console.log(formData);
     setErrors(prev => ({ ...prev, state: "" }));
+    console.log(errors);
   };
 
   const navigate = useNavigate();
@@ -209,19 +215,9 @@ const EventSeriesForm = () => {
         validateDistribution(newErrors, field, value, value.isPercentage);
       }
     }
-
-    //  if (start.type === "eventStart" || start.type === "eventEnd") {
-    //     if (!start.event) {
-    //       newErrors.startYear = "This field is required";
-    //     }
-    //   }
-    // }
-    // if (start.type === "eventStart" || start.type === "eventEnd") {
-    //   if (!start.event) {
-    //     newErrors.startYear = "This field is required";
-    //   }
-    // }
-
+    if(distributions.startYear.type.includes("event") && distributions.startYear.event === undefined) {
+      newErrors.startYearEvent = "This field is required";
+    }
     // Percentage Increase validation
     //   const pInc = formData.percentageIncrease;
     //   if (!pInc) {
@@ -242,13 +238,13 @@ const EventSeriesForm = () => {
 
     // Validate investment/rebalance specific fields
     if (formData.eventType === "invest" || formData.eventType === "rebalance") {
-
       // Validate investment rows
       const invRows = formData.investmentRows;
       const allocMethod = formData.allocationMethod;
       let totalPercentage = 0;
       let totalInitialPercentage = 0;
       let totalFinalPercentage = 0;
+
       invRows.forEach((row) => {
         const fixedMethod = row.percentage === "";
         const glideMethod = row.initialPercentage === "" || row.finalPercentage === "";
@@ -276,18 +272,10 @@ const EventSeriesForm = () => {
       }
     }
 
-    //   if (!formData.maxCash || formData.maxCash < 0) {
-    //     newErrors.maxCash = "Maximum cash must be 0 or greater";
-    //   }
-    // }
-    // if (formData.eventType === "rebalance" && !formData.taxStatus) {
-    //   newErrors.taxStatus = "This field is required";
-    // }
-
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
-    console.log(newErrors);
+    // console.log(newErrors);
     return Object.keys(newErrors).length === 0;
   };
   const handleSubmit = () => {
@@ -319,24 +307,34 @@ const EventSeriesForm = () => {
             onChange={handleDistributionsChange}
           />
           <div>
-            <label className={styles.newline}>
-              <input
-                type="radio"
-                name="eventStart"
-                value="eventStart"
-                onChange={(e) => handleChange("type", e.target.value)}
-              />
-              Same Year that Specified Event Starts
-            </label>
             <label>
               <input
                 type="radio"
-                name="eventEnd"
+                name="startYear"
+                value="eventStart"
+                checked={distributions.startYear.type === "eventStart"}
+                onChange={handleChange}
+              />
+              Same Year that Specified Event Starts
+            </label>
+            <br />
+            <label>
+              <input
+                type="radio"
+                name="startYear"
                 value="eventEnd"
-                onChange={(e) => handleChange("type", e.target.value)}
+                checked={distributions.startYear.type === "eventEnd"}
+                onChange={handleChange}
               />
               Year After Specified Event Ends
             </label>
+            {distributions.startYear.type.includes("event") && <Select
+              options={events}
+              className={styles.select}
+              onChange={(option) => handleSelectChange(option, "event")}
+              value={events.find(opt => opt.value === distributions.startYear.event)}
+            />}
+            {errors.startYearEvent && <span className={styles.error}>{errors.startYearEvent}</span>}
           </div>
         </div>
         {errors.startYear && <span className={styles.error}>{errors.startYear}</span>}
@@ -373,6 +371,7 @@ const EventSeriesForm = () => {
         </div>
         {errors.eventType && <span className={styles.error}>{errors.eventType}</span>}
         <hr />
+
         {(formData.eventType === "income" || formData.eventType === "expense") && (
           <div>
             {/* TODO: replace with toggle button */}
@@ -453,7 +452,8 @@ const EventSeriesForm = () => {
                 <Select
                   options={taxStatuses}
                   className={styles.select}
-                  onChange={handleSelectChange}
+                  onChange={(option) => handleSelectChange(option, "taxStatus")}
+                  value={taxStatuses.find(opt => opt.value === formData.taxStatus)}
                 />
                 {errors.taxStatus && <span className={styles.error}>{errors.taxStatus}</span>}
               </label>
@@ -493,8 +493,6 @@ const EventSeriesForm = () => {
                               handleInvestmentRowChange(index, "percentage", e.target.value)
                             }
                             placeholder="%"
-                            min="0"
-                            max="100"
                           />
                           {errors.investmentRows?.[index]?.percentage && (<span className={styles.error}>{errors.investmentRows[index].percentage}</span>)}
                         </td>

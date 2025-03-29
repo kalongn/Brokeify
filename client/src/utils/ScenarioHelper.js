@@ -87,11 +87,17 @@ export const validateRequired = (newErrors, field, value) => {
   return newErrors;
 } 
 
+export const validatePercentage = (newErrors, field, value) => {
+  if (value > 100) {
+    newErrors[field] = "Percentage must be between 0 and 100";
+  }
+  return newErrors;
+}
 
 export const validateDistribution = (newErrors, field, dist, isPercentage) => {
   // Check if a type of distribution has been selected
   const type = dist.type;
-  if (type === null || type === undefined) {
+  if (type === null || type === undefined || type === "") {
     newErrors[field] = "This field is required";
     return;
   }

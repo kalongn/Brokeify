@@ -1,10 +1,7 @@
 import PropTypes from "prop-types";
-// import { useState } from "react";
-// import Select from "react-select";
 import Fixed from "./FixedDistribution";
 import Uniform from "./UniformDistribution";
 import Normal from "./NormalDistribution";
-import styles from "../pages/scenarioSections/Form.module.css";
 import { useState } from "react";
 
 const Distributions = ({
@@ -59,32 +56,37 @@ const Distributions = ({
   return (
     <div>
       {options.includes("fixed") && (
-        <label className={styles.newline}>
-          <input
-            type="radio"
-            value="fixed"
-            checked={type === "fixed"}
-            onChange={(e) => handleRadio("type", e.target.value)}
-          />
-          {inputLabel}
-        </label>
+        <>
+          <label>
+            <input
+              type="radio"
+              value="fixed"
+              checked={type === "fixed"}
+              onChange={(e) => handleRadio("type", e.target.value)}
+            />
+            {inputLabel}
+          </label>
+          <br />
+        </>
       )}
       {options.includes("uniform") && (
-        <label className={styles.newline}>
-          <input
-            type="radio"
-            value="uniform"
-            checked={type === "uniform"}
-            onChange={(e) => handleRadio("type", e.target.value)}
-          />
-          Sample from Uniform Distribution
-        </label>
+        <>
+          <label>
+            <input
+              type="radio"
+              value="uniform"
+              checked={type === "uniform"}
+              onChange={(e) => handleRadio("type", e.target.value)}
+            />
+            Sample from Uniform Distribution
+          </label>
+          <br />
+        </>
       )}
       {options.includes("normal") && (
         <label>
           <input
             type="radio"
-            // name={name}
             value="normal"
             checked={type === "normal"}
             onChange={(e) => handleRadio("type", e.target.value)}
