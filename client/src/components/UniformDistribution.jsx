@@ -1,7 +1,7 @@
 import { PropTypes } from 'prop-types';
 import styles from "../pages/scenarioSections/Form.module.css";
 
-const UniformDistribution = ({ handleChange, defaultValue }) => {
+const UniformDistribution = ({ handleChange, hasPercentage, defaultValue }) => {
   // TODO: if identifier for inputs is needed (automated testing), pass names from parent and do `${name}___`
   return (
     <>
@@ -25,11 +25,19 @@ const UniformDistribution = ({ handleChange, defaultValue }) => {
           />
         </label>
       </div>
+      {hasPercentage && <label>
+        <input
+          type="checkbox"
+          onChange={(e) => handleChange("isPercentage", e.target.checked)}
+        />
+        Percentage
+      </label>}
     </>
   );
 }
 UniformDistribution.propTypes = {
   handleChange: PropTypes.func.isRequired,
+  hasPercentage: PropTypes.bool,
   defaultValue: PropTypes.object
 };
 

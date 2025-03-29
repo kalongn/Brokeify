@@ -20,6 +20,7 @@ const Distributions = ({
   const handleChange = (field, fieldValue) => {
     // TODO: minor bug where if the user selects Percentage for one distribution
     // that isPercentage value carries over if they then select another distribution
+    // Could change isPercentage to uniformPercentage, etc.
     onChange(name, field, fieldValue);
   };
   // Sets the type and should not be passed down to children
@@ -41,6 +42,7 @@ const Distributions = ({
       case "uniform":
         return <Uniform
           handleChange={handleChange}
+          hasPercentage={options.includes("percentage")}
           defaultValue={defaultValue}
         />
       case "normal":
