@@ -122,14 +122,8 @@ export const validateDistribution = (newErrors, field, dist, isPercentage) => {
       } else if (dist.mean < 0 || dist.stdDev < 0) {
         newErrors[field] = "Both mean and standard deviation must be non-negative";
       } else if (isPercentage) {
-        if (dist.mean > 100) {
-          newErrors[field] = "Mean must be between 0 and 100";
-        }
-        // If too large, significant portions of the distribution will fall outside the range
-        // Normal distributions should have 99.7% of values fall within 3 * stdDev
-        const maxStdDev = Math.min(dist.mean / 3, (100 - dist.mean) / 3);
-        if (dist.stdDev > maxStdDev) {
-          newErrors[field] = "Standard deviation is too large (99.7% of values must stay within [0, 100]).";
+        if (dist.mean > 100 || dist.stdDev > 100) {
+          newErrors[field] = "Mean and standard deviation must be less than 100";
         }
       }
       break;
