@@ -18,6 +18,8 @@ const Distributions = ({
   // name of form field, and input value of the field to the parent
   // Should be passed down to children too
   const handleChange = (field, fieldValue) => {
+    // TODO: minor bug where if the user selects Percentage for one distribution
+    // that isPercentage value carries over if they then select another distribution
     onChange(name, field, fieldValue);
   };
   // Sets the type and should not be passed down to children
@@ -37,9 +39,17 @@ const Distributions = ({
           defaultValue={defaultValue}
         />
       case "uniform":
-        return <Uniform />
+        return <Uniform
+          handleChange={handleChange}
+          hasPercentage={options.includes("percentage")}
+          defaultValue={defaultValue}
+        />
       case "normal":
-        return <Normal />
+        return <Normal
+          handleChange={handleChange}
+          hasPercentage={options.includes("percentage")}
+          defaultValue={defaultValue}
+        />
       default:
         break;
     }
