@@ -2,15 +2,15 @@ import PropTypes from "prop-types";
 import Fixed from "./FixedDistribution";
 import Uniform from "./UniformDistribution";
 import Normal from "./NormalDistribution";
-import { useState } from "react";
 
 const Distributions = ({
   name, // Distribution key (e.g. lifeExpectancy)
-  options, // Includes ["fixed", "uniform", "normal", "percentage"]
+  options, // Includes ["fixed", "uniform", "normal"]
+  requirePercentage = false, // If percentage is needed
   onChange, // Change handler function
   defaultValue = {}, // Default value for the select input (if any)
 }) => {
-  const [type, setType] = useState("");
+  console.log("defaultValue", defaultValue);
   // Pass the name of the distributions key (e.g. lifeExpectancy), 
   // name of form field, and input value of the field to the parent
   // Handler should be passed down to children too
@@ -19,12 +19,11 @@ const Distributions = ({
   };
   // Sets the type and should not be passed down to children
   const handleRadio = (field, fieldValue) => {
-    setType(fieldValue);
     handleChange(field, fieldValue);
   };
 
   const distributionType = () => {
-    switch (defaultValue.type === "" ? type : defaultValue.type) {
+    switch (defaultValue.type) {
       case "fixed":
         return <Fixed
           handleChange={handleChange}
@@ -53,10 +52,10 @@ const Distributions = ({
             <input
               type="radio"
               value="fixed"
-              checked={type === "fixed" || defaultValue.type === "fixed"}
+              checked={defaultValue.type === "fixed"}
               onChange={(e) => handleRadio("type", e.target.value)}
             />
-            {options.includes("percentage") ? "Fixed Value or Percentage" : "Fixed Value"}
+            {requirePercentage ? "Fixed Value or Percentage" : "Fixed Value"}
           </label>
           <br />
         </>
@@ -67,7 +66,7 @@ const Distributions = ({
             <input
               type="radio"
               value="uniform"
-              checked={type === "uniform" || defaultValue.type === "uniform"}
+              checked={defaultValue.type === "uniform"}
               onChange={(e) => handleRadio("type", e.target.value)}
             />
             Sample from Uniform Distribution
@@ -80,7 +79,7 @@ const Distributions = ({
           <input
             type="radio"
             value="normal"
-            checked={type === "normal" || defaultValue.type === "normal"}
+            checked={defaultValue.type === "normal"}
             onChange={(e) => handleRadio("type", e.target.value)}
           />
           Sample from Normal Distribution
@@ -88,7 +87,7 @@ const Distributions = ({
       )}
       {/* Show only the specified options */}
       {distributionType()}
-      {options.includes("percentage") && type !== "" && (
+      {requirePercentage && (
         <label>
           {/* 
             Switching between distribution options should preserve 
@@ -96,8 +95,8 @@ const Distributions = ({
           */}
           <input
             type="checkbox"
-            checked={defaultValue[`${type}Percentage`] || false}
-            onChange={(e) => handleChange(`${type}Percentage`, e.target.checked)}
+            checked={defaultValue.isPercentage || false}
+            onChange={(e) => handleChange("isPercentage", e.target.checked)}
           />
           Percentage
         </label>
@@ -109,8 +108,9 @@ const Distributions = ({
 // Prompt to AI (Amazon Q): Pasted the error ___ is missing in props validation
 // No changes made
 Distributions.propTypes = {
-  options: PropTypes.arrayOf(PropTypes.string).isRequired,
   name: PropTypes.string.isRequired,
+  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  requirePercentage: PropTypes.bool,
   onChange: PropTypes.func.isRequired,
   defaultValue: PropTypes.object
 };
