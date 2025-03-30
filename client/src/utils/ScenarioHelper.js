@@ -82,14 +82,14 @@ export const validateRequired = (newErrors, field, value) => {
   return newErrors;
 }
 
-export const validateDistribution = (newErrors, field, dist, isPercentage) => {
+export const validateDistribution = (newErrors, field, dist) => {
   // Check if a type of distribution has been selected
   const type = dist.type;
   if (type === null || type === undefined || type === "") {
     newErrors[field] = "This field is required";
     return;
   }
-
+  let isPercentage = dist[`${type}Percentage`];
   switch (type) {
     case "fixed":
       if (dist.fixedValue === null || dist.fixedValue === undefined) {

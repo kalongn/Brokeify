@@ -158,7 +158,7 @@ const BasicInfo1 = () => {
       if (field !== "lifeExpectancy" && field !== "spouseLifeExpectancy") {
         validateRequired(newErrors, field, value);
       } else {
-        validateDistribution(newErrors, field, value, value.isPercentage);
+        validateDistribution(newErrors, field, value);
       }
     }
     // // TODO: add error checking for state if it is in db
@@ -170,9 +170,6 @@ const BasicInfo1 = () => {
       }
       // Validate life expectancy distribution
       if (distributions.lifeExpectancy.fixedValue !== undefined && distributions.lifeExpectancy.fixedValue !== null) {
-        console.log(distributions.lifeExpectancy.fixedValue)
-        console.log(currentYear)
-        console.log(formData.birthYear)
         if (formData.birthYear + distributions.lifeExpectancy.fixedValue < currentYear) {
           newErrors.lifeExpectancy = "Life expectancy cannot result in a death year in the past";
         }

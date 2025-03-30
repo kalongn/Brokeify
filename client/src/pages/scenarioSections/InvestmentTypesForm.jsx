@@ -50,7 +50,7 @@ const InvestmentTypesForm = () => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
       // Check if name is a number field and parse if so
-      // If the input is a percentage (denoted by isPercentage), must convert in backend
+      // If the input is a percentage, must convert in backend
       let processedValue = value;
       if (field !== "type" && value.length > 0) {
         processedValue = Number(value);
@@ -87,7 +87,7 @@ const InvestmentTypesForm = () => {
       if (field !== "expectedAnnualReturn" && field !== "expectedDividendsInterest") {
         validateRequired(newErrors, field, value);
       } else {
-        validateDistribution(newErrors, field, value, value.isPercentage);
+        validateDistribution(newErrors, field, value);
       }
     }
     if(formData.expenseRatio !== null && formData.expenseRatio > 100) {

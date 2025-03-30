@@ -80,7 +80,7 @@ const Distributions = ({
           <input
             type="radio"
             value="normal"
-            checked={type === "normal" || defaultValue.type === "normal" }
+            checked={type === "normal" || defaultValue.type === "normal"}
             onChange={(e) => handleRadio("type", e.target.value)}
           />
           Sample from Normal Distribution
@@ -90,6 +90,10 @@ const Distributions = ({
       {distributionType()}
       {options.includes("percentage") && type !== "" && (
         <label>
+          {/* 
+            Switching between distribution options should preserve 
+            if the checkbox was checked or not 
+          */}
           <input
             type="checkbox"
             checked={defaultValue[`${type}Percentage`] || false}

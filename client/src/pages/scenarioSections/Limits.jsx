@@ -59,7 +59,7 @@ const Limits = () => {
       if (field !== "inflationAssumption") {
         validateRequired(newErrors, field, value);
       } else {
-        validateDistribution(newErrors, field, value, value.isPercentage);
+        validateDistribution(newErrors, field, value);
       }
     }
 

@@ -213,7 +213,7 @@ const EventSeriesForm = () => {
         if (field === "expectedAnnualChange" && (eventType !== "income" && eventType !== "expense")) {
           continue;
         }
-        validateDistribution(newErrors, field, value, value.isPercentage);
+        validateDistribution(newErrors, field, value);
       }
     }
     if (distributions.startYear.type.includes("event") && distributions.startYear.event === undefined) {
