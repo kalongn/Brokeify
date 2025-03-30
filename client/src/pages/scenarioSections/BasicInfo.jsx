@@ -6,7 +6,7 @@ import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import Axios from "axios";
 
-const BasicInfo1 = () => {
+const BasicInfo = () => {
   // Prompt to AI (Amazon Q): I want field validation in the children and the submit button is in the parent
   // It took multiple rounds of prompts and adding context to get the solution with useOutletContext and useImperativeHandler
 
@@ -359,4 +359,4 @@ const BasicInfo1 = () => {
   );
 };
 
-export default BasicInfo1;
+export default BasicInfo;
