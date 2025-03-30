@@ -62,9 +62,6 @@ router.get("/scenario/:scenarioId", async (req, res) => {
             const user = await userController.read(req.session.user);
             const id = req.params.scenarioId;
 
-            // console.log(user);
-            // console.log("Scenario ID:", id);
-
             const isOwner = user.ownerScenarios.some(scenario => scenario._id.toString() === id) || false;
             const isEditor = user.editorScenarios.some(scenario => scenario._id.toString() === id) || false;
             const isViewer = user.viewerScenarios.some(scenario => scenario._id.toString() === id) || false;
@@ -105,6 +102,52 @@ router.get("/profile", async (req, res) => {
 
 
 // Scenario Form
+
+// Distribution type map, converting from the database to the frontend and vice versa
+const distributionToFrontend = (distribution) => {
+    if (!distribution) {
+        return null;
+    }
+    switch (distribution.distributionType) {
+        case "FIXED_AMOUNT":
+            return { type: "fixed", value: distribution.value };
+        case "UNIFORM_AMOUNT":
+            return { type: "uniform", lowerBound: distribution.lowerBound, upperBound: distribution.upperBound };
+        case "NORMAL_AMOUNT":
+            return { type: "normal", mean: distribution.mean, standardDeviation: distribution.standardDeviation };
+        case "FIXED_PERCENTAGE":
+            return { type: "fixed", value: distribution.value, isPercentage: true };
+        case "UNIFORM_PERCENTAGE":
+            return { type: "uniform", lowerBound: distribution.lowerBound, upperBound: distribution.upperBound, isPercentage: true };
+        case "NORMAL_PERCENTAGE":
+            return { type: "normal", mean: distribution.mean, standardDeviation: distribution.standardDeviation, isPercentage: true };
+        default:
+            return null;
+    }
+}
+
+const FrontendToDistribution = (distribution) => {
+    if (!distribution) {
+        return null;
+    }
+    const { type, ...data } = distribution;
+    let distributionType = null;
+    switch (type) {
+        case "fixed":
+            distributionType = data.isPercentage ? "FIXED_PERCENTAGE" : "FIXED_AMOUNT";
+            break;
+        case "uniform":
+            distributionType = data.isPercentage ? "UNIFORM_PERCENTAGE" : "UNIFORM_AMOUNT";
+            break;
+        case "normal":
+            distributionType = data.isPercentage ? "NORMAL_PERCENTAGE" : "NORMAL_AMOUNT";
+            break;
+        default:
+            return null;
+    }
+    delete data.isPercentage;
+    return { distributionType, ...data };
+}
 
 // Permission verifier
 const canEdit = async (userId, scenarioId) => {
@@ -151,7 +194,6 @@ router.get("/basicInfo/:scenarioId", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
     }
-
     try {
         const userId = req.session.user;
         const id = req.params.scenarioId;
@@ -160,16 +202,22 @@ router.get("/basicInfo/:scenarioId", async (req, res) => {
         }
         const scenario = await scenarioController.read(id);
         await scenario.populate("userLifeExpectancyDistribution spouseLifeExpectancyDistribution");
-        return res.status(200).send({
+
+        const respondLifeExpectancy = distributionToFrontend(scenario.userLifeExpectancyDistribution);
+        const respondSpouseLifeExpectancy = distributionToFrontend(scenario.spouseLifeExpectancyDistribution);
+
+        const respondObject = {
             name: scenario.name || null,
             financialGoal: scenario.financialGoal || null,
             state: scenario.stateOfResidence || null,
             maritalStatus: scenario.filingStatus || null,
             birthYear: scenario.userBirthYear || null,
-            lifeExpectancy: scenario.userLifeExpectancyDistribution || null,
+            lifeExpectancy: respondLifeExpectancy,
             spouseBirthYear: scenario.spouseBirthYear || null,
-            spouseLifeExpectancy: scenario.spouseLifeExpectancyDistribution || null
-        });
+            spouseLifeExpectancy: respondSpouseLifeExpectancy
+        }
+
+        return res.status(200).send(respondObject);
     } catch (error) {
         console.error("Error in basic info route:", error);
         return res.status(500).send("Error retrieving basic info.");
@@ -194,30 +242,30 @@ router.post("/basicInfo/:scenarioId", async (req, res) => {
         const currentScenario = await scenarioController.read(id);
 
         if (!currentScenario) {
+            // Should not happen, but just in case
             return res.status(404).send("Scenario not found.");
         }
 
+        const requestLifeExpectancy = FrontendToDistribution(lifeExpectancy);
+        const requestSpouseLifeExpectancy = FrontendToDistribution(spouseLifeExpectancy);
+
         let newUserLifeExpectancy = null;
         if (currentScenario.userLifeExpectancyDistribution) {
-            newUserLifeExpectancy = await distributionController.update(currentScenario.userLifeExpectancyDistribution, lifeExpectancy);
+            newUserLifeExpectancy = await distributionController.update(currentScenario.userLifeExpectancyDistribution, requestLifeExpectancy);
         } else {
-            const type = lifeExpectancy.distributionType;
-            const data = lifeExpectancy;
-            delete data.distributionType;
-            newUserLifeExpectancy = await distributionController.create(type, data);
+            const { distributionType, ...data } = requestLifeExpectancy;
+            newUserLifeExpectancy = await distributionController.create(distributionType, data);
         }
 
         let spouseLifeExpectancyDistribution = null;
-        if (!spouseLifeExpectancy) {
+        if (!requestSpouseLifeExpectancy && currentScenario.spouseLifeExpectancyDistribution) {
             await distributionController.delete(currentScenario.spouseLifeExpectancyDistribution);
         } else {
             if (!currentScenario.spouseLifeExpectancyDistribution) {
-                const type = spouseLifeExpectancy.distributionType;
-                const data = spouseLifeExpectancy;
-                delete data.distributionType;
-                spouseLifeExpectancyDistribution = await distributionController.create(type, data);
+                const { distributionType, ...data } = requestSpouseLifeExpectancy;
+                spouseLifeExpectancyDistribution = await distributionController.create(distributionType, data);
             } else {
-                spouseLifeExpectancyDistribution = await distributionController.update(currentScenario.spouseLifeExpectancyDistribution, spouseLifeExpectancy);
+                spouseLifeExpectancyDistribution = await distributionController.update(currentScenario.spouseLifeExpectancyDistribution, requestSpouseLifeExpectancy);
             }
         }
 

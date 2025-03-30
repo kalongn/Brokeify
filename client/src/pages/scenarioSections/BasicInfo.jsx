@@ -44,33 +44,13 @@ const BasicInfo = () => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
 
-    const distributionMap = {
-      "FIXED_AMOUNT": "fixed",
-      "NORMAL_AMOUNT": "normal",
-    }
-
     Axios.get(`/basicInfo/${scenarioId}`)
       .then((response) => {
         const data = response.data;
-
-        const lifeExpectancyCast = {
-          type: distributionMap[data.lifeExpectancy?.distributionType] || null,
-          fixedValue: data.lifeExpectancy?.value || null,
-          mean: data.lifeExpectancy?.mean || null,
-          stdDev: data.lifeExpectancy?.standardDeviation || null
-        }
-
-        const spouseLifeExpectancyCast = {
-          type: distributionMap[data.spouseLifeExpectancy?.distributionType] || null,
-          fixedValue: data.spouseLifeExpectancy?.value || null,
-          mean: data.spouseLifeExpectancy?.mean || null,
-          stdDev: data.spouseLifeExpectancy?.standardDeviation || null
-        }
-
         setDistributions((prev) => ({
           ...prev,
-          lifeExpectancy: lifeExpectancyCast || prev.lifeExpectancy,
-          spouseLifeExpectancy: spouseLifeExpectancyCast || prev.spouseLifeExpectancy
+          lifeExpectancy: data.lifeExpectancy || prev.lifeExpectancy,
+          spouseLifeExpectancy: data.spouseLifeExpectancy || prev.spouseLifeExpectancy,
         }));
 
         setFormData((prev) => ({
@@ -81,8 +61,6 @@ const BasicInfo = () => {
           maritalStatus: data.maritalStatus || prev.maritalStatus,
           birthYear: data.birthYear || prev.birthYear,
           spouseBirthYear: data.spouseBirthYear || prev.spouseBirthYear,
-          lifeExpectancy: data.lifeExpectancy || prev.lifeExpectancy,
-          spouseLifeExpectancy: data.spouseLifeExpectancy || prev.spouseLifeExpectancy
         }));
       }).catch((error) => {
         console.error("Error fetching basic info:", error);
@@ -90,14 +68,6 @@ const BasicInfo = () => {
 
     setLoading(false);
   }, [scenarioId]);
-
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      lifeExpectancy: distributions.lifeExpectancy,
-      spouseLifeExpectancy: distributions.spouseLifeExpectancy
-    }));
-  }, [distributions]);
 
   // For field validation and parsing to number
   const FIELD_TYPES = {
@@ -109,12 +79,23 @@ const BasicInfo = () => {
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
-      // Check if name is a number field and parse if so
-      let processedValue = value;
-      if (field !== "type" && value.length > 0) {
-        processedValue = Number(value);
+      if (field === "type") {
+        // Reset the distribution values when the type changes
+        switch (value) {
+          case "fixed":
+            updatedDistributions[name] = { type: value, value: null };
+            break;
+          case "normal":
+            updatedDistributions[name] = { type: value, mean: null, standardDeviation: null };
+            break;
+          default:
+            // Should not happen
+            break;
+        }
+      } else {
+        const processedValue = value === "" ? null : Number(value);
+        updatedDistributions[name][field] = processedValue;
       }
-      updatedDistributions[name][field] = processedValue;
       return updatedDistributions;
     });
     // Clear errors when user makes changes
@@ -150,13 +131,15 @@ const BasicInfo = () => {
         continue;
       }
       // Distribution fields require a different function to validate
-      if (field !== "lifeExpectancy" && field !== "spouseLifeExpectancy") {
-        validateRequired(newErrors, field, value);
-      } else {
-        validateDistribution(newErrors, field, value);
-      }
+      validateRequired(newErrors, field, value);
     }
-    // // TODO: add error checking for state if it is in db
+
+    // Validate distribution fields
+    validateDistribution(newErrors, "lifeExpectancy", distributions.lifeExpectancy);
+    if (formData.maritalStatus === "MARRIEDJOINT") {
+      validateDistribution(newErrors, "spouseLifeExpectancy", distributions.spouseLifeExpectancy);
+    }
+
 
     // Validate birth year
     if (formData.birthYear !== undefined) {
@@ -164,11 +147,11 @@ const BasicInfo = () => {
         newErrors.birthYear = `Birth year must be between 1900 and ${currentYear}`;
       }
       // Validate life expectancy distribution
-      if (distributions.lifeExpectancy.fixedValue !== undefined && distributions.lifeExpectancy.fixedValue !== null) {
-        if (formData.birthYear + distributions.lifeExpectancy.fixedValue < currentYear) {
+      if (distributions.lifeExpectancy.value !== undefined && distributions.lifeExpectancy.value !== null) {
+        if (formData.birthYear + distributions.lifeExpectancy.value < currentYear) {
           newErrors.lifeExpectancy = "Life expectancy cannot result in a death year in the past";
         }
-        else if (distributions.lifeExpectancy.fixedValue > 122) {
+        else if (distributions.lifeExpectancy.value > 122) {
           newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
         }
       }
@@ -180,12 +163,12 @@ const BasicInfo = () => {
         newErrors.spouseBirthYear = `Birth year must be between 1900 and ${currentYear}`;
       }
       // Validate spouse life expectancy distribution
-      if (distributions.spouseLifeExpectancy.fixedValue !== undefined && distributions.spouseLifeExpectancy.fixedValue !== null) {
+      if (distributions.spouseLifeExpectancy.value !== undefined && distributions.spouseLifeExpectancy.value !== null) {
 
-        if (formData.spouseBirthYear + distributions.spouseLifeExpectancy.fixedValue < currentYear) {
+        if (formData.spouseBirthYear + distributions.spouseLifeExpectancy.value < currentYear) {
           newErrors.spouseLifeExpectancy = "Life expectancy cannot result in death in the past";
         }
-        else if (distributions.spouseLifeExpectancy.fixedValue > 122) {
+        else if (distributions.spouseLifeExpectancy.value > 122) {
           newErrors.spouseLifeExpectancy = "Life expectancy cannot reasonably exceed 122";
         }
       }
@@ -198,32 +181,15 @@ const BasicInfo = () => {
   };
 
   const uploadToBackend = async () => {
-    const distributionMap = {
-      "fixed": "FIXED_AMOUNT",
-      "normal": "NORMAL_AMOUNT",
-    }
-
-    const lifeExpectancyCast = {
-      distributionType: distributionMap[distributions.lifeExpectancy.type],
-      ...(distributions.lifeExpectancy.type === "fixed" && { value: distributions.lifeExpectancy.fixedValue }),
-      ...(distributions.lifeExpectancy.type === "normal" && { mean: distributions.lifeExpectancy.mean, standardDeviation: distributions.lifeExpectancy.stdDev })
-    }
-
-    const spouseLifeExpectancyCast = {
-      distributionType: distributionMap[distributions.spouseLifeExpectancy.type],
-      ...(distributions.spouseLifeExpectancy.type === "fixed" && { value: distributions.spouseLifeExpectancy.fixedValue }),
-      ...(distributions.spouseLifeExpectancy.type === "normal" && { mean: distributions.spouseLifeExpectancy.mean, standardDeviation: distributions.spouseLifeExpectancy.stdDev })
-    }
-
     const data = {
       name: formData.name,
       financialGoal: formData.financialGoal,
       state: formData.state,
       maritalStatus: formData.maritalStatus,
       birthYear: formData.birthYear,
-      lifeExpectancy: lifeExpectancyCast,
+      lifeExpectancy: distributions.lifeExpectancy,
       spouseBirthYear: formData.maritalStatus === "SINGLE" ? undefined : formData.spouseBirthYear,
-      spouseLifeExpectancy: formData.maritalStatus === "SINGLE" ? undefined : spouseLifeExpectancyCast,
+      spouseLifeExpectancy: formData.maritalStatus === "SINGLE" ? undefined : distributions.spouseLifeExpectancy,
     };
 
     try {
