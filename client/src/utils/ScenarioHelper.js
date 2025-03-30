@@ -89,14 +89,14 @@ export const validateDistribution = (newErrors, field, dist) => {
     newErrors[field] = "This field is required";
     return;
   }
-  let isPercentage = dist[`${type}Percentage`];
+  let isPercentage = dist.isPercentage || false;
   switch (type) {
     case "fixed":
-      if (dist.fixedValue === null || dist.fixedValue === undefined) {
+      if (dist.value === null || dist.value === undefined) {
         newErrors[field] = "This field is required";
-      } else if (dist.fixedValue < 0) {
+      } else if (dist.value < 0) {
         newErrors[field] = "Value must be non-negative";
-      } else if (isPercentage && dist.fixedValue > 100) {
+      } else if (isPercentage && dist.value > 100) {
         newErrors[field] = "Percentage must be between 0 and 100";
       }
       break;
@@ -112,12 +112,12 @@ export const validateDistribution = (newErrors, field, dist) => {
       }
       break;
     case "normal":
-      if ((dist.mean === null || dist.stdDev === null) || (dist.mean === undefined || dist.stdDev === undefined)) {
+      if ((dist.mean === null || dist.standardDeviation === null) || (dist.mean === undefined || dist.standardDeviation === undefined)) {
         newErrors[field] = "Both mean and standard deviation are required";
-      } else if (dist.mean < 0 || dist.stdDev < 0) {
+      } else if (dist.mean < 0 || dist.standardDeviation < 0) {
         newErrors[field] = "Both mean and standard deviation must be non-negative";
-      } else if (isPercentage && (dist.mean > 100 || dist.stdDev > 100)) {
-          newErrors[field] = "Mean and standard deviation must be less than 100";
+      } else if (isPercentage && (dist.mean > 100 || dist.standardDeviation > 100)) {
+        newErrors[field] = "Mean and standard deviation must be less than 100";
       }
       break;
     default:
