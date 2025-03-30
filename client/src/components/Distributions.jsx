@@ -10,7 +10,6 @@ const Distributions = ({
   onChange, // Change handler function
   defaultValue = {}, // Default value for the select input (if any)
 }) => {
-  console.log("defaultValue", defaultValue);
   // Pass the name of the distributions key (e.g. lifeExpectancy), 
   // name of form field, and input value of the field to the parent
   // Handler should be passed down to children too
