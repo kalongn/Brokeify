@@ -19,8 +19,8 @@ const NormalDistribution = ({ handleChange, defaultValue }) => {
         <br />
         <input
           type="number"
-          defaultValue={defaultValue.stdDev}
-          onChange={(e) => handleChange("stdDev", e.target.value)}
+          defaultValue={defaultValue.standardDeviation}
+          onChange={(e) => handleChange("standardDeviation", e.target.value)}
         />
       </label>
     </div>

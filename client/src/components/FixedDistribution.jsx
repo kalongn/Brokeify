@@ -11,8 +11,8 @@ const FixedDistribution = ({ handleChange, defaultValue }) => {
         <input
           type="number"
           className={styles.newline}
-          defaultValue={defaultValue.fixedValue}
-          onChange={(e) => handleChange("fixedValue", e.target.value)}
+          defaultValue={defaultValue.value}
+          onChange={(e) => handleChange("value", e.target.value)}
         />
       </label>
     </div>
