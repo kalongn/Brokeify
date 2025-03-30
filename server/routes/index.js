@@ -260,7 +260,7 @@ router.post("/basicInfo/:scenarioId", async (req, res) => {
         let spouseLifeExpectancyDistribution = null;
         if (!requestSpouseLifeExpectancy && currentScenario.spouseLifeExpectancyDistribution) {
             await distributionController.delete(currentScenario.spouseLifeExpectancyDistribution);
-        } else {
+        } else if (requestSpouseLifeExpectancy) {
             if (!currentScenario.spouseLifeExpectancyDistribution) {
                 const { distributionType, ...data } = requestSpouseLifeExpectancy;
                 spouseLifeExpectancyDistribution = await distributionController.create(distributionType, data);
