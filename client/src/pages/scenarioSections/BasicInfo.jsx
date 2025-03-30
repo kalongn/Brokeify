@@ -164,30 +164,38 @@ const BasicInfo1 = () => {
     // // TODO: add error checking for state if it is in db
 
     // Validate birth year
-    if (!newErrors.birthYear && (formData.birthYear < 1900 || formData.birthYear > currentYear)) {
-      newErrors.birthYear = `Birth year must be between 1900 and ${currentYear}`;
-    }
-    // Validate life expectancy distribution
-    if (!newErrors.birthYear) {
-      if (formData.birthYear + distributions.lifeExpectancy.fixedValue < currentYear) {
-        newErrors.lifeExpectancy = "Life expectancy cannot result in a death year in the past";
+    if (formData.birthYear !== undefined) {
+      if (formData.birthYear < 1900 || formData.birthYear > currentYear) {
+        newErrors.birthYear = `Birth year must be between 1900 and ${currentYear}`;
       }
-      else if (distributions.lifeExpectancy.fixedValue > 122) {
-        newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
+      // Validate life expectancy distribution
+      if (distributions.lifeExpectancy.fixedValue !== undefined && distributions.lifeExpectancy.fixedValue !== null) {
+        console.log(distributions.lifeExpectancy.fixedValue)
+        console.log(currentYear)
+        console.log(formData.birthYear)
+        if (formData.birthYear + distributions.lifeExpectancy.fixedValue < currentYear) {
+          newErrors.lifeExpectancy = "Life expectancy cannot result in a death year in the past";
+        }
+        else if (distributions.lifeExpectancy.fixedValue > 122) {
+          newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
+        }
       }
     }
 
     // Validate spouse birth year
-    if (!newErrors.spouseBirthYear && formData.maritalStatus === "married") {
+    if (formData.spouseBirthYear !== undefined && formData.maritalStatus === "married") {
       if ((formData.spouseBirthYear < 1900 || formData.spouseBirthYear > currentYear)) {
         newErrors.spouseBirthYear = `Birth year must be between 1900 and ${currentYear}`;
       }
       // Validate spouse life expectancy distribution
-      if (formData.spouseBirthYear + distributions.spouseLifeExpectancy.fixedValue < currentYear) {
-        newErrors.spouseLifeExpectancy = "Life expectancy cannot result in death in the past";
-      }
-      else if (distributions.spouseLifeExpectancy.fixedValue > 122) {
-        newErrors.spouseLifeExpectancy = "Life expectancy cannot reasonably exceed 122";
+      if (distributions.spouseLifeExpectancy.fixedValue !== undefined && distributions.spouseLifeExpectancy.fixedValue !== null) {
+
+        if (formData.spouseBirthYear + distributions.spouseLifeExpectancy.fixedValue < currentYear) {
+          newErrors.spouseLifeExpectancy = "Life expectancy cannot result in death in the past";
+        }
+        else if (distributions.spouseLifeExpectancy.fixedValue > 122) {
+          newErrors.spouseLifeExpectancy = "Life expectancy cannot reasonably exceed 122";
+        }
       }
     }
 

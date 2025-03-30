@@ -82,7 +82,7 @@ const Investments = () => {
     else {
       formData.forEach((row) => {
         // Check if investment is set and if all fields are filled
-        if (!row.investmentType || !row.dollarValue || !row.taxStatus) {
+        if (!row.investmentType || (!row.dollarValue && row.dollarValue !== 0) || !row.taxStatus) {
           newErrors.investmentRow = "All row fields are required";
         }
         else if (row.dollarValue < 0) {
