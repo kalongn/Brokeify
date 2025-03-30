@@ -3,6 +3,8 @@ import Fixed from "./FixedDistribution";
 import Uniform from "./UniformDistribution";
 import Normal from "./NormalDistribution";
 
+import { useState, useEffect } from "react";
+
 const Distributions = ({
   name, // Distribution key (e.g. lifeExpectancy)
   options, // Includes ["fixed", "uniform", "normal"]
@@ -10,6 +12,15 @@ const Distributions = ({
   onChange, // Change handler function
   defaultValue = {}, // Default value for the select input (if any)
 }) => {
+
+  const [isChecked, setIsChecked] = useState(false);
+
+  useEffect(() => {
+    if (defaultValue.type) {
+      setIsChecked(true);
+    }
+  }, [defaultValue]);
+
   // Pass the name of the distributions key (e.g. lifeExpectancy), 
   // name of form field, and input value of the field to the parent
   // Handler should be passed down to children too
@@ -52,7 +63,10 @@ const Distributions = ({
               type="radio"
               value="fixed"
               checked={defaultValue.type === "fixed"}
-              onChange={(e) => handleRadio("type", e.target.value)}
+              onChange={(e) => {
+                handleRadio("type", e.target.value);
+                setIsChecked(true);
+              }}
             />
             {requirePercentage ? "Fixed Value or Percentage" : "Fixed Value"}
           </label>
@@ -66,7 +80,10 @@ const Distributions = ({
               type="radio"
               value="uniform"
               checked={defaultValue.type === "uniform"}
-              onChange={(e) => handleRadio("type", e.target.value)}
+              onChange={(e) => {
+                handleRadio("type", e.target.value);
+                setIsChecked(true);
+              }}
             />
             Sample from Uniform Distribution
           </label>
@@ -79,14 +96,17 @@ const Distributions = ({
             type="radio"
             value="normal"
             checked={defaultValue.type === "normal"}
-            onChange={(e) => handleRadio("type", e.target.value)}
+            onChange={(e) => {
+              handleRadio("type", e.target.value);
+              setIsChecked(true);
+            }}
           />
           Sample from Normal Distribution
         </label>
       )}
       {/* Show only the specified options */}
       {distributionType()}
-      {requirePercentage && (
+      {isChecked && requirePercentage && (
         <label>
           {/* 
             Switching between distribution options should preserve 
