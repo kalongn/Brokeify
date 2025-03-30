@@ -81,14 +81,19 @@ const Limits = () => {
           options={["fixed", "uniform", "normal"]}
           name="inflationAssumption"
           onChange={handleDistributionsChange}
-          defaultValuevalue={distributions.inflationAssumption}
+          defaultValue={distributions.inflationAssumption}
         />
         {errors.inflationAssumption && <span className={styles.error}>{errors.inflationAssumption}</span>}
         <hr />
         <label>
           After-Tax Retirement Accounts Initial Limit on Annual Contributions
           <br />
-          <input type="number" name="initialLimit" min="0" onChange={handleChange} />
+          <input
+            type="number"
+            name="initialLimit"
+            onChange={handleChange}
+            defaultValue={distributions.initialLimit}
+          />
           {errors.initialLimit && <span className={styles.error}>{errors.initialLimit}</span>}
         </label>
       </form>

@@ -14,7 +14,7 @@ const Investments = () => {
   const [errors, setErrors] = useState([]);
 
   const [investmentTypes, setInvestmentTypes] = useState({
-    investmentRow: [{ investmentType: null, dollarValue: null, taxStatus: null }]
+    investmentRow: [{ type: null, dollarValue: null, taxStatus: null }]
   });
 
   const taxStatuses = [
@@ -54,14 +54,18 @@ const Investments = () => {
   const handleInputChange = (index, field, value) => {
     const updatedInvestments = [...formData];
     // Check if name is a number field and parse if so
-    const processedValue = field === "dollarValue" ? Number(value) : value;
+    // Prompt to AI (Amazon Q): If the user clears the field, the dollar value should be undefined not 0
+    const processedValue = field === "dollarValue" 
+    ? (value === "" ? undefined : Number(value))
+    : value;
+    
     updatedInvestments[index][field] = processedValue;
     setFormData(updatedInvestments);
     console.log(updatedInvestments);
   };
 
   const addNewInvestment = () => {
-    setFormData([...formData, { id: undefined, investmentType: null, dollarValue: null, taxStatus: null }]);
+    setFormData([...formData, { id: undefined, type: null, dollarValue: null, taxStatus: null }]);
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, investments: "" }));
   };
@@ -72,18 +76,22 @@ const Investments = () => {
     // const updatedInvestments = formData.filter((_, i) => i !== index);
     // setFormData(updatedInvestments);
   };
+  // console.log(investments);
 
   const validateFields = () => {
     const newErrors = {};
     // Check if there are any investments
     if (!formData[0]) {
       newErrors.investmentRow = "At least one investment must be added";
-    } 
+    }
     else {
       formData.forEach((row) => {
         // Check if investment is set and if all fields are filled
-        if (!row.investmentType || (!row.dollarValue && row.dollarValue !== 0) || !row.taxStatus) {
+        if (!row.type || !row.dollarValue || !row.taxStatus) {
           newErrors.investmentRow = "All row fields are required";
+          if(row.dollarValue === 0) {
+            newErrors.investmentRow = "Dollar values must be non-zero";
+          }
         }
         else if (row.dollarValue < 0) {
           newErrors.investmentRow = "Dollar values must be non-negative";
@@ -114,6 +122,11 @@ const Investments = () => {
     }
     return await uploadToBackend();
   };
+  formData.map((investment, index) => {
+    console.log(investment);
+    console.log(index);
+  });
+
 
   return (
     <div>
@@ -144,8 +157,12 @@ const Investments = () => {
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={investmentTypes}
+                  defaultValue={investment.type ? 
+                    { value: investment.type, label: investment.type } 
+                    : null 
+                  }
                   onChange={(e) =>
-                    handleInputChange(index, "investmentType", e.value)
+                    handleInputChange(index, "type", e.value)
                   }
                 />
               </td>
@@ -165,6 +182,10 @@ const Investments = () => {
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={taxStatuses}
+                  defaultValue={investment.taxStatus ? 
+                    { value: investment.taxStatus, label: investment.taxStatus } 
+                    : null 
+                  }
                   onChange={(e) =>
                     handleInputChange(index, "taxStatus", e.value)
                   }
