@@ -154,6 +154,35 @@ const FrontendToDistribution = (distribution) => {
     return { distributionType, ...data };
 }
 
+const taxStatusToFrontend = (taxStatus) => {
+    switch (taxStatus) {
+        case "CASH":
+            return "Cash";
+        case "NON_RETIREMENT":
+            return "Non-Retirement";
+        case "PRE_TAX_RETIREMENT":
+            return "Pre-Tax Retirement";
+        case "AFTER_TAX_RETIREMENT":
+            return "After-Tax Retirement";
+        default:
+            return null;
+    }
+}
+const taxStatusToBackend = (taxStatus) => {
+    switch (taxStatus) {
+        case "Cash":
+            return "CASH";
+        case "Non-Retirement":
+            return "NON_RETIREMENT";
+        case "Pre-Tax Retirement":
+            return "PRE_TAX_RETIREMENT";
+        case "After-Tax Retirement":
+            return "AFTER_TAX_RETIREMENT";
+        default:
+            return null;
+    }
+}
+
 // Permission verifier
 const canEdit = async (userId, scenarioId) => {
     const user = await userController.read(userId);
@@ -383,13 +412,6 @@ router.get("/investments/:scenarioId", async (req, res) => {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
 
-        const taxStatusMap = {
-            "CASH": "Cash",
-            "NON_RETIREMENT": "Non-Retirement",
-            "PRE_TAX_RETIREMENT": "Pre-Tax Retirement",
-            "AFTER_TAX_RETIREMENT": "After-Tax Retirement",
-        }
-
         const scenario = await scenarioController.readWithPopulate(id);
         const investments = scenario.investmentTypes.flatMap(type => {
             return type.investments.map(investment => {
@@ -397,7 +419,7 @@ router.get("/investments/:scenarioId", async (req, res) => {
                     id: investment._id,
                     type: type.name,
                     dollarValue: investment.value,
-                    taxStatus: taxStatusMap[investment.taxStatus]
+                    taxStatus: taxStatusToFrontend(investment.taxStatus),
                 }
             });
         });
@@ -420,21 +442,16 @@ router.post("/investments/:scenarioId", async (req, res) => {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
 
-        const taxStatusMap = {
-            "Cash": "CASH",
-            "Non-Retirement": "NON_RETIREMENT",
-            "Pre-Tax Retirement": "PRE_TAX_RETIREMENT",
-            "After-Tax Retirement": "AFTER_TAX_RETIREMENT",
-        }
-
         const scenario = await scenarioController.readWithPopulate(id);
         const { investments } = req.body;
 
         for (let investment of investments) {
+
+            // New Investment Added
             if (investment.id === undefined) {
                 const investmentDB = await investmentController.create({
                     value: investment.dollarValue,
-                    taxStatus: taxStatusMap[investment.taxStatus]
+                    taxStatus: taxStatusToBackend(investment.taxStatus)
                 });
 
                 for (let type of scenario.investmentTypes) {
@@ -446,6 +463,9 @@ router.post("/investments/:scenarioId", async (req, res) => {
                     }
                 }
             } else {
+                // Modificaiton to pre existing investment
+
+                // Check if the investment type has changed
                 let currentInvestmentType = null;
                 for (let type of scenario.investmentTypes) {
                     for (let inv of type.investments) {
@@ -455,6 +475,10 @@ router.post("/investments/:scenarioId", async (req, res) => {
                         }
                     }
                 }
+
+                // If the investment type has changed, update the investment type
+                // and remove the investment from the old type
+                // and add it to the new type
                 if (currentInvestmentType !== investment.type) {
                     const currentType = scenario.investmentTypes.find(type => type.name === currentInvestmentType);
                     const newType = scenario.investmentTypes.find(type => type.name === investment.type);
@@ -465,9 +489,11 @@ router.post("/investments/:scenarioId", async (req, res) => {
                         $push: { investments: investment.id }
                     });
                 }
+
+                // Update the investment
                 await investmentController.update(investment.id, {
                     value: investment.dollarValue,
-                    taxStatus: taxStatusMap[investment.taxStatus]
+                    taxStatus: taxStatusToBackend(investment.taxStatus)
                 });
             }
 

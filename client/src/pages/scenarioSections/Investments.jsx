@@ -6,16 +6,15 @@ import Select from "react-select";
 
 import styles from "./Form.module.css";
 
+//TODO: @04mHuang make cash row InvestmentType and TaxStatus unmodifiable and not deletable
+
 const Investments = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
+  const [investmentTypes, setInvestmentTypes] = useState([]);
   const [formData, setFormData] = useState([]);
   const [errors, setErrors] = useState([]);
-
-  const [investmentTypes, setInvestmentTypes] = useState({
-    investmentRow: [{ type: null, dollarValue: null, taxStatus: null }]
-  });
 
   const taxStatuses = [
     { value: "Non-Retirement", label: "Non-Retirement" },
@@ -55,10 +54,10 @@ const Investments = () => {
     const updatedInvestments = [...formData];
     // Check if name is a number field and parse if so
     // Prompt to AI (Amazon Q): If the user clears the field, the dollar value should be undefined not 0
-    const processedValue = field === "dollarValue" 
-    ? (value === "" ? undefined : Number(value))
-    : value;
-    
+    const processedValue = field === "dollarValue"
+      ? (value === "" ? undefined : Number(value))
+      : value;
+
     updatedInvestments[index][field] = processedValue;
     setFormData(updatedInvestments);
     console.log(updatedInvestments);
@@ -89,7 +88,7 @@ const Investments = () => {
         // Check if investment is set and if all fields are filled
         if (!row.type || !row.dollarValue || !row.taxStatus) {
           newErrors.investmentRow = "All row fields are required";
-          if(row.dollarValue === 0) {
+          if (row.dollarValue === 0) {
             newErrors.investmentRow = "Dollar values must be non-zero";
           }
         }
@@ -157,9 +156,9 @@ const Investments = () => {
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={investmentTypes}
-                  defaultValue={investment.type ? 
-                    { value: investment.type, label: investment.type } 
-                    : null 
+                  defaultValue={investment.type ?
+                    { value: investment.type, label: investment.type }
+                    : null
                   }
                   onChange={(e) =>
                     handleInputChange(index, "type", e.value)
@@ -182,9 +181,9 @@ const Investments = () => {
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={taxStatuses}
-                  defaultValue={investment.taxStatus ? 
-                    { value: investment.taxStatus, label: investment.taxStatus } 
-                    : null 
+                  defaultValue={investment.taxStatus ?
+                    { value: investment.taxStatus, label: investment.taxStatus }
+                    : null
                   }
                   onChange={(e) =>
                     handleInputChange(index, "taxStatus", e.value)
