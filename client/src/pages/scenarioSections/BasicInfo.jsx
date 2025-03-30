@@ -49,11 +49,6 @@ const BasicInfo = () => {
       "NORMAL_AMOUNT": "normal",
     }
 
-    const maritalStatusMap = {
-      "SINGLE": "single",
-      "MARRIEDJOINT": "married",
-    }
-
     Axios.get(`/basicInfo/${scenarioId}`)
       .then((response) => {
         const data = response.data;
@@ -83,7 +78,7 @@ const BasicInfo = () => {
           name: data.name || prev.name,
           financialGoal: data.financialGoal || prev.financialGoal,
           state: data.state || prev.state,
-          maritalStatus: maritalStatusMap[data.maritalStatus] || prev.maritalStatus,
+          maritalStatus: data.maritalStatus || prev.maritalStatus,
           birthYear: data.birthYear || prev.birthYear,
           spouseBirthYear: data.spouseBirthYear || prev.spouseBirthYear,
           lifeExpectancy: data.lifeExpectancy || prev.lifeExpectancy,
@@ -151,7 +146,7 @@ const BasicInfo = () => {
     const currentYear = new Date().getFullYear();
     for (const [field, value] of Object.entries(formData)) {
       // Spouse fields are dependent on maritalStatus
-      if (formData.maritalStatus !== "married" && field.includes("spouse")) {
+      if (formData.maritalStatus !== "MARRIEDJOINT" && field.includes("spouse")) {
         continue;
       }
       // Distribution fields require a different function to validate
@@ -180,7 +175,7 @@ const BasicInfo = () => {
     }
 
     // Validate spouse birth year
-    if (formData.spouseBirthYear !== undefined && formData.maritalStatus === "married") {
+    if (formData.spouseBirthYear !== undefined && formData.maritalStatus === "MARRIEDJOINT") {
       if ((formData.spouseBirthYear < 1900 || formData.spouseBirthYear > currentYear)) {
         newErrors.spouseBirthYear = `Birth year must be between 1900 and ${currentYear}`;
       }
@@ -208,11 +203,6 @@ const BasicInfo = () => {
       "normal": "NORMAL_AMOUNT",
     }
 
-    const maritalStatusMap = {
-      "single": "SINGLE",
-      "married": "MARRIEDJOINT",
-    }
-
     const lifeExpectancyCast = {
       distributionType: distributionMap[distributions.lifeExpectancy.type],
       ...(distributions.lifeExpectancy.type === "fixed" && { value: distributions.lifeExpectancy.fixedValue }),
@@ -229,11 +219,11 @@ const BasicInfo = () => {
       name: formData.name,
       financialGoal: formData.financialGoal,
       state: formData.state,
-      maritalStatus: maritalStatusMap[formData.maritalStatus],
+      maritalStatus: formData.maritalStatus,
       birthYear: formData.birthYear,
       lifeExpectancy: lifeExpectancyCast,
-      spouseBirthYear: formData.maritalStatus === "single" ? undefined : formData.spouseBirthYear,
-      spouseLifeExpectancy: formData.maritalStatus === "single" ? undefined : spouseLifeExpectancyCast,
+      spouseBirthYear: formData.maritalStatus === "SINGLE" ? undefined : formData.spouseBirthYear,
+      spouseLifeExpectancy: formData.maritalStatus === "SINGLE" ? undefined : spouseLifeExpectancyCast,
     };
 
     try {
@@ -305,16 +295,16 @@ const BasicInfo = () => {
             <label className={styles.radioButton}>
               <input
                 type="radio"
-                checked={formData.maritalStatus === "single"}
-                onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "single" }))}
+                checked={formData.maritalStatus === "SINGLE"}
+                onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "SINGLE" }))}
               />
               Single
             </label>
             <label className={styles.radioButton}>
               <input
                 type="radio"
-                checked={formData.maritalStatus === "married"}
-                onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "married" }))}
+                checked={formData.maritalStatus === "MARRIEDJOINT"}
+                onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "MARRIEDJOINT" }))}
               />
               Married
             </label>
@@ -336,7 +326,7 @@ const BasicInfo = () => {
               />
               {errors.lifeExpectancy && <span className={styles.error}>{errors.lifeExpectancy}</span>}
             </div>
-            {formData.maritalStatus === "married" && <div>
+            {formData.maritalStatus === "MARRIEDJOINT" && <div>
               <label className={styles.newline}>
                 Spouse Birth Year
                 <input type="number" name="spouseBirthYear" onChange={handleTextChange} defaultValue={formData.spouseBirthYear} />
