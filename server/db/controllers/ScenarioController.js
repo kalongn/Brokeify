@@ -304,7 +304,7 @@ export default class ScenarioController {
     }
 
 
-    async delete(scenarioID) {
+    async deleteNotDistributions(scenarioID) {
         //erase the scenario and all investments, events, investmentTypes associated with it
         const scenarioFactory = new ScenarioController();
         const investmentTypeFactory = new InvestmentTypeController();

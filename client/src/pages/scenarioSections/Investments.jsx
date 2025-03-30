@@ -6,29 +6,26 @@ import Select from "react-select";
 
 import styles from "./Form.module.css";
 
+//TODO: @04mHuang make cash row InvestmentType and TaxStatus unmodifiable and not deletable
+
 const Investments = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
+  // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
-
-  const [formData, setFormData] = useState([]);
-
-  const [errors, setErrors] = useState({
-    investments: ""
-  });
-
   const [investmentTypes, setInvestmentTypes] = useState([]);
-
-  // Expose the validateFields function to the parent component
-  useImperativeHandle(childRef, () => ({
-    handleSubmit,
-  }));
+  const [formData, setFormData] = useState([]);
+  const [errors, setErrors] = useState([]);
 
   const taxStatuses = [
-    { value: "Cash", label: "Cash" },
     { value: "Non-Retirement", label: "Non-Retirement" },
     { value: "Pre-Tax Retirement", label: "Pre-Tax Retirement" },
     { value: "After-Tax Retirement", label: "After-Tax Retirement" },
   ];
+
+  // Expose the handleSubmit function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -56,66 +53,54 @@ const Investments = () => {
   const handleInputChange = (index, field, value) => {
     const updatedInvestments = [...formData];
     // Check if name is a number field and parse if so
-    const processedValue = field === "dollarValue" ? Number(value) : value;
+    // Prompt to AI (Amazon Q): If the user clears the field, the dollar value should be undefined not 0
+    const processedValue = field === "dollarValue"
+      ? (value === "" ? undefined : Number(value))
+      : value;
+
     updatedInvestments[index][field] = processedValue;
     setFormData(updatedInvestments);
+    console.log(updatedInvestments);
   };
 
   const addNewInvestment = () => {
-    setFormData([...formData, { id: undefined, type: "", dollarValue: "", taxStatus: "" }]);
+    setFormData([...formData, { id: undefined, type: null, dollarValue: null, taxStatus: null }]);
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, investments: "" }));
   };
+
   // TODO: fix bug where deleting a row above actually removes the one below
   const removeInvestment = (index) => {
     alert("NOT IMPLEMENTED YET + index clicked: " + index);
     // const updatedInvestments = formData.filter((_, i) => i !== index);
     // setFormData(updatedInvestments);
   };
+  // console.log(investments);
 
   const validateFields = () => {
-    let isValid = true;
     const newErrors = {};
-
     // Check if there are any investments
-    if (formData.length === 0) {
-      newErrors.investments = "At least one investment must be added";
-      isValid = false;
-      setErrors(newErrors);
-      return isValid;
+    if (!formData[0]) {
+      newErrors.investmentRow = "At least one investment must be added";
     }
-
-    // Validate each investment
-    formData.forEach((investment, index) => {
-      newErrors[index] = {};
-
-      // Validate Investment Type
-      if (!investment.type) {
-        newErrors[index].type = "This field is required";
-        isValid = false;
-      }
-
-      // Validate Dollar Value
-      if (investment.dollarValue === null || investment.dollarValue === "") {
-        newErrors[index].dollarValue = "This field is required";
-        isValid = false;
-      } else if (isNaN(investment.dollarValue)) {
-        newErrors[index].dollarValue = "Dollar value must be a number";
-        isValid = false;
-      } else if (investment.dollarValue < 0) {
-        newErrors[index].dollarValue = "Dollar value must be non-negative";
-        isValid = false;
-      }
-      // Validate Tax Status
-      if (!investment.taxStatus) {
-        newErrors[index].taxStatus = "This field is required";
-        isValid = false;
-      }
-    });
-
+    else {
+      formData.forEach((row) => {
+        // Check if investment is set and if all fields are filled
+        if (!row.type || !row.dollarValue || !row.taxStatus) {
+          newErrors.investmentRow = "All row fields are required";
+          if (row.dollarValue === 0) {
+            newErrors.investmentRow = "Dollar values must be non-zero";
+          }
+        }
+        else if (row.dollarValue < 0) {
+          newErrors.investmentRow = "Dollar values must be non-negative";
+        }
+      });
+    }
+    // Set all errors at once
     setErrors(newErrors);
-    console.log(newErrors);
-    return isValid;
+    // Everything is valid if there are no error messages
+    return Object.keys(newErrors).length === 0;
   };
 
   const uploadToBackend = async () => {
@@ -136,6 +121,11 @@ const Investments = () => {
     }
     return await uploadToBackend();
   };
+  formData.map((investment, index) => {
+    console.log(investment);
+    console.log(index);
+  });
+
 
   return (
     <div>
@@ -166,12 +156,14 @@ const Investments = () => {
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={investmentTypes}
-                  value={investmentTypes.find((option) => option.value === formData[index].type)}
+                  defaultValue={investment.type ?
+                    { value: investment.type, label: investment.type }
+                    : null
+                  }
                   onChange={(e) =>
                     handleInputChange(index, "type", e.value)
                   }
                 />
-                {errors[index]?.type && <span className={styles.error}>{errors[index].type}</span>}
               </td>
               <td>
                 <input
@@ -184,18 +176,19 @@ const Investments = () => {
                   }
                   placeholder="$"
                 />
-                {errors[index]?.dollarValue && <span className={styles.error}>{errors[index].dollarValue}</span>}
               </td>
               <td>
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={taxStatuses}
-                  value={taxStatuses.find((option) => option.value === formData[index].taxStatus)}
+                  defaultValue={investment.taxStatus ?
+                    { value: investment.taxStatus, label: investment.taxStatus }
+                    : null
+                  }
                   onChange={(e) =>
                     handleInputChange(index, "taxStatus", e.value)
                   }
                 />
-                {errors[index]?.taxStatus && <span className={styles.error}>{errors[index].taxStatus}</span>}
               </td>
               <td>
                 <button
@@ -208,7 +201,7 @@ const Investments = () => {
           ))}
         </tbody>
       </table>
-      {errors.investments && <span className={styles.error}>{errors.investments}</span>}
+      {errors.investmentRow && <span className={styles.error}>{errors.investmentRow}</span>}
       <button id={styles.addButton} type="button" onClick={addNewInvestment}>
         Add New Investment
       </button>

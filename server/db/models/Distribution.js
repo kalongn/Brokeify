@@ -8,18 +8,6 @@ const DistributionSchema = new mongoose.Schema({
     distributionType: { type: String, enum: DISTRIBUTION_TYPE, required: true },
 }, options);
 
-DistributionSchema.virtual('id').get(function get() {
-    return this._id.toHexString();
-});
-
-DistributionSchema.set('toJSON', {
-    virtuals: true,
-});
-
-DistributionSchema.set('toObject', {
-    virtuals: true,
-});
-
 const Distribution = mongoose.model('Distribution', DistributionSchema);
 
 const FixedDistributionSchema = new mongoose.Schema({

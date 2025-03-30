@@ -65,7 +65,7 @@ async function scrape() {
     //scrape, parse, and save to DB if not
 
     const a = await taxFactory.readAll();
-    //console.log(a);
+    
     //check if any of the returned taxes have FEDERAL_INCOME, scrape if not
     let federalIncomeSingle = null;
     let federalIncomeMarried = null;
@@ -111,7 +111,7 @@ async function scrape() {
     if (federalIncomeSingle === null || federalIncomeMarried === null) {
         //scrape:
         const returnFederalIncomeScrape = await scrapeFederalIncomeTaxBrackets();
-        //console.log(returnFederalIncomeScrape);
+        
         //only care about single & married joint
 
         //first, parse single:
@@ -122,7 +122,7 @@ async function scrape() {
                 singleFedTax.taxBrackets.push(bracket);
             }
             //save to db
-            //console.log(singleFedTax);
+            
             await taxFactory.create("FEDERAL_INCOME", {
                 filingStatus: singleFedTax.filingStatus,
                 taxBrackets: singleFedTax.taxBrackets
@@ -136,7 +136,7 @@ async function scrape() {
                 marriedFedTax.taxBrackets.push(bracket);
             }
             //save to db
-            //console.log(marriedFedTax);
+            
             await taxFactory.create("FEDERAL_INCOME", {
                 filingStatus: marriedFedTax.filingStatus,
                 taxBrackets: marriedFedTax.taxBrackets
@@ -149,7 +149,7 @@ async function scrape() {
     if (capitalGainsSingle === null || capitalGainsMarried === null) {
         const returnCapitalGainsScrape = await fetchCapitalGainsData();
 
-        //console.log(returnCapitalGainsScrape);
+       
         if (capitalGainsSingle === null) {
             let singleCapitalTax = { filingStatus: "SINGLE", taxType: "CAPITAL_GAIN", taxBrackets: [] };
             for (const i in returnCapitalGainsScrape[0]) {
@@ -157,7 +157,7 @@ async function scrape() {
                 singleCapitalTax.taxBrackets.push(bracket);
             }
             //save to db
-            //console.log(singleFedTax);
+            
             await taxFactory.create("CAPITAL_GAIN", {
                 filingStatus: singleCapitalTax.filingStatus,
                 taxBrackets: singleCapitalTax.taxBrackets
@@ -182,7 +182,7 @@ async function scrape() {
     if (federalDeductionSingle === null || federalDeductionMarried === null) {
         const returnDeductionsScrape = await scrapeStandardDeductions();
 
-        //console.log(returnDeductionsScrape);
+        
         if (federalDeductionSingle === null) {
             federalDeductionSingle = await taxFactory.create("FEDERAL_STANDARD", {
                 filingStatus: "SINGLE",
@@ -196,8 +196,7 @@ async function scrape() {
             });
         }
     }
-    // const b = await factory.readAll();
-    // console.log(b);
+    
 
     //check for RMD table:
     let rmdTable = null;
@@ -233,12 +232,9 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
     //deep clone then run simulation then re-splice original scenario in simulation output
 
     const unmodifiedScenario = await scenarioFactory.read(scenarioID);
-    //console.log(unmodifiedScenario)
     let copiedScenario = await scenarioFactory.clone(unmodifiedScenario.id);
-    //console.log(copiedScenario)
     let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, capitalGains, rmdTable, csvFile, logFile);
-    await scenarioFactory.delete(copiedScenario.id);
-    //console.log(simulationResult);
+    await scenarioFactory.deleteNotDistributions(copiedScenario.id);
     return simulationResult;
 }
 
@@ -246,7 +242,7 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
 //recives ID of scenario in db
 export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
     //first, validate scenario's invariants
-    //console.log(process.cwd());
+    
     try {
         await validate(scenarioID);
 
@@ -255,10 +251,10 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
         throw err;
     }
     const scrapeReturn = await scrape();
-    //console.log(scrapeReturn);
+    
     //depending on if scenario is single or joint, pass in different values to run:
     const scenario = await scenarioFactory.read(scenarioID);
-    //console.log(scenario);
+   
     let fedIncome = null;
     let capitalGains = null;
     let fedDeduction = null;
@@ -292,11 +288,11 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
 
     //TODO: parralelism
     for (let i = 0; i < numTimes; i++) {
-        //console.log(i);
+        
         let csvFile;
         let logFile;
         if (i === 0) {
-            //console.log("I IS 0");
+            
 
             //create logs on first run
             const datetime = new Date();
@@ -319,13 +315,13 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
         //Replace runResult.scenario with scenario, to erase the fact we cloned
         //let clonedScenarioID = runResult.scenario.id;
 
-        //console.log(compiledResults);
+       
 
         compiledResults.results.push(runResult);
 
     }
-    //console.log(compiledResults);
+    
     await simulationFactory.update(compiledResults.id, { results: compiledResults.results });
-    //console.log(await scenarioFactory.readAll());
+    
     return compiledResults;
 }

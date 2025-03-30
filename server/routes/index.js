@@ -62,9 +62,6 @@ router.get("/scenario/:scenarioId", async (req, res) => {
             const user = await userController.read(req.session.user);
             const id = req.params.scenarioId;
 
-            // console.log(user);
-            // console.log("Scenario ID:", id);
-
             const isOwner = user.ownerScenarios.some(scenario => scenario._id.toString() === id) || false;
             const isEditor = user.editorScenarios.some(scenario => scenario._id.toString() === id) || false;
             const isViewer = user.viewerScenarios.some(scenario => scenario._id.toString() === id) || false;
@@ -105,6 +102,86 @@ router.get("/profile", async (req, res) => {
 
 
 // Scenario Form
+
+// Distribution type map, converting from the database to the frontend and vice versa
+const distributionToFrontend = (distribution) => {
+    if (!distribution) {
+        return null;
+    }
+    switch (distribution.distributionType) {
+        case "FIXED_AMOUNT":
+            return { type: "fixed", value: distribution.value };
+        case "UNIFORM_AMOUNT":
+            return { type: "uniform", lowerBound: distribution.lowerBound, upperBound: distribution.upperBound };
+        case "NORMAL_AMOUNT":
+            return { type: "normal", mean: distribution.mean, standardDeviation: distribution.standardDeviation };
+        case "FIXED_PERCENTAGE":
+            return { type: "fixed", value: distribution.value * 100, isPercentage: true };
+        case "UNIFORM_PERCENTAGE":
+            return { type: "uniform", lowerBound: distribution.lowerBound * 100, upperBound: distribution.upperBound * 100, isPercentage: true };
+        case "NORMAL_PERCENTAGE":
+            return { type: "normal", mean: distribution.mean * 100, standardDeviation: distribution.standardDeviation * 100, isPercentage: true };
+        default:
+            return null;
+    }
+}
+
+const FrontendToDistribution = (distribution) => {
+    if (!distribution) {
+        return null;
+    }
+    const { type, ...data } = distribution;
+    let distributionType = null;
+    switch (type) {
+        case "fixed":
+            distributionType = data.isPercentage ? "FIXED_PERCENTAGE" : "FIXED_AMOUNT";
+            data.value = data.isPercentage ? data.value / 100 : data.value;
+            break;
+        case "uniform":
+            distributionType = data.isPercentage ? "UNIFORM_PERCENTAGE" : "UNIFORM_AMOUNT";
+            data.lowerBound = data.isPercentage ? data.lowerBound / 100 : data.lowerBound;
+            data.upperBound = data.isPercentage ? data.upperBound / 100 : data.upperBound;
+            break;
+        case "normal":
+            distributionType = data.isPercentage ? "NORMAL_PERCENTAGE" : "NORMAL_AMOUNT";
+            data.mean = data.isPercentage ? data.mean / 100 : data.mean;
+            data.standardDeviation = data.isPercentage ? data.standardDeviation / 100 : data.standardDeviation;
+            break;
+        default:
+            return null;
+    }
+    delete data.isPercentage;
+    return { distributionType, ...data };
+}
+
+const taxStatusToFrontend = (taxStatus) => {
+    switch (taxStatus) {
+        case "CASH":
+            return "Cash";
+        case "NON_RETIREMENT":
+            return "Non-Retirement";
+        case "PRE_TAX_RETIREMENT":
+            return "Pre-Tax Retirement";
+        case "AFTER_TAX_RETIREMENT":
+            return "After-Tax Retirement";
+        default:
+            return null;
+    }
+}
+const taxStatusToBackend = (taxStatus) => {
+    switch (taxStatus) {
+        case "Cash":
+            return "CASH";
+        case "Non-Retirement":
+            return "NON_RETIREMENT";
+        case "Pre-Tax Retirement":
+            return "PRE_TAX_RETIREMENT";
+        case "After-Tax Retirement":
+            return "AFTER_TAX_RETIREMENT";
+        default:
+            return null;
+    }
+}
 
 // Permission verifier
 const canEdit = async (userId, scenarioId) => {
@@ -151,7 +228,6 @@ router.get("/basicInfo/:scenarioId", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
     }
-
     try {
         const userId = req.session.user;
         const id = req.params.scenarioId;
@@ -160,22 +236,27 @@ router.get("/basicInfo/:scenarioId", async (req, res) => {
         }
         const scenario = await scenarioController.read(id);
         await scenario.populate("userLifeExpectancyDistribution spouseLifeExpectancyDistribution");
-        return res.status(200).send({
+
+        const respondLifeExpectancy = distributionToFrontend(scenario.userLifeExpectancyDistribution);
+        const respondSpouseLifeExpectancy = distributionToFrontend(scenario.spouseLifeExpectancyDistribution);
+
+        const respondObject = {
             name: scenario.name || null,
             financialGoal: scenario.financialGoal || null,
             state: scenario.stateOfResidence || null,
             maritalStatus: scenario.filingStatus || null,
             birthYear: scenario.userBirthYear || null,
-            lifeExpectancy: scenario.userLifeExpectancyDistribution || null,
+            lifeExpectancy: respondLifeExpectancy,
             spouseBirthYear: scenario.spouseBirthYear || null,
-            spouseLifeExpectancy: scenario.spouseLifeExpectancyDistribution || null
-        });
+            spouseLifeExpectancy: respondSpouseLifeExpectancy
+        }
+
+        return res.status(200).send(respondObject);
     } catch (error) {
         console.error("Error in basic info route:", error);
         return res.status(500).send("Error retrieving basic info.");
     }
 });
-
 
 // update the basic info of the scenario, (created if part of the basic info is missing)
 router.post("/basicInfo/:scenarioId", async (req, res) => {
@@ -194,30 +275,30 @@ router.post("/basicInfo/:scenarioId", async (req, res) => {
         const currentScenario = await scenarioController.read(id);
 
         if (!currentScenario) {
+            // Should not happen, but just in case
             return res.status(404).send("Scenario not found.");
         }
 
+        const requestLifeExpectancy = FrontendToDistribution(lifeExpectancy);
+        const requestSpouseLifeExpectancy = FrontendToDistribution(spouseLifeExpectancy);
+
         let newUserLifeExpectancy = null;
         if (currentScenario.userLifeExpectancyDistribution) {
-            newUserLifeExpectancy = await distributionController.update(currentScenario.userLifeExpectancyDistribution, lifeExpectancy);
+            newUserLifeExpectancy = await distributionController.update(currentScenario.userLifeExpectancyDistribution, requestLifeExpectancy);
         } else {
-            const type = lifeExpectancy.distributionType;
-            const data = lifeExpectancy;
-            delete data.distributionType;
-            newUserLifeExpectancy = await distributionController.create(type, data);
+            const { distributionType, ...data } = requestLifeExpectancy;
+            newUserLifeExpectancy = await distributionController.create(distributionType, data);
         }
 
         let spouseLifeExpectancyDistribution = null;
-        if (!spouseLifeExpectancy) {
+        if (!requestSpouseLifeExpectancy && currentScenario.spouseLifeExpectancyDistribution) {
             await distributionController.delete(currentScenario.spouseLifeExpectancyDistribution);
-        } else {
+        } else if (requestSpouseLifeExpectancy) {
             if (!currentScenario.spouseLifeExpectancyDistribution) {
-                const type = spouseLifeExpectancy.distributionType;
-                const data = spouseLifeExpectancy;
-                delete data.distributionType;
-                spouseLifeExpectancyDistribution = await distributionController.create(type, data);
+                const { distributionType, ...data } = requestSpouseLifeExpectancy;
+                spouseLifeExpectancyDistribution = await distributionController.create(distributionType, data);
             } else {
-                spouseLifeExpectancyDistribution = await distributionController.update(currentScenario.spouseLifeExpectancyDistribution, spouseLifeExpectancy);
+                spouseLifeExpectancyDistribution = await distributionController.update(currentScenario.spouseLifeExpectancyDistribution, requestSpouseLifeExpectancy);
             }
         }
 
@@ -278,71 +359,33 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
         if (!await canEdit(userId, id)) {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
-
         const { name, description, expectedAnnualReturn, expenseRatio, expectedDividendsInterest, taxability } = req.body;
 
         const scenario = await scenarioController.readWithPopulate(id);
         const currentInvestmentType = scenario.investmentTypes;
-
         for (let type of currentInvestmentType) {
             if (type.name === name) {
                 return res.status(400).send("Investment type already exists.");
             }
         }
 
-        const distributionValueMap = {
-            "fixed": "FIXED_AMOUNT",
-            "normal": "NORMAL_AMOUNT",
-        }
+        const requestExpectedAnnualReturn = FrontendToDistribution(expectedAnnualReturn);
+        const requestExpectedDividendsInterest = FrontendToDistribution(expectedDividendsInterest);
 
-        const distributionPercentageMap = {
-            "fixed": "FIXED_PERCENTAGE",
-            "normal": "NORMAL_PERCENTAGE",
-        }
+        const requestExpenseRatio = expenseRatio / 100;
 
-        let type = expectedAnnualReturn.isPercentage ? distributionPercentageMap[expectedAnnualReturn.type] : distributionValueMap[expectedAnnualReturn.type];
-        let data = expectedAnnualReturn;
-        if (expectedAnnualReturn.isPercentage) {
-            switch (expectedAnnualReturn.type) {
-                case "fixed":
-                    data.fixedValue /= 100;
-                    break;
-                case "normal":
-                    data.mean /= 100;
-                    data.stdDev /= 100;
-                    break;
-            }
-        }
-        data.standardDeviation = data.stdDev;
-        delete data.type;
-        delete data.stdDev;
-        const expectedAnnualReturnDistribution = await distributionController.create(type, data);
-
-        type = expectedDividendsInterest.isPercentage ? distributionPercentageMap[expectedDividendsInterest.type] : distributionValueMap[expectedDividendsInterest.type];
-        data = expectedDividendsInterest;
-        delete data.type;
-        if (expectedDividendsInterest.isPercentage) {
-            switch (expectedDividendsInterest.type) {
-                case "fixed":
-                    data.fixedValue /= 100;
-                    break;
-                case "normal":
-                    data.mean /= 100;
-                    data.stdDev /= 100;
-                    break;
-            }
-        }
-        data.standardDeviation = data.stdDev;
-        delete data.stdDev;
-        const expectedAnnualIncomeDistribution = await distributionController.create(type, data);
+        let { distributionType, ...data } = requestExpectedAnnualReturn;
+        const expectedAnnualReturnDistribution = await distributionController.create(distributionType, data);
+        ({ distributionType, ...data } = requestExpectedDividendsInterest);
+        const expectedAnnualIncomeDistribution = await distributionController.create(distributionType, data);
 
         const newInvestmentType = await investmentTypeController.create({
             name: name,
             description: description,
             expectedAnnualReturnDistribution: expectedAnnualReturnDistribution,
-            expenseRatio: expenseRatio,
+            expenseRatio: requestExpenseRatio,
             expectedAnnualIncomeDistribution: expectedAnnualIncomeDistribution,
-            taxability: taxability,
+            taxability: taxability === "taxable",
             investments: [],
         });
 
@@ -369,13 +412,6 @@ router.get("/investments/:scenarioId", async (req, res) => {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
 
-        const taxStatusMap = {
-            "CASH": "Cash",
-            "NON_RETIREMENT": "Non-Retirement",
-            "PRE_TAX_RETIREMENT": "Pre-Tax Retirement",
-            "AFTER_TAX_RETIREMENT": "After-Tax Retirement",
-        }
-
         const scenario = await scenarioController.readWithPopulate(id);
         const investments = scenario.investmentTypes.flatMap(type => {
             return type.investments.map(investment => {
@@ -383,7 +419,7 @@ router.get("/investments/:scenarioId", async (req, res) => {
                     id: investment._id,
                     type: type.name,
                     dollarValue: investment.value,
-                    taxStatus: taxStatusMap[investment.taxStatus]
+                    taxStatus: taxStatusToFrontend(investment.taxStatus),
                 }
             });
         });
@@ -406,21 +442,16 @@ router.post("/investments/:scenarioId", async (req, res) => {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
 
-        const taxStatusMap = {
-            "Cash": "CASH",
-            "Non-Retirement": "NON_RETIREMENT",
-            "Pre-Tax Retirement": "PRE_TAX_RETIREMENT",
-            "After-Tax Retirement": "AFTER_TAX_RETIREMENT",
-        }
-
         const scenario = await scenarioController.readWithPopulate(id);
         const { investments } = req.body;
 
         for (let investment of investments) {
+
+            // New Investment Added
             if (investment.id === undefined) {
                 const investmentDB = await investmentController.create({
                     value: investment.dollarValue,
-                    taxStatus: taxStatusMap[investment.taxStatus]
+                    taxStatus: taxStatusToBackend(investment.taxStatus)
                 });
 
                 for (let type of scenario.investmentTypes) {
@@ -432,6 +463,9 @@ router.post("/investments/:scenarioId", async (req, res) => {
                     }
                 }
             } else {
+                // Modificaiton to pre existing investment
+
+                // Check if the investment type has changed
                 let currentInvestmentType = null;
                 for (let type of scenario.investmentTypes) {
                     for (let inv of type.investments) {
@@ -441,6 +475,10 @@ router.post("/investments/:scenarioId", async (req, res) => {
                         }
                     }
                 }
+
+                // If the investment type has changed, update the investment type
+                // and remove the investment from the old type
+                // and add it to the new type
                 if (currentInvestmentType !== investment.type) {
                     const currentType = scenario.investmentTypes.find(type => type.name === currentInvestmentType);
                     const newType = scenario.investmentTypes.find(type => type.name === investment.type);
@@ -451,9 +489,11 @@ router.post("/investments/:scenarioId", async (req, res) => {
                         $push: { investments: investment.id }
                     });
                 }
+
+                // Update the investment
                 await investmentController.update(investment.id, {
                     value: investment.dollarValue,
-                    taxStatus: taxStatusMap[investment.taxStatus]
+                    taxStatus: taxStatusToBackend(investment.taxStatus)
                 });
             }
 
