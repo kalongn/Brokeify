@@ -13,11 +13,8 @@ const Distributions = ({
   const [type, setType] = useState("");
   // Pass the name of the distributions key (e.g. lifeExpectancy), 
   // name of form field, and input value of the field to the parent
-  // Should be passed down to children too
+  // Handler should be passed down to children too
   const handleChange = (field, fieldValue) => {
-    // TODO: minor bug where if the user selects Percentage for one distribution
-    // that isPercentage value carries over if they then select another distribution
-    // Could change isPercentage to uniformPercentage, etc.
     onChange(name, field, fieldValue);
   };
   // Sets the type and should not be passed down to children
@@ -26,26 +23,21 @@ const Distributions = ({
     handleChange(field, fieldValue);
   };
 
-  const inputLabel = options.includes("percentage") ? "Fixed Value or Percentage" : "Fixed Value";
-
   const distributionType = () => {
     switch (defaultValue.type === "" ? type : defaultValue.type) {
       case "fixed":
         return <Fixed
           handleChange={handleChange}
-          hasPercentage={options.includes("percentage")}
           defaultValue={defaultValue}
         />
       case "uniform":
         return <Uniform
           handleChange={handleChange}
-          hasPercentage={options.includes("percentage")}
           defaultValue={defaultValue}
         />
       case "normal":
         return <Normal
           handleChange={handleChange}
-          hasPercentage={options.includes("percentage")}
           defaultValue={defaultValue}
         />
       default:
@@ -64,7 +56,7 @@ const Distributions = ({
               checked={type === "fixed" || defaultValue.type === "fixed"}
               onChange={(e) => handleRadio("type", e.target.value)}
             />
-            {inputLabel}
+            {options.includes("percentage") ? "Fixed Value or Percentage" : "Fixed Value"}
           </label>
           <br />
         </>
@@ -96,6 +88,16 @@ const Distributions = ({
       )}
       {/* Show only the specified options */}
       {distributionType()}
+      {options.includes("percentage") && type !== "" && (
+        <label>
+          <input
+            type="checkbox"
+            checked={defaultValue[`${type}Percentage`] || false}
+            onChange={(e) => handleChange(`${type}Percentage`, e.target.checked)}
+          />
+          Percentage
+        </label>
+      )}
     </div>
   );
 };
