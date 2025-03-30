@@ -1,4 +1,4 @@
-import { useState, useEffect, useImperativeHandle } from "react";
+import { useState, useImperativeHandle } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Axios from "axios";
@@ -19,16 +19,14 @@ const InvestmentTypesForm = () => {
   // Based on the type field, only the relevant fields should be read
   const [distributions, setDistributions] = useState({
     // expectedAnnualReturn and expectedDividendsInterest can have fixedValue, mean, or stdDev fields
-    expectedAnnualReturn: { type: "" },
-    expectedDividendsInterest: { type: "" },
+    expectedAnnualReturn: { type: "", isPercentage: false },
+    expectedDividendsInterest: { type: "", isPercentage: false },
   });
 
   const [formData, setFormData] = useState({
     investmentType: null,
     description: null,
-    expectedAnnualReturn: distributions.expectedAnnualReturn,
     expenseRatio: null,
-    expectedDividendsInterest: distributions.expectedDividendsInterest,
     taxability: null,
   });
 
@@ -37,29 +35,29 @@ const InvestmentTypesForm = () => {
     handleSubmit,
   }));
 
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      expectedAnnualReturn: distributions.expectedAnnualReturn,
-      expectedDividendsInterest: distributions.expectedDividendsInterest
-    }));
-  }, [distributions]);
-
   // Below handler copied and pasted from AI code generation from BasicInfo.jsx
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
-      // Check if name is a number field and parse if so
-      // If the input is a percentage, must convert in backend
-      let processedValue = value;
-      if (field !== "type" && value.length > 0) {
-        processedValue = Number(value);
+      if (field === "type") {
+        // Reset the distribution values when the type changes
+        switch (value) {
+          case "fixed":
+            updatedDistributions[name] = { type: value, isPercentage: false, value: null };
+            break;
+          case "normal":
+            updatedDistributions[name] = { type: value, isPercentage: false, mean: null, standardDeviation: null };
+            break;
+          default:
+            // Should not happen
+            break;
+        }
+      } else {
+        const processedValue = value === "" ? null : Number(value);
+        updatedDistributions[name][field] = processedValue;
       }
-      updatedDistributions[name][field] = processedValue;
       return updatedDistributions;
-    });
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
+    })
   };
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
@@ -83,14 +81,13 @@ const InvestmentTypesForm = () => {
       if (field === "description") {
         continue;
       }
-      // Distribution fields require a different function to validate
-      if (field !== "expectedAnnualReturn" && field !== "expectedDividendsInterest") {
-        validateRequired(newErrors, field, value);
-      } else {
-        validateDistribution(newErrors, field, value);
-      }
+      validateRequired(newErrors, field, value);
     }
-    if(formData.expenseRatio !== null && formData.expenseRatio > 100) {
+
+    validateDistribution(newErrors, "expectedAnnualReturn", distributions.expectedAnnualReturn);
+    validateDistribution(newErrors, "expectedDividendsInterest", distributions.expectedDividendsInterest);
+
+    if (formData.expenseRatio !== null && formData.expenseRatio > 100) {
       newErrors.expenseRatio = "Expense ratio must be between 0 and 100";
     }
     // Set all errors at once
@@ -109,7 +106,7 @@ const InvestmentTypesForm = () => {
       expectedAnnualReturn: distributions.expectedAnnualReturn,
       expenseRatio: formData.expenseRatio,
       expectedDividendsInterest: distributions.expectedDividendsInterest,
-      taxability: formData.taxability === "taxable",
+      taxability: formData.taxability,
     };
 
     try {
@@ -117,7 +114,7 @@ const InvestmentTypesForm = () => {
       console.log(response.data);
       handleNavigate();
     } catch (error) {
-      console.error('Error creating investment type:', error); //TODO: handle error on duplicate Investment Type name
+      console.error('Error creating investment type:', error); //TODO: handle error on duplicate Investment Type name @04mHuang
       return false;
     }
   }
@@ -144,8 +141,9 @@ const InvestmentTypesForm = () => {
         </label>
         <label>Expected Annual Return</label>
         <Distributions
-          options={["fixed", "normal", "percentage"]}
           name="expectedAnnualReturn"
+          options={["fixed", "normal"]}
+          requirePercentage={true}
           onChange={handleDistributionsChange}
           defaultValue={distributions.expectedAnnualReturn}
         />
@@ -157,8 +155,9 @@ const InvestmentTypesForm = () => {
         </label>
         <label>Expected Annual Income from Dividends or Interests</label>
         <Distributions
-          options={["fixed", "normal", "percentage"]}
           name="expectedDividendsInterest"
+          options={["fixed", "normal"]}
+          requirePercentage={true}
           onChange={handleDistributionsChange}
           defaultValue={distributions.expectedDividendsInterest}
         />

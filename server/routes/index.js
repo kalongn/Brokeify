@@ -116,11 +116,11 @@ const distributionToFrontend = (distribution) => {
         case "NORMAL_AMOUNT":
             return { type: "normal", mean: distribution.mean, standardDeviation: distribution.standardDeviation };
         case "FIXED_PERCENTAGE":
-            return { type: "fixed", value: distribution.value, isPercentage: true };
+            return { type: "fixed", value: distribution.value * 100, isPercentage: true };
         case "UNIFORM_PERCENTAGE":
-            return { type: "uniform", lowerBound: distribution.lowerBound, upperBound: distribution.upperBound, isPercentage: true };
+            return { type: "uniform", lowerBound: distribution.lowerBound * 100, upperBound: distribution.upperBound * 100, isPercentage: true };
         case "NORMAL_PERCENTAGE":
-            return { type: "normal", mean: distribution.mean, standardDeviation: distribution.standardDeviation, isPercentage: true };
+            return { type: "normal", mean: distribution.mean * 100, standardDeviation: distribution.standardDeviation * 100, isPercentage: true };
         default:
             return null;
     }
@@ -135,12 +135,17 @@ const FrontendToDistribution = (distribution) => {
     switch (type) {
         case "fixed":
             distributionType = data.isPercentage ? "FIXED_PERCENTAGE" : "FIXED_AMOUNT";
+            data.value = data.isPercentage ? data.value / 100 : data.value;
             break;
         case "uniform":
             distributionType = data.isPercentage ? "UNIFORM_PERCENTAGE" : "UNIFORM_AMOUNT";
+            data.lowerBound = data.isPercentage ? data.lowerBound / 100 : data.lowerBound;
+            data.upperBound = data.isPercentage ? data.upperBound / 100 : data.upperBound;
             break;
         case "normal":
             distributionType = data.isPercentage ? "NORMAL_PERCENTAGE" : "NORMAL_AMOUNT";
+            data.mean = data.isPercentage ? data.mean / 100 : data.mean;
+            data.standardDeviation = data.isPercentage ? data.standardDeviation / 100 : data.standardDeviation;
             break;
         default:
             return null;
@@ -223,7 +228,6 @@ router.get("/basicInfo/:scenarioId", async (req, res) => {
         return res.status(500).send("Error retrieving basic info.");
     }
 });
-
 
 // update the basic info of the scenario, (created if part of the basic info is missing)
 router.post("/basicInfo/:scenarioId", async (req, res) => {
@@ -326,71 +330,33 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
         if (!await canEdit(userId, id)) {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
-
         const { name, description, expectedAnnualReturn, expenseRatio, expectedDividendsInterest, taxability } = req.body;
 
         const scenario = await scenarioController.readWithPopulate(id);
         const currentInvestmentType = scenario.investmentTypes;
-
         for (let type of currentInvestmentType) {
             if (type.name === name) {
                 return res.status(400).send("Investment type already exists.");
             }
         }
 
-        const distributionValueMap = {
-            "fixed": "FIXED_AMOUNT",
-            "normal": "NORMAL_AMOUNT",
-        }
+        const requestExpectedAnnualReturn = FrontendToDistribution(expectedAnnualReturn);
+        const requestExpectedDividendsInterest = FrontendToDistribution(expectedDividendsInterest);
 
-        const distributionPercentageMap = {
-            "fixed": "FIXED_PERCENTAGE",
-            "normal": "NORMAL_PERCENTAGE",
-        }
+        const requestExpenseRatio = expenseRatio / 100;
 
-        let type = expectedAnnualReturn.isPercentage ? distributionPercentageMap[expectedAnnualReturn.type] : distributionValueMap[expectedAnnualReturn.type];
-        let data = expectedAnnualReturn;
-        if (expectedAnnualReturn.isPercentage) {
-            switch (expectedAnnualReturn.type) {
-                case "fixed":
-                    data.fixedValue /= 100;
-                    break;
-                case "normal":
-                    data.mean /= 100;
-                    data.stdDev /= 100;
-                    break;
-            }
-        }
-        data.standardDeviation = data.stdDev;
-        delete data.type;
-        delete data.stdDev;
-        const expectedAnnualReturnDistribution = await distributionController.create(type, data);
-
-        type = expectedDividendsInterest.isPercentage ? distributionPercentageMap[expectedDividendsInterest.type] : distributionValueMap[expectedDividendsInterest.type];
-        data = expectedDividendsInterest;
-        delete data.type;
-        if (expectedDividendsInterest.isPercentage) {
-            switch (expectedDividendsInterest.type) {
-                case "fixed":
-                    data.fixedValue /= 100;
-                    break;
-                case "normal":
-                    data.mean /= 100;
-                    data.stdDev /= 100;
-                    break;
-            }
-        }
-        data.standardDeviation = data.stdDev;
-        delete data.stdDev;
-        const expectedAnnualIncomeDistribution = await distributionController.create(type, data);
+        let { distributionType, ...data } = requestExpectedAnnualReturn;
+        const expectedAnnualReturnDistribution = await distributionController.create(distributionType, data);
+        ({ distributionType, ...data } = requestExpectedDividendsInterest);
+        const expectedAnnualIncomeDistribution = await distributionController.create(distributionType, data);
 
         const newInvestmentType = await investmentTypeController.create({
             name: name,
             description: description,
             expectedAnnualReturnDistribution: expectedAnnualReturnDistribution,
-            expenseRatio: expenseRatio,
+            expenseRatio: requestExpenseRatio,
             expectedAnnualIncomeDistribution: expectedAnnualIncomeDistribution,
-            taxability: taxability,
+            taxability: taxability === "taxable",
             investments: [],
         });
 
