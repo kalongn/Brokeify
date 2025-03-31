@@ -5,7 +5,6 @@ import Axios from 'axios';
 
 import styles from "./Form.module.css";
 
-
 // This page does not submit any data, so childRef is not used
 // TODO: update page to include childRef once event series deletion is implemented
 const EventSeries = () => {
