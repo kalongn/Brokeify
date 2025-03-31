@@ -13,21 +13,9 @@ const EventSchema = new mongoose.Schema({
     startYearTypeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
     duration: { type: Number },
     durationTypeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
-    startsWith: {type: mongoose.Schema.Types.ObjectId, ref: 'startsWith' },
-    startsAfter: {type: mongoose.Schema.Types.ObjectId, ref: 'startsAfter' },
+    startsWith: {type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
+    startsAfter: {type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
 }, EventOptions);
-
-EventSchema.virtual('id').get(function get() {
-    return this._id.toHexString();
-});
-
-EventSchema.set('toJSON', {
-    virtuals: true,
-});
-
-EventSchema.set('toObject', {
-    virtuals: true,
-});
 
 const Event = mongoose.model('Event', EventSchema);
 
