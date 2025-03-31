@@ -1,8 +1,10 @@
 import { useState, useEffect, useImperativeHandle } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
-import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Select from "react-select";
+import Axios from "axios";
+
+import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
@@ -13,6 +15,33 @@ const EventSeriesForm = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
   const { childRef } = useOutletContext();
+  const { scenarioId } = useParams();
+
+  const [allInvestments, setAllInvestments] = useState([]); // as needed to populate the actual investments option differently
+  const [distributions, setDistributions] = useState({
+    startYear: { type: "" },
+    duration: { type: "" },
+    expectedAnnualChange: { type: "" },
+  });
+  const [formData, setFormData] = useState({
+    eventSeriesName: null,
+    description: null,
+    eventType: null,
+    isSocialSecurity: null,
+    isDiscretionary: null,
+    initialValue: null,
+    percentageIncrease: null,
+    spousePercentageIncrease: null,
+    isAdjustInflation: null,
+    allocationMethod: null,
+    taxStatus: null,
+    investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }],
+    maxCash: null
+  });
+  const [investments, setInvestments] = useState([]);
+  const [events, setEvents] = useState([]);
+
+  const [errors, setErrors] = useState({});
 
   // For parsing to number
   const FIELD_TYPES = {
@@ -25,90 +54,83 @@ const EventSeriesForm = () => {
     { value: "After-Tax Retirement", label: "After-Tax Retirement" },
   ];
 
-  const [errors, setErrors] = useState({});
-  // Determine if what distribution fields are shown and contain values for backend
-  // Based on the type field, only the relevant fields should be added and read
-  const [distributions, setDistributions] = useState({
-    // startYear can have fixedValue, lowerBound, upperBound, mean, stdDev, or event fields
-    startYear: { type: "" },
-    // duration and expectedAnnualChange can have fixedValue, lowerBound, upperBound, mean, or stdDev fields
-    duration: { type: "" },
-    expectedAnnualChange: { type: "" },
-  });
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
 
-  const [formData, setFormData] = useState({
-    eventSeriesName: null,
-    description: null,
-    startYear: distributions.startYear,
-    duration: distributions.duration,
-    eventType: null,
-    isSocialSecurity: null,
-    isDiscretionary: null,
-    initialValue: null,
-    expectedAnnualChange: distributions.expectedAnnualChange,
-    percentageIncrease: null,
-    spousePercentageIncrease: null,
-    isAdjustInflation: null,
-    allocationMethod: null,
-    taxStatus: null,
-    investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }],
-    maxCash: null
-  });
+    Axios.get(`/event/${scenarioId}`).then((response) => {
+      const eventsData = response.data.events;
+      const investmentsData = response.data.investments;
+
+      const eventOptions = eventsData.map((event) => {
+        return { value: event.id, label: event.name };
+      });
+
+      setEvents(eventOptions);
+      setAllInvestments(investmentsData);
+    }).catch((error) => {
+      console.error('Error fetching event series:', error);
+    });
+  }, [scenarioId]);
+
+  useEffect(() => {
+    switch (formData.eventType) {
+      case "invest": {
+        const relevantInvestments = allInvestments.filter((investment) => investment.taxStatus !== "Pre-Tax Retirement");
+        const investmentOptions = relevantInvestments.map((investment) => {
+          return { value: investment.id, label: investment.label + " (" + investment.taxStatus + ")" };
+        });
+        setInvestments(investmentOptions);
+        break;
+      }
+      case "rebalance": {
+        const rebalanceInvestments = allInvestments.filter((investment) => investment.taxStatus === formData.taxStatus);
+        const rebalanceOptions = rebalanceInvestments.map((investment) => {
+          return { value: investment.id, label: investment.label };
+        });
+        setInvestments(rebalanceOptions);
+        break;
+      }
+      default: {
+        setInvestments([]);
+        break;
+      }
+    }
+  }, [allInvestments, formData.eventType, formData.taxStatus]);
 
   // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
     handleSubmit,
   }));
 
-  // TODO: replace with investments from db
-  const [investments, setInvestments] = useState([
-    { value: "Cash", label: "Cash" },
-  ]);
-
-  // TODO: uncomment out and modify when route has been set up
-  useEffect(() => {
-    // TODO: remove superficial call to setInvestments (to satisfy ESLint for now)
-    setInvestments([
-      { value: "Stocks", label: "Stocks" },
-      { value: "Bonds", label: "Bonds" },
-      { value: "Real Estate", label: "Real Estate" },
-      { value: "Cash", label: "Cash" },
-      { value: "Mutual Funds", label: "Mutual Funds" },
-    ]);
-    // IIFE
-    // (async () => {
-    //   try {
-    //     const response = await fetch('/api/investments');
-    //     const data = await response.json();
-
-    //     const formattedInvestments = data.map(type => ({
-    //       value: type.name,
-    //       label: type.name
-    //     }));
-
-    //     setInvestment(formattedInvestments);
-    //   } catch (error) {
-    //     console.error('Error fetching investments:', error);
-    //   }
-    // })();
-  }, []);
-  // TODO: replace with events from db
-  const events = [
-    { value: "Event1", label: "Event1" },
-    { value: "Event2", label: "Event2" },
-    { value: "Event3", label: "Event3" },
-  ];
-
   // Below handler copied and pasted from AI code generation from BasicInfo.jsx
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
-      // Check if name is a number field and parse if so
-      let processedValue = value;
-      if (field !== "type" && value !== "event" && value.length > 0) {
-        processedValue = Number(value);
+      if (field === "type") {
+        // Reset the distribution values when the type changes
+        switch (value) {
+          case "fixed":
+            updatedDistributions[name] = { type: value, value: null };
+            break;
+          case "uniform":
+            updatedDistributions[name] = { type: value, lowerBound: null, upperBound: null };
+            break;
+          case "normal":
+            updatedDistributions[name] = { type: value, mean: null, standardDeviation: null };
+            break;
+          case "eventStart":
+          case "eventEnd":
+            updatedDistributions[name] = { type: value, event: null };
+            break;
+          default:
+            // Should not happen
+            break;
+        }
+      } else {
+        const processedValue = value === "" ? null : Number(value);
+        updatedDistributions[name][field] = processedValue;
       }
-      updatedDistributions[name][field] = processedValue;
       return updatedDistributions;
     });
     // Clear errors when user makes changes
@@ -179,7 +201,7 @@ const EventSeriesForm = () => {
   };
 
   const handleNavigate = () => {
-    navigate("/ScenarioForm/event-series");
+    navigate(`/ScenarioForm/${scenarioId}/event-series`);
   };
 
   const validateFields = () => {
@@ -393,8 +415,9 @@ const EventSeriesForm = () => {
             </label>
             <label>Expected Annual Change</label>
             <Distributions
-              options={["fixed", "uniform", "normal", "percentage"]}
+              options={["fixed", "uniform", "normal"]}
               name="expectedAnnualChange"
+              requirePercentage={true}
               onChange={handleDistributionsChange}
               defaultValue={distributions.expectedAnnualChange}
             />

@@ -533,4 +533,45 @@ router.get("/events/:scenarioId", async (req, res) => {
     }
 });
 
+router.get("/event/:scenarioId", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+        if (!await canEdit(userId, id)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
+        }
+
+        const scenario = await scenarioController.readWithPopulate(id);
+        const investments = scenario.investmentTypes.flatMap(type => {
+            return type.investments.map(investment => {
+                return {
+                    id: investment._id,
+                    label: type.name,
+                    taxStatus: taxStatusToFrontend(investment.taxStatus),
+                }
+            });
+        });
+
+        const event = scenario.events.map(event => {
+            return {
+                id: event._id,
+                name: event.name,
+            }
+        });
+
+        const data = {
+            investments: investments,
+            events: event
+        }
+
+        return res.status(200).send(data);
+    } catch (error) {
+        console.error("Error in events route:", error);
+        return res.status(500).send("Error retrieving events.");
+    }
+
+});
 export default router;
