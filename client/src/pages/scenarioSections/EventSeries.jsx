@@ -8,11 +8,9 @@ import styles from "./Form.module.css";
 // This page does not submit any data, so childRef is not used
 // TODO: update page to include childRef once event series deletion is implemented
 const EventSeries = () => {
-  const { scenarioId } = useParams();
   const navigate = useNavigate();
-  const newEventSeries = () => {
-    navigate("/ScenarioForm/event-series/new");
-  }
+  const { scenarioId } = useParams();
+
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
@@ -25,6 +23,10 @@ const EventSeries = () => {
       console.error('Error fetching event series:', error);
     });
   }, [scenarioId]);
+
+  const newEventSeries = () => {
+    navigate(`/ScenarioForm/${scenarioId}/event-series/new`);
+  }
 
   return (
     <div>
