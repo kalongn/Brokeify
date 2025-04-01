@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { TAX_STATUS } from "./Enums.js";
 
 const InvestmentTypeSchema = new mongoose.Schema({
-    name: { type: String, unique: true },
+    name: { type: String },
     description: { type: String },
     expectedAnnualReturn: { type: Number },
     expectedAnnualReturnDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
