@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import './App.css'
 
@@ -29,18 +29,25 @@ import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
 import ViewScenario from './pages/ViewScenario.jsx';
 
 const App = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
 
     Axios.get('/')
       .then((response) => {
-        console.log('User session:', response.data);
+        if (response.status === 200) {
+          navigate('/Home');
+        }
+        else {
+          console.log('User is not logged in.');
+        }
       })
       .catch((error) => {
         console.error('Error fetching user session:', error);
       });
-  }, []);
+  }, [navigate]);
 
   return (
     <>

@@ -18,12 +18,11 @@ const distributionController = new DistributionController();
 
 
 router.get("/", async (req, res) => {
-    let state = "Not logged in";
     console.log(req.session); // can be used to debug session data
     if (req.session.user) {
-        res.send(req.session.user);
+        return res.status(200).send("Verified, userId: " + req.session.user);
     } else {
-        res.send(state);
+        return res.status(204).send();
     }
 });
 
