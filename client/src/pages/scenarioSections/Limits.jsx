@@ -1,5 +1,7 @@
-import { useState, useImperativeHandle } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useState, useEffect, useImperativeHandle } from "react";
+import { useOutletContext, useParams } from "react-router-dom";
+import Axios from "axios";
+
 import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
@@ -7,6 +9,7 @@ import styles from "./Form.module.css";
 const Limits = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
+  const { scenarioId } = useParams();
   const { childRef } = useOutletContext();
 
   const [errors, setErrors] = useState({});
@@ -18,9 +21,28 @@ const Limits = () => {
   });
 
   const [formData, setFormData] = useState({
-    inflationAssumption: distributions.inflationAssumption,
     initialLimit: null,
   });
+
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    // Fetch the existing limits data from the server
+    Axios.get(`/limits/${scenarioId}`).then((response) => {
+      const limits = response.data;
+      setDistributions((prev) => ({
+        ...prev,
+        inflationAssumption: limits.inflationAssumptionDistribution || prev.inflationAssumption
+      }));
+      setFormData((prev) => ({
+        ...prev,
+        initialLimit: limits.annualPostTaxContributionLimit || prev.initialLimit
+      }));
+    }).catch((error) => {
+      console.error('Error fetching limits:', error);
+    });
+  }, [scenarioId]);
 
   // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
@@ -31,12 +53,26 @@ const Limits = () => {
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
-      // Check if name is a number field and parse if so
-      let processedValue = value;
-      if (field !== "type" && value.length > 0) {
-        processedValue = Number(value);
+      if (field === "type") {
+        // Reset the distribution values when the type changes
+        switch (value) {
+          case "fixed":
+            updatedDistributions[name] = { type: value, value: null, isPercentage: true };
+            break;
+          case "normal":
+            updatedDistributions[name] = { type: value, mean: null, standardDeviation: null, isPercentage: true };
+            break;
+          case "uniform":
+            updatedDistributions[name] = { type: value, lowerBound: null, upperBound: null, isPercentage: true };
+            break;
+          default:
+            // Should not happen
+            break;
+        }
+      } else {
+        const processedValue = value === "" ? null : Number(value);
+        updatedDistributions[name][field] = processedValue;
       }
-      updatedDistributions[name][field] = processedValue;
       return updatedDistributions;
     });
     // Clear errors when user makes changes
@@ -68,8 +104,30 @@ const Limits = () => {
     // Everything is valid if there are no error messages
     return Object.keys(newErrors).length === 0;
   };
-  const handleSubmit = () => {
-    return validateFields();
+
+  const uploadToBackend = async () => {
+    const limits = {
+      initialLimit: formData.initialLimit,
+      inflationAssumption: distributions.inflationAssumption,
+    };
+
+    try {
+      // Send the limits data to the server
+      const response = await Axios.post(`/limits/${scenarioId}`, limits);
+      console.log(response.data);
+      return true;
+    }
+    catch (error) {
+      console.error('Error saving limits:', error);
+      return false
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!validateFields()) {
+      return false;
+    }
+    return await uploadToBackend();
   };
 
   return (
@@ -92,7 +150,7 @@ const Limits = () => {
             type="number"
             name="initialLimit"
             onChange={handleChange}
-            defaultValue={distributions.initialLimit}
+            defaultValue={formData.initialLimit}
           />
           {errors.initialLimit && <span className={styles.error}>{errors.initialLimit}</span>}
         </label>
