@@ -1,6 +1,18 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import PropTypes from 'prop-types';
+
 import styles from './Login.module.css';
-const Login = () => {
+
+const Login = ({ verified }) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (verified) {
+      navigate('/Home');
+    }
+  }, [navigate, verified]);
+
   return (
     <div id={styles.login}>
       <div className={styles.left}>
@@ -31,5 +43,8 @@ const Login = () => {
     </div>
   )
 }
+Login.propTypes = {
+  verified: PropTypes.bool.isRequired,
+};
 
 export default Login;

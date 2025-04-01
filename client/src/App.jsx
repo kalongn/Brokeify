@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import './App.css'
@@ -29,6 +29,7 @@ import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
 import ViewScenario from './pages/ViewScenario.jsx';
 
 const App = () => {
+  const [verified, setVerified] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,7 +39,8 @@ const App = () => {
     Axios.get('/')
       .then((response) => {
         if (response.status === 200) {
-          navigate('/Home');
+          console.log('User is logged in.');
+          setVerified(true);
         }
         else {
           console.log('User is not logged in.');
@@ -52,7 +54,7 @@ const App = () => {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Login verified={verified} />} />
         <Route path="/Home" element={<Home />} />
         <Route path="/NewScenario" element={<NewScenario />} />
 
@@ -77,7 +79,7 @@ const App = () => {
           <Route path="sharing" element={<Sharing />} />
         </Route>
         <Route path="/SharedScenarios" element={<SharedScenarios />} />
-        <Route path="/Profile" element={<Profile />} />
+        <Route path="/Profile" element={<Profile setVerified={setVerified} />} />
         <Route path="/Scenario/:scenarioId" element={<ScenarioSimulation />} />
         <Route path="/ViewScenario/:scenarioId" element={<ViewScenario />} ></Route>
         <Route path="/RouteTesting" element={<RouteTesting />} />
