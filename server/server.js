@@ -43,19 +43,21 @@ app.use(cors(corsOptions));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 
+const dayInSeconds = 24 * 60 * 60; // 1 day in seconds
+
 app.use(
     session({
         secret: `${process.env.SECRET}`,
         cookie: {
             httpOnly: true,
-            maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days in milliseconds.
+            maxAge: 1000 * dayInSeconds, // use miliseconds
         },
         resave: false,
         saveUninitialized: false,
         store: MongoStore.create({
             mongoUrl: mongoDB,
             collectionName: 'sessions',
-            ttl: 7 * 24 * 60 * 60, // 7 days in seconds
+            ttl: dayInSeconds,
             autoRemove: 'interval', // Automatically remove expired sessions
             autoRemoveInterval: 10 // Interval in minutes to check for expired sessions
         })
