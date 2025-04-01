@@ -124,7 +124,6 @@ export default class UserController {
 
                 let investmentsLength = 0;
                 for (let type of scenario.investmentTypes) {
-                    console.log(type);
                     investmentsLength += type.investments.length;
                 }
 
