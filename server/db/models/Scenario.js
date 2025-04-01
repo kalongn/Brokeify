@@ -16,7 +16,6 @@ const ScenarioSchema = new mongoose.Schema({
     events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     inflationAssumption: { type: Number },
     inflationAssumptionDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
-    annualPreTaxContributionLimit: { type: Number },
     annualPostTaxContributionLimit: { type: Number },
     financialGoal: { type: Number },
     orderedSpendingStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
