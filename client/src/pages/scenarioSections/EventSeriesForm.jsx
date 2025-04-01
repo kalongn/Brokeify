@@ -23,30 +23,15 @@ const EventSeriesForm = () => {
     duration: { type: "" },
     expectedAnnualChange: { type: "" },
   });
-  const [formData, setFormData] = useState({
-    eventSeriesName: null,
-    description: null,
-    eventType: null,
-    isSocialSecurity: null,
-    isDiscretionary: null,
-    initialValue: null,
-    percentageIncrease: null,
-    spousePercentageIncrease: null,
-    isAdjustInflation: null,
-    allocationMethod: null,
-    taxStatus: null,
-    investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }],
-    maxCash: null
-  });
+  // General form data
+  const [formData, setFormData] = useState({ name: null, description: null });
+  // Event type specific form data
+  const [typeFormData, setTypeFormData] = useState([]);
+  const [eventType, setEventType] = useState(null);
   const [investments, setInvestments] = useState([]);
   const [events, setEvents] = useState([]);
 
   const [errors, setErrors] = useState({});
-
-  // For parsing to number
-  const FIELD_TYPES = {
-    NUMBER: new Set(["initialValue", "percentageIncrease", "spousePercentageIncrease", "maxCash"]),
-  };
 
   const taxStatuses = [
     { value: "Non-Retirement", label: "Non-Retirement" },
@@ -74,7 +59,7 @@ const EventSeriesForm = () => {
   }, [scenarioId]);
 
   useEffect(() => {
-    switch (formData.eventType) {
+    switch (eventType) {
       case "invest": {
         const relevantInvestments = allInvestments.filter((investment) => investment.taxStatus !== "Pre-Tax Retirement");
         const investmentOptions = relevantInvestments.map((investment) => {
@@ -84,7 +69,7 @@ const EventSeriesForm = () => {
         break;
       }
       case "rebalance": {
-        const rebalanceInvestments = allInvestments.filter((investment) => investment.taxStatus === formData.taxStatus);
+        const rebalanceInvestments = allInvestments.filter((investment) => investment.taxStatus === typeFormData.taxStatus);
         const rebalanceOptions = rebalanceInvestments.map((investment) => {
           return { value: investment.id, label: investment.label };
         });
@@ -96,7 +81,7 @@ const EventSeriesForm = () => {
         break;
       }
     }
-  }, [allInvestments, formData.eventType, formData.taxStatus]);
+  }, [allInvestments, eventType, typeFormData.taxStatus]);
 
   // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
@@ -144,7 +129,7 @@ const EventSeriesForm = () => {
 
   // InvestmentRow functions are for invest and rebalance types
   const handleInvestmentRowChange = (index, field, value) => {
-    const updatedInvestmentRows = [...formData.investmentRows];
+    const updatedInvestmentRows = [...typeFormData.investmentRows];
     // Check if name is a number field and parse if so
     let processedValue = value;
     if (field !== "investment" && value.length > 0) {
@@ -154,47 +139,84 @@ const EventSeriesForm = () => {
       ...updatedInvestmentRows[index],
       [field]: processedValue
     };
-    setFormData(prev => ({ ...prev, investmentRows: updatedInvestmentRows }));
+    setTypeFormData(prev => ({ ...prev, investmentRows: updatedInvestmentRows }));
   };
 
   const addInvestmentRow = () => {
-    setFormData(prev => ({
+    const newRow = typeFormData.allocationMethod === "fixed"
+      ? { investment: "", percentage: "" }
+      : { investment: "", initialPercentage: "", finalPercentage: "" };
+
+    setTypeFormData(prev => ({
       ...prev,
-      investmentRows: [...prev.investmentRows, { investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }]
+      investmentRows: [...(prev.investmentRows || []), newRow]
     }));
   };
+
   const removeInvestmentRow = (index) => {
-    setFormData(prev => ({
+    setTypeFormData(prev => ({
       ...prev,
       investmentRows: prev.investmentRows.filter((_, i) => i !== index)
     }));
   };
 
-  // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (value.includes("event")) {
+    if (name === "startYear" && value.includes("event")) {
       handleDistributionsChange(name, "type", value);
     }
-    else {
-      // Check if name is a number field and parse if so
-      let processedValue = value;
-      if (FIELD_TYPES.NUMBER.has(name)) {
-        processedValue = Number(value);
+    else if (name === "eventType") {
+      setEventType(value);
+      switch (value) {
+        case "income":
+          setTypeFormData({ type: value, isSocialSecurity: null, initialValue: "", percentageIncrease: null, spousePercentageIncrease: null, isAdjustInflation: null });
+          break;
+        case "expense":
+          setTypeFormData({ type: value, isDiscretionary: null, initialValue: "", percentageIncrease: null, spousePercentageIncrease: null, isAdjustInflation: null });
+          break;
+        case "invest":
+          setTypeFormData({ type: value, allocationMethod: null, maximumCash: null, investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
+          break;
+        case "rebalance":
+          setTypeFormData({ type: value, taxStatus: null, allocationMethod: null, maximumCash: null, investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
+          break;
+        default:
+          // Should not happen
+          break;
       }
-      setFormData((prev) => ({ ...prev, [name]: processedValue }));
+      // Prompt to AI (Amazon Q): I want to keep errors on name, description, startYear, and duration and clear the rest
+      // The code snippet did not need any change to work
+      // Clear only event-specific input errors
+      setErrors(prev => {
+        const { name, description, startYear, duration, startYearEvent } = prev;
+        return {
+          ...(name && { name }),
+          ...(description && { description }),
+          ...(startYear && { startYear }),
+          ...(duration && { duration }),
+          ...(startYearEvent && { startYearEvent })
+        };
+      });
+    }
+    else {
+      // Set general form data or event specific form data
+      if (name === "name" || name === "description") {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
+      else {
+        setTypeFormData((prev) => ({ ...prev, [name]: value }))
+      }
       // Clear errors when user makes changes
       setErrors(prev => ({ ...prev, [name]: "" }));
     }
   };
-
   const handleSelectChange = (selectedOption, field) => {
     // For start year's event options
     if (field === "event") {
       handleDistributionsChange("startYear", "event", selectedOption.value);
     }
     else {
-      setFormData((prev) => ({ ...prev, [field]: selectedOption.value }));
+      setTypeFormData((prev) => ({ ...prev, [field]: selectedOption.value }));
     }
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, state: "" }));
@@ -206,68 +228,56 @@ const EventSeriesForm = () => {
 
   const validateFields = () => {
     const newErrors = {};
-    const eventType = formData.eventType;
+    // Validate general form inputs such as name and description
     for (const [field, value] of Object.entries(formData)) {
-      // Description, adjust inflation, discretionary expense, and social security are optional
-      if (field === "description" || field === "isAdjustInflation" || field === "isDiscretionary" || field === "isSocialSecurity") {
+      validateRequired(newErrors, field, value);
+    }
+    // Validate distributions
+    for (const [field, value] of Object.entries(distributions)) {
+      // expectedAnnualChange distribution is specific to income and expense event types
+      if (field === "expectedAnnualChange" && (eventType !== "income" && eventType !== "expense")) {
         continue;
       }
-      // Distribution fields require a different function to validate
-      if (field !== "startYear" && field !== "duration" && field !== "expectedAnnualChange") {
-        // These fields are specific to eventTypes
-        if (field === "initialValue" || field === "percentageIncrease" || (field === "spousePercentageIncrease")) {
-          if (eventType !== "income" && eventType !== "expense") {
-            continue;
-          }
-        }
-        if (field === "allocationMethod" || field === "maxCash") {
-          if (eventType !== "invest" && eventType !== "rebalance") {
-            continue;
-          }
-        }
-        if (eventType !== "rebalance" && field === "taxStatus") {
-          continue;
-        }
-        validateRequired(newErrors, field, value);
-      }
-      else {
-        // Distribution field is specific to eventType
-        if (field === "expectedAnnualChange" && (eventType !== "income" && eventType !== "expense")) {
-          continue;
-        }
-        validateDistribution(newErrors, field, value);
-      }
+      validateDistribution(newErrors, field, value);
     }
-    if (distributions.startYear.type.includes("event") && distributions.startYear.event === undefined) {
+    // Validate event-specific inputs
+    for (const [field, value] of Object.entries(typeFormData)) {
+      // Adjust inflation, discretionary expense, and social security are optional
+      if (field === "isAdjustInflation" || field === "isDiscretionary" || field === "isSocialSecurity") {
+        continue;
+      }
+      if (eventType === "income" || eventType === "expense") {
+        // Percentage increase validation
+        const pInc = typeFormData.percentageIncrease;
+        // TODO: pull marital status and hide this field if single
+        const spInc = typeFormData.spousePercentageIncrease;
+        if (!pInc) {
+          newErrors.percentageIncrease = "This field is required";
+        } else if (pInc < 0 || pInc > 100) {
+          newErrors.percentageIncrease = "Percentage must be between 0 and 100";
+        }
+        if (!spInc) {
+          newErrors.spousePercentageIncrease = "This field is required";
+        } else if (spInc < 0 || spInc > 100) {
+          newErrors.percentageIncrease = "Percentage must be between 0 and 100";
+        }
+      }
+      validateRequired(newErrors, field, value);
+    }
+    if (distributions.startYear.type.includes("event") && distributions.startYear.event === null) {
       newErrors.startYearEvent = "This field is required";
-    }
-    // Percentage increase validation
-    const pInc = formData.percentageIncrease;
-    if (!pInc) {
-      newErrors.percentageIncrease = "This field is required";
-    } else if (pInc < 0 || pInc > 100) {
-      newErrors.percentageIncrease = "Percentage must be between 0 and 100";
-    }
-
-    // TODO: pull marital status and hide this field if single
-    // Spouse percentage increase validation
-    const spInc = formData.spousePercentageIncrease;
-    if (!spInc) {
-      newErrors.spousePercentageIncrease = "This field is required";
-    } else if (spInc < 0 || spInc > 100) {
-      newErrors.percentageIncrease = "Percentage must be between 0 and 100";
     }
 
     // Validate investment/rebalance specific fields
-    if (formData.eventType === "invest" || formData.eventType === "rebalance") {
+    if (eventType === "invest" || eventType === "rebalance") {
       // Validate investment rows
-      const invRows = formData.investmentRows;
-      const allocMethod = formData.allocationMethod;
+      const invRows = typeFormData.investmentRows;
+      const allocMethod = typeFormData.allocationMethod;
       let totalPercentage = 0;
       let totalInitialPercentage = 0;
       let totalFinalPercentage = 0;
 
-      invRows.forEach((row) => {
+      invRows?.forEach((row) => {
         const fixedMethod = row.percentage === "";
         const glideMethod = row.initialPercentage === "" || row.finalPercentage === "";
         // Check if investment is set and if all fields are filled depending on allocationMethod
@@ -293,7 +303,6 @@ const EventSeriesForm = () => {
         newErrors.investmentRow = "Total initial percentage and total final percentage must be 100 each";
       }
     }
-
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
@@ -312,8 +321,8 @@ const EventSeriesForm = () => {
       <form>
         <label>
           Event Series Name
-          <input type="text" name="eventSeriesName" className={styles.newline} onChange={handleChange} />
-          {errors.eventSeriesName && <span className={styles.error}>{errors.eventSeriesName}</span>}
+          <input type="text" name="name" className={styles.newline} onChange={handleChange} />
+          {errors.name && <span className={styles.error}>{errors.name}</span>}
         </label>
         <label>
           Description
@@ -393,16 +402,16 @@ const EventSeriesForm = () => {
         {errors.eventType && <span className={styles.error}>{errors.eventType}</span>}
         <hr />
 
-        {(formData.eventType === "income" || formData.eventType === "expense") && (
+        {(eventType === "income" || eventType === "expense") && (
           <div>
             {/* TODO: replace with toggle button */}
-            {formData.eventType === "income" && (
+            {eventType === "income" && (
               <label>
                 <input type="checkbox" name="isSocialSecurity" value="socialSecurity" onChange={handleChange} />
                 Social Security
               </label>
             )}
-            {formData.eventType === "expense" && (
+            {eventType === "expense" && (
               <label>
                 <input type="checkbox" name="isDiscretionary" value="discretionary" onChange={handleChange} />
                 Discretionary
@@ -442,7 +451,7 @@ const EventSeriesForm = () => {
             </label>
           </div>
         )}
-        {(formData.eventType === "invest" || formData.eventType === "rebalance") && (
+        {(eventType === "invest" || eventType === "rebalance") && (
           <div>
             <label className={styles.newline}>
               Investment Allocation Method
@@ -452,7 +461,7 @@ const EventSeriesForm = () => {
                 type="radio"
                 name="allocationMethod"
                 value="fixed"
-                checked={formData.allocationMethod === "fixed"}
+                checked={typeFormData.allocationMethod === "fixed"}
                 onChange={handleChange}
               />
               Fixed Percentages
@@ -468,21 +477,21 @@ const EventSeriesForm = () => {
             </label>
             {errors.allocationMethod && <span className={styles.error}>{errors.allocationMethod}</span>}
 
-            {formData.eventType === "rebalance" && (
+            {eventType === "rebalance" && (
               <label className={styles.newline}>
                 Tax Status
                 <Select
                   options={taxStatuses}
                   className={styles.select}
                   onChange={(option) => handleSelectChange(option, "taxStatus")}
-                  value={taxStatuses.find(opt => opt.value === formData.taxStatus)}
+                  value={taxStatuses.find(opt => opt.value === typeFormData.taxStatus)}
                 />
                 {errors.taxStatus && <span className={styles.error}>{errors.taxStatus}</span>}
               </label>
             )}
 
             {/* Render inputs based on the selected allocation method */}
-            {formData.allocationMethod === "fixed" && (
+            {typeFormData.allocationMethod === "fixed" && (
               <div id={styles.inputTable}>
                 <table id={styles.inputTable}>
                   <thead>
@@ -494,7 +503,7 @@ const EventSeriesForm = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {formData.investmentRows.map((row, index) => (
+                    {typeFormData.investmentRows?.map((row, index) => (
                       <tr key={index}>
                         <td>
                           <Select
@@ -542,7 +551,7 @@ const EventSeriesForm = () => {
               </div>
             )}
 
-            {formData.allocationMethod === "glidePath" && (
+            {typeFormData.allocationMethod === "glidePath" && (
               <div>
                 <table id={styles.inputTable}>
                   <thead>
@@ -554,7 +563,7 @@ const EventSeriesForm = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {formData.investmentRows.map((row, index) => (
+                    {typeFormData.investmentRows?.map((row, index) => (
                       <tr key={index}>
                         <td>
                           <Select
@@ -614,8 +623,8 @@ const EventSeriesForm = () => {
             )}
             <label className={styles.newline}>
               Maximum Cash (in pre-defined cash investment)
-              <input type="number" name="maxCash" className={styles.newline} onChange={handleChange} />
-              {errors.maxCash && <span className={styles.error}>{errors.maxCash}</span>}
+              <input type="number" name="maximumCash" className={styles.newline} onChange={handleChange} />
+              {errors.maximumCash && <span className={styles.error}>{errors.maximumCash}</span>}
             </label>
           </div>
         )}
