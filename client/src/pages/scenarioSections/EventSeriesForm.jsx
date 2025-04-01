@@ -167,18 +167,21 @@ const EventSeriesForm = () => {
     }
     else if (name === "eventType") {
       setEventType(value);
+      // Clear distribution's inputs
+      setDistributions((prev) => ({ ...prev, expectedAnnualChange: { type: "" } }));
+
       switch (value) {
         case "income":
-          setTypeFormData({ type: value, isSocialSecurity: null, initialValue: "", percentageIncrease: null, spousePercentageIncrease: null, isAdjustInflation: null });
+          setTypeFormData({ type: value, isSocialSecurity: null, initialValue: "", percentageIncrease: "", spousePercentageIncrease: "", isAdjustInflation: "" });
           break;
         case "expense":
-          setTypeFormData({ type: value, isDiscretionary: null, initialValue: "", percentageIncrease: null, spousePercentageIncrease: null, isAdjustInflation: null });
+          setTypeFormData({ type: value, isDiscretionary: null, initialValue: "", percentageIncrease: "", spousePercentageIncrease: "", isAdjustInflation: "" });
           break;
         case "invest":
-          setTypeFormData({ type: value, allocationMethod: null, maximumCash: null, investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
+          setTypeFormData({ type: value, allocationMethod: "", maximumCash: "", investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
           break;
         case "rebalance":
-          setTypeFormData({ type: value, taxStatus: null, allocationMethod: null, maximumCash: null, investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
+          setTypeFormData({ type: value, taxStatus: null, allocationMethod: "", maximumCash: "", investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
           break;
         default:
           // Should not happen
@@ -419,14 +422,20 @@ const EventSeriesForm = () => {
             )}
             <label className={styles.newline}>
               Initial Value
-              <input type="number" name="initialValue" className={styles.newline} onChange={handleChange} />
+              <input
+                type="number"
+                name="initialValue"
+                className={styles.newline}
+                onChange={handleChange}
+                value={typeFormData.initialValue}
+              />
               {errors.initialValue && <span className={styles.error}>{errors.initialValue}</span>}
             </label>
             <label>Expected Annual Change</label>
             <Distributions
               options={["fixed", "uniform", "normal"]}
               name="expectedAnnualChange"
-              requirePercentage={true}
+              requirePercentage={distributions.expectedAnnualChange.type !== ""}
               onChange={handleDistributionsChange}
               defaultValue={distributions.expectedAnnualChange}
             />
@@ -436,13 +445,23 @@ const EventSeriesForm = () => {
             </label>
             <label className={styles.newline}>
               Your Increase
-              <input type="number" name="percentageIncrease" onChange={handleChange} />
+              <input
+                type="number"
+                name="percentageIncrease"
+                onChange={handleChange}
+                value={typeFormData.percentageIncrease}
+              />
             </label>
             {errors.percentageIncrease && <span className={styles.error}>{errors.percentageIncrease}</span>}
             {/* TODO: show depending on marital status */}
             <label className={styles.newline}>
               Spouse&apos;s Increase
-              <input type="number" name="spousePercentageIncrease" onChange={handleChange} />
+              <input
+                type="number"
+                name="spousePercentageIncrease"
+                onChange={handleChange}
+                value={typeFormData.spousePercentageIncrease}
+              />
             </label>
             {errors.spousePercentageIncrease && <span className={styles.error}>{errors.spousePercentageIncrease}</span>}
             <label>
@@ -471,6 +490,7 @@ const EventSeriesForm = () => {
                 type="radio"
                 name="allocationMethod"
                 value="glidePath"
+                checked={typeFormData.allocationMethod === "glidePath"}
                 onChange={handleChange}
               />
               Glide Path
