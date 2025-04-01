@@ -121,7 +121,7 @@ const EventSeriesForm = () => {
             break;
           case "eventStart":
           case "eventEnd":
-            updatedDistributions[name] = { type: "" };
+            updatedDistributions[name] = { type: value, event: null };
             break;
           default:
             // Should not happen
