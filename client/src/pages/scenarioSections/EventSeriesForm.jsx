@@ -305,9 +305,7 @@ const EventSeriesForm = () => {
       if (field === "isAdjustInflation" || field === "isDiscretionary" || field === "isSocialSecurity" || (field === "percentageIncrease" && maritalStatus !== "MARRIEDJOINT")) {
         continue;
       }
-      console.log(maritalStatus);
       if ((eventType === "income" || eventType === "expense") && maritalStatus === "MARRIEDJOINT") {
-        console.log("hi");
         // Percentage increase validation
         const pInc = typeFormData.percentageIncrease;
         if (!pInc) {
