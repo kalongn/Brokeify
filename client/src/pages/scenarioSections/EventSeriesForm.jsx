@@ -172,10 +172,10 @@ const EventSeriesForm = () => {
 
       switch (value) {
         case "income":
-          setTypeFormData({ type: value, isSocialSecurity: null, initialValue: "", percentageIncrease: "", spousePercentageIncrease: "", isAdjustInflation: "" });
+          setTypeFormData({ type: value, isSocialSecurity: null, initialValue: "", percentageIncrease: "", isAdjustInflation: "" });
           break;
         case "expense":
-          setTypeFormData({ type: value, isDiscretionary: null, initialValue: "", percentageIncrease: "", spousePercentageIncrease: "", isAdjustInflation: "" });
+          setTypeFormData({ type: value, isDiscretionary: null, initialValue: "", percentageIncrease: "", isAdjustInflation: "" });
           break;
         case "invest":
           setTypeFormData({ type: value, allocationMethod: "", maximumCash: "", investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
@@ -252,16 +252,9 @@ const EventSeriesForm = () => {
       if (eventType === "income" || eventType === "expense") {
         // Percentage increase validation
         const pInc = typeFormData.percentageIncrease;
-        // TODO: pull marital status and hide this field if single
-        const spInc = typeFormData.spousePercentageIncrease;
         if (!pInc) {
           newErrors.percentageIncrease = "This field is required";
         } else if (pInc < 0 || pInc > 100) {
-          newErrors.percentageIncrease = "Percentage must be between 0 and 100";
-        }
-        if (!spInc) {
-          newErrors.spousePercentageIncrease = "This field is required";
-        } else if (spInc < 0 || spInc > 100) {
           newErrors.percentageIncrease = "Percentage must be between 0 and 100";
         }
       }
@@ -453,17 +446,6 @@ const EventSeriesForm = () => {
               />
             </label>
             {errors.percentageIncrease && <span className={styles.error}>{errors.percentageIncrease}</span>}
-            {/* TODO: show depending on marital status */}
-            <label className={styles.newline}>
-              Spouse&apos;s Increase
-              <input
-                type="number"
-                name="spousePercentageIncrease"
-                onChange={handleChange}
-                value={typeFormData.spousePercentageIncrease}
-              />
-            </label>
-            {errors.spousePercentageIncrease && <span className={styles.error}>{errors.spousePercentageIncrease}</span>}
             <label>
               <input type="checkbox" name="isAdjustInflation" onChange={handleChange} />
               Adjust for Inflation
