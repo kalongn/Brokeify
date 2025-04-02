@@ -3,6 +3,8 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Select from "react-select";
+
+import { useParams } from "react-router-dom";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
@@ -13,6 +15,7 @@ const EventSeriesForm = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
   const { childRef } = useOutletContext();
+  const { id } = useParams();
 
   // For parsing to number
   const FIELD_TYPES = {
@@ -54,6 +57,23 @@ const EventSeriesForm = () => {
     investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }],
     maxCash: null
   });
+
+  //TO DO (Middleware): 
+  /**
+  Implement useEffect
+  useEffect(() => {
+    if (id) {
+      //TODO (middleware): Add this in the index.js... I tried mimicking the way the rest of the form is here, but
+      //Not 100% sure if it'll work...
+      Axios.get(`/event-series/${id}`)
+        .then((response) => {
+         
+        })
+        .catch((error) => console.error("Error fetching event:", error));
+    }
+  }, [id]);
+   * 
+   */
 
   // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
@@ -278,6 +298,11 @@ const EventSeriesForm = () => {
     return Object.keys(newErrors).length === 0;
   };
   const handleSubmit = () => {
+    if(id){
+      //Implement a new function for this. Edit existing eventseries...don't create new one.
+      alert("Update here - line 300- so that it sets by ID, instead of uploading to backend. Don't create new object, but adjust current one.")
+      return;
+    }
     if (!validateFields()) {
       return;
     }
@@ -609,7 +634,7 @@ const EventSeriesForm = () => {
           onClick={handleSubmit}
           className={buttonStyles.emphasizedButton}
         >
-          Create
+         {id ? "Update" : "Create"}
         </button>
       </div>
     </div>

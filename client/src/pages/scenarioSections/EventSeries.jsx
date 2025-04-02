@@ -11,6 +11,15 @@ const EventSeries = () => {
   const newEventSeries = () => {
     navigate("/ScenarioForm/event-series/new");
   }
+
+  //New route to update scenario
+  const editEventSeries = (id) => {
+    navigate(`/ScenarioForm/${scenarioId}/event-series/edit/${id}`);
+  };
+  
+
+
+
   // TODO: remove cash from initial state when done testing
   const [events, setEvents] = useState([
     { name: "Cash", type: "Expense" },
@@ -67,11 +76,13 @@ const EventSeries = () => {
                   <button
                     className={styles.tableButton}
                     onClick={() => {
+                      //NOTE: this index may not be needed - TOD): check on this later
                       if (index === 0) return;
-
-                      alert("NOT IMPLEMENTED YET")
+                      editEventSeries(event.id);
+                      alert(event.id);
                     }
                     }
+                    //NOTE: this conditional may not be necessary: Future TODO: Check on this later 
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
                   >
                     <FaEdit />
