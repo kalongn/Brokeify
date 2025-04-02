@@ -187,14 +187,13 @@ const EventSeriesForm = () => {
           // Should not happen
           break;
       }
-      // Prompt to AI (Amazon Q): I want to keep errors on name, description, startYear, and duration and clear the rest
+      // Prompt to AI (Amazon Q): I want to keep errors on name, startYear, and duration and clear the rest
       // The code snippet did not need any change to work
       // Clear only event-specific input errors
       setErrors(prev => {
-        const { name, description, startYear, duration, startYearEvent } = prev;
+        const { name, startYear, duration, startYearEvent } = prev;
         return {
           ...(name && { name }),
-          ...(description && { description }),
           ...(startYear && { startYear }),
           ...(duration && { duration }),
           ...(startYearEvent && { startYearEvent })
@@ -231,10 +230,8 @@ const EventSeriesForm = () => {
 
   const validateFields = () => {
     const newErrors = {};
-    // Validate general form inputs such as name and description
-    for (const [field, value] of Object.entries(formData)) {
-      validateRequired(newErrors, field, value);
-    }
+    // Validate general form for name input
+    validateRequired(newErrors, "name", formData.name);
     // Validate distributions
     for (const [field, value] of Object.entries(distributions)) {
       // expectedAnnualChange distribution is specific to income and expense event types
@@ -299,6 +296,7 @@ const EventSeriesForm = () => {
         newErrors.investmentRow = "Total initial percentage and total final percentage must be 100 each";
       }
     }
+    console.log(errors);
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
