@@ -591,6 +591,7 @@ router.get("/event/:scenarioId", async (req, res) => {
 
         const scenarioData = {
             birthYear: scenario.userBirthYear,
+            maritalStatus: scenario.filingStatus,
             lifeExpectancy: distributionToFrontend(scenario.userLifeExpectancyDistribution),
         }
 

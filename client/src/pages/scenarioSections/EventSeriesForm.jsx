@@ -18,8 +18,9 @@ const EventSeriesForm = () => {
   const { scenarioId } = useParams();
 
   const [allInvestments, setAllInvestments] = useState([]); // as needed to populate the actual investments option differently
-  const [birthYear, setBirthYear] = useState(null); // failing EsLint since not used (remove comment once used)
-  const [lifeExpectancy, setLifeExpectancy] = useState(null); // failing EsLint since not used (remove comment once used)
+  const [birthYear, setBirthYear] = useState(null);
+  const [lifeExpectancy, setLifeExpectancy] = useState(null);
+  const [maritalStatus, setMaritalStatus] = useState(null);
   const [investments, setInvestments] = useState([]);
   const [events, setEvents] = useState([]);
 
@@ -49,8 +50,7 @@ const EventSeriesForm = () => {
       const scenarioData = response.data.scenario;
       setBirthYear(scenarioData.birthYear);
       setLifeExpectancy(scenarioData.lifeExpectancy);
-      console.log("Birth Year: ", scenarioData.birthYear);
-      console.log("Life Expectancy: ", scenarioData.lifeExpectancy);
+      setMaritalStatus(scenarioData.maritalStatus);
       const eventsData = response.data.events;
       const investmentsData = response.data.investments;
 
