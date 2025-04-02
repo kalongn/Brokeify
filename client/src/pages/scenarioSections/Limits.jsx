@@ -132,7 +132,7 @@ const Limits = () => {
 
   return (
     <div>
-      <h2>Inflation & Contribution Limits</h2>
+      <h2 id={styles.heading}>Inflation & Contribution Limits</h2>
       <form>
         <label>Inflation Assumption</label>
         <Distributions

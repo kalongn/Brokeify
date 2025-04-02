@@ -1,7 +1,8 @@
+import styles from "./Form.module.css";
 const ExpenseStrategy = () => {
   return (
     <div>
-      <h2>Expense Withdrawal Strategy</h2>
+      <h2 id={styles.heading}>Expense Withdrawal Strategy</h2>
       <p>
         Specify the order in which the set of investments should be
         sold when cash is insufficient.
