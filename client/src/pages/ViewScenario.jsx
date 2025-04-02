@@ -1,4 +1,5 @@
-//import { CgMenuGridO } from "react-icons/cg";
+/** Referenced ChatGPT to generate a part of the design of this code.**/
+import { CgMenuGridO } from "react-icons/cg";
 import { BsToggleOn } from "react-icons/bs";
 import { BsToggleOff } from "react-icons/bs";
 import { BiSolidCircle } from "react-icons/bi";
@@ -113,7 +114,7 @@ const ViewScenario = () => {
     });
   }, [scenarioId]);
 
-  
+
 
   return (
     <Layout>
@@ -121,19 +122,20 @@ const ViewScenario = () => {
         {loading ? <div className={styles.loading}>Loading...</div>
           :
           <div className={styles.sections}>
+            {/**Basic Information Section */}
             <h2>Basic Information</h2>
-                
+
             <p className={styles.question}>Scenario Name</p>
-            <div className={styles.textbox}>{scenarioData.name}</div>
+            <div className={styles.textbox}>{scenarioData.name || "N/A"}</div>
 
             <div className={styles.columns}>
               <div className={styles.columnsp1}>
                 <p className={styles.question}>First Name</p>
-                <div className={styles.textbox}>{scenarioData.firstName}</div>
+                <div className={styles.textbox}>{scenarioData.ownerFirstName}</div>
               </div>
               <div className={styles.columnsp2}>
                 <p className={styles.question}>Last Name</p>
-                <div className={styles.textbox}>{scenarioData.lastName}</div>
+                <div className={styles.textbox}>{scenarioData.ownerLastName}</div>
               </div>
             </div>
 
@@ -169,7 +171,7 @@ const ViewScenario = () => {
               <div className={styles.columnsp1}>
                 <p className={styles.question}>Your Life Expectancy</p>
                 {
-                  scenarioData.userLifeExpectancyDistribution.distributionType === "NORMAL_AMOUNT" ? (
+                  scenarioData.userLifeExpectancyDistribution?.distributionType === "NORMAL_AMOUNT" ? (
                     <>
                       <div>
                         <BiCircle /> <span> Fixed Value</span>
@@ -190,7 +192,7 @@ const ViewScenario = () => {
                       <div>
                         <BiCircle /> <span> Sample from Normal Distribution</span>
                       </div>
-                      Value: <div className={styles.textbox}>{scenarioData.userLifeExpectancyDistribution.value}</div>
+                      Value: <div className={styles.textbox}>{scenarioData.userLifeExpectancyDistribution?.value}</div>
                     </>
                   )
                 }
@@ -201,7 +203,7 @@ const ViewScenario = () => {
                 <div className={styles.columnsp2}>
                   <p className={styles.question}>Spouse Life Expectancy</p>
                   {
-                    scenarioData.spouseLifeExpectancyDistribution.distributionType === "NORMAL_AMOUNT" ? (
+                    scenarioData.spouseLifeExpectancyDistribution?.distributionType === "NORMAL_AMOUNT" ? (
                       <>
                         <div>
                           <BiCircle /> <span> Fixed Value</span>
@@ -229,7 +231,7 @@ const ViewScenario = () => {
               )}
             </div>
 
-
+            {/**Investments Section */}
             <h2>Investments</h2>
             <p className={styles.description}>
               If married, investments will automatically be assumed as jointly owned.
@@ -248,7 +250,8 @@ const ViewScenario = () => {
                 </div>
               ))}
             </div>
-
+            
+            {/**Event Series Section */}
             <h2>Event Series</h2>
             <p className={styles.description}>
               An event series is a sequence of recurring financial events (income, expense, investment, or rebalancing) over a defined period.
@@ -266,11 +269,13 @@ const ViewScenario = () => {
                 </div>
               ))}
             </div>
-
+              
+            {/**Inflation and Contribution Limits Section */}
             <h2>Inflation & Contribution Limits</h2>
             <p className={styles.question}>Inflation Assumption</p>
+            
             {
-              scenarioData.inflationAssumptionDistribution.distributionType === "NORMAL_PERCENTAGE" ? (
+              scenarioData.inflationAssumptionDistribution?.distributionType === "NORMAL_PERCENTAGE" ? (
                 <>
                   <div>
                     <BiCircle /> <span> Fixed Percentage</span>
@@ -286,7 +291,7 @@ const ViewScenario = () => {
                 </>
               ) :
 
-                scenarioData.inflationAssumptionDistribution.distributionType === "UNIFORM_PERCENTAGE" ? (
+                scenarioData.inflationAssumptionDistribution?.distributionType === "UNIFORM_PERCENTAGE" ? (
                   <>
                     <div>
                       <BiCircle /> <span> Fixed Percentage</span>
@@ -312,12 +317,12 @@ const ViewScenario = () => {
                       <div>
                         <BiCircle /><span> Sample from Uniform Distribution</span>
                       </div>
-                      Percentage: <div className={styles.textbox}>{scenarioData.inflationAssumptionDistribution.value}</div>
+                      Percentage: <div className={styles.textbox}>{scenarioData.inflationAssumptionDistribution?.value}</div>
                     </>
                   )
             }
 
-
+            
             <p className={styles.question}>Retirement Accounts Initial Limit on Annual Contributions</p>
             <p className={styles.question}>Pre-Tax</p>
             <div className={styles.textbox}>{scenarioData.annualPreTaxContributionLimit}</div>
@@ -325,6 +330,8 @@ const ViewScenario = () => {
             <p className={styles.question}>After-Tax</p>
             <div className={styles.textbox}>{scenarioData.annualPostTaxContributionLimit}</div>
 
+            
+            {/**Spending Strategy Section */}
             <h2>Spending Strategy</h2>
             <p className={styles.description}>
               Specify the order of discretionary expenses to be paid as cash allows.
@@ -334,13 +341,15 @@ const ViewScenario = () => {
               {orderedSpendingStrategy.map((strategy, index) => (
                 <div key={index} className={styles.draggableItem}>
                   <div className={styles.icon}>
+                    <CgMenuGridO size={20} />
                     <span className={styles.draggableItemText}>{strategy.name}</span>
                   </div>
                 </div>
               ))}
             </div>
 
-
+              
+            {/**Expense Withdrawl Section */}
             <h2>Expense Withdrawal Strategy</h2>
             <p className={styles.description}>
               Specify the order in which the set of investments should be sold when cash is insufficient.
@@ -349,7 +358,7 @@ const ViewScenario = () => {
               {orderedExpenseWithdrawalStrategy.map((strategy, index) => (
                 <div key={index} className={styles.draggableItem}>
                   <div className={styles.icon}>
-                    
+                    <CgMenuGridO size={20} />
                     <p className={styles.draggableItemText}>{strategy.name}</p>
                   </div>
                   <p className={styles.lightText}> Value: {strategy.value} </p>
@@ -360,6 +369,8 @@ const ViewScenario = () => {
               ))}
             </div>
 
+
+            {/**RMD Stategy Section */}
             <h2>Required Minimum Distribution Strategy</h2>
             <p className={styles.description}>
               Specify the order in which investments should be transferred from pre-tax retirement accounts to non-retirement accounts when a Required Minimum Distribution (RMD) is triggered.
@@ -368,7 +379,7 @@ const ViewScenario = () => {
             {orderedRMDStrategy?.map((strategy, index) => (
               <div key={index} className={styles.draggableItem}>
                 <div className={styles.icon}>
-                  
+                  <CgMenuGridO size={20} />
                   <p className={styles.draggableItemText}>{strategy.name}</p>
                 </div>
                 <p className={styles.lightText}> Value: {strategy.value} </p>
@@ -377,7 +388,8 @@ const ViewScenario = () => {
 
               </div>
             ))}
-
+            
+            {/**Roth Optimizer Section */}
             <h2>Roth Conversion Strategy & Optimizer</h2>
             <p className={styles.description}>
               Specify the order in which investments should be transferred from pre-tax to after-tax retirement accounts when a conversion is triggered.
@@ -386,7 +398,7 @@ const ViewScenario = () => {
             {orderedRothStrategy?.map((strategy, index) => (
               <div key={index} className={styles.draggableItem}>
                 <div className={styles.icon}>
-                  
+                  <CgMenuGridO size={20} />
                   <p className={styles.draggableItemText}>{strategy.name}</p>
                 </div>
                 <p className={styles.lightText}> Value: {strategy.value} </p>

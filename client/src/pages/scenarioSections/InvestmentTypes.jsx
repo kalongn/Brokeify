@@ -1,44 +1,35 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { HiDotsVertical } from 'react-icons/hi';
+import Axios from 'axios';
+
 import styles from "./Form.module.css";
 
 // This page does not submit any data, so childRef is not used
-// TODO: update page to include childRef once investment type deletion is implemented
 const InvestmentTypes = () => {
-  // TODO: empty initial state (placeholder for testing)
-  const [investmentTypes, setInvestmentTypes] = useState([
-    { name: "Cash", taxability: "Taxable" }
-  ]);
-  // TODO: uncomment out and modify when route has been set up
+
+  const { scenarioId } = useOutletContext(); // TODO: update page to include childRef once investment type deletion is implemented
+  const [investmentTypes, setInvestmentTypes] = useState([]);
   useEffect(() => {
-    // TODO: remove superficial call to setInvestments (to satisfy ESLint for now)
-    setInvestmentTypes([{ name: "Cash", taxability: "Taxable" }]);
-    // IIFE
-    // (async () => {
-    //   try {
-    //     const response = await fetch('/api/investment-types');
-    //     const data = await response.json();
 
-    //     const formattedTypes = data.map(type => ({
-    //       name: type.name,
-    //       taxability: type.name
-    //     }));
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
 
-    //     setInvestmentTypes(formattedTypes);
-    //   } catch (error) {
-    //     console.error('Error fetching investment types:', error);
-    //   }
-    // })();
-  }, []);
+    Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
+      setInvestmentTypes(response.data);
+    }
+    ).catch((error) => {
+      console.error('Error fetching investment types:', error);
+    });
+  }, [scenarioId]);
 
   const navigate = useNavigate();
   const newInvestmentType = () => {
-    navigate("/ScenarioForm/investment-types/new");
+    navigate(`/ScenarioForm/${scenarioId}/investment-types/new`);
   }
   return (
     <div>
-      <h2 id={styles.heading}>Investment Types</h2>
+      <h2>Investment Types</h2>
       <p>
         Create investment types or view the default ones.
       </p>
@@ -58,7 +49,7 @@ const InvestmentTypes = () => {
                 {investmentType.name}
               </td>
               <td>
-                {investmentType.taxability}
+                {investmentType.taxability ? "Taxable" : "Tax-Exempt"}
               </td>
               <td>
                 <button

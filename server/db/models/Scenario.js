@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { FILING_STATUS } from "./Enums.js";
 
 const ScenarioSchema = new mongoose.Schema({
-    name: { type: String },
+    name: { type: String, default: "Untitle Scenario" },
     filingStatus: { type: String, enum: FILING_STATUS },
     userBirthYear: { type: Number },
     spouseBirthYear: { type: Number },
@@ -16,15 +16,18 @@ const ScenarioSchema = new mongoose.Schema({
     events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     inflationAssumption: { type: Number },
     inflationAssumptionDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
-    annualPreTaxContributionLimit: { type: Number },
     annualPostTaxContributionLimit: { type: Number },
     financialGoal: { type: Number },
     orderedSpendingStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     orderedExpenseWithdrawalStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     orderedRMDStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     orderedRothStrategy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
+
     startYearRothOptimizer: { type: Number, default: undefined },
-    endYearRothOptimizer: { type: Number }
+    endYearRothOptimizer: { type: Number },
+    ownerFirstName: { type: String },
+    ownerLastName: { type: String },
+
 });
 
 const Scenario = mongoose.model('Scenario', ScenarioSchema);

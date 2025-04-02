@@ -10,6 +10,7 @@ import ScenarioForm from './pages/ScenarioForm.jsx';
 import SharedScenarios from './pages/SharedScenarios.jsx';
 
 // Sections for the scenario form
+import NewScenario from './pages/NewScenario.jsx';
 import BasicInfo from './pages/scenarioSections/BasicInfo.jsx';
 import InvestmentTypes from './pages/scenarioSections/InvestmentTypes.jsx';
 import InvestmentTypesForm from './pages/scenarioSections/InvestmentTypesForm.jsx';
@@ -46,7 +47,13 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/Home" element={<Home />} />
-        <Route path="/ScenarioForm" element={<ScenarioForm />}>
+        <Route path="/NewScenario" element={<NewScenario />} />
+
+        <Route path="/ScenarioForm/:scenarioId" element={<ScenarioForm />}>
+          {/* 
+            Prompt to AI (Copilot): How do I redirect /ScenarioForm/ to the first section /basic-information
+            Worked without any further changes.
+           */}
           {/* Redirect /ScenarioForm to /ScenarioForm/basic-information */}
           <Route index element={<Navigate to="basic-information" replace />} />
           <Route path="basic-information" element={<BasicInfo />} />
