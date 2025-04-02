@@ -302,10 +302,12 @@ const EventSeriesForm = () => {
     // Validate event-specific inputs
     for (const [field, value] of Object.entries(typeFormData)) {
       // Adjust inflation, discretionary expense, and social security are optional
-      if (field === "isAdjustInflation" || field === "isDiscretionary" || field === "isSocialSecurity") {
+      if (field === "isAdjustInflation" || field === "isDiscretionary" || field === "isSocialSecurity" || (field === "percentageIncrease" && maritalStatus !== "MARRIEDJOINT")) {
         continue;
       }
-      if (eventType === "income" || eventType === "expense") {
+      console.log(maritalStatus);
+      if ((eventType === "income" || eventType === "expense") && maritalStatus === "MARRIEDJOINT") {
+        console.log("hi");
         // Percentage increase validation
         const pInc = typeFormData.percentageIncrease;
         if (!pInc) {
@@ -563,7 +565,7 @@ const EventSeriesForm = () => {
               defaultValue={distributions.expectedAnnualChange}
             />
             {errors.expectedAnnualChange && <span className={styles.error}>{errors.expectedAnnualChange}</span>}
-            <label>
+            {maritalStatus === "MARRIEDJOINT" && <label>
               Specific Percentage Increase
               <input
                 type="number"
@@ -572,7 +574,7 @@ const EventSeriesForm = () => {
                 onChange={handleChange}
                 value={typeFormData.percentageIncrease}
               />
-            </label>
+            </label>}
             {errors.percentageIncrease && <span className={styles.error}>{errors.percentageIncrease}</span>}
             <label>
               <input type="checkbox" name="isAdjustInflation" onChange={handleChange} />
