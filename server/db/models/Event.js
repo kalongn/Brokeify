@@ -13,8 +13,8 @@ const EventSchema = new mongoose.Schema({
     durationTypeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
     startYear: { type: Number },
     startYearTypeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
-    startsWith: {type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
-    startsAfter: {type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
+    startsWith: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
+    startsAfter: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
 }, EventOptions);
 
 const Event = mongoose.model('Event', EventSchema);
@@ -42,7 +42,7 @@ const IncomeSchema = new mongoose.Schema({
     expectedAnnualChange: { type: Number },
     expectedAnnualChangeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
     isinflationAdjusted: { type: Boolean },
-    userContributions: { type: Number, default: 100 },
+    userContributions: { type: Number, default: 1 },
     isSocialSecurity: { type: Boolean },
 });
 
@@ -51,7 +51,7 @@ const ExpenseSchema = new mongoose.Schema({
     expectedAnnualChange: { type: Number },
     expectedAnnualChangeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
     isinflationAdjusted: { type: Boolean },
-    userContributions: { type: Number, default: 100 },
+    userContributions: { type: Number, default: 1 },
     isDiscretionary: { type: Boolean },
 });
 
