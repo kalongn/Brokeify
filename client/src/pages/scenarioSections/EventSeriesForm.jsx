@@ -18,6 +18,8 @@ const EventSeriesForm = () => {
   const { scenarioId } = useParams();
 
   const [allInvestments, setAllInvestments] = useState([]); // as needed to populate the actual investments option differently
+  const [birthYear, setBirthYear] = useState(null); // failing EsLint since not used (remove comment once used)
+  const [lifeExpectancy, setLifeExpectancy] = useState(null); // failing EsLint since not used (remove comment once used)
   const [investments, setInvestments] = useState([]);
   const [events, setEvents] = useState([]);
 
@@ -44,6 +46,11 @@ const EventSeriesForm = () => {
     Axios.defaults.withCredentials = true;
 
     Axios.get(`/event/${scenarioId}`).then((response) => {
+      const scenarioData = response.data.scenario;
+      setBirthYear(scenarioData.birthYear);
+      setLifeExpectancy(scenarioData.lifeExpectancy);
+      console.log("Birth Year: ", scenarioData.birthYear);
+      console.log("Life Expectancy: ", scenarioData.lifeExpectancy);
       const eventsData = response.data.events;
       const investmentsData = response.data.investments;
 
@@ -112,6 +119,8 @@ const EventSeriesForm = () => {
             // Should not happen
             break;
         }
+      } else if (field === "event") {
+        updatedDistributions[name].event = value;
       } else {
         const processedValue = value === "" ? null : Number(value);
         updatedDistributions[name][field] = processedValue;
@@ -304,11 +313,85 @@ const EventSeriesForm = () => {
     // Everything is valid if there are no error messages
     return Object.keys(newErrors).length === 0;
   };
-  const handleSubmit = () => {
+
+  const uploadToBackend = async () => {
+    let event = null;
+    switch (eventType) {
+      case "income":
+        event = {
+          eventType: "INCOME",
+          name: formData.name,
+          description: formData.description,
+          durationTypeDistribution: distributions.duration,
+          startYearTypeDistribution: distributions.startYear,
+          initialValue: typeFormData.initialValue,
+          expectedAnnualChangeDistribution: distributions.expectedAnnualChange,
+          isAdjustInflation: typeFormData.isAdjustInflation === "on",
+          percentageIncrease: typeFormData.percentageIncrease,
+          isSocialSecurity: typeFormData.isSocialSecurity === "socialSecurity",
+        };
+        break;
+      case "expense":
+        event = {
+          eventType: "EXPENSE",
+          name: formData.name,
+          description: formData.description,
+          durationTypeDistribution: distributions.duration,
+          startYearTypeDistribution: distributions.startYear,
+          initialValue: typeFormData.initialValue,
+          expectedAnnualChangeDistribution: distributions.expectedAnnualChange,
+          isAdjustInflation: typeFormData.isAdjustInflation === "on",
+          percentageIncrease: typeFormData.percentageIncrease,
+          isDiscretionary: typeFormData.isDiscretionary === "discretionary",
+        };
+        break;
+      case "invest":
+        event = {
+          eventType: "INVEST",
+          name: formData.name,
+          description: formData.description,
+          durationTypeDistribution: distributions.duration,
+          startYearTypeDistribution: distributions.startYear,
+          maximumCash: typeFormData.maximumCash,
+          allocationMethod: typeFormData.allocationMethod,
+          investmentRows: typeFormData.investmentRows,
+        };
+        break;
+      case "rebalance":
+        event = {
+          eventType: "REBALANCE",
+          name: formData.name,
+          description: formData.description,
+          durationTypeDistribution: distributions.duration,
+          startYearTypeDistribution: distributions.startYear,
+          maximumCash: typeFormData.maximumCash,
+          allocationMethod: typeFormData.allocationMethod,
+          investmentRows: typeFormData.investmentRows,
+          taxStatus: typeFormData.taxStatus,
+        };
+        break;
+      default:
+        // Should not happen
+        break;
+    }
+
+    try {
+      const response = await Axios.post(`/event/${scenarioId}`, event);
+      console.log(response.data);
+      handleNavigate();
+    } catch (error) {
+      console.error("Error creating event series:", error);
+    }
+  }
+
+
+
+
+  const handleSubmit = async () => {
     if (!validateFields()) {
       return;
     }
-    handleNavigate();
+    await uploadToBackend();
   };
 
   return (
