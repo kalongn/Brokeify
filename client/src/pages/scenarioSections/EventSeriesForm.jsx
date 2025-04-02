@@ -241,6 +241,7 @@ const EventSeriesForm = () => {
     const newErrors = {};
     // Validate general form for name input
     validateRequired(newErrors, "name", formData.name);
+    
     // Validate distributions
     for (const [field, value] of Object.entries(distributions)) {
       // expectedAnnualChange distribution is specific to income and expense event types
@@ -248,7 +249,17 @@ const EventSeriesForm = () => {
         continue;
       }
       validateDistribution(newErrors, field, value);
+
+      // Validate start year and duration are within lifetime
+      const deathYear = birthYear + lifeExpectancy.value;
+      if (field === "startYear" && value.value < birthYear) {
+        newErrors.startYear = `Start year must be within your lifetime (${birthYear} - ${deathYear})`;
+      }
+      if (field === "duration" && ((distributions.startYear.value + value.value > deathYear) || (value.value > lifeExpectancy.value))) {
+        newErrors.duration = `Duration must be within your lifetime (${birthYear} - ${deathYear})`;
+      }
     }
+
     // Validate event-specific inputs
     for (const [field, value] of Object.entries(typeFormData)) {
       // Adjust inflation, discretionary expense, and social security are optional
@@ -305,7 +316,6 @@ const EventSeriesForm = () => {
         newErrors.investmentRow = "Total initial percentage and total final percentage must be 100 each";
       }
     }
-    console.log(errors);
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
@@ -391,7 +401,6 @@ const EventSeriesForm = () => {
     }
     await uploadToBackend();
   };
-  console.log(distributions.expectedAnnualChange);
 
   return (
     <div id={styles.newItemContainer}>
