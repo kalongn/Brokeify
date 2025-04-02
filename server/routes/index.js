@@ -697,7 +697,7 @@ router.post("/event/:scenarioId", async (req, res) => {
                     amount: data.initialValue,
                     expectedAnnualChangeDistribution: expectedAnnualChangeDistribution,
                     isinflationAdjusted: data.isAdjustInflation,
-                    userContributionsm: data.percentageIncrease ? data.percentageIncrease / 100 : 1,
+                    userContributions: data.percentageIncrease ? data.percentageIncrease / 100 : 1,
                     isSocialSecurity: data.isSocialSecurity,
                 }
                 break;
@@ -710,7 +710,7 @@ router.post("/event/:scenarioId", async (req, res) => {
                     amount: data.initialValue,
                     expectedAnnualChangeDistribution: expectedAnnualChangeDistribution,
                     isinflationAdjusted: data.isAdjustInflation,
-                    userContributionsm: data.percentageIncrease ? data.percentageIncrease / 100 : 1,
+                    userContributions: data.percentageIncrease ? data.percentageIncrease / 100 : 1,
                     isDiscretionary: data.isDiscretionary,
                 }
                 break;
