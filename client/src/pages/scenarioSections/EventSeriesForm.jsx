@@ -18,19 +18,19 @@ const EventSeriesForm = () => {
   const { scenarioId } = useParams();
 
   const [allInvestments, setAllInvestments] = useState([]); // as needed to populate the actual investments option differently
+  const [investments, setInvestments] = useState([]);
+  const [events, setEvents] = useState([]);
+
+  // General form data
+  const [formData, setFormData] = useState({ name: null, description: null });
+  // Event type specific form data
+  const [eventType, setEventType] = useState(null);
+  const [typeFormData, setTypeFormData] = useState([]);
   const [distributions, setDistributions] = useState({
     startYear: { type: "" },
     duration: { type: "" },
     expectedAnnualChange: { type: "" },
   });
-  // General form data
-  const [formData, setFormData] = useState({ name: null, description: null });
-  // Event type specific form data
-  const [typeFormData, setTypeFormData] = useState([]);
-  const [eventType, setEventType] = useState(null);
-  const [investments, setInvestments] = useState([]);
-  const [events, setEvents] = useState([]);
-
   const [errors, setErrors] = useState({});
 
   const taxStatuses = [
@@ -63,7 +63,7 @@ const EventSeriesForm = () => {
       case "invest": {
         const relevantInvestments = allInvestments.filter((investment) => investment.taxStatus !== "Pre-Tax Retirement");
         const investmentOptions = relevantInvestments.map((investment) => {
-          return { value: investment.id, label: investment.label + " (" + investment.taxStatus + ")" };
+          return { value: investment.id, label: investment.label + "\n(" + investment.taxStatus + ")" };
         });
         setInvestments(investmentOptions);
         break;
