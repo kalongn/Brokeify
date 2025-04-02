@@ -23,18 +23,6 @@ const TaxSchema = new mongoose.Schema({
     },
 });
 
-TaxSchema.virtual('id').get(function get() {
-    return this._id.toHexString();
-});
-
-TaxSchema.set('toJSON', {
-    virtuals: true,
-});
-
-TaxSchema.set('toObject', {
-    virtuals: true,
-});
-
 const FederalIncomeTaxSchema = new mongoose.Schema({
     taxBrackets: [{ type: TaxBracketSchema, required: true }]
 });
