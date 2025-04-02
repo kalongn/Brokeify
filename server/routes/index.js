@@ -51,9 +51,28 @@ router.get("/logout", (req, res) => {
 
 router.get("/home", async (req, res) => {
     if (req.session.user) {
-        return res.status(200).send(await userController.readWithScenarios(req.session.user));
+        const user = await userController.readWithScenarios(req.session.user);
+        const returnList = [];
+        for (let i = 0; i < user.ownerScenarios.length; i++) {
+            const scenario = user.ownerScenarios[i];
+
+            let investmentsLength = 0;
+            for (let type of scenario.investmentTypes) {
+                investmentsLength += type.investments.length;
+            }
+
+            returnList.push({
+                id: scenario._id,
+                name: scenario.name,
+                filingStatus: scenario.filingStatus,
+                financialGoal: scenario.financialGoal,
+                investmentsLength: investmentsLength,
+                eventsLength: scenario.events.length,
+            });
+        }
+        return res.status(200).send(returnList);
     } else {
-        res.status(200).send("Guest user");
+        res.status(401).send("Not logged in.");
     }
 });
 
@@ -91,7 +110,26 @@ router.get("/profile", async (req, res) => {
     if (req.session.user) {
         try {
             const user = await userController.readWithTaxes(req.session.user);
-            return res.status(200).send(user);
+
+            const taxes = user.userSpecificTaxes.map(tax => {
+                return {
+                    id: tax._id,
+                    taxType: tax.taxType,
+                    filingStatus: tax.filingStatus,
+                    dateCreated: tax.dateCreated,
+                    state: tax.state,
+                }
+            });
+
+            const data = {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                picture: user.picture,
+                userSpecificTaxes: taxes,
+            }
+
+            return res.status(200).send(data);
         } catch (error) {
             console.error("Error in profile route:", error);
             return res.status(500).send("Error retrieving user profile.");
