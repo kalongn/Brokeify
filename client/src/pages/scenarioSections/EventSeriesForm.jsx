@@ -241,7 +241,7 @@ const EventSeriesForm = () => {
     const newErrors = {};
     // Validate general form for name input
     validateRequired(newErrors, "name", formData.name);
-    
+
     // Validate distributions
     for (const [field, value] of Object.entries(distributions)) {
       // expectedAnnualChange distribution is specific to income and expense event types
@@ -259,6 +259,9 @@ const EventSeriesForm = () => {
         newErrors.duration = `Duration must be within your lifetime (${birthYear} - ${deathYear})`;
       }
     }
+
+    // Validate event type
+    validateRequired(newErrors, "eventType", eventType);
 
     // Validate event-specific inputs
     for (const [field, value] of Object.entries(typeFormData)) {
