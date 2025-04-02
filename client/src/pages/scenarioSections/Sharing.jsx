@@ -4,19 +4,22 @@ import { FaTimes } from 'react-icons/fa';
 import styles from "./Form.module.css";
 
 const Sharing = () => {
+  // email and permissions states are for before a user is added
   const [email, setEmail] = useState("");
+  const [permissions, setPermissions] = useState("Viewer");
   const [errors, setErrors] = useState("");
-  console.log(email);
 
-  const permissions = [
+  const permissionOptions = [
     { value: 'Viewer', label: 'Viewer' },
     { value: 'Editor', label: 'Editor' },
   ];
-  const users = [
-    { value: 'William Shakespige', label: 'William Shakespige' },
-    { value: 'EB White', label: 'EB White' },
-  ];
+  // List of users added and shared to
+  const [sharedUsers, setSharedUsers] = useState([
+    { email: 'william.shakespige@gmail.com', permissions: "Viewer" },
+    { email: 'eb.white12@gmail.com', permissions: "Editor" },
+  ]);
 
+  // For adding a new person with email
   const handleEmailChange = (e) => {
     const value = e.target.value;
     // Prompt to AI (Amazon Q): I want to validate inputs as email before setting state
@@ -24,17 +27,27 @@ const Sharing = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (emailRegex.test(value)) {
       setEmail(value);
-    } 
+    }
     else {
       setErrors("Invalid email");
     }
     // Clear errors when user makes changes
     setErrors("");
   };
-  const handleAddEmail = (e) => {
+  // For changing an added user's permissions
+  const handlePermissionsChange = (currUser, newPermissions) => {
+    setSharedUsers(sharedUsers.map((user) => {
+      if (user.email === currUser) {
+        return { ...user, permissions: newPermissions };
+      }
+      return user;
+    }));
+  }
+  // For adding and removing a user to the scenario
+  const addUser = (e) => {
     e.preventDefault();
     if (email) {
-      alert("NOT IMPLEMENTED YET");
+      setSharedUsers([...sharedUsers, { email: email, permissions: permissions }]);
       // TODO: clear input field
       setEmail("");
     }
@@ -42,6 +55,10 @@ const Sharing = () => {
       setErrors("Invalid email");
     }
   };
+  const removeUser = (currUser) => {
+    setSharedUsers(sharedUsers.filter((user) => user.email !== currUser));
+  }
+  console.log(sharedUsers);
 
   return (
     <div>
@@ -60,18 +77,23 @@ const Sharing = () => {
               <td>Owner</td>
               <td></td>
             </tr>
-            {users.map((user) => (
-              <tr key={user.value}>
+            {sharedUsers.map((user) => (
+              <tr key={user.email}>
                 <td style={{ padding: 0 }}>
-                  <p style={{ margin: 0 }}>{user.value}</p>
+                  <p style={{ margin: 0 }}>{user.email}</p>
                 </td>
                 <td>
-                  <Select options={permissions} />
+                  <Select
+                    options={permissionOptions}
+                    onChange={(selectedOption) => handlePermissionsChange(user.email, selectedOption.value)}
+                    defaultValue={permissionOptions.find((option) => option.value === user.permissions)}
+                    className={styles.select}
+                  />
                 </td>
                 <td style={{ padding: 0, width: 1 }}>
                   <button
                     type="button"
-                    onClick={() => alert("NOT IMPLEMENTED YET")}
+                    onClick={() => removeUser(user.email)}
                     className={styles.tableButton}
                     style={{ margin: 0 }}
                   >
@@ -83,15 +105,21 @@ const Sharing = () => {
           </tbody>
         </table>
       </div>
-      <form>
+      <form id={styles.addEmailSection}>
         <label>
           <input type="email" placeholder="Enter email address" onChange={handleEmailChange} />
         </label>
-        <button id={styles.addButton} style={{ width: "10%" }} onClick={handleAddEmail}>
+        <Select
+          options={permissionOptions}
+          defaultValue={permissionOptions[0]}
+          onChange={(selectedOption) => setPermissions(selectedOption.value)}
+          className={styles.select}
+        />
+        <button id={styles.addButton} style={{ width: "10%" }} onClick={addUser}>
           Add
         </button>
-        {errors && <span className={styles.error}>{errors}</span>}
       </form>
+      {errors && <span className={styles.error}>{errors}</span>}
     </div>
   );
 };
