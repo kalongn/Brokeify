@@ -29,6 +29,12 @@ const InvestmentTypes = () => {
   const newInvestmentType = () => {
     navigate(`/ScenarioForm/${scenarioId}/investment-types/new`);
   }
+  //New route to update scenario
+  const editInvestmentType = (id) => {
+    navigate(`/ScenarioForm/${scenarioId}/investment-types/edit/${id}`);
+  };
+  
+
   return (
     <div>
       <h2 id={styles.heading}>Investment Types</h2>
@@ -59,8 +65,9 @@ const InvestmentTypes = () => {
                     className={styles.tableButton}
                     onClick={() => {
                       if (index === 0) return;
-
-                      alert("NOT IMPLEMENTED YET")
+                      editInvestmentType(investmentType.id);
+                      alert(investmentType.id);
+                      console.log(investmentType);
                     }
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
