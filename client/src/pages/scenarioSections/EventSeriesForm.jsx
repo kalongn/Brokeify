@@ -249,15 +249,51 @@ const EventSeriesForm = () => {
         continue;
       }
       validateDistribution(newErrors, field, value);
+    }
 
-      // Validate start year and duration are within lifetime
-      const deathYear = birthYear + lifeExpectancy.value;
-      if (field === "startYear" && value.value < birthYear) {
-        newErrors.startYear = `Start year must be within your lifetime (${birthYear} - ${deathYear})`;
-      }
-      if (field === "duration" && ((distributions.startYear.value + value.value > deathYear) || (value.value > lifeExpectancy.value))) {
-        newErrors.duration = `Duration must be within your lifetime (${birthYear} - ${deathYear})`;
-      }
+    // Validate start year and duration are within lifetime
+    const deathYear = birthYear + lifeExpectancy.value;
+    const start = distributions.startYear;
+    const duration = distributions.duration;
+    switch (start.type) {
+      case "fixed":
+        if (start.value < birthYear || start.value > deathYear) {
+          newErrors.startYear = `Start year must be within your lifetime (${birthYear} - ${deathYear})`;
+        }
+        break;
+      case "uniform":
+        if (start.lowerBound < birthYear || start.upperBound > deathYear) {
+          newErrors.startYear = `Start year must be within your lifetime (${birthYear} - ${deathYear})`;
+        }
+        break;
+      case "normal":
+        if (start.mean < birthYear || start.mean > deathYear) {
+          newErrors.startYear = `Start year must be within your lifetime (${birthYear} - ${deathYear})`;
+        }
+        break;
+      default:
+        // Should not happen
+        break;
+    }
+    switch (duration.type) {
+      case "fixed":
+        if (duration.value > lifeExpectancy.value) {
+          newErrors.duration = `Duration must be within your lifetime (${birthYear} - ${deathYear})`;
+        }
+        break;
+      case "uniform":
+        if (duration.lowerBound < 0 || duration.upperBound > lifeExpectancy.value) {
+          newErrors.duration = `Duration must be within your lifetime (${birthYear} - ${deathYear})`;
+        }
+        break;
+      case "normal":
+        if (duration.mean > lifeExpectancy.value) {
+          newErrors.duration = `Duration must be within your lifetime (${birthYear} - ${deathYear})`;
+        }
+        break;
+      default:
+        // Should not happen
+        break;
     }
 
     // Validate event type
