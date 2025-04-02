@@ -5,18 +5,6 @@ const RMDTableSchema = new mongoose.Schema({
     distributionPeriods: [{ type: Number, required: true }]
 });
 
-RMDTableSchema.virtual('id').get(function get() {
-    return this._id.toHexString();
-});
-
-RMDTableSchema.set('toJSON', {
-    virtuals: true,
-});
-
-RMDTableSchema.set('toObject', {
-    virtuals: true,
-});
-
 const RMDTable = mongoose.model('RMDTable', RMDTableSchema);
 
 export default RMDTable;
