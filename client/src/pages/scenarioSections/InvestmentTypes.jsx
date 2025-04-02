@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { HiDotsVertical } from 'react-icons/hi';
+import { FaTimes } from 'react-icons/fa';
+import { FaEdit } from "react-icons/fa";
+
 import Axios from 'axios';
 
 import styles from "./Form.module.css";
@@ -52,12 +54,33 @@ const InvestmentTypes = () => {
                 {investmentType.taxability ? "Taxable" : "Tax-Exempt"}
               </td>
               <td>
-                <button
-                  className={styles.tableButton}
-                  onClick={() => alert("NOT IMPLEMENTED YET")}
-                >
-                  <HiDotsVertical />
-                </button>
+                <div className={styles.groupButtons}>
+                  <button
+                    className={styles.tableButton}
+                    onClick={() => {
+                      if (index === 0) return;
+
+                      alert("NOT IMPLEMENTED YET")
+                    }
+                    }
+                    style={{ opacity: index === 0 ? 0.2 : 1 }}
+                  >
+                    <FaEdit />
+                  </button>
+
+                  <button
+                    className={styles.tableButton}
+                    onClick={() => {
+                      if (index === 0) return;
+                      alert("NOT IMPLEMENTED YET")
+                    }
+                    }
+                    style={{ opacity: index === 0 ? 0.2 : 1 }}
+                  >
+                    <FaTimes />
+                  </button>
+
+                </div>
               </td>
             </tr>
           ))}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { HiDotsVertical } from 'react-icons/hi';
+import { FaTimes } from 'react-icons/fa';
+import { FaEdit } from "react-icons/fa";
 import styles from "./Form.module.css";
 
 // This page does not submit any data, so childRef is not used
@@ -15,27 +16,27 @@ const EventSeries = () => {
     { name: "Cash", type: "Expense" },
   ]);
   // TODO: uncomment out and modify when route has been set up
-    useEffect(() => {
-      // TODO: remove superficial call to setEvents (to satisfy ESLint for now)
-      setEvents([{ name: "Cash", type: "Expense" }]);
-      // IIFE
-      // (async () => {
-      //   try {
-      //     const response = await fetch('/api/events');
-      //     const data = await response.json();
-          
-      //     const formattedEvents = data.map(type => ({
-      //       name: type.name,
-      //       type: type.name
-      //     }));
-  
-      //     setEvents(formattedEvents);
-      //   } catch (error) {
-      //     console.error('Error fetching events:', error);
-      //   }
-      // })();
-    }, []);
-    
+  useEffect(() => {
+    // TODO: remove superficial call to setEvents (to satisfy ESLint for now)
+    setEvents([{ name: "Cash", type: "Expense" }]);
+    // IIFE
+    // (async () => {
+    //   try {
+    //     const response = await fetch('/api/events');
+    //     const data = await response.json();
+
+    //     const formattedEvents = data.map(type => ({
+    //       name: type.name,
+    //       type: type.name
+    //     }));
+
+    //     setEvents(formattedEvents);
+    //   } catch (error) {
+    //     console.error('Error fetching events:', error);
+    //   }
+    // })();
+  }, []);
+
   return (
     <div>
       <h2 id={styles.heading}>Event Series</h2>
@@ -62,12 +63,33 @@ const EventSeries = () => {
                 {event.type}
               </td>
               <td>
-                <button
-                  className={styles.tableButton}
-                  onClick={() => alert("NOT IMPLEMENTED YET")}
-                >
-                  <HiDotsVertical />
-                </button>
+                <div className={styles.groupButtons}>
+                  <button
+                    className={styles.tableButton}
+                    onClick={() => {
+                      if (index === 0) return;
+
+                      alert("NOT IMPLEMENTED YET")
+                    }
+                    }
+                    style={{ opacity: index === 0 ? 0.2 : 1 }}
+                  >
+                    <FaEdit />
+                  </button>
+
+                  <button
+                    className={styles.tableButton}
+                    onClick={() => {
+                      if (index === 0) return;
+                      alert("NOT IMPLEMENTED YET")
+                    }
+                    }
+                    style={{ opacity: index === 0 ? 0.2 : 1 }}
+                  >
+                    <FaTimes />
+                  </button>
+
+                </div>
               </td>
             </tr>
           ))}

@@ -118,6 +118,12 @@ input:disabled {
   width: 10%;
 }
 
+.groupButtons{
+  display: flex;
+  justify-content: end;
+ 
+}
+
 .tableButton {
   padding: 0.7rem;
   box-shadow: none;
@@ -128,7 +134,9 @@ input:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: auto;
+  
+  margin: 0px;
+
 }
 
 .tableButton:hover {
