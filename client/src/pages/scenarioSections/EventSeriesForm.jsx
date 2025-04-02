@@ -308,6 +308,7 @@ const EventSeriesForm = () => {
     }
     handleNavigate();
   };
+  console.log(distributions.expectedAnnualChange);
 
   return (
     <div id={styles.newItemContainer}>
@@ -426,19 +427,17 @@ const EventSeriesForm = () => {
             <Distributions
               options={["fixed", "uniform", "normal"]}
               name="expectedAnnualChange"
-              requirePercentage={distributions.expectedAnnualChange.type !== ""}
+              requirePercentage={true}
               onChange={handleDistributionsChange}
               defaultValue={distributions.expectedAnnualChange}
             />
             {errors.expectedAnnualChange && <span className={styles.error}>{errors.expectedAnnualChange}</span>}
             <label>
               Specific Percentage Increase
-            </label>
-            <label className={styles.newline}>
-              Your Increase
               <input
                 type="number"
                 name="percentageIncrease"
+                className={styles.newline}
                 onChange={handleChange}
                 value={typeFormData.percentageIncrease}
               />
