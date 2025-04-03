@@ -44,11 +44,11 @@ const Sharing = () => {
     }));
   }
   // For adding and removing a user to the scenario
+  // TODO: Check if user is already in the list
   const addUser = (e) => {
     e.preventDefault();
     if (email) {
       setSharedUsers([...sharedUsers, { email: email, permissions: permissions }]);
-      // TODO: clear input field
       setEmail("");
     }
     else {
@@ -107,7 +107,12 @@ const Sharing = () => {
       </div>
       <form id={styles.addEmailSection}>
         <label>
-          <input type="email" placeholder="Enter email address" onChange={handleEmailChange} />
+          <input
+            type="email"
+            value={email}
+            placeholder="Enter email address"
+            onChange={handleEmailChange}
+          />
         </label>
         <Select
           options={permissionOptions}
