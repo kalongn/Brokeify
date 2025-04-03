@@ -14,35 +14,12 @@ const InvestmentTypeSchema = new mongoose.Schema({
     investments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }]
 });
 
-InvestmentTypeSchema.virtual('id').get(function get() {
-    return this._id.toHexString();
-});
-InvestmentTypeSchema.set('toJSON', {
-    virtuals: true,
-});
-InvestmentTypeSchema.set('toObject', {
-    virtuals: true,
-});
-
 const InvestmentSchema = new mongoose.Schema({
     value: { type: Number },
     taxStatus: { type: String, enum: TAX_STATUS }
 });
 
-InvestmentSchema.virtual('id').get(function get() {
-    return this._id.toHexString();
-});
-
-InvestmentSchema.set('toJSON', {
-    virtuals: true,
-});
-InvestmentSchema.set('toObject', {
-    virtuals: true,
-});
-
 const InvestmentType = mongoose.model('InvestmentType', InvestmentTypeSchema);
-
-
 const Investment = mongoose.model('Investment', InvestmentSchema);
 
 export { InvestmentType, Investment };

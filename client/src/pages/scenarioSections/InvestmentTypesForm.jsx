@@ -9,12 +9,10 @@ import buttonStyles from "../ScenarioForm.module.css";
 
 const InvestmentTypesForm = () => {
   const navigate = useNavigate();
-  
-
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
-  const { childRef, scenarioId } = useOutletContext();
-  const { id } = useParams();
+  const { childRef } = useOutletContext();
+  const { scenarioId, id } = useParams();
 
   const [errors, setErrors] = useState({});
   // Determine if what distribution fields are shown and contain values for backend
@@ -31,16 +29,16 @@ const InvestmentTypesForm = () => {
     expenseRatio: null,
     taxability: null,
   });
-/*
-  name: { type: String },
-    description: { type: String },
-    expectedAnnualReturn: { type: Number },
-    expectedAnnualReturnDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
-    expenseRatio: { type: Number },
-    expectedAnnualIncome: { type: Number },
-    expectedAnnualIncomeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
-    taxability: { type: Boolean },
-*/
+  /*
+    name: { type: String },
+      description: { type: String },
+      expectedAnnualReturn: { type: Number },
+      expectedAnnualReturnDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
+      expenseRatio: { type: Number },
+      expectedAnnualIncome: { type: Number },
+      expectedAnnualIncomeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
+      taxability: { type: Boolean },
+  */
 
 
   useEffect(() => {
@@ -158,7 +156,7 @@ const InvestmentTypesForm = () => {
   }
 
   const handleSubmit = async () => {
-    if(id){
+    if (id) {
       alert("Update here - line 163- so that it sets by ID, instead of uploading to backend. Don't create new object, but adjust current one.")
       //TODO (middleware): Update here so that we're not creating a new object, but rather updating/replacing an old one
       return;
@@ -231,7 +229,7 @@ const InvestmentTypesForm = () => {
           onClick={handleSubmit}
           className={buttonStyles.emphasizedButton}
         >
-           {id ? "Update" : "Create"}
+          {id ? "Update" : "Create"}
         </button>
       </div>
     </div>

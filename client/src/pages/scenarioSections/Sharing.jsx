@@ -1,7 +1,7 @@
 const Sharing = () => {
   return (
     <div>
-      <h2 id={styles.heading}>Sharing Settings</h2>
+      <h2>Sharing Settings</h2>
       <p>
         Specify the users you would like to share this scenario with,
         and define their access to this scenario.
