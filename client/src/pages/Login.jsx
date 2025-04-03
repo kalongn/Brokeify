@@ -32,7 +32,7 @@ const Login = ({ verified }) => {
             <img src='/src/assets/google.svg' alt='Google Icon' />
             Login with Google
           </Link>
-          <Link className={styles.button} to='/Home' onClick={() => { console.log('Continue as Guest') }}>
+          <Link className={styles.button} to={`${import.meta.env.VITE_SERVER_ADDRESS}/auth/guest`} onClick={() => { console.log('Continue as Guest') }}>
             Continue as Guest
           </Link>
         </div>

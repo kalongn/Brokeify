@@ -10,7 +10,7 @@ import Layout from "../components/Layout";
 import style from './Profile.module.css';
 
 //TODO: Tax YAML upload button, and file table buttons as well including the tax upload Date.
-const Profile = ({ setVerified } ) => {
+const Profile = ({ setVerified }) => {
   const [user, setUser] = useState(null);
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -44,7 +44,7 @@ const Profile = ({ setVerified } ) => {
     <Layout setVerified={setVerified}>
       <div className={style.profileBackground} >
         <div className={style.profile}>
-          <img className={style.profileImage} src={user ? user.picture : "src/assets/sharlottePic.jpg"}></img>
+          <img className={style.profileImage} src={user ? user.picture || "src/assets/sharlottePic.jpg" : "src/assets/sharlottePic.jpg"}></img>
           {/** Profile Info */}
           <div className={style.profileInfo}>
             <h2>Your Information</h2>
@@ -54,7 +54,7 @@ const Profile = ({ setVerified } ) => {
             </div>
             <div>
               <div>Email</div>
-              <div className={style.infoInput}>{user ? user.email : "N/A"}</div>
+              <div className={style.infoInput}>{user ? user.email || "N/A" : "N/A"}</div>
             </div>
           </div>
         </div>
