@@ -1,8 +1,7 @@
 import { useState, useImperativeHandle, useEffect } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Axios from "axios";
-import { useParams } from "react-router-dom";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
@@ -29,39 +28,10 @@ const InvestmentTypesForm = () => {
     expenseRatio: null,
     taxability: null,
   });
-  /*
-    name: { type: String },
-      description: { type: String },
-      expectedAnnualReturn: { type: Number },
-      expectedAnnualReturnDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
-      expenseRatio: { type: Number },
-      expectedAnnualIncome: { type: Number },
-      expectedAnnualIncomeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
-      taxability: { type: Boolean },
-  */
-
 
   useEffect(() => {
     if (id) {
-      //TODO (middleware): Add this in the index.js... I tried mimicking the way the rest of the form is here, but
-      //Not 100% sure if it'll work...
-      Axios.get(`/investmentType/${id}`)
-        .then((response) => {
-          const data = response.data;
-          console.log("Look here");
-          console.log(data);
-          setFormData({
-            investmentType: data.name,
-            description: data.description || "",
-            expenseRatio: data.expenseRatio,
-            taxability: data.taxability,
-          });
-          setDistributions({
-            expectedAnnualReturn: data.expectedAnnualReturn || { type: "", isPercentage: false },
-            expectedDividendsInterest: data.expectedDividendsInterest || { type: "", isPercentage: false },
-          });
-        })
-        .catch((error) => console.error("Error fetching investment type:", error));
+      //TODO (middleware): Add this in the index.js
     }
   }, [id]);
 
