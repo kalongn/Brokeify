@@ -4,13 +4,21 @@ import Uniform from "./UniformDistribution";
 import Normal from "./NormalDistribution";
 
 import { useState, useEffect } from "react";
+/*
+  Possible name values (distribution keys):
+  Basic Info: lifeExpectancy, spouseLifeExpectancy
+  Investment Types Form: expectedAnnualReturn, expectedDividendsInterest
+  Event Series Form: startYear, duration, expectedAnnualChange
+  Limits: inflationAssumption
+*/
 
 const Distributions = ({
-  name, // Distribution key (e.g. lifeExpectancy)
+  name, // Distribution key (e.g. above comment)
   options, // Includes ["fixed", "uniform", "normal"]
   requirePercentage = false, // If percentage is needed
   onChange, // Change handler function
   defaultValue = {}, // Default value for the select input (if any)
+  showCheckbox = true, // Checkbox is not needed when it's only percentage (Limits.jsx)
 }) => {
 
   const [isChecked, setIsChecked] = useState(false);
@@ -68,7 +76,10 @@ const Distributions = ({
                 setIsChecked(true);
               }}
             />
-            {requirePercentage ? "Fixed Value or Percentage" : "Fixed Value"}
+            {requirePercentage ?
+              (showCheckbox ? "Fixed Value or Percentage" : "Fixed Percentage")
+              : "Fixed Value"
+            }
           </label>
           <br />
         </>
@@ -106,8 +117,8 @@ const Distributions = ({
       )}
       {/* Show only the specified options */}
       {distributionType()}
-      {isChecked && requirePercentage && (
-        <label>
+      {defaultValue.type && isChecked && showCheckbox && requirePercentage && (
+        <label id="percentageCheckbox">
           {/* 
             Switching between distribution options should preserve 
             if the checkbox was checked or not 
@@ -131,7 +142,8 @@ Distributions.propTypes = {
   options: PropTypes.arrayOf(PropTypes.string).isRequired,
   requirePercentage: PropTypes.bool,
   onChange: PropTypes.func.isRequired,
-  defaultValue: PropTypes.object
+  defaultValue: PropTypes.object,
+  showCheckbox: PropTypes.bool,
 };
 
 export default Distributions;
