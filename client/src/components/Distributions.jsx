@@ -106,7 +106,7 @@ const Distributions = ({
       )}
       {/* Show only the specified options */}
       {distributionType()}
-      {isChecked && requirePercentage && (
+      {defaultValue.type && isChecked && requirePercentage && (
         <label>
           {/* 
             Switching between distribution options should preserve 

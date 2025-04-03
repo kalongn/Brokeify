@@ -3,13 +3,30 @@ import { useNavigate } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { FaEdit } from "react-icons/fa";
 import styles from "./Form.module.css";
+import { useParams } from "react-router-dom";
+import Axios from "axios";
 
 // This page does not submit any data, so childRef is not used
 // TODO: update page to include childRef once event series deletion is implemented
 const EventSeries = () => {
   const navigate = useNavigate();
+  const { scenarioId } = useParams();
+
+  //const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    Axios.get(`/events/${scenarioId}`).then((response) => {
+      setEvents(response.data);
+    }).catch((error) => {
+      console.error('Error fetching event series:', error);
+    });
+  }, [scenarioId]);
+
   const newEventSeries = () => {
-    navigate("/ScenarioForm/event-series/new");
+    navigate(`/ScenarioForm/${scenarioId}/event-series/new`);
   }
 
   //New route to update scenario
@@ -76,14 +93,14 @@ const EventSeries = () => {
                   <button
                     className={styles.tableButton}
                     onClick={() => {
-                      //NOTE: this index may not be needed - TOD): check on this later
-                      if (index === 0) return;
+                      //NOTE: this index may not be needed - TOD): check on this later -temp removed
+                      //if (index === 0) return;
                       editEventSeries(event.id);
                       alert(event.id);
                     }
                     }
-                    //NOTE: this conditional may not be necessary: Future TODO: Check on this later 
-                    style={{ opacity: index === 0 ? 0.2 : 1 }}
+                    //NOTE: this conditional may not be necessary: Future TODO: Check on this later - temp removed 
+                    //style={{ opacity: index === 0 ? 0.2 : 1 }}
                   >
                     <FaEdit />
                   </button>
@@ -91,11 +108,11 @@ const EventSeries = () => {
                   <button
                     className={styles.tableButton}
                     onClick={() => {
-                      if (index === 0) return;
+                      //if (index === 0) return;
                       alert("NOT IMPLEMENTED YET")
                     }
                     }
-                    style={{ opacity: index === 0 ? 0.2 : 1 }}
+                    //style={{ opacity: index === 0 ? 0.2 : 1 }}
                   >
                     <FaTimes />
                   </button>
