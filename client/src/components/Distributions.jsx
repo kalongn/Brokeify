@@ -4,9 +4,16 @@ import Uniform from "./UniformDistribution";
 import Normal from "./NormalDistribution";
 
 import { useState, useEffect } from "react";
+/*
+  Possible name values (distribution keys):
+  Basic Info: lifeExpectancy, spouseLifeExpectancy
+  Investment Types Form: expectedAnnualReturn, expectedDividendsInterest
+  Event Series Form: startYear, duration, expectedAnnualChange
+  Limits: inflationAssumption
+*/
 
 const Distributions = ({
-  name, // Distribution key (e.g. lifeExpectancy)
+  name, // Distribution key (e.g. above comment)
   options, // Includes ["fixed", "uniform", "normal"]
   requirePercentage = false, // If percentage is needed
   onChange, // Change handler function
