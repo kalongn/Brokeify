@@ -43,6 +43,8 @@ router.get("/auth/google/callback", passport.authenticate("google", {
 router.get("/auth/guest", async (req, res) => {
     const user = await userController.create({
         ownerScenarios: [],
+        userSpecificTaxes: [],
+        userSimulations: [],
     });
     req.session.user = user._id;
     res.redirect(`${process.env.CLIENT_URL}/Home`);
