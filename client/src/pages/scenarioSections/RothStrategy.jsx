@@ -84,10 +84,6 @@ const RothStrategy = () => {
         Specify the order in which investments should be transferred from
         pre-tax to after-tax retirement accounts when triggering a conversion.
       </p>
-      <SortableList
-        items={investments}
-        handleReorder={handleReorder}
-      />
       <form>
         <label>
           <input
@@ -121,8 +117,12 @@ const RothStrategy = () => {
             {errors.endYearRothOptimizer && (<span className={styles.error}>{errors.endYearRothOptimizer}</span>)}
           </label>
         </div>
-
+          
       </form>
+      {optimized && <SortableList
+        items={investments}
+        handleReorder={handleReorder}
+      />}
     </div>
   );
 };
