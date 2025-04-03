@@ -26,7 +26,7 @@ const EventSeries = () => {
   }, [scenarioId]);
 
   const newEventSeries = () => {
-    navigate("/ScenarioForm/event-series/new");
+    navigate(`/ScenarioForm/${scenarioId}/event-series/new`);
   }
 
   //New route to update scenario
