@@ -1,7 +1,9 @@
+import styles from "./Form.module.css";
+
 const RothStrategy = () => {
   return (
     <div>
-      <h2>Roth Conversion Strategy & Optimizer</h2>
+      <h2 id={styles.heading}>Roth Conversion Strategy & Optimizer</h2>
       <p>
         Specify the order in which investments should be transferred from
         pre-tax to after-tax retirement accounts when triggering a conversion.

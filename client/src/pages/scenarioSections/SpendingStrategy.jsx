@@ -1,7 +1,9 @@
+import styles from "./Form.module.css";
+
 const SpendingStrategy = () => {
   return (
     <div>
-      <h2>Spending Strategy</h2>
+      <h2 id={styles.heading}>Spending Strategy</h2>
       <p>
         Specify the order of discretionary expenses to be paid as cash allows.
       </p>
