@@ -90,22 +90,11 @@ const EventSeriesForm = () => {
     }
   }, [allInvestments, eventType, typeFormData.taxStatus]);
 
-  //TO DO (Middleware): 
-  /**
-  Implement useEffect
   useEffect(() => {
     if (id) {
-      //TODO (middleware): Add this in the index.js... I tried mimicking the way the rest of the form is here, but
-      //Not 100% sure if it'll work...
-      Axios.get(`/event-series/${id}`)
-        .then((response) => {
-         
-        })
-        .catch((error) => console.error("Error fetching event:", error));
+      //TODO (middleware): Add this in the index.js
     }
   }, [id]);
-   * 
-   */
 
   // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
