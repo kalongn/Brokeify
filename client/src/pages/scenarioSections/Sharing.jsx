@@ -56,6 +56,7 @@ const Sharing = () => {
         return;
       }
       setSharedUsers([...sharedUsers, { email: email, permissions: permissions }]);
+      setEmail("");
       e.target.form.querySelector('input[type="email"]').value = "";
     }
     else {
