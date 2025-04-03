@@ -34,6 +34,7 @@ const Sharing = () => {
     // Clear errors when user makes changes
     setErrors("");
   };
+
   // For changing an added user's permissions
   const handlePermissionsChange = (currUser, newPermissions) => {
     setSharedUsers(sharedUsers.map((user) => {
@@ -43,22 +44,28 @@ const Sharing = () => {
       return user;
     }));
   }
+
   // For adding and removing a user to the scenario
-  // TODO: Check if user is already in the list
   const addUser = (e) => {
     e.preventDefault();
     if (email) {
+      // AI-generated (Amazon Q): Autocomplete likely due to TODO note "Check if user is already in the list"
+      // This code snippet did not need any changes
+      if (sharedUsers.some((user) => user.email === email)) {
+        setErrors("User already added");
+        return;
+      }
       setSharedUsers([...sharedUsers, { email: email, permissions: permissions }]);
-      setEmail("");
+      e.target.form.querySelector('input[type="email"]').value = "";
     }
     else {
       setErrors("Invalid email");
     }
   };
+
   const removeUser = (currUser) => {
     setSharedUsers(sharedUsers.filter((user) => user.email !== currUser));
   }
-  console.log(sharedUsers);
 
   return (
     <div>
@@ -109,7 +116,6 @@ const Sharing = () => {
         <label>
           <input
             type="email"
-            value={email}
             placeholder="Enter email address"
             onChange={handleEmailChange}
           />
