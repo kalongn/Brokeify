@@ -11,6 +11,7 @@ const Distributions = ({
   requirePercentage = false, // If percentage is needed
   onChange, // Change handler function
   defaultValue = {}, // Default value for the select input (if any)
+  showCheckbox = true, // Checkbox is not needed when it's only percentage (Limits.jsx)
 }) => {
 
   const [isChecked, setIsChecked] = useState(false);
@@ -68,7 +69,10 @@ const Distributions = ({
                 setIsChecked(true);
               }}
             />
-            {requirePercentage ? "Fixed Value or Percentage" : "Fixed Value"}
+            {requirePercentage ?
+              (showCheckbox ? "Fixed Value or Percentage" : "Fixed Percentage")
+              : "Fixed Value"
+            }
           </label>
           <br />
         </>
@@ -106,8 +110,8 @@ const Distributions = ({
       )}
       {/* Show only the specified options */}
       {distributionType()}
-      {defaultValue.type && isChecked && requirePercentage && (
-        <label>
+      {defaultValue.type && isChecked && showCheckbox && requirePercentage && (
+        <label id="percentageCheckbox">
           {/* 
             Switching between distribution options should preserve 
             if the checkbox was checked or not 
@@ -131,7 +135,8 @@ Distributions.propTypes = {
   options: PropTypes.arrayOf(PropTypes.string).isRequired,
   requirePercentage: PropTypes.bool,
   onChange: PropTypes.func.isRequired,
-  defaultValue: PropTypes.object
+  defaultValue: PropTypes.object,
+  showCheckbox: PropTypes.bool,
 };
 
 export default Distributions;
