@@ -21,6 +21,10 @@ const EventSeriesForm = () => {
   const FIELD_TYPES = {
     NUMBER: new Set(["initialValue", "percentageIncrease", "spousePercentageIncrease", "maxCash"]),
   };
+  console.log(FIELD_TYPES);
+  //NOTE: not sure what purpose of Field types is... it's 
+  //somehting I pulled from the merge (didn't want to delete it in case it's needed)
+  //Console.logged it to prevent ESLint error..
   const { scenarioId } = useParams();
 
   const [allInvestments, setAllInvestments] = useState([]); // as needed to populate the actual investments option differently

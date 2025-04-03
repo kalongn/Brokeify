@@ -1,3 +1,5 @@
+import styles from "./Form.module.css";
+
 const RMDStrategy = () => {
   return (
     <div>
