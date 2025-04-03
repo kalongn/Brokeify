@@ -83,6 +83,9 @@ const RothStrategy = () => {
       <p>
         Specify the order in which investments should be transferred from
         pre-tax to after-tax retirement accounts when triggering a conversion.
+        For each year in the specified range, the optimizer generates a withdrawal 
+        whose amount increases your income to the upper limit of your current 
+        federal income tax bracket.
       </p>
       <form>
         <label>
