@@ -44,19 +44,13 @@ const App = () => {
         }
         else {
           console.log('User is not logged in.');
+          navigate('/');
         }
       })
       .catch((error) => {
         console.error('Error fetching user session:', error);
       });
   }, [navigate]);
-
-  useEffect(() => {
-    // Redirect to the login page if the user is not verified
-    if (!verified) {
-      navigate('/');
-    }
-  }, [verified, navigate]);
 
   return (
     <>
