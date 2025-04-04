@@ -71,6 +71,7 @@ const InvestmentTypes = () => {
                     }
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
+                    disabled={index === 0}
                   >
                     <FaEdit />
                   </button>
@@ -83,6 +84,7 @@ const InvestmentTypes = () => {
                     }
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
+                    disabled={index === 0}
                   >
                     <FaTimes />
                   </button>
