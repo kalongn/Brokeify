@@ -1,18 +1,17 @@
-import { useState, useImperativeHandle } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useState, useImperativeHandle, useEffect } from "react";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Axios from "axios";
-
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
 
 const InvestmentTypesForm = () => {
   const navigate = useNavigate();
-
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
-  const { childRef, scenarioId } = useOutletContext();
+  const { childRef } = useOutletContext();
+  const { scenarioId, id } = useParams();
 
   const [errors, setErrors] = useState({});
   // Determine if what distribution fields are shown and contain values for backend
@@ -29,6 +28,13 @@ const InvestmentTypesForm = () => {
     expenseRatio: null,
     taxability: null,
   });
+
+  useEffect(() => {
+    if (id) {
+      //TODO (middleware): Add this in the index.js
+    }
+  }, [id]);
+
 
   // Expose the validateFields function to the parent component
   useImperativeHandle(childRef, () => ({
@@ -120,6 +126,11 @@ const InvestmentTypesForm = () => {
   }
 
   const handleSubmit = async () => {
+    if (id) {
+      alert("Update here - line 163- so that it sets by ID, instead of uploading to backend. Don't create new object, but adjust current one.")
+      //TODO (middleware): Update here so that we're not creating a new object, but rather updating/replacing an old one
+      return;
+    }
     if (!validateFields()) {
       return;
     }
@@ -183,11 +194,12 @@ const InvestmentTypesForm = () => {
         >
           Cancel
         </button>
+
         <button
           onClick={handleSubmit}
           className={buttonStyles.emphasizedButton}
         >
-          Create
+          {id ? "Update" : "Create"}
         </button>
       </div>
     </div>

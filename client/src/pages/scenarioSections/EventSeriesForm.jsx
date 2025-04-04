@@ -15,7 +15,7 @@ const EventSeriesForm = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
   const { childRef } = useOutletContext();
-  const { scenarioId } = useParams();
+  const { scenarioId, id } = useParams();
 
   const [allInvestments, setAllInvestments] = useState([]); // as needed to populate the actual investments option differently
   const [birthYear, setBirthYear] = useState(null);
@@ -89,6 +89,12 @@ const EventSeriesForm = () => {
       }
     }
   }, [allInvestments, eventType, typeFormData.taxStatus]);
+
+  useEffect(() => {
+    if (id) {
+      //TODO (middleware): Add this in the index.js
+    }
+  }, [id]);
 
   // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
@@ -432,10 +438,13 @@ const EventSeriesForm = () => {
   }
 
 
-
-
   const handleSubmit = async () => {
     if (!validateFields()) {
+      return;
+    }
+    if (id) {
+      //Implement a new function for this. Edit existing eventseries...don't create new one.
+      alert("Update here - line 300- so that it sets by ID, instead of uploading to backend. Don't create new object, but adjust current one.")
       return;
     }
     await uploadToBackend();
@@ -771,7 +780,7 @@ const EventSeriesForm = () => {
           onClick={handleSubmit}
           className={buttonStyles.emphasizedButton}
         >
-          Create
+          {id ? "Update" : "Create"}
         </button>
       </div>
     </div>

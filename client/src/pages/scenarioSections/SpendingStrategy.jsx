@@ -1,3 +1,5 @@
+import styles from "./Form.module.css";
+
 import { useState } from "react";
 import SortableList from "../../components/SortableList";
 
@@ -23,7 +25,7 @@ const SpendingStrategy = () => {
 
   return (
     <div>
-      <h2>Spending Strategy</h2>
+      <h2 id={styles.heading}>Spending Strategy</h2>
       <p>
         Specify the order of discretionary expenses to be paid as cash allows.
       </p>

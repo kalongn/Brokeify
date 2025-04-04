@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { HiDotsVertical } from 'react-icons/hi';
+import { FaTimes } from 'react-icons/fa';
+import { FaEdit } from "react-icons/fa";
 import Axios from 'axios';
 
 import styles from "./Form.module.css";
+
 
 // This page does not submit any data, so childRef is not used
 // TODO: update page to include childRef once event series deletion is implemented
@@ -28,9 +30,14 @@ const EventSeries = () => {
     navigate(`/ScenarioForm/${scenarioId}/event-series/new`);
   }
 
+  //New route to update scenario
+  const editEventSeries = (id) => {
+    navigate(`/ScenarioForm/${scenarioId}/event-series/edit/${id}`);
+  };
+
   return (
     <div>
-      <h2>Event Series</h2>
+      <h2 id={styles.heading}>Event Series</h2>
       <p>
         An event series is a sequence of recurring financial events
         (income, expense, investment, or rebalancing) over a defined period.
@@ -54,12 +61,31 @@ const EventSeries = () => {
                 {event.type}
               </td>
               <td>
-                <button
-                  className={styles.tableButton}
-                  onClick={() => alert("NOT IMPLEMENTED YET")}
-                >
-                  <HiDotsVertical />
-                </button>
+                <div className={styles.groupButtons}>
+                  <button
+                    className={styles.tableButton}
+                    onClick={() => {
+                      
+                      editEventSeries(event.id);
+                      alert(event.id);
+                    }
+                    }
+                     >
+                    <FaEdit />
+                  </button>
+
+                  <button
+                    className={styles.tableButton}
+                    onClick={() => {
+                      alert("NOT IMPLEMENTED YET")
+                    }
+                    }
+                    //style={{ opacity: index === 0 ? 0.2 : 1 }}
+                  >
+                    <FaTimes />
+                  </button>
+
+                </div>
               </td>
             </tr>
           ))}

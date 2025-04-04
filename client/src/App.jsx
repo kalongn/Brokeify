@@ -59,9 +59,13 @@ const App = () => {
           <Route path="basic-information" element={<BasicInfo />} />
           <Route path="investment-types" element={<InvestmentTypes />} />
           <Route path="investment-types/new" element={<InvestmentTypesForm />} />
+          <Route path="investment-types/edit/:id" element={<InvestmentTypesForm />} />
+
           <Route path="investments" element={<Investments />} />
           <Route path="event-series" element={<EventSeries />} />
           <Route path="event-series/new" element={<EventSeriesForm />} />
+          <Route path="event-series/edit/:id" element={<EventSeriesForm />} />
+          
           <Route path="limits" element={<Limits />} />
           <Route path="spending-strategy" element={<SpendingStrategy />} />
           <Route path="expense-strategy" element={<ExpenseStrategy />} />

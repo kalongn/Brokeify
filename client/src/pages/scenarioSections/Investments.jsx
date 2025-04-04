@@ -129,7 +129,7 @@ const Investments = () => {
 
   return (
     <div>
-      <h2>Investments</h2>
+      <h2 id={styles.heading}>Investments</h2>
       <p>
         If married, investments will automatically be assumed as jointly owned.
       </p>
