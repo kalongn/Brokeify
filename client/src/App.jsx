@@ -64,6 +64,8 @@ const App = () => {
           <Route path="investments" element={<Investments />} />
           <Route path="event-series" element={<EventSeries />} />
           <Route path="event-series/new" element={<EventSeriesForm />} />
+          <Route path="event-series/edit/:id" element={<EventSeriesForm />} />
+          
           <Route path="limits" element={<Limits />} />
           <Route path="spending-strategy" element={<SpendingStrategy />} />
           <Route path="expense-strategy" element={<ExpenseStrategy />} />
