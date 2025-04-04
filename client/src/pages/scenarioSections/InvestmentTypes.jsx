@@ -62,7 +62,9 @@ const InvestmentTypes = () => {
               <td>
                 <div className={styles.groupButtons}>
                   <button
-                    className={styles.tableButton}
+                    className={index === 0
+                      ? `${styles.tableButton} ${styles.disabledButton}`
+                      : styles.tableButton}
                     onClick={() => {
                       if (index === 0) return;
                       editInvestmentType(investmentType.id);
@@ -72,18 +74,21 @@ const InvestmentTypes = () => {
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
                     disabled={index === 0}
+                    
                   >
                     <FaEdit />
                   </button>
 
                   <button
-                    className={styles.tableButton}
+                    className={index === 0
+                      ? `${styles.tableButton} ${styles.disabledButton}`
+                      : styles.tableButton}
                     onClick={() => {
                       if (index === 0) return;
                       alert("NOT IMPLEMENTED YET")
                     }
                     }
-                    style={{ opacity: index === 0 ? 0.2 : 1 }}
+                    style={{ opacity: index === 0 ? 0.2 : 1}}
                     disabled={index === 0}
                   >
                     <FaTimes />

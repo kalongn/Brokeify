@@ -143,6 +143,11 @@ input:disabled {
   background-color: var(--color-primary-muted);
 }
 
+.disabledButton:hover {
+  background-color: transparent;
+  cursor: not-allowed;
+}
+
 .select>div {
   background-color: var(--color-white);
   border: 1px solid var(--color-black);
