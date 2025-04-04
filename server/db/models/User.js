@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema({
     refreshToken: { type: String },
     accessToken: { type: String },
     permission: { type: String, enum: PERMISSION, default: 'GUEST' },
+    lastLogin: { type: Date, default: Date.now },
     ownerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     editorScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     viewerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],

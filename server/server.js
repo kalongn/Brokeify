@@ -21,6 +21,7 @@ import 'dotenv/config'
 */
 import './auth/google.js'; // Import the Google OAuth configuration
 import routes from './routes/index.js'; // Import the routes
+import guestDeletionCronJob from './cron_job/guestDeletion.js'; // Import the cron job for guest deletion
 
 const mongoDB = `${process.env.DB_ADDRESS}`;
 mongoose.connect(mongoDB);
@@ -70,6 +71,9 @@ app.use(passport.session());
 
 // Use the routes defined in the routes/index.js file
 app.use('/', routes);
+
+// Start the cron job for guest deletion
+guestDeletionCronJob();
 
 const port = process.env.SERVER_PORT || 8000;
 const expressServer = app.listen(port, () => {
