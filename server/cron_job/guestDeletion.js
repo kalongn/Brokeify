@@ -28,8 +28,9 @@ const guestDeletionCronJob = () => {
             console.error('Error in guest deletion cron job:', error);
         }
     });
-
     console.log('Guest deletion cron job initialized: Running every 4 hours');
 }
+
+// TODO: put these log messages in a log file
 
 export default guestDeletionCronJob;
