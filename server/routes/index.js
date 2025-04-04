@@ -20,12 +20,11 @@ const distributionController = new DistributionController();
 
 
 router.get("/", async (req, res) => {
-    let state = "Not logged in";
     console.log(req.session); // can be used to debug session data
     if (req.session.user) {
-        res.send(req.session.user);
+        return res.status(200).send("Verified, userId: " + req.session.user);
     } else {
-        res.send(state);
+        return res.status(204).send();
     }
 });
 
@@ -41,10 +40,26 @@ router.get("/auth/google/callback", passport.authenticate("google", {
     res.redirect(`${process.env.CLIENT_URL}/Home`);
 });
 
-router.get("/logout", (req, res) => {
-    req.session.destroy((err) => {
+router.get("/auth/guest", async (req, res) => {
+    const user = await userController.create({
+        ownerScenarios: [],
+        userSpecificTaxes: [],
+        userSimulations: [],
+    });
+    req.session.user = user._id;
+    res.redirect(`${process.env.CLIENT_URL}/Home`);
+});
+
+router.get("/logout", async (req, res) => {
+    const userId = req.session.user;
+    req.session.destroy(async (err) => {
         if (err) {
             return res.status(500).send("Could not log out.");
+        }
+        const user = await userController.read(userId);
+        console.log(`User ${userId} logged out.`);
+        if (user.permission === "GUEST") {
+            await userController.deepDeleteGuest(userId);
         }
         res.redirect(`${process.env.CLIENT_URL}/`);
     });
@@ -52,9 +67,28 @@ router.get("/logout", (req, res) => {
 
 router.get("/home", async (req, res) => {
     if (req.session.user) {
-        return res.status(200).send(await userController.readWithScenarios(req.session.user));
+        const user = await userController.readWithScenarios(req.session.user);
+        const returnList = [];
+        for (let i = 0; i < user.ownerScenarios.length; i++) {
+            const scenario = user.ownerScenarios[i];
+
+            let investmentsLength = 0;
+            for (let type of scenario.investmentTypes) {
+                investmentsLength += type.investments.length;
+            }
+
+            returnList.push({
+                id: scenario._id,
+                name: scenario.name,
+                filingStatus: scenario.filingStatus,
+                financialGoal: scenario.financialGoal,
+                investmentsLength: investmentsLength,
+                eventsLength: scenario.events.length,
+            });
+        }
+        return res.status(200).send(returnList);
     } else {
-        res.status(200).send("Guest user");
+        res.status(401).send("Not logged in.");
     }
 });
 
@@ -92,7 +126,26 @@ router.get("/profile", async (req, res) => {
     if (req.session.user) {
         try {
             const user = await userController.readWithTaxes(req.session.user);
-            return res.status(200).send(user);
+
+            const taxes = user.userSpecificTaxes.map(tax => {
+                return {
+                    id: tax._id,
+                    taxType: tax.taxType,
+                    filingStatus: tax.filingStatus,
+                    dateCreated: tax.dateCreated,
+                    state: tax.state,
+                }
+            });
+
+            const data = {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                picture: user.picture,
+                userSpecificTaxes: taxes,
+            }
+
+            return res.status(200).send(data);
         } catch (error) {
             console.error("Error in profile route:", error);
             return res.status(500).send("Error retrieving user profile.");

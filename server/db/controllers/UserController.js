@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
 
+import ScenarioController from "./ScenarioController.js";
+import TaxController from "./TaxController.js";
+import SimulationController from "./SimulationController.js";
+
 /**
  * Controller for User, Support CRUD operations for User Class
  */
@@ -78,19 +82,6 @@ export default class UserController {
     async readWithTaxes(id) {
         try {
             const user = await User.findById(id).populate('userSpecificTaxes');
-            user.googleId = undefined;
-            user.refreshToken = undefined;
-            user.accessToken = undefined;
-            user.permission = undefined;
-            user.ownerScenarios = undefined;
-            user.editorScenarios = undefined;
-            user.viewerScenarios = undefined;
-            user.userSimulations = undefined;
-
-            for (let i = 0; i < user.userSpecificTaxes.length; i++) {
-                user.userSpecificTaxes[i].taxBrackets = undefined;
-            }
-
             return user;
         }
         catch (error) {
@@ -114,29 +105,10 @@ export default class UserController {
      */
     async readWithScenarios(id) {
         try {
-            const user = await User.findById(id).populate({
+            return await User.findById(id).populate({
                 path: 'ownerScenarios',
                 populate: { path: 'investmentTypes' }
             });
-            const returnList = [];
-            for (let i = 0; i < user.ownerScenarios.length; i++) {
-                const scenario = user.ownerScenarios[i];
-
-                let investmentsLength = 0;
-                for (let type of scenario.investmentTypes) {
-                    investmentsLength += type.investments.length;
-                }
-
-                returnList.push({
-                    id: scenario._id,
-                    name: scenario.name,
-                    filingStatus: scenario.filingStatus,
-                    financialGoal: scenario.financialGoal,
-                    investmentsLength: investmentsLength,
-                    eventsLength: scenario.events.length,
-                });
-            }
-            return returnList;
         }
         catch (error) {
             throw new Error(error);
@@ -179,6 +151,35 @@ export default class UserController {
             return await User.findByIdAndUpdate(id, data, {
                 new: true
             });
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
+     * Deletes a User with the given id, should also delete all the scenarios, taxes and simulations associated with the User.
+     * This function is expect to be used for deleting Guest Users only
+     * @param {mongoose.Types.ObjectId} id 
+     * @returns 
+     *      Returns the deleted User
+     */
+    async deepDeleteGuest(id) {
+        const scenarioController = new ScenarioController();
+        const taxController = new TaxController();
+        const simulationController = new SimulationController();
+        try {
+            const user = await User.findById(id).populate('ownerScenarios userSpecificTaxes userSimulations');
+            for (const scenario of user.ownerScenarios) {
+                await scenarioController.delete(scenario._id);
+            }
+            for (const tax of user.userSpecificTaxes) {
+                await taxController.delete(tax._id);
+            }
+            for (const simulation of user.userSimulations) {
+                simulationController.delete(simulation._id);
+            }
+            return await User.findByIdAndDelete(id);
         }
         catch (error) {
             throw new Error(error);
