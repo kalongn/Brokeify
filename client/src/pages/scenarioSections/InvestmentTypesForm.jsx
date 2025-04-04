@@ -1,20 +1,17 @@
 import { useState, useImperativeHandle, useEffect } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Axios from "axios";
-import { useParams } from "react-router-dom";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
 
 const InvestmentTypesForm = () => {
   const navigate = useNavigate();
-  
-
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
-  const { childRef, scenarioId } = useOutletContext();
-  const { id } = useParams();
+  const { childRef } = useOutletContext();
+  const { scenarioId, id } = useParams();
 
   const [errors, setErrors] = useState({});
   // Determine if what distribution fields are shown and contain values for backend
@@ -31,39 +28,10 @@ const InvestmentTypesForm = () => {
     expenseRatio: null,
     taxability: null,
   });
-/*
-  name: { type: String },
-    description: { type: String },
-    expectedAnnualReturn: { type: Number },
-    expectedAnnualReturnDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
-    expenseRatio: { type: Number },
-    expectedAnnualIncome: { type: Number },
-    expectedAnnualIncomeDistribution: { type: mongoose.Schema.Types.ObjectId, ref: 'Distribution' },
-    taxability: { type: Boolean },
-*/
-
 
   useEffect(() => {
     if (id) {
-      //TODO (middleware): Add this in the index.js... I tried mimicking the way the rest of the form is here, but
-      //Not 100% sure if it'll work...
-      Axios.get(`/investmentType/${id}`)
-        .then((response) => {
-          const data = response.data;
-          console.log("Look here");
-          console.log(data);
-          setFormData({
-            investmentType: data.name,
-            description: data.description || "",
-            expenseRatio: data.expenseRatio,
-            taxability: data.taxability,
-          });
-          setDistributions({
-            expectedAnnualReturn: data.expectedAnnualReturn || { type: "", isPercentage: false },
-            expectedDividendsInterest: data.expectedDividendsInterest || { type: "", isPercentage: false },
-          });
-        })
-        .catch((error) => console.error("Error fetching investment type:", error));
+      //TODO (middleware): Add this in the index.js
     }
   }, [id]);
 
@@ -158,7 +126,7 @@ const InvestmentTypesForm = () => {
   }
 
   const handleSubmit = async () => {
-    if(id){
+    if (id) {
       alert("Update here - line 163- so that it sets by ID, instead of uploading to backend. Don't create new object, but adjust current one.")
       //TODO (middleware): Update here so that we're not creating a new object, but rather updating/replacing an old one
       return;
@@ -231,7 +199,7 @@ const InvestmentTypesForm = () => {
           onClick={handleSubmit}
           className={buttonStyles.emphasizedButton}
         >
-           {id ? "Update" : "Create"}
+          {id ? "Update" : "Create"}
         </button>
       </div>
     </div>

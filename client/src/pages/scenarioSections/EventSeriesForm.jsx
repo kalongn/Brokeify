@@ -15,17 +15,7 @@ const EventSeriesForm = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
   const { childRef } = useOutletContext();
-  const { id } = useParams();
-
-  // For parsing to number
-  const FIELD_TYPES = {
-    NUMBER: new Set(["initialValue", "percentageIncrease", "spousePercentageIncrease", "maxCash"]),
-  };
-  console.log(FIELD_TYPES);
-  //NOTE: not sure what purpose of Field types is... it's 
-  //somehting I pulled from the merge (didn't want to delete it in case it's needed)
-  //Console.logged it to prevent ESLint error..
-  const { scenarioId } = useParams();
+  const { scenarioId, id } = useParams();
 
   const [allInvestments, setAllInvestments] = useState([]); // as needed to populate the actual investments option differently
   const [birthYear, setBirthYear] = useState(null);
@@ -100,22 +90,11 @@ const EventSeriesForm = () => {
     }
   }, [allInvestments, eventType, typeFormData.taxStatus]);
 
-  //TO DO (Middleware): 
-  /**
-  Implement useEffect
   useEffect(() => {
     if (id) {
-      //TODO (middleware): Add this in the index.js... I tried mimicking the way the rest of the form is here, but
-      //Not 100% sure if it'll work...
-      Axios.get(`/event-series/${id}`)
-        .then((response) => {
-         
-        })
-        .catch((error) => console.error("Error fetching event:", error));
+      //TODO (middleware): Add this in the index.js
     }
   }, [id]);
-   * 
-   */
 
   // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
@@ -388,7 +367,6 @@ const EventSeriesForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-
   const uploadToBackend = async () => {
     let event = null;
     switch (eventType) {
@@ -461,13 +439,12 @@ const EventSeriesForm = () => {
 
 
   const handleSubmit = async () => {
+    if (!validateFields()) {
+      return;
+    }
     if (id) {
       //Implement a new function for this. Edit existing eventseries...don't create new one.
       alert("Update here - line 300- so that it sets by ID, instead of uploading to backend. Don't create new object, but adjust current one.")
-      return;
-    }
-
-    if (!validateFields()) {
       return;
     }
     await uploadToBackend();

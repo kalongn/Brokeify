@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { FaEdit } from "react-icons/fa";
+import Axios from 'axios';
+
 import styles from "./Form.module.css";
 import { useParams } from "react-router-dom";
 import Axios from "axios";
@@ -33,35 +35,6 @@ const EventSeries = () => {
   const editEventSeries = (id) => {
     navigate(`/ScenarioForm/${scenarioId}/event-series/edit/${id}`);
   };
-  
-
-
-
-  // TODO: remove cash from initial state when done testing
-  const [events, setEvents] = useState([
-    { name: "Cash", type: "Expense" },
-  ]);
-  // TODO: uncomment out and modify when route has been set up
-  useEffect(() => {
-    // TODO: remove superficial call to setEvents (to satisfy ESLint for now)
-    setEvents([{ name: "Cash", type: "Expense" }]);
-    // IIFE
-    // (async () => {
-    //   try {
-    //     const response = await fetch('/api/events');
-    //     const data = await response.json();
-
-    //     const formattedEvents = data.map(type => ({
-    //       name: type.name,
-    //       type: type.name
-    //     }));
-
-    //     setEvents(formattedEvents);
-    //   } catch (error) {
-    //     console.error('Error fetching events:', error);
-    //   }
-    // })();
-  }, []);
 
   return (
     <div>
