@@ -13,7 +13,7 @@ const EventSeries = () => {
   const navigate = useNavigate();
   const { scenarioId } = useParams();
 
-  //const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -65,22 +65,18 @@ const EventSeries = () => {
                   <button
                     className={styles.tableButton}
                     onClick={() => {
-                      //NOTE: this index may not be needed - TOD): check on this later -temp removed
-                      //if (index === 0) return;
+                      
                       editEventSeries(event.id);
                       alert(event.id);
                     }
                     }
-                    //NOTE: this conditional may not be necessary: Future TODO: Check on this later - temp removed 
-                    //style={{ opacity: index === 0 ? 0.2 : 1 }}
-                  >
+                     >
                     <FaEdit />
                   </button>
 
                   <button
                     className={styles.tableButton}
                     onClick={() => {
-                      //if (index === 0) return;
                       alert("NOT IMPLEMENTED YET")
                     }
                     }
