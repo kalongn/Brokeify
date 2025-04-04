@@ -5,8 +5,7 @@ import { FaEdit } from "react-icons/fa";
 import Axios from 'axios';
 
 import styles from "./Form.module.css";
-import { useParams } from "react-router-dom";
-import Axios from "axios";
+
 
 // This page does not submit any data, so childRef is not used
 // TODO: update page to include childRef once event series deletion is implemented
