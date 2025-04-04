@@ -168,3 +168,7 @@ input:disabled {
   margin-bottom: 1%;
   display: block;
 }
+#addEmailSection {
+  display: flex;
+  flex: 2 1 auto;
+}

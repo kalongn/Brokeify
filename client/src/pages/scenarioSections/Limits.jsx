@@ -16,7 +16,7 @@ const Limits = () => {
   // Determine if what distribution fields are shown and contain values for backend
   // Based on the type field, only the relevant fields should be read
   const [distributions, setDistributions] = useState({
-    // inflationAssumption can have fixedValue, lowerBound, upperBound, mean, or stdDev fields
+    // inflationAssumption can have fixedValue, lowerBound, upperBound, mean, or standardDeviation fields
     inflationAssumption: { type: "" },
   });
 
@@ -49,7 +49,6 @@ const Limits = () => {
     handleSubmit,
   }));
 
-  // Below handler copied and pasted from AI code generation from BasicInfo.jsx
   const handleDistributionsChange = (name, field, value) => {
     setDistributions((prev) => {
       const updatedDistributions = { ...prev };
@@ -90,14 +89,9 @@ const Limits = () => {
 
   const validateFields = () => {
     const newErrors = {};
-    for (const [field, value] of Object.entries(formData)) {
-      // Distribution fields require a different function to validate
-      if (field !== "inflationAssumption") {
-        validateRequired(newErrors, field, value);
-      } else {
-        validateDistribution(newErrors, field, value);
-      }
-    }
+    const infDist = distributions.inflationAssumption;
+    validateRequired(newErrors, "initialLimit", formData.initialLimit);
+    validateDistribution(newErrors, "inflationAssumption", infDist);
 
     // Set all errors at once
     setErrors(newErrors);
@@ -134,12 +128,14 @@ const Limits = () => {
     <div>
       <h2 id={styles.heading}>Inflation & Contribution Limits</h2>
       <form>
-        <label>Inflation Assumption</label>
+        <label>Inflation Assumption Percentage</label>
         <Distributions
           options={["fixed", "uniform", "normal"]}
           name="inflationAssumption"
+          requirePercentage={true}
           onChange={handleDistributionsChange}
           defaultValue={distributions.inflationAssumption}
+          showCheckbox={false}
         />
         {errors.inflationAssumption && <span className={styles.error}>{errors.inflationAssumption}</span>}
         <hr />

@@ -1,6 +1,73 @@
+import { useState } from 'react';
+import Select from 'react-select';
+import { FaTimes } from 'react-icons/fa';
 import styles from "./Form.module.css";
 
 const Sharing = () => {
+  // email and permissions states are for before a user is added
+  const [email, setEmail] = useState("");
+  const [permissions, setPermissions] = useState("Viewer");
+  const [errors, setErrors] = useState("");
+
+  const permissionOptions = [
+    { value: 'Viewer', label: 'Viewer' },
+    { value: 'Editor', label: 'Editor' },
+  ];
+  // List of users added and shared to
+  const [sharedUsers, setSharedUsers] = useState([
+    { email: 'william.shakespige@gmail.com', permissions: "Viewer" },
+    { email: 'eb.white12@gmail.com', permissions: "Editor" },
+  ]);
+
+  // For adding a new person with email
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    // Prompt to AI (Amazon Q): I want to validate inputs as email before setting state
+    // The regex did not need any changes
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailRegex.test(value)) {
+      setEmail(value);
+    }
+    else {
+      setErrors("Invalid email");
+    }
+    // Clear errors when user makes changes
+    setErrors("");
+  };
+
+  // For changing an added user's permissions
+  const handlePermissionsChange = (currUser, newPermissions) => {
+    setSharedUsers(sharedUsers.map((user) => {
+      if (user.email === currUser) {
+        return { ...user, permissions: newPermissions };
+      }
+      return user;
+    }));
+  }
+
+  // For adding and removing a user to the scenario
+  const addUser = (e) => {
+    e.preventDefault();
+    if (email) {
+      // AI-generated (Amazon Q): Autocomplete likely due to TODO note "Check if user is already in the list"
+      // This code snippet did not need any changes
+      if (sharedUsers.some((user) => user.email === email)) {
+        setErrors("User already added");
+        return;
+      }
+      setSharedUsers([...sharedUsers, { email: email, permissions: permissions }]);
+      setEmail("");
+      e.target.form.querySelector('input[type="email"]').value = "";
+    }
+    else {
+      setErrors("Invalid email");
+    }
+  };
+
+  const removeUser = (currUser) => {
+    setSharedUsers(sharedUsers.filter((user) => user.email !== currUser));
+  }
+
   return (
     <div>
       <h2>Sharing Settings</h2>
@@ -9,8 +76,62 @@ const Sharing = () => {
         and define their access to this scenario.
       </p>
       <h3>People with access</h3>
-      {/* TODO: replace this with list of people with access*/}
-      <div>list item 1</div>
+      <div id={styles.newItemContainer} style={{ backgroundColor: 'var(--color-white)' }} >
+        <table>
+          <tbody>
+            <tr>
+              {/* TODO: replace with user's name */}
+              <td>Sharlotte Webb (you)</td>
+              <td>Owner</td>
+              <td></td>
+            </tr>
+            {sharedUsers.map((user) => (
+              <tr key={user.email}>
+                <td style={{ padding: 0 }}>
+                  <p style={{ margin: 0 }}>{user.email}</p>
+                </td>
+                <td>
+                  <Select
+                    options={permissionOptions}
+                    onChange={(selectedOption) => handlePermissionsChange(user.email, selectedOption.value)}
+                    defaultValue={permissionOptions.find((option) => option.value === user.permissions)}
+                    className={styles.select}
+                  />
+                </td>
+                <td style={{ padding: 0, width: 1 }}>
+                  <button
+                    type="button"
+                    onClick={() => removeUser(user.email)}
+                    className={styles.tableButton}
+                    style={{ margin: 0 }}
+                  >
+                    <FaTimes />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <form id={styles.addEmailSection}>
+        <label>
+          <input
+            type="email"
+            placeholder="Enter email address"
+            onChange={handleEmailChange}
+          />
+        </label>
+        <Select
+          options={permissionOptions}
+          defaultValue={permissionOptions[0]}
+          onChange={(selectedOption) => setPermissions(selectedOption.value)}
+          className={styles.select}
+        />
+        <button id={styles.addButton} style={{ width: "10%" }} onClick={addUser}>
+          Add
+        </button>
+      </form>
+      {errors && <span className={styles.error}>{errors}</span>}
     </div>
   );
 };
