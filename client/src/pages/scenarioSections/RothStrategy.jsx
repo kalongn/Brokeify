@@ -1,5 +1,3 @@
-import styles from "./Form.module.css";
-
 import { useState, useImperativeHandle } from "react";
 import { useOutletContext } from "react-router-dom";
 import SortableList from "../../components/SortableList";
