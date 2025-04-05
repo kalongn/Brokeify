@@ -16,7 +16,7 @@ router.get("/basicInfo/:scenarioId", async (req, res) => {
     try {
         const userId = req.session.user;
         const id = req.params.scenarioId;
-        if (!canEdit(userId, id)) {
+        if (!(await canEdit(userId, id))) {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
         const scenario = await scenarioController.read(id);
