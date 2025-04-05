@@ -187,10 +187,10 @@ const EventSeriesForm = () => {
 
       switch (value) {
         case "income":
-          setTypeFormData({ type: value, isSocialSecurity: null, initialValue: "", percentageIncrease: "", isAdjustInflation: "" });
+          setTypeFormData({ type: value, isSocialSecurity: false, initialValue: "", percentageIncrease: "", isAdjustInflation: false });
           break;
         case "expense":
-          setTypeFormData({ type: value, isDiscretionary: null, initialValue: "", percentageIncrease: "", isAdjustInflation: "" });
+          setTypeFormData({ type: value, isDiscretionary: false, initialValue: "", percentageIncrease: "", isAdjustInflation: false });
           break;
         case "invest":
           setTypeFormData({ type: value, allocationMethod: "", maximumCash: "", investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
@@ -219,8 +219,9 @@ const EventSeriesForm = () => {
       // Set general form data or event specific form data
       if (name === "name" || name === "description") {
         setFormData((prev) => ({ ...prev, [name]: value }));
-      }
-      else {
+      } else if (name === "isAdjustInflation" || name === "isDiscretionary" || name === "isSocialSecurity") {
+        setTypeFormData((prev) => ({ ...prev, [name]: e.target.checked }));
+      } else {
         setTypeFormData((prev) => ({ ...prev, [name]: value }))
       }
       // Clear errors when user makes changes
@@ -379,9 +380,9 @@ const EventSeriesForm = () => {
           startYearTypeDistribution: distributions.startYear,
           initialValue: typeFormData.initialValue,
           expectedAnnualChangeDistribution: distributions.expectedAnnualChange,
-          isAdjustInflation: typeFormData.isAdjustInflation === "on",
+          isAdjustInflation: typeFormData.isAdjustInflation,
           percentageIncrease: typeFormData.percentageIncrease,
-          isSocialSecurity: typeFormData.isSocialSecurity === "socialSecurity",
+          isSocialSecurity: typeFormData.isSocialSecurity,
         };
         break;
       case "expense":
@@ -393,9 +394,9 @@ const EventSeriesForm = () => {
           startYearTypeDistribution: distributions.startYear,
           initialValue: typeFormData.initialValue,
           expectedAnnualChangeDistribution: distributions.expectedAnnualChange,
-          isAdjustInflation: typeFormData.isAdjustInflation === "on",
+          isAdjustInflation: typeFormData.isAdjustInflation,
           percentageIncrease: typeFormData.percentageIncrease,
-          isDiscretionary: typeFormData.isDiscretionary === "discretionary",
+          isDiscretionary: typeFormData.isDiscretionary,
         };
         break;
       case "invest":
@@ -542,13 +543,13 @@ const EventSeriesForm = () => {
             {/* TODO: replace with toggle button */}
             {eventType === "income" && (
               <label>
-                <input type="checkbox" name="isSocialSecurity" value="socialSecurity" onChange={handleChange} />
+                <input type="checkbox" name="isSocialSecurity" onChange={handleChange} />
                 Social Security
               </label>
             )}
             {eventType === "expense" && (
               <label>
-                <input type="checkbox" name="isDiscretionary" value="discretionary" onChange={handleChange} />
+                <input type="checkbox" name="isDiscretionary" onChange={handleChange} />
                 Discretionary
               </label>
             )}
