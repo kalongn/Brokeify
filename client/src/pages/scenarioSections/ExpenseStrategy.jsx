@@ -1,27 +1,70 @@
+import { useState, useEffect, useImperativeHandle } from "react";
+import { useParams, useOutletContext } from "react-router-dom";
+import Axios from "axios";
+
+import { distributionToString } from "../../utils/ScenarioHelper";
+import SortableList from "../../components/SortableList";
 import styles from "./Form.module.css";
 
-import { useState } from "react";
-import SortableList from "../../components/SortableList";
-
 const ExpenseStrategy = () => {
-  // TODO: pull from list of investments and reformat into below
-  // withdrawals has name, value, expectedAnnualReturn, taxability
-  // name and value are from investment while expectedAnnualReturn and taxability are from investment type
-  // Keys must be named as id, amount, percentage, additional
-  const withdrawals = [
-    { id: "Investment 1", amount: `$100`, percentage: `1.9% return`, additional: `Taxable` },
-    { id: "Investment 2", amount: `$5000`, percentage: `4% return`, additional: `Taxable` },
-    { id: "Investment 3", amount: `$50`, percentage: `9% return`, additional: `Tax-exempt` },
-    { id: "Investment 4", amount: `$400`, percentage: `8.4% return`, additional: `Taxable` }
-  ];
-  const [strategy, setStrategy] = useState([withdrawals]);
+
+  const { scenarioId } = useParams();
+  const { childRef } = useOutletContext();
+
+  const [strategy, setStrategy] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    // Fetch the existing spending strategy data from the server
+    Axios.get(`/expense-withdrawal-strategy/${scenarioId}`).then((response) => {
+      const expenseStrategy = response.data;
+      const strategy = expenseStrategy.map((investment) => ({
+        _id: investment.id,
+        id: investment.type + " (" + investment.taxStatus + ")",
+        amount: `$${investment.value}`,
+        percentage: `${distributionToString(investment.expectedAnnualReturnDistribution)}`,
+        additional: investment.taxability ? "Taxable" : "Tax-exempt",
+      }));
+      setStrategy(strategy);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Error fetching spending strategy:', error);
+    });
+  }, [scenarioId]);
+
   const handleReorder = (list) => {
     setStrategy(list);
-    if(!strategy) {
+    if (!strategy) {
       console.log("no strategy");
     }
   };
-  // TODO: save expense strategy to db
+
+  // Expose the handleSubmit function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
+
+  const uploadToBackend = async () => {
+    const updatedStrategy = strategy.map((investment) => ({
+      id: investment._id,
+    }));
+
+    try {
+      const response = await Axios.post(`/expense-withdrawal-strategy/${scenarioId}`, updatedStrategy);
+      console.log(response.data);
+      return true;
+    }
+    catch (error) {
+      console.error("Error uploading spending strategy:", error);
+      return false
+    }
+  }
+  const handleSubmit = async () => {
+    return await uploadToBackend();
+  };
 
   return (
     <div>
@@ -30,10 +73,13 @@ const ExpenseStrategy = () => {
         Specify the order in which the set of investments should be
         sold when cash is insufficient.
       </p>
-      <SortableList
-        items={withdrawals}
-        handleReorder={handleReorder}
-      />
+      {loading ?
+        <p>Loading...</p>
+        :
+        <SortableList
+          items={strategy}
+          handleReorder={handleReorder}
+        />}
     </div>
   );
 };
