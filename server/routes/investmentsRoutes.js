@@ -57,7 +57,6 @@ router.post("/investments/:scenarioId", async (req, res) => {
         const { investments } = req.body;
 
         for (let investment of investments) {
-
             // New Investment Added
             if (investment.id === undefined) {
                 const investmentDB = await investmentController.create({
@@ -77,6 +76,12 @@ router.post("/investments/:scenarioId", async (req, res) => {
                 await scenarioController.update(id, {
                     $push: { orderedExpenseWithdrawalStrategy: investmentDB._id }
                 });
+
+                if (investmentDB.taxStatus === "PRE_TAX_RETIREMENT") {
+                    await scenarioController.update(id, {
+                        $push: { orderedRMDStrategy: investmentDB._id },
+                    });
+                }
             } else {
                 // Modification to pre existing investment
                 // Check if the investment type has changed
