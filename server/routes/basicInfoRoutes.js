@@ -1,5 +1,5 @@
 import express from "express";
-import { frontendToDistribution, distributionToFrontend, canEdit } from "./helper.js";
+import { distributionToBackend, distributionToFrontend, canEdit } from "./helper.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
 import DistributionController from "../db/controllers/DistributionController.js";
 
@@ -64,8 +64,8 @@ router.post("/basicInfo/:scenarioId", async (req, res) => {
             return res.status(404).send("Scenario not found.");
         }
 
-        const requestLifeExpectancy = frontendToDistribution(lifeExpectancy);
-        const requestSpouseLifeExpectancy = frontendToDistribution(spouseLifeExpectancy);
+        const requestLifeExpectancy = distributionToBackend(lifeExpectancy);
+        const requestSpouseLifeExpectancy = distributionToBackend(spouseLifeExpectancy);
 
         let newUserLifeExpectancy = null;
         if (currentScenario.userLifeExpectancyDistribution) {

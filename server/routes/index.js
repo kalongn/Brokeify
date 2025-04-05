@@ -6,6 +6,7 @@ import viewScenarioRoutes from './viewScenarioRoutes.js';
 import profileRoutes from './profileRoutes.js';
 import createScenarioRoutes from './createScenarioRoutes.js';
 import basicInfoRoutes from './basicInfoRoutes.js';
+import investmentTypesRoutes from './investmentTypesRoutes.js';
 
 import ScenarioController from '../db/controllers/ScenarioController.js';
 import InvestmentTypeController from '../db/controllers/InvestmentTypeController.js';
@@ -15,7 +16,7 @@ import DistributionController from '../db/controllers/DistributionController.js'
 
 import {
     distributionToFrontend,
-    frontendToDistribution,
+    distributionToBackend,
     taxStatusToFrontend,
     taxStatusToBackend,
     allocateMethodToFrontend,
@@ -30,6 +31,7 @@ router.use(viewScenarioRoutes);
 router.use(profileRoutes);
 router.use(createScenarioRoutes);
 router.use(basicInfoRoutes);
+router.use(investmentTypesRoutes);
 
 const scenarioController = new ScenarioController();
 const investmentTypeController = new InvestmentTypeController();
@@ -44,86 +46,6 @@ router.get("/", async (req, res) => {
         return res.status(200).send("Verified, userId: " + req.session.user);
     } else {
         return res.status(204).send();
-    }
-});
-
-// obtain the investment types of the scenario
-router.get("/investmentTypes/:scenarioId", async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).send("Not logged in.");
-    }
-    try {
-        const userId = req.session.user;
-        const id = req.params.scenarioId;
-        if (!await canEdit(userId, id)) {
-            return res.status(403).send("You do not have permission to access this scenario.");
-        }
-
-        const scenario = await scenarioController.readWithPopulate(id);
-
-        const investmentType = scenario.investmentTypes.map(type => {
-            return {
-                id: type._id,
-                name: type.name,
-                taxability: type.taxability,
-            }
-        });
-        return res.status(200).send(investmentType);
-    } catch (error) {
-        console.error("Error in investment types route:", error);
-        return res.status(500).send("Error retrieving investment types.");
-    }
-});
-
-// create a new investment type for the scenario
-router.post("/investmentType/:scenarioId", async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).send("Not logged in.");
-    }
-    try {
-        const userId = req.session.user;
-        const id = req.params.scenarioId;
-        if (!await canEdit(userId, id)) {
-            return res.status(403).send("You do not have permission to access this scenario.");
-        }
-        const { name, description, expectedAnnualReturn, expenseRatio, expectedDividendsInterest, taxability } = req.body;
-
-        const scenario = await scenarioController.readWithPopulate(id);
-        const currentInvestmentType = scenario.investmentTypes;
-        for (let type of currentInvestmentType) {
-            if (type.name === name) {
-                return res.status(400).send("Investment type already exists.");
-            }
-        }
-
-        const requestExpectedAnnualReturn = frontendToDistribution(expectedAnnualReturn);
-        const requestExpectedDividendsInterest = frontendToDistribution(expectedDividendsInterest);
-
-        const requestExpenseRatio = expenseRatio / 100;
-
-        let { distributionType, ...data } = requestExpectedAnnualReturn;
-        const expectedAnnualReturnDistribution = await distributionController.create(distributionType, data);
-        ({ distributionType, ...data } = requestExpectedDividendsInterest);
-        const expectedAnnualIncomeDistribution = await distributionController.create(distributionType, data);
-
-        const newInvestmentType = await investmentTypeController.create({
-            name: name,
-            description: description,
-            expectedAnnualReturnDistribution: expectedAnnualReturnDistribution,
-            expenseRatio: requestExpenseRatio,
-            expectedAnnualIncomeDistribution: expectedAnnualIncomeDistribution,
-            taxability: taxability === "taxable",
-            investments: [],
-        });
-
-        await scenarioController.update(id, {
-            $push: { investmentTypes: newInvestmentType._id }
-        });
-
-        return res.status(200).send("Investment type added.");
-    } catch (error) {
-        console.error("Error in investment type route:", error);
-        return res.status(500).send("Error retrieving investment type.");
     }
 });
 
@@ -326,7 +248,7 @@ router.post("/event/:scenarioId", async (req, res) => {
         const { eventType, name, description, durationTypeDistribution, startYearTypeDistribution, ...data } = req.body;
 
         // Duration Distribution
-        const { distributionType, ...durationData } = frontendToDistribution(durationTypeDistribution);
+        const { distributionType, ...durationData } = distributionToBackend(durationTypeDistribution);
         const requestDurationDistribution = await distributionController.create(distributionType, durationData);
 
         // start year distribution / event
@@ -336,7 +258,7 @@ router.post("/event/:scenarioId", async (req, res) => {
             case "fixed":
             case "uniform":
             case "normal":
-                const startYearDistribution = frontendToDistribution(startYearTypeDistribution);
+                const startYearDistribution = distributionToBackend(startYearTypeDistribution);
                 const { distributionType, ...distributionData } = startYearDistribution;
                 resultEvent = {
                     startYearTypeDistribution: await distributionController.create(distributionType, distributionData)
@@ -385,7 +307,7 @@ router.post("/event/:scenarioId", async (req, res) => {
         // Expected Annual Change Distribution for INVEST / REBALANCE event type
         let expectedAnnualChangeDistribution = null;
         if (eventType === "INCOME" || eventType === "EXPENSE") {
-            const { distributionType, ...distributionData } = frontendToDistribution(data.expectedAnnualChangeDistribution);
+            const { distributionType, ...distributionData } = distributionToBackend(data.expectedAnnualChangeDistribution);
             expectedAnnualChangeDistribution = await distributionController.create(distributionType, distributionData);
         }
 
@@ -497,7 +419,7 @@ router.post("/limits/:scenarioId", async (req, res) => {
 
         const { initialLimit, inflationAssumption } = req.body;
 
-        const requestInflationAssumption = frontendToDistribution(inflationAssumption);
+        const requestInflationAssumption = distributionToBackend(inflationAssumption);
 
         const currentScenario = await scenarioController.read(id);
         let updatedDistribution = null;

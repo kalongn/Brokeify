@@ -24,7 +24,7 @@ const distributionToFrontend = (distribution) => {
     }
 }
 
-const frontendToDistribution = (distribution) => {
+const distributionToBackend = (distribution) => {
     if (!distribution) {
         return null;
     }
@@ -118,7 +118,7 @@ const canView = async (userId, scenarioId) => {
 
 export {
     distributionToFrontend,
-    frontendToDistribution,
+    distributionToBackend,
     taxStatusToFrontend,
     taxStatusToBackend,
     allocateMethodToFrontend,
