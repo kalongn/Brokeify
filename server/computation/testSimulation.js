@@ -178,16 +178,16 @@ const testScenario = async () => {
         const scenarios = await factory.readAll();
         // console.log(scenarios);
 
-        const scenario = await factory.read(scenarios[0].id);
+        const scenario = await factory.read(scenarios[0]._id);
         return scenario;
         // console.log(scenario);
 
-        // await factory.update(scenario.id, { name: "New Scenario" });
-        // const updatedScenario = await factory.read(scenario.id);
+        // await factory.update(scenario._id, { name: "New Scenario" });
+        // const updatedScenario = await factory.read(scenario._id);
         // console.log(updatedScenario);
 
-        // await factory.delete(updatedScenario.id);
-        // const deletedScenario = await factory.read(updatedScenario.id);
+        // await factory.delete(updatedScenario._id);
+        // const deletedScenario = await factory.read(updatedScenario._id);
         // console.log(deletedScenario);
     } catch (error) {
         console.error(error);
@@ -306,12 +306,12 @@ const populateDB = async () => {
     //console.log(scenario);
     //const res1 = await connection.dropDatabase();
     //throw("eee");
-    const RMDTable = await testRMDTable();
+    // const RMDTable = await testRMDTable();
 
-    const federalIncomeTax = await testTax(1);
+    //const federalIncomeTax = await testTax(1);
     const stateIncomeTax = await testTax(2);
-    const federalStandardDeduction = await testTax(3);
-    const capitalGainTax = await testTax(5);
+    //const federalStandardDeduction = await testTax(3);
+    //const capitalGainTax = await testTax(5);
     const scenario = await testScenario();
     //const scenario = await testScenario();
     //console.log(scenario);
@@ -319,7 +319,7 @@ const populateDB = async () => {
     console.log('====================== Simulation Test =====================');
     //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
-        await validateRun(scenario.id, 1, stateIncomeTax.id, "GUEST");
+        await validateRun(scenario._id, 1, stateIncomeTax._id, "GUEST");
     }
     catch (err) {
         const res = await connection.dropDatabase();
@@ -327,5 +327,5 @@ const populateDB = async () => {
     }
     //drop all objects in database
     const res = await connection.dropDatabase();
-    console.log(res);
+    //console.log(res);
 };
