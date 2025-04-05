@@ -13,7 +13,8 @@ import EventController from '../db/controllers/EventController.js';
 import DistributionController from '../db/controllers/DistributionController.js';
 
 import {
-    FrontendToDistribution,
+    distributionToFrontend,
+    frontendToDistribution,
     taxStatusToFrontend,
     taxStatusToBackend,
     allocateMethodToFrontend,
@@ -45,29 +46,6 @@ router.get("/", async (req, res) => {
 });
 
 // Scenario Form
-
-// Distribution type map, converting from the database to the frontend and vice versa
-const distributionToFrontend = (distribution) => {
-    if (!distribution) {
-        return null;
-    }
-    switch (distribution.distributionType) {
-        case "FIXED_AMOUNT":
-            return { type: "fixed", value: distribution.value };
-        case "UNIFORM_AMOUNT":
-            return { type: "uniform", lowerBound: distribution.lowerBound, upperBound: distribution.upperBound };
-        case "NORMAL_AMOUNT":
-            return { type: "normal", mean: distribution.mean, standardDeviation: distribution.standardDeviation };
-        case "FIXED_PERCENTAGE":
-            return { type: "fixed", value: distribution.value * 100, isPercentage: true };
-        case "UNIFORM_PERCENTAGE":
-            return { type: "uniform", lowerBound: distribution.lowerBound * 100, upperBound: distribution.upperBound * 100, isPercentage: true };
-        case "NORMAL_PERCENTAGE":
-            return { type: "normal", mean: distribution.mean * 100, standardDeviation: distribution.standardDeviation * 100, isPercentage: true };
-        default:
-            return null;
-    }
-}
 
 // create new default scenario
 router.post("/newScenario", async (req, res) => {
@@ -158,8 +136,8 @@ router.post("/basicInfo/:scenarioId", async (req, res) => {
             return res.status(404).send("Scenario not found.");
         }
 
-        const requestLifeExpectancy = FrontendToDistribution(lifeExpectancy);
-        const requestSpouseLifeExpectancy = FrontendToDistribution(spouseLifeExpectancy);
+        const requestLifeExpectancy = frontendToDistribution(lifeExpectancy);
+        const requestSpouseLifeExpectancy = frontendToDistribution(spouseLifeExpectancy);
 
         let newUserLifeExpectancy = null;
         if (currentScenario.userLifeExpectancyDistribution) {
@@ -248,8 +226,8 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
             }
         }
 
-        const requestExpectedAnnualReturn = FrontendToDistribution(expectedAnnualReturn);
-        const requestExpectedDividendsInterest = FrontendToDistribution(expectedDividendsInterest);
+        const requestExpectedAnnualReturn = frontendToDistribution(expectedAnnualReturn);
+        const requestExpectedDividendsInterest = frontendToDistribution(expectedDividendsInterest);
 
         const requestExpenseRatio = expenseRatio / 100;
 
@@ -478,7 +456,7 @@ router.post("/event/:scenarioId", async (req, res) => {
         const { eventType, name, description, durationTypeDistribution, startYearTypeDistribution, ...data } = req.body;
 
         // Duration Distribution
-        const { distributionType, ...durationData } = FrontendToDistribution(durationTypeDistribution);
+        const { distributionType, ...durationData } = frontendToDistribution(durationTypeDistribution);
         const requestDurationDistribution = await distributionController.create(distributionType, durationData);
 
         // start year distribution / event
@@ -488,7 +466,7 @@ router.post("/event/:scenarioId", async (req, res) => {
             case "fixed":
             case "uniform":
             case "normal":
-                const startYearDistribution = FrontendToDistribution(startYearTypeDistribution);
+                const startYearDistribution = frontendToDistribution(startYearTypeDistribution);
                 const { distributionType, ...distributionData } = startYearDistribution;
                 resultEvent = {
                     startYearTypeDistribution: await distributionController.create(distributionType, distributionData)
@@ -537,7 +515,7 @@ router.post("/event/:scenarioId", async (req, res) => {
         // Expected Annual Change Distribution for INVEST / REBALANCE event type
         let expectedAnnualChangeDistribution = null;
         if (eventType === "INCOME" || eventType === "EXPENSE") {
-            const { distributionType, ...distributionData } = FrontendToDistribution(data.expectedAnnualChangeDistribution);
+            const { distributionType, ...distributionData } = frontendToDistribution(data.expectedAnnualChangeDistribution);
             expectedAnnualChangeDistribution = await distributionController.create(distributionType, distributionData);
         }
 
@@ -649,7 +627,7 @@ router.post("/limits/:scenarioId", async (req, res) => {
 
         const { initialLimit, inflationAssumption } = req.body;
 
-        const requestInflationAssumption = FrontendToDistribution(inflationAssumption);
+        const requestInflationAssumption = frontendToDistribution(inflationAssumption);
 
         const currentScenario = await scenarioController.read(id);
         let updatedDistribution = null;

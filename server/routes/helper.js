@@ -2,7 +2,29 @@ import UserController from '../db/controllers/UserController.js';
 
 const userController = new UserController();
 
-const FrontendToDistribution = (distribution) => {
+const distributionToFrontend = (distribution) => {
+    if (!distribution) {
+        return null;
+    }
+    switch (distribution.distributionType) {
+        case "FIXED_AMOUNT":
+            return { type: "fixed", value: distribution.value };
+        case "UNIFORM_AMOUNT":
+            return { type: "uniform", lowerBound: distribution.lowerBound, upperBound: distribution.upperBound };
+        case "NORMAL_AMOUNT":
+            return { type: "normal", mean: distribution.mean, standardDeviation: distribution.standardDeviation };
+        case "FIXED_PERCENTAGE":
+            return { type: "fixed", value: distribution.value * 100, isPercentage: true };
+        case "UNIFORM_PERCENTAGE":
+            return { type: "uniform", lowerBound: distribution.lowerBound * 100, upperBound: distribution.upperBound * 100, isPercentage: true };
+        case "NORMAL_PERCENTAGE":
+            return { type: "normal", mean: distribution.mean * 100, standardDeviation: distribution.standardDeviation * 100, isPercentage: true };
+        default:
+            return null;
+    }
+}
+
+const frontendToDistribution = (distribution) => {
     if (!distribution) {
         return null;
     }
@@ -95,7 +117,8 @@ const canView = async (userId, scenarioId) => {
 }
 
 export {
-    FrontendToDistribution,
+    distributionToFrontend,
+    frontendToDistribution,
     taxStatusToFrontend,
     taxStatusToBackend,
     allocateMethodToFrontend,
