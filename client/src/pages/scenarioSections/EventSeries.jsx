@@ -1,44 +1,43 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { HiDotsVertical } from 'react-icons/hi';
+import { useNavigate, useParams } from "react-router-dom";
+import { FaTimes } from 'react-icons/fa';
+import { FaEdit } from "react-icons/fa";
+import Axios from 'axios';
+
 import styles from "./Form.module.css";
+
 
 // This page does not submit any data, so childRef is not used
 // TODO: update page to include childRef once event series deletion is implemented
 const EventSeries = () => {
   const navigate = useNavigate();
+  const { scenarioId } = useParams();
+
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    Axios.get(`/events/${scenarioId}`).then((response) => {
+      setEvents(response.data);
+    }).catch((error) => {
+      console.error('Error fetching event series:', error);
+    });
+  }, [scenarioId]);
+
   const newEventSeries = () => {
-    navigate("/ScenarioForm/event-series/new");
+    navigate(`/ScenarioForm/${scenarioId}/event-series/new`);
   }
-  // TODO: remove cash from initial state when done testing
-  const [events, setEvents] = useState([
-    { name: "Cash", type: "Expense" },
-  ]);
-  // TODO: uncomment out and modify when route has been set up
-    useEffect(() => {
-      // TODO: remove superficial call to setEvents (to satisfy ESLint for now)
-      setEvents([{ name: "Cash", type: "Expense" }]);
-      // IIFE
-      // (async () => {
-      //   try {
-      //     const response = await fetch('/api/events');
-      //     const data = await response.json();
-          
-      //     const formattedEvents = data.map(type => ({
-      //       name: type.name,
-      //       type: type.name
-      //     }));
-  
-      //     setEvents(formattedEvents);
-      //   } catch (error) {
-      //     console.error('Error fetching events:', error);
-      //   }
-      // })();
-    }, []);
-    
+
+  //New route to update scenario
+  const editEventSeries = (id) => {
+    navigate(`/ScenarioForm/${scenarioId}/event-series/edit/${id}`);
+  };
+
   return (
     <div>
-      <h2>Event Series</h2>
+      <h2 id={styles.heading}>Event Series</h2>
       <p>
         An event series is a sequence of recurring financial events
         (income, expense, investment, or rebalancing) over a defined period.
@@ -62,12 +61,31 @@ const EventSeries = () => {
                 {event.type}
               </td>
               <td>
-                <button
-                  className={styles.tableButton}
-                  onClick={() => alert("NOT IMPLEMENTED YET")}
-                >
-                  <HiDotsVertical />
-                </button>
+                <div className={styles.groupButtons}>
+                  <button
+                    className={styles.tableButton}
+                    onClick={() => {
+                      
+                      editEventSeries(event.id);
+                      alert(event.id);
+                    }
+                    }
+                     >
+                    <FaEdit />
+                  </button>
+
+                  <button
+                    className={styles.tableButton}
+                    onClick={() => {
+                      alert("NOT IMPLEMENTED YET")
+                    }
+                    }
+                    //style={{ opacity: index === 0 ? 0.2 : 1 }}
+                  >
+                    <FaTimes />
+                  </button>
+
+                </div>
               </td>
             </tr>
           ))}

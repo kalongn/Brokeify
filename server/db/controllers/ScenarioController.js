@@ -123,23 +123,6 @@ export default class ScenarioController {
     }
 
     /**
-     * This function deletes the Scenario with the given id
-     * @param {mongoose.Types.ObjectId} id 
-     * @returns 
-     *      Returns the deleted Scenario
-     * @throws Error
-     *      Throws error if the Scenario is not found or if any error occurs
-     */
-    async shallowDelete(id) {
-        try {
-            return await Scenario.findByIdAndDelete(id);
-        }
-        catch (error) {
-            throw new Error(error);
-        }
-    }
-
-    /**
      * This function deletes a Scenario with the given id
      * @param {mongoose.Types.ObjectId} id 
      *      Id of the Scenario to be deleted
@@ -153,7 +136,6 @@ export default class ScenarioController {
             const deleteScenario = await Scenario.findById(id).populate("investmentTypes");
             const eventController = new EventController();
             const investmentTypeController = new InvestmentTypeController();
-            const investmentController = new InvestmentController();
             const distributionController = new DistributionController();
 
             for (const event of deleteScenario.events) {
@@ -161,14 +143,12 @@ export default class ScenarioController {
             }
 
             for (const investmentType of deleteScenario.investmentTypes) {
-                console.log(investmentType.investments);
-                for (const investment of investmentType.investments) {
-                    await investmentController.delete(investment);
-                }
                 await investmentTypeController.delete(investmentType);
             }
 
             await distributionController.delete(deleteScenario.inflationAssumptionDistribution);
+            await distributionController.delete(deleteScenario.userLifeExpectancyDistribution);
+            await distributionController.delete(deleteScenario.spouseLifeExpectancyDistribution);
             return await Scenario.deleteOne({ _id: id });
         }
         catch (error) {
@@ -219,14 +199,14 @@ export default class ScenarioController {
         // console.log("here");
         // Clone Investment Types and Investments
         const clonedInvestmentTypes = []
-        for(const typeIndex in originalScenario.investmentTypes){
+        for (const typeIndex in originalScenario.investmentTypes) {
             let typeId = originalScenario.investmentTypes[typeIndex].hasOwnProperty('id') ? originalScenario.investmentTypes[typeIndex].id : originalScenario.investmentTypes[typeIndex];
-            
+
             const type = await investmentTypeFactory.read(typeId);
-            
+
             if (!type) continue;
             const clonedInvestments = []
-            for(const invIdIndex in type.investments){
+            for (const invIdIndex in type.investments) {
                 const invId = type.investments[invIdIndex]
                 const clonedInvID = await investmentFactory.clone(invId);
 
@@ -234,10 +214,10 @@ export default class ScenarioController {
                 clonedInvestments.push(clonedInvID);
                 //return clonedInvID;
             }
-            
-            
+
+
             const clonedTypeID = await investmentTypeFactory.clone(type.id)
-            await investmentTypeFactory.update(clonedTypeID, {investments: clonedInvestments.filter(Boolean)});
+            await investmentTypeFactory.update(clonedTypeID, { investments: clonedInvestments.filter(Boolean) });
             idMap.set(typeId.toString(), clonedTypeID);
             clonedInvestmentTypes.push(clonedTypeID)
             //return clonedTypeID;
@@ -246,25 +226,25 @@ export default class ScenarioController {
         // Clone Events
         //console.log(originalScenario.events);
         const clonedEvents = []
-        for(const eventIndex in originalScenario.events){
+        for (const eventIndex in originalScenario.events) {
             //console.log(eventIndex);
             let eventId = originalScenario.events[eventIndex];
             const clonedEventID = await eventFactory.clone(eventId);
             //console.log(clonedEventID);
             let clonedEvent = await eventFactory.read(clonedEventID);
             //console.log(clonedEvent);
-            if(!clonedEvent) continue;
-            if(clonedEvent.eventType=="REBALANCE"||clonedEvent.eventType=="INVEST"){
+            if (!clonedEvent) continue;
+            if (clonedEvent.eventType == "REBALANCE" || clonedEvent.eventType == "INVEST") {
                 //update allocatedInvestments
                 let updatedAllocatedInvestmnets = await clonedEvent.allocatedInvestments.map(id => idMap.get(id.toString()));
-                for(const j in updatedAllocatedInvestmnets){
+                for (const j in updatedAllocatedInvestmnets) {
                     updatedAllocatedInvestmnets[j] = new mongoose.Types.ObjectId(updatedAllocatedInvestmnets[j]);
                 }
-                
-                await eventFactory.update(clonedEventID, {allocatedInvestments: updatedAllocatedInvestmnets})
+
+                await eventFactory.update(clonedEventID, { allocatedInvestments: updatedAllocatedInvestmnets })
                 //console.log("after")
                 //clonedEvent = await eventFactory.read(clonedEventID);
-                
+
             }
             idMap.set(eventId.toString(), clonedEventID);
             //console.log(clonedEventID)
@@ -297,14 +277,14 @@ export default class ScenarioController {
             endYearRothOptimizer: originalScenario.endYearRothOptimizer,
 
         });
-        
+
         //console.log("CLONED:");
         //console.log(await clonedScenario.populate('investmentTypes events orderedSpendingStrategy orderedExpenseWithdrawalStrategy orderedRMDStrategy orderedRothStrategy'));
         return clonedScenario;
     }
 
 
-    async delete(scenarioID) {
+    async deleteNotDistributions(scenarioID) {
         //erase the scenario and all investments, events, investmentTypes associated with it
         const scenarioFactory = new ScenarioController();
         const investmentTypeFactory = new InvestmentTypeController();
@@ -327,5 +307,5 @@ export default class ScenarioController {
         await scenarioFactory.shallowDelete(scenarioID);
     }
 
-    
+
 }

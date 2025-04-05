@@ -1,0 +1,17 @@
+.sortableItem {
+  padding: 0.5rem;
+  margin: 1rem 0;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-silver);
+  border-radius: 0.5rem;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+}
+.dragIcon, .text {
+  margin-left: 1rem;
+}
+.sortableItem h2, .sortableItem p {
+  font-size: 1rem;
+  margin: 0;
+}

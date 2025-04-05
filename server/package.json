@@ -20,7 +20,11 @@
     "express-session": "^1.18.1",
     "js-yaml": "^4.1.0",
     "mongoose": "^8.10.1",
+    "node-cron": "^3.0.3",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.1"
   }
 }

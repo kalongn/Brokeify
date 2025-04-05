@@ -1,188 +1,134 @@
 import PropTypes from "prop-types";
-import Select from "react-select";
-import styles from "../pages/scenarioSections/Form.module.css";
+import Fixed from "./FixedDistribution";
+import Uniform from "./UniformDistribution";
+import Normal from "./NormalDistribution";
+
+import { useState, useEffect } from "react";
+/*
+  Possible name values (distribution keys):
+  Basic Info: lifeExpectancy, spouseLifeExpectancy
+  Investment Types Form: expectedAnnualReturn, expectedDividendsInterest
+  Event Series Form: startYear, duration, expectedAnnualChange
+  Limits: inflationAssumption
+*/
 
 const Distributions = ({
-  label,
-  // options include ["fixed", "uniform", "normal", "eventStart", "eventEnd"]
-  options,
-  name,
-  value,
-  onChange,
-  fixedLabel = "Fixed Value",
+  name, // Distribution key (e.g. above comment)
+  options, // Includes ["fixed", "uniform", "normal"]
+  requirePercentage = false, // If percentage is needed
+  onChange, // Change handler function
   defaultValue = {}, // Default value for the select input (if any)
+  showCheckbox = true, // Checkbox is not needed when it's only percentage (Limits.jsx)
 }) => {
-  // isPercentage is for fixed value
-  // Pass the name of the label, name of form field, input value of the field, and isPercentage to the parent
-  const handleInputChange = (field, fieldValue, isPercentage = false) => {
-    onChange(name, field, fieldValue, isPercentage);
+
+  const [isChecked, setIsChecked] = useState(false);
+
+  useEffect(() => {
+    if (defaultValue.type) {
+      setIsChecked(true);
+    }
+  }, [defaultValue]);
+
+  // Pass the name of the distributions key (e.g. lifeExpectancy), 
+  // name of form field, and input value of the field to the parent
+  // Handler should be passed down to children too
+  const handleChange = (field, fieldValue) => {
+    onChange(name, field, fieldValue);
+  };
+  // Sets the type and should not be passed down to children
+  const handleRadio = (field, fieldValue) => {
+    handleChange(field, fieldValue);
   };
 
-  // TODO: replace all options with user-defined ones
-  const events = [
-    { value: "event1", label: "Event 1" },
-    { value: "event2", label: "Event 2" },
-    { value: "event3", label: "Event 3" },
-  ];
+  const distributionType = () => {
+    switch (defaultValue.type) {
+      case "fixed":
+        return <Fixed
+          handleChange={handleChange}
+          defaultValue={defaultValue}
+        />
+      case "uniform":
+        return <Uniform
+          handleChange={handleChange}
+          defaultValue={defaultValue}
+        />
+      case "normal":
+        return <Normal
+          handleChange={handleChange}
+          defaultValue={defaultValue}
+        />
+      default:
+        break;
+    }
+  };
 
   return (
     <div>
-      <label>{label}</label>
-      {/* Show only the specified options */}
-      <div>
-        {options.includes("fixed") && (
-          <label className={styles.newline}>
+      {options.includes("fixed") && (
+        <>
+          <label>
             <input
               type="radio"
-              name={name}
               value="fixed"
-              checked={value === "fixed"}
-              onChange={(e) => handleInputChange("type", e.target.value)}
+              checked={defaultValue.type === "fixed"}
+              onChange={(e) => {
+                handleRadio("type", e.target.value);
+                setIsChecked(true);
+              }}
             />
-            {fixedLabel}
+            {requirePercentage ?
+              (showCheckbox ? "Fixed Value or Percentage" : "Fixed Percentage")
+              : "Fixed Value"
+            }
           </label>
-        )}
-        {options.includes("uniform") && (
-          <label className={styles.newline}>
+          <br />
+        </>
+      )}
+      {options.includes("uniform") && (
+        <>
+          <label>
             <input
               type="radio"
-              name={name}
               value="uniform"
-              onChange={(e) => handleInputChange("type", e.target.value)}
+              checked={defaultValue.type === "uniform"}
+              onChange={(e) => {
+                handleRadio("type", e.target.value);
+                setIsChecked(true);
+              }}
             />
             Sample from Uniform Distribution
           </label>
-        )}
-        {options.includes("normal") && (
-          <label>
-            <input
-              type="radio"
-              name={name}
-              value="normal"
-              checked={value === "normal"}
-              onChange={(e) => handleInputChange("type", e.target.value)}
-            />
-            Sample from Normal Distribution
-          </label>
-        )}
-      </div>
-      <div>
-        {options.includes("eventStart") && (
-          <label className={styles.newline}>
-            <input
-              type="radio"
-              name={name}
-              value="eventStart"
-              onChange={(e) => handleInputChange("type", e.target.value)}
-            />
-            Same Year that Specified Event Starts
-          </label>
-        )}
-        {options.includes("eventEnd") && (
-          <label>
-            <input
-              type="radio"
-              name={name}
-              value="eventEnd"
-              onChange={(e) => handleInputChange("type", e.target.value)}
-            />
-            Year After Specified Event Ends
-          </label>
-        )}
-      </div>
-
-      {value === "fixed" && (
-        <>
-          <label className={styles.newline}>
-            {fixedLabel}
-            <input
-              type="number"
-              name={`${name}Fixed`}
-              className={styles.newline}
-              min="1"
-              defaultValue={defaultValue.fixedValue}
-              onChange={(e) => handleInputChange("fixedValue", e.target.value)}
-            />
-          </label>
-          {/* Checkbox for Fixed Value or Percentage */}
-          {fixedLabel === "Fixed Value or Percentage" && (<label>
-            <input
-              type="checkbox"
-              name={`${name}Percent`}
-              onChange={(e) => handleInputChange("isPercentage", e.target.checked)}
-            />
-            Percentage
-          </label>
-          )}
+          <br />
         </>
       )}
-      {value === "uniform" && (
-        <div className={styles.columns}>
-          <label className={styles.newline}>
-            Lower Bound
-            <br />
-            <input
-              type="number"
-              name={`${name}Lower`}
-              min="0"
-              onChange={(e) => handleInputChange("lowerBound", e.target.value)}
-            />
-          </label>
-          <label>
-            Upper Bound
-            <br />
-            <input
-              type="number"
-              name={`${name}Upper`}
-              min="0"
-              onChange={(e) => handleInputChange("upperBound", e.target.value)}
-            />
-          </label>
-        </div>
-      )}
-      {value === "normal" && (
-        <div className={styles.columns}>
-          <label className={styles.newline}>
-            Mean
-            <br />
-            <input
-              type="number"
-              name={`${name}Mean`}
-              min="1"
-              defaultValue={defaultValue.mean}
-              onChange={(e) => handleInputChange("mean", e.target.value)}
-            />
-          </label>
-          <label>
-            Standard Deviation
-            <br />
-            <input
-              type="number"
-              name={`${name}StdDev`}
-              min="0"
-              defaultValue={defaultValue.stdDev}
-              onChange={(e) => handleInputChange("stdDev", e.target.value)}
-            />
-          </label>
-          {fixedLabel === "Fixed Value or Percentage" && (<label>
-            <input
-              type="checkbox"
-              name={`${name}Percent`}
-              onChange={(e) => handleInputChange("isPercentage", e.target.checked)}
-            />
-            Percentage
-          </label>
-          )}
-        </div>
-      )}
-      {(value === "eventStart" || value === "eventEnd") && (
-        <label className={styles.newline}>
-          Specified Event
-          <Select
-            options={events}
-            name={`${name}Event`}
-            onChange={(selectedOption) => handleInputChange("event", selectedOption?.value)}
+      {options.includes("normal") && (
+        <label>
+          <input
+            type="radio"
+            value="normal"
+            checked={defaultValue.type === "normal"}
+            onChange={(e) => {
+              handleRadio("type", e.target.value);
+              setIsChecked(true);
+            }}
           />
+          Sample from Normal Distribution
+        </label>
+      )}
+      {/* Show only the specified options */}
+      {distributionType()}
+      {defaultValue.type && isChecked && showCheckbox && requirePercentage && (
+        <label id="percentageCheckbox">
+          {/* 
+            Switching between distribution options should preserve 
+            if the checkbox was checked or not 
+          */}
+          <input
+            type="checkbox"
+            checked={defaultValue.isPercentage || false}
+            onChange={(e) => handleChange("isPercentage", e.target.checked)}
+          />
+          Percentage
         </label>
       )}
     </div>
@@ -192,13 +138,12 @@ const Distributions = ({
 // Prompt to AI (Amazon Q): Pasted the error ___ is missing in props validation
 // No changes made
 Distributions.propTypes = {
-  label: PropTypes.string.isRequired,
-  options: PropTypes.arrayOf(PropTypes.string).isRequired,
   name: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
+  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  requirePercentage: PropTypes.bool,
   onChange: PropTypes.func.isRequired,
-  fixedLabel: PropTypes.string,
-  defaultValue: PropTypes.object
+  defaultValue: PropTypes.object,
+  showCheckbox: PropTypes.bool,
 };
 
 export default Distributions;

@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import Axios from "axios";
-
-import Layout from "../components/Layout";
+import PropTypes from 'prop-types';
 
 import { FaTrashAlt } from "react-icons/fa";
 import { FaDownload } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
 
+import Layout from "../components/Layout";
 import style from './Profile.module.css';
 
 //TODO: Tax YAML upload button, and file table buttons as well including the tax upload Date.
-const Profile = () => {
-
+const Profile = ({ setVerified }) => {
   const [user, setUser] = useState(null);
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -42,10 +41,11 @@ const Profile = () => {
   }
 
   return (
-    < Layout >
+    <Layout setVerified={setVerified}>
       <div className={style.profileBackground} >
         <div className={style.profile}>
-          <img className={style.profileImage} src={user ? user.picture : "src/assets/sharlottePic.jpg"}></img>
+          <img className={style.profileImage} src={user ? user.picture || "src/assets/sharlottePic.jpg" : "src/assets/sharlottePic.jpg"}></img>
+          {/** Profile Info */}
           <div className={style.profileInfo}>
             <h2>Your Information</h2>
             <div>
@@ -54,10 +54,11 @@ const Profile = () => {
             </div>
             <div>
               <div>Email</div>
-              <div className={style.infoInput}>{user ? user.email : "N/A"}</div>
+              <div className={style.infoInput}>{user ? user.email || "N/A" : "N/A"}</div>
             </div>
           </div>
         </div>
+        {/** File Upload */}
         <div className={style.fileInfo}>
           <h2>File Upload</h2>
           <div>Here you can upload a YAML file containing information about state income taxes and brackets. Note that without this data, the financial projection will ignore state income taxes not in the database.</div>
@@ -85,8 +86,11 @@ const Profile = () => {
           </table>
         </div>
       </div>
-    </Layout >
+    </Layout>
   );
 }
+Profile.propTypes = {
+  setVerified: PropTypes.func.isRequired,
+};
 
 export default Profile;
