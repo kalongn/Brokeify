@@ -229,6 +229,12 @@ router.post("/event/:scenarioId", async (req, res) => {
             $push: { events: event._id }
         });
 
+        if (event.eventType === "EXPENSE" && event.isDiscretionary) {
+            await scenarioController.update(id, {
+                $push: { orderedSpendingStrategy: event._id }
+            });
+        }
+
         return res.status(200).send("Event created.");
     } catch (error) {
         console.error("Error in events route:", error);

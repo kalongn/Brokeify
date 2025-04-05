@@ -55,21 +55,34 @@ export const stateMap = {
 };
 
 export const distributionToString = (distribution) => {
-  switch (distribution.distributionType) {
-    case "FIXED_AMOUNT":
-      return `${distribution.value}`;
-    case "FIXED_PERCENTAGE":
-      return `${distribution.value * 100}%`;
-    case "UNIFORM_AMOUNT":
-      return `[${distribution.lowerBound}, ${distribution.upperBound}]`;
-    case "UNIFORM_PERCENTAGE":
-      return `[${distribution.lowerBound * 100}%, ${distribution.upperBound * 100}%]`;
-    case "NORMAL_AMOUNT":
-      return `μ: ${distribution.mean}, σ: ${distribution.standardDeviation}`;
-    case "NORMAL_PERCENTAGE":
-      return `μ: ${distribution.mean * 100}%, σ: ${distribution.standardDeviation * 100}%`;
-    default:
-      return "Unknown Distribution Type";
+  if (distribution.distributionType) { // This is for distribution directly from the database
+    switch (distribution.distributionType) {
+      case "FIXED_AMOUNT":
+        return `${distribution.value}`;
+      case "FIXED_PERCENTAGE":
+        return `${distribution.value * 100}%`;
+      case "UNIFORM_AMOUNT":
+        return `[${distribution.lowerBound}, ${distribution.upperBound}]`;
+      case "UNIFORM_PERCENTAGE":
+        return `[${distribution.lowerBound * 100}%, ${distribution.upperBound * 100}%]`;
+      case "NORMAL_AMOUNT":
+        return `μ: ${distribution.mean}, σ: ${distribution.standardDeviation}`;
+      case "NORMAL_PERCENTAGE":
+        return `μ: ${distribution.mean * 100}%, σ: ${distribution.standardDeviation * 100}%`;
+      default:
+        return "Unknown Distribution Type";
+    }
+  } else if (distribution.type) { // This is for after using the distributionToFrontend function in the backend
+    switch (distribution.type) {
+      case "fixed":
+        return distribution.isPercentage ? `${distribution.value}%` : `${distribution.value}`;
+      case "uniform":
+        return distribution.isPercentage ? `[${distribution.lowerBound}%, ${distribution.upperBound}%]` : `[${distribution.lowerBound}, ${distribution.upperBound}]`;
+      case "normal":
+        return distribution.isPercentage ? `μ: ${distribution.mean}%, σ: ${distribution.standardDeviation}%` : `μ: ${distribution.mean}, σ: ${distribution.standardDeviation}`;
+      default:
+        return "Unknown Distribution Type";
+    }
   }
 };
 

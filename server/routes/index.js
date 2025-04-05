@@ -10,6 +10,7 @@ import investmentTypesRoutes from './investmentTypesRoutes.js';
 import investmentsRoutes from './investmentsRoutes.js';
 import eventsRoutes from './eventsRoutes.js';
 import limitsRoutes from './limitsRoutes.js';
+import spendingStrategyRoutes from './spendingStrategyRoutes.js';
 
 const router = express.Router();
 router.use(authRoutes);
@@ -22,6 +23,7 @@ router.use(investmentTypesRoutes);
 router.use(investmentsRoutes);
 router.use(eventsRoutes);
 router.use(limitsRoutes);
+router.use(spendingStrategyRoutes);
 
 router.get("/", async (req, res) => {
     console.log(req.session); // can be used to debug session data
