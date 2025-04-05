@@ -21,14 +21,14 @@ const ExpenseStrategy = () => {
     // Fetch the existing spending strategy data from the server
     Axios.get(`/expense-withdrawal-strategy/${scenarioId}`).then((response) => {
       const expenseStrategy = response.data;
-      const strategy = expenseStrategy.map((investment) => ({
+      const strategyData = expenseStrategy.map((investment) => ({
         _id: investment.id,
         id: investment.type + " (" + investment.taxStatus + ")",
         amount: `$${investment.value}`,
         percentage: `${distributionToString(investment.expectedAnnualReturnDistribution)}`,
         additional: investment.taxability ? "Taxable" : "Tax-exempt",
       }));
-      setStrategy(strategy);
+      setStrategy(strategyData);
       setLoading(false);
     }).catch((error) => {
       console.error('Error fetching spending strategy:', error);
