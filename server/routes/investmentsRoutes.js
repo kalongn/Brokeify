@@ -73,6 +73,10 @@ router.post("/investments/:scenarioId", async (req, res) => {
                         break;
                     }
                 }
+
+                scenarioController.update(id, {
+                    $push: { orderedExpenseWithdrawalStrategy: investmentDB._id }
+                });
             } else {
                 // Modification to pre existing investment
                 // Check if the investment type has changed
