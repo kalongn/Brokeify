@@ -26,7 +26,7 @@ router.post("/newScenario", async (req, res) => {
                 expectedAnnualReturnDistribution: await distributionController.create("FIXED_AMOUNT", { value: 0 }),
                 expenseRatio: 0,
                 expectedAnnualIncome: 0,
-                expectedAnnualIncomeDistribution: await distributionController.create("FIXED_AMOUNT", { values: 0 }),
+                expectedAnnualIncomeDistribution: await distributionController.create("FIXED_AMOUNT", { value: 0 }),
                 taxability: false,
                 investments: [await investmentController.create({ value: 0, taxStatus: "CASH" })],
             })],
