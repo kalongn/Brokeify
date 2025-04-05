@@ -72,7 +72,7 @@ export const distributionToString = (distribution) => {
       default:
         return "Unknown Distribution Type";
     }
-  } else if (distribution.type) { // This is for after using the dsitributionToFrontend function in the backend
+  } else if (distribution.type) { // This is for after using the distributionToFrontend function in the backend
     switch (distribution.type) {
       case "fixed":
         return distribution.isPercentage ? `${distribution.value}%` : `${distribution.value}`;
