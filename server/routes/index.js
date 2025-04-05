@@ -9,6 +9,15 @@ import InvestmentController from '../db/controllers/InvestmentController.js';
 import EventController from '../db/controllers/EventController.js';
 import DistributionController from '../db/controllers/DistributionController.js';
 
+import {
+    FrontendToDistribution,
+    taxStatusToFrontend,
+    taxStatusToBackend,
+    allocateMethodToFrontend,
+    allocateMethodToBackend,
+    canEdit,
+} from './helper.js';
+
 const router = express.Router();
 
 const scenarioController = new ScenarioController();
@@ -179,92 +188,6 @@ const distributionToFrontend = (distribution) => {
         default:
             return null;
     }
-}
-
-const FrontendToDistribution = (distribution) => {
-    if (!distribution) {
-        return null;
-    }
-    const { type, ...data } = distribution;
-    let distributionType = null;
-    switch (type) {
-        case "fixed":
-            distributionType = data.isPercentage ? "FIXED_PERCENTAGE" : "FIXED_AMOUNT";
-            data.value = data.isPercentage ? data.value / 100 : data.value;
-            break;
-        case "uniform":
-            distributionType = data.isPercentage ? "UNIFORM_PERCENTAGE" : "UNIFORM_AMOUNT";
-            data.lowerBound = data.isPercentage ? data.lowerBound / 100 : data.lowerBound;
-            data.upperBound = data.isPercentage ? data.upperBound / 100 : data.upperBound;
-            break;
-        case "normal":
-            distributionType = data.isPercentage ? "NORMAL_PERCENTAGE" : "NORMAL_AMOUNT";
-            data.mean = data.isPercentage ? data.mean / 100 : data.mean;
-            data.standardDeviation = data.isPercentage ? data.standardDeviation / 100 : data.standardDeviation;
-            break;
-        default:
-            return null;
-    }
-    delete data.isPercentage;
-    return { distributionType, ...data };
-}
-
-const taxStatusToFrontend = (taxStatus) => {
-    switch (taxStatus) {
-        case "CASH":
-            return "Cash";
-        case "NON_RETIREMENT":
-            return "Non-Retirement";
-        case "PRE_TAX_RETIREMENT":
-            return "Pre-Tax Retirement";
-        case "AFTER_TAX_RETIREMENT":
-            return "After-Tax Retirement";
-        default:
-            return null;
-    }
-}
-const taxStatusToBackend = (taxStatus) => {
-    switch (taxStatus) {
-        case "Cash":
-            return "CASH";
-        case "Non-Retirement":
-            return "NON_RETIREMENT";
-        case "Pre-Tax Retirement":
-            return "PRE_TAX_RETIREMENT";
-        case "After-Tax Retirement":
-            return "AFTER_TAX_RETIREMENT";
-        default:
-            return null;
-    }
-}
-
-const allocateMethodToFrontend = (allocationMethod) => {
-    switch (allocationMethod) {
-        case "FIXED":
-            return "fixed";
-        case "GLIDE":
-            return "glidePath";
-        default:
-            return null;
-    }
-}
-
-const allocateMethodToBackend = (allocationMethod) => {
-    switch (allocationMethod) {
-        case "fixed":
-            return "FIXED";
-        case "glidePath":
-            return "GLIDE";
-        default:
-            return null;
-    }
-}
-
-// Permission verifier
-const canEdit = async (userId, scenarioId) => {
-    const user = await userController.read(userId);
-    return user.ownerScenarios.some(scenario => scenario._id.toString() === scenarioId) ||
-        user.editorScenarios.some(scenario => scenario._id.toString() === scenarioId);
 }
 
 // create new default scenario
