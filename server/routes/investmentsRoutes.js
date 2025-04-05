@@ -109,6 +109,21 @@ router.post("/investments/:scenarioId", async (req, res) => {
                     });
                 }
 
+                const investmentDB = await investmentController.read(investment.id);
+                const oldTaxStatus = investmentDB.taxStatus;
+                const newTaxStatus = taxStatusToBackend(investment.taxStatus);
+                if (oldTaxStatus !== newTaxStatus) {
+                    if (newTaxStatus === "PRE_TAX_RETIREMENT") {
+                        await scenarioController.update(id, {
+                            $push: { orderedRMDStrategy: investment.id },
+                        });
+                    } else if (oldTaxStatus === "PRE_TAX_RETIREMENT") {
+                        await scenarioController.update(id, {
+                            $pull: { orderedRMDStrategy: investment.id },
+                        });
+                    }
+                }
+
                 // Update the investment
                 await investmentController.update(investment.id, {
                     value: investment.dollarValue,
