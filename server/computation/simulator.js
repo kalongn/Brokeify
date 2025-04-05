@@ -90,9 +90,6 @@ export function updateLog(eventDetails) {
 
 }
 
-
-
-
 export async function sample(expectedValue, distributionID) {
 
     //sample from distribution
@@ -127,13 +124,116 @@ export async function sample(expectedValue, distributionID) {
 
 }
 async function chooseEventTimeframe(scenario) {
-    //determine when events will start and end using sample, making sure that
-    //conflicting events do not overlap
-    //save determined start years and durations in {expexted...} variables
+    //select timeframes for events
+    //check whether invest events overlap, or rebalance events of smae type overlap
+    //if so, return false
+    //otherwise, return true
 
-    //first, sort events by those that are reliant on other events
-    //and those that are independant
-    //between the ones that arent, 
+    //determine starts/durartions for all events that are not 'start with/after'
+    let startWithOrAfterEvents = 0;
+    for (const eventIDIndex in scenario.events) {
+        const eventID = scenario.events[eventIDIndex];
+        const event = await eventFactory.read(eventID);
+        
+        //if it has start year distribution, choose it
+        if(event.startYearTypeDistribution===undefined){
+            startWithOrAfterEvents++;
+            continue;
+        }
+        const startYear = await sample(0, event.startYearTypeDistribution);
+        const duration  = await sample(0, event.durationTypeDistribution);
+        
+        await eventFactory.update(event._id, {startYear: startYear, duration: duration});
+
+    
+    
+    }
+    //now, choose startWithOrAfterEvents 
+    while(startWithOrAfterEvents>0){
+        for (const eventIDIndex in scenario.events) {
+            const eventID = scenario.events[eventIDIndex];
+            const event = await eventFactory.read(eventID);
+            
+            if(!(event.startsWith!==undefined||event.startsAfter!==undefined)){
+                continue;
+            }
+            //starts with or starts after
+            if(event.startsWith!==undefined){
+                const refedEvent = await eventFactory.read(event.startsWith);
+                const duration  = await sample(0, event.durationTypeDistribution);
+                await eventFactory.update(event._id, {startYear: refedEvent.startYear, duration: duration});
+            }
+            else if(event.startsAfter!==undefined){
+                const refedEvent = await eventFactory.read(event.startsAfter);
+                const duration  = await sample(0, event.durationTypeDistribution);
+                await eventFactory.update(event._id, {startYear: refedEvent.startYear+refedEvent.duration+1, duration: duration});
+            }
+            startWithOrAfterEvents--;
+        
+        }
+    }
+
+
+
+
+    //finally, do verification for invest events and rebalance events
+
+    //first: invest
+    for (const eventIDIndex in scenario.events) {
+        const eventID = scenario.events[eventIDIndex];
+        const event = await eventFactory.read(eventID);
+        
+        if(event.eventType!=="INVEST"){
+            continue;
+        }
+        for (const eventIDIndex2 in scenario.events) {
+            const eventID2 = scenario.events[eventIDIndex2];
+            const event2 = await eventFactory.read(eventID2);
+            
+            if(event2._id.toString()===event._id.toString()){
+                continue;
+            }
+            if(event2.eventType!=="INVEST"){
+                continue;
+            }
+
+            //check if overlap
+            
+            if(!(event2.startYear+event2.duration<event.startYear||event.startYear+event.duration<event2.startYear)){   
+                return false;
+            }
+        }
+    }
+    //next, rebalance:
+    for (const eventIDIndex in scenario.events) {
+        const eventID = scenario.events[eventIDIndex];
+        const event = await eventFactory.read(eventID);
+        
+        if(event.eventType!=="REBALANCE"){
+            continue;
+        }
+
+        for (const eventIDIndex2 in scenario.events) {
+            const eventID2 = scenario.events[eventIDIndex2];
+            const event2 = await eventFactory.read(eventID2);
+            if(event2._id.toString()===event._id.toString()){
+                continue;
+            }
+            if(event2.eventType!=="REBALANCE"){
+                continue;
+            }
+            if(event2.taxStatus!=event.taxStatus){
+                continue;
+            }
+
+            //check if overlap
+            
+            if(!(event2.startYear+event2.duration<event.startYear||event.startYear+event.duration<event2.startYear)){   
+                return false;
+            }
+        }
+    }
+    return true;
 
 
 }
@@ -1066,7 +1166,22 @@ export async function simulate(
     logFile = logFileL;
     
     let federalStandardDeduction = federalStandardDeductionObject.standardDeduction;
+    
+    
+    const eventTimeframeBool = await chooseEventTimeframe(inputScenario);
+    if(eventTimeframeBool===false){
+        console.log("Event Selection Failed, returning failed");
+    }
 
+    for (const eventIDIndex in inputScenario.events) {
+        const eventID = inputScenario.events[eventIDIndex];
+        const event = await eventFactory.read(eventID);
+        
+        console.log(`Event ${event.name} has start year ${event.startYear} and duration ${event.duration}`);
+    
+    }
+
+    
     const simulation = await createSimulation(inputScenario);
     
 
