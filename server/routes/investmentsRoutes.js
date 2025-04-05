@@ -74,8 +74,7 @@ router.post("/investments/:scenarioId", async (req, res) => {
                     }
                 }
             } else {
-                // Modificaiton to pre existing investment
-
+                // Modification to pre existing investment
                 // Check if the investment type has changed
                 let currentInvestmentType = null;
                 for (let type of scenario.investmentTypes) {
