@@ -34,7 +34,7 @@ router.get("/profile", async (req, res) => {
             return res.status(500).send("Error retrieving user profile.");
         }
     } else {
-        res.status(404).send("Not logged in.");
+        res.status(401).send("Unauthorized: Not logged in.");
     }
 });
 
