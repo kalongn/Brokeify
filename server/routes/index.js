@@ -1,9 +1,11 @@
 import express from 'express';
-import passport from 'passport';
+
+import authRoutes from './authRoutes.js';
+import homeRoutes from './homeRoutes.js';
+import viewScenarioRoutes from './viewScenarioRoutes.js';
 
 import ScenarioController from '../db/controllers/ScenarioController.js';
 import UserController from '../db/controllers/UserController.js';
-import TaxController from '../db/controllers/TaxController.js';
 import InvestmentTypeController from '../db/controllers/InvestmentTypeController.js';
 import InvestmentController from '../db/controllers/InvestmentController.js';
 import EventController from '../db/controllers/EventController.js';
@@ -19,6 +21,9 @@ import {
 } from './helper.js';
 
 const router = express.Router();
+router.use(authRoutes);
+router.use(homeRoutes);
+router.use(viewScenarioRoutes);
 
 const scenarioController = new ScenarioController();
 const userController = new UserController();
@@ -36,100 +41,6 @@ router.get("/", async (req, res) => {
         return res.status(204).send();
     }
 });
-
-router.get("/auth/google", passport.authenticate("google", {
-    scope: ["profile", "email"]
-}));
-
-router.get("/auth/google/callback", passport.authenticate("google", {
-    failureRedirect: "/"
-}), (req, res) => {
-    // Successful authentication, redirect to the home page.
-    req.session.user = req.user;
-    res.redirect(`${process.env.CLIENT_URL}/Home`);
-});
-
-router.get("/auth/guest", async (req, res) => {
-    const user = await userController.create({
-        ownerScenarios: [],
-        userSpecificTaxes: [],
-        userSimulations: [],
-    });
-    req.session.user = user._id;
-    res.redirect(`${process.env.CLIENT_URL}/Home`);
-});
-
-router.get("/logout", async (req, res) => {
-    const userId = req.session.user;
-    req.session.destroy(async (err) => {
-        if (err) {
-            return res.status(500).send("Could not log out.");
-        }
-        const user = await userController.read(userId);
-        console.log(`User ${userId} logged out.`);
-        if (user.permission === "GUEST") {
-            await userController.deepDeleteGuest(userId);
-        }
-        res.redirect(`${process.env.CLIENT_URL}/`);
-    });
-});
-
-router.get("/home", async (req, res) => {
-    if (req.session.user) {
-        const user = await userController.readWithScenarios(req.session.user);
-        const returnList = [];
-        for (let i = 0; i < user.ownerScenarios.length; i++) {
-            const scenario = user.ownerScenarios[i];
-
-            let investmentsLength = 0;
-            for (let type of scenario.investmentTypes) {
-                investmentsLength += type.investments.length;
-            }
-
-            returnList.push({
-                id: scenario._id,
-                name: scenario.name,
-                filingStatus: scenario.filingStatus,
-                financialGoal: scenario.financialGoal,
-                investmentsLength: investmentsLength,
-                eventsLength: scenario.events.length,
-            });
-        }
-        return res.status(200).send(returnList);
-    } else {
-        res.status(401).send("Not logged in.");
-    }
-});
-
-router.get("/scenario/:scenarioId", async (req, res) => {
-    if (req.session.user) {
-        try {
-            const user = await userController.read(req.session.user);
-            const id = req.params.scenarioId;
-
-            const isOwner = user.ownerScenarios.some(scenario => scenario._id.toString() === id) || false;
-            const isEditor = user.editorScenarios.some(scenario => scenario._id.toString() === id) || false;
-            const isViewer = user.viewerScenarios.some(scenario => scenario._id.toString() === id) || false;
-
-            if (!isOwner && !isEditor && !isViewer) {
-                return res.status(403).send("You do not have permission to access this scenario.");
-            }
-
-            let scenario = await scenarioController.readWithPopulate(id);
-            if (!scenario) {
-                return res.status(404).send("Scenario not found.");
-            }
-            scenario = scenario.toObject();
-            return res.status(200).send(scenario);
-        } catch (error) {
-            console.error("Error in scenario route:", error);
-            return res.status(500).send("Error retrieving scenario.");
-        }
-    } else {
-        res.status(401).send("Not logged in.");
-    }
-});
-
 
 router.get("/profile", async (req, res) => {
     if (req.session.user) {
