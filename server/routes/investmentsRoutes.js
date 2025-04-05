@@ -74,7 +74,7 @@ router.post("/investments/:scenarioId", async (req, res) => {
                     }
                 }
 
-                scenarioController.update(id, {
+                await scenarioController.update(id, {
                     $push: { orderedExpenseWithdrawalStrategy: investmentDB._id }
                 });
             } else {
