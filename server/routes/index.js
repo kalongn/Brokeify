@@ -4,9 +4,9 @@ import authRoutes from './authRoutes.js';
 import homeRoutes from './homeRoutes.js';
 import viewScenarioRoutes from './viewScenarioRoutes.js';
 import profileRoutes from './profileRoutes.js';
+import createScenarioRoutes from './createScenarioRoutes.js';
 
 import ScenarioController from '../db/controllers/ScenarioController.js';
-import UserController from '../db/controllers/UserController.js';
 import InvestmentTypeController from '../db/controllers/InvestmentTypeController.js';
 import InvestmentController from '../db/controllers/InvestmentController.js';
 import EventController from '../db/controllers/EventController.js';
@@ -27,9 +27,9 @@ router.use(authRoutes);
 router.use(homeRoutes);
 router.use(viewScenarioRoutes);
 router.use(profileRoutes);
+router.use(createScenarioRoutes);
 
 const scenarioController = new ScenarioController();
-const userController = new UserController();
 const investmentTypeController = new InvestmentTypeController();
 const investmentController = new InvestmentController();
 const eventController = new EventController();
@@ -42,41 +42,6 @@ router.get("/", async (req, res) => {
         return res.status(200).send("Verified, userId: " + req.session.user);
     } else {
         return res.status(204).send();
-    }
-});
-
-// Scenario Form
-
-// create new default scenario
-router.post("/newScenario", async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).send("Not logged in.");
-    }
-    try {
-        const user = await userController.read(req.session.user);
-        const newScenario = await scenarioController.create({
-            investmentTypes: [await investmentTypeController.create({
-                name: "Cash",
-                description: "HERE COMES THE MONEY",
-                expectedAnnualReturn: 0,
-                expectedAnnualReturnDistribution: await distributionController.create("FIXED_AMOUNT", { value: 0 }),
-                exprenseRatio: 0,
-                expectedAnnualIncome: 0,
-                expectedAnnualIncomeDistribution: await distributionController.create("FIXED_AMOUNT", { values: 0 }),
-                taxability: false,
-                investments: [await investmentController.create({ value: 0, taxStatus: "CASH" })],
-            })],
-            ownerFirstName: user.firstName,
-            ownerLastName: user.lastName,
-        });
-        await userController.update(req.session.user, {
-            $push: { ownerScenarios: newScenario._id }
-        });
-        console.log("New scenario created with ID:", newScenario._id);
-        return res.status(200).send({ newScenarioId: newScenario._id });
-    } catch (error) {
-        console.error("Error in scenario form route:", error);
-        return res.status(500).send("Error retrieving scenario form data.");
     }
 });
 
