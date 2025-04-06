@@ -24,7 +24,8 @@ import RMDStrategy from './pages/scenarioSections/RMDStrategy.jsx';
 import RothStrategy from './pages/scenarioSections/RothStrategy.jsx';
 import Sharing from './pages/scenarioSections/Sharing.jsx';
 import Charts from './pages/visualizations/Charts.jsx';
-import AddChart from './components/AddChart.jsx';
+//Not sure why, but below line is giving me a problem in the console, so I had to lowercase it. (But it should be AddChart.jsx???)
+import AddChart from './components/addChart.jsx';
 import RouteTesting from './pages/RouteTesting.jsx';
 import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
 import ViewScenario from './pages/ViewScenario.jsx';
