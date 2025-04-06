@@ -66,6 +66,8 @@ const AddChart = ({ onClose }) => {
             const thresholdInput = document.querySelector('input[type="number"]');
             if (!thresholdInput || thresholdInput.value === '') {
                 errors.threshold = 'Please enter an aggregation threshold.';
+            } else if (parseFloat(thresholdInput.value) < 0) {
+                errors.threshold = 'Threshold cannot be a negative number.';
             }
 
             const dollarRadios = document.getElementsByName('shadedDollar');
