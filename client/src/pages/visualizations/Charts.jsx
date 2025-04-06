@@ -2,6 +2,7 @@ import Layout from "../../components/Layout";
 import styles from "./Charts.module.css";
 import { useState } from "react";
 import Accordion from "../../components/Accordion";
+import AddChart from "../../components/addChart";
 const Charts = () => {
 
     const [charts, setCharts] = useState([
@@ -34,6 +35,7 @@ const Charts = () => {
                 <div className={styles.rightSide}>
                     {/* Display Charts */}
                     <div className={styles.chartsDisplay}>
+                        <AddChart />
                         <div className={styles.chart}>
                             <h3>Probability of Success over Time</h3>
 
