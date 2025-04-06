@@ -162,6 +162,7 @@ const RothStrategy = () => {
                     startYearRothOptimizer: null,
                     endYearRothOptimizer: null
                   }));
+                  // TODO: turning off the optimizer should also empty the year fields, which currently it is not.
                 }}
               />
               Enable Roth Conversion Optimizer
