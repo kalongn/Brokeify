@@ -10,15 +10,21 @@ const Charts = () => {
         { id: 1, type: "Line Chart", label: "Probability of Success over Time" },
         { id: 2, type: "Stacked Bar Chart", label: "Total Investments (Median)" },
         { id: 3, type: "Stacked Bar Chart", label: "Other Investments" },
-      ]);
-    
+    ]);
+
     return (
         <Layout>
             <div className={styles.content}>
                 <div className={styles.leftSide}>
                     <h2>Ideal Plan!!</h2>
                     <div className={styles.buttonGroup}>
-                         <Link to="/Visualizations/AddChart" > Add Charts</Link>
+
+                        <Link className={styles.buttonDesign} to="/Visualizations/AddChart" >
+                            <button>
+                                Add Charts
+                            </button>
+                        </Link>
+
                         <button>Generate Charts</button>
                     </div>
                     <h3>Added Charts</h3>
@@ -27,9 +33,9 @@ const Charts = () => {
                         List of Charts Accordion Format
 
                         {charts.map((chart) => (
-                        <div key={chart.id} className={styles.chartItem}>
-                             <Accordion key={chart.id} title={chart.type} content={chart.label} />
-                        </div>
+                            <div key={chart.id} className={styles.chartItem}>
+                                <Accordion key={chart.id} title={chart.type} content={chart.label} />
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -46,7 +52,7 @@ const Charts = () => {
                         </div>
                     </div>
                 </div>
-             
+
             </div>
         </Layout>
     );

@@ -40,8 +40,7 @@ const AddChart = ({ onClose }) => {
             <div className={styles.modal}>
                 <div className={styles.header}>
                     <h2>Select a Chart</h2>
-                    <Link className ={styles.exitButton} to={"/Visualizations/Charts"}> X</Link>
-
+                    <Link className={styles.exitButton} to={"/Visualizations/Charts"}> X</Link>
                 </div>
 
                 <div className={styles.chartOptions}>
@@ -128,7 +127,8 @@ const AddChart = ({ onClose }) => {
                                 <p className={styles.thresholdLabel}>
                                     Aggregation Threshold
                                     <input type="number" />
-                                    <span className={styles.tooltip} title="Categories with values less than this threshold will be combined into an 'Other' category.">?</span>
+                                    {/*TOD0: Get and add the questionmark icon to reflect like below*/}
+                                   {/* <span className={styles.tooltip} title="Categories with values less than this threshold will be combined into an 'Other' category.">?</span>*/}
                                 </p>
 
                                 <div className={styles.numericSettings}>
