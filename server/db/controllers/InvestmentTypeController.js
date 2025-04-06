@@ -60,6 +60,15 @@ export default class InvestmentTypeController {
             throw new Error(error);
         }
     }
+    
+    async readWithPopulate(id) {
+        try {
+            return await InvestmentType.findById(id).populate("expectedAnnualReturnDistribution expectedAnnualIncomeDistribution investments");
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
 
     /**
      * This function updates the InvestmentType with the given id with the given data
@@ -122,13 +131,13 @@ export default class InvestmentTypeController {
         }
     }
 
-    async clone(id){
-        try{
+    async clone(id) {
+        try {
             const type = await InvestmentType.findById(id);
             const clonedType = await this.create({
                 name: type.name,
-                description:type.description,
-                expectedAnnualReturn:type.expectedAnnualReturn,
+                description: type.description,
+                expectedAnnualReturn: type.expectedAnnualReturn,
                 expectedAnnualReturnDistribution: type.expectedAnnualReturnDistribution,
                 expenseRatio: type.expenseRatio,
                 expectedAnnualIncome: type.expectedAnnualIncome,
@@ -138,7 +147,7 @@ export default class InvestmentTypeController {
             });
             return clonedType.id;
 
-        } catch(err){
+        } catch (err) {
             throw new Error(err);
         }
     }
