@@ -80,8 +80,8 @@ router.post("/rmd-strategy/:scenarioId", async (req, res) => {
         await scenario.save();
         return res.status(200).send("RMD strategy updated successfully.");
     } catch (error) {
-        console.error("Error in expense withdrawal strategy route:", error);
-        return res.status(500).send("Error updating expense withdrawal strategy.");
+        console.error("Error in RMD withdrawal strategy route:", error);
+        return res.status(500).send("Error updating RMD strategy.");
     }
 });
 
