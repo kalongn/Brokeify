@@ -155,15 +155,18 @@ const RothStrategy = () => {
                 type="checkbox"
                 name="rothOptimizer"
                 defaultChecked={optimized}
-                onChange={() => {
-                  setOptimized(!optimized);
+                onChange={(e) => {
+                  if (optimized) {
+                    const inputs = e.target.form.querySelectorAll('input[type="number"]');
+                    inputs.forEach(input => { input.value = null });
+                  }
                   setFormData((prev) => ({
                     ...prev,
                     startYearRothOptimizer: null,
                     endYearRothOptimizer: null
                   }));
+                  setOptimized(!optimized);
                   setErrors({});
-                  // TODO: turning off the optimizer should also empty the year fields, which currently it is not.
                 }}
               />
               Enable Roth Conversion Optimizer
