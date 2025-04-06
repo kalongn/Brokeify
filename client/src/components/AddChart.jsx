@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import styles from "./AddChart.module.css";
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const shadedLineQuantities = [
   "Total Investments",
@@ -39,7 +40,9 @@ const AddChart = ({ onClose }) => {
       <div className={styles.modal}>
         <div className={styles.header}>
           <h2>Select a Chart</h2>
-          <button className={styles.closeButton} onClick={onClose}>×</button>
+          <Link className={styles.exitButton}  disabled={!selectedChart} to="/Visualizations/Charts" > 
+          X</Link>
+          
         </div>
 
         <div className={styles.chartOptions}>
@@ -142,12 +145,8 @@ const AddChart = ({ onClose }) => {
         </div>
 
         <div className={styles.footer}>
-          <button
-            className={styles.saveButton}
-            disabled={!selectedChart}
-          >
-            Save & Add Chart
-          </button>
+            <Link className={styles.saveButton}  disabled={!selectedChart} to="/Visualizations/Charts" > 
+            Save & Add Chart</Link>
         </div>
       </div>
     </div>

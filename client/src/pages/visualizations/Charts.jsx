@@ -2,7 +2,8 @@ import Layout from "../../components/Layout";
 import styles from "./Charts.module.css";
 import { useState } from "react";
 import Accordion from "../../components/Accordion";
-import AddChart from "../../components/addChart";
+
+import { Link } from "react-router-dom";
 const Charts = () => {
 
     const [charts, setCharts] = useState([
@@ -17,7 +18,7 @@ const Charts = () => {
                 <div className={styles.leftSide}>
                     <h2>Ideal Plan!!</h2>
                     <div className={styles.buttonGroup}>
-                        <button>Add Charts</button>
+                         <Link to="/Visualizations/AddChart" > Add Charts</Link>
                         <button>Generate Charts</button>
                     </div>
                     <h3>Added Charts</h3>
@@ -35,7 +36,6 @@ const Charts = () => {
                 <div className={styles.rightSide}>
                     {/* Display Charts */}
                     <div className={styles.chartsDisplay}>
-                        <AddChart />
                         <div className={styles.chart}>
                             <h3>Probability of Success over Time</h3>
 
