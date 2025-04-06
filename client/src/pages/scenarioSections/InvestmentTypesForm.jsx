@@ -47,11 +47,13 @@ const InvestmentTypesForm = () => {
           expenseRatio: investmentType.expenseRatio || prev.expenseRatio,
           taxability: investmentType.taxability || prev.taxability,
         }));
+        setLoading(false);
       }).catch((error) => {
         console.error('Error fetching investment type:', error);
       });
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, [id, scenarioId]);
 
 
