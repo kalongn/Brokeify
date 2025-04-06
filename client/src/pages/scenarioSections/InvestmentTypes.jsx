@@ -33,7 +33,7 @@ const InvestmentTypes = () => {
   const editInvestmentType = (id) => {
     navigate(`/ScenarioForm/${scenarioId}/investment-types/edit/${id}`);
   };
-  
+
 
   return (
     <div>
@@ -68,13 +68,11 @@ const InvestmentTypes = () => {
                     onClick={() => {
                       if (index === 0) return;
                       editInvestmentType(investmentType.id);
-                      alert(investmentType.id);
-                      console.log(investmentType);
                     }
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
                     disabled={index === 0}
-                    
+
                   >
                     <FaEdit />
                   </button>
@@ -88,7 +86,7 @@ const InvestmentTypes = () => {
                       alert("NOT IMPLEMENTED YET")
                     }
                     }
-                    style={{ opacity: index === 0 ? 0.2 : 1}}
+                    style={{ opacity: index === 0 ? 0.2 : 1 }}
                     disabled={index === 0}
                   >
                     <FaTimes />
