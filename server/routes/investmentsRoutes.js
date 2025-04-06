@@ -57,7 +57,6 @@ router.post("/investments/:scenarioId", async (req, res) => {
         const { investments } = req.body;
 
         for (let investment of investments) {
-
             // New Investment Added
             if (investment.id === undefined) {
                 const investmentDB = await investmentController.create({
@@ -77,6 +76,12 @@ router.post("/investments/:scenarioId", async (req, res) => {
                 await scenarioController.update(id, {
                     $push: { orderedExpenseWithdrawalStrategy: investmentDB._id }
                 });
+
+                if (investmentDB.taxStatus === "PRE_TAX_RETIREMENT") {
+                    await scenarioController.update(id, {
+                        $push: { orderedRMDStrategy: investmentDB._id },
+                    });
+                }
             } else {
                 // Modification to pre existing investment
                 // Check if the investment type has changed
@@ -102,6 +107,21 @@ router.post("/investments/:scenarioId", async (req, res) => {
                     await investmentTypeController.update(newType._id, {
                         $push: { investments: investment.id }
                     });
+                }
+
+                const investmentDB = await investmentController.read(investment.id);
+                const oldTaxStatus = investmentDB.taxStatus;
+                const newTaxStatus = taxStatusToBackend(investment.taxStatus);
+                if (oldTaxStatus !== newTaxStatus) {
+                    if (newTaxStatus === "PRE_TAX_RETIREMENT") {
+                        await scenarioController.update(id, {
+                            $push: { orderedRMDStrategy: investment.id },
+                        });
+                    } else if (oldTaxStatus === "PRE_TAX_RETIREMENT") {
+                        await scenarioController.update(id, {
+                            $pull: { orderedRMDStrategy: investment.id },
+                        });
+                    }
                 }
 
                 // Update the investment
