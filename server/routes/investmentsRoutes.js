@@ -79,7 +79,10 @@ router.post("/investments/:scenarioId", async (req, res) => {
 
                 if (investmentDB.taxStatus === "PRE_TAX_RETIREMENT") {
                     await scenarioController.update(id, {
-                        $push: { orderedRMDStrategy: investmentDB._id },
+                        $push: {
+                            orderedRMDStrategy: investmentDB._id,
+                            orderedRothStrategy: investmentDB._id
+                        }
                     });
                 }
             } else {
@@ -115,11 +118,17 @@ router.post("/investments/:scenarioId", async (req, res) => {
                 if (oldTaxStatus !== newTaxStatus) {
                     if (newTaxStatus === "PRE_TAX_RETIREMENT") {
                         await scenarioController.update(id, {
-                            $push: { orderedRMDStrategy: investment.id },
+                            $push: {
+                                orderedRMDStrategy: investment.id,
+                                orderedRothStrategy: investment.id
+                            }
                         });
                     } else if (oldTaxStatus === "PRE_TAX_RETIREMENT") {
                         await scenarioController.update(id, {
-                            $pull: { orderedRMDStrategy: investment.id },
+                            $pull: {
+                                orderedRMDStrategy: investment.id,
+                                orderedRothStrategy: investment.id
+                            },
                         });
                     }
                 }
