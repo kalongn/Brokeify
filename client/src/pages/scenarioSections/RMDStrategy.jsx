@@ -31,7 +31,7 @@ const RMDStrategy = () => {
       setStrategy(strategyData);
       setLoading(false);
     }).catch((error) => {
-      console.error('Error fetching spending strategy:', error);
+      console.error('Error fetching RMD strategy:', error);
     });
   }, [scenarioId]);
 

@@ -53,7 +53,7 @@ const RothStrategy = () => {
       setStrategy(strategyData);
       setLoading(false);
     }).catch((error) => {
-      console.error('Error fetching spending strategy:', error);
+      console.error('Error fetching Roth strategy:', error);
     });
   }, [scenarioId]);
 
