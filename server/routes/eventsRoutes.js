@@ -1,5 +1,5 @@
 import express from "express";
-import { canEdit, distributionToBackend, distributionToFrontend, taxStatusToBackend, taxStatusToFrontend, allocateMethodToBackend } from "./helper.js";
+import { canEdit, distributionToBackend, distributionToFrontend, taxStatusToBackend, taxStatusToFrontend, allocateMethodToFrontend, allocateMethodToBackend } from "./helper.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
 import EventController from "../db/controllers/EventController.js";
 import DistributionController from "../db/controllers/DistributionController.js";
@@ -84,7 +84,114 @@ router.get("/event/:scenarioId", async (req, res) => {
         console.error("Error in events route:", error);
         return res.status(500).send("Error retrieving events.");
     }
+});
 
+router.get("/event/:scenarioId/:eventId", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+        if (!await canEdit(userId, id)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
+        }
+        const eventId = req.params.eventId;
+        const event = await eventController.readWithPopulate(eventId);
+
+        event.durationTypeDistribution = distributionToFrontend(event.durationTypeDistribution);
+
+        const data = {
+            eventType: event.eventType,
+            name: event.name,
+            description: event.description,
+            durationTypeDistribution: event.durationTypeDistribution,
+        }
+
+        if (event.startYearTypeDistribution) {
+            data.startYearTypeDistribution = distributionToFrontend(event.startYearTypeDistribution);
+        } else if (event.startsWith) {
+            data.startYearTypeDistribution = {
+                type: "eventStart",
+                event: event.startsWith
+            }
+        } else if (event.startsAfter) {
+            data.startYearTypeDistribution = {
+                type: "eventEnd",
+                event: event.startsAfter
+            }
+        }
+
+        if (event.percentageAllocations) {
+            event.percentageAllocations = event.percentageAllocations.map(allocation => {
+                return allocation.map(percentage => {
+                    return percentage * 100;
+                });
+            });
+        }
+
+        switch (event.eventType) {
+            case "INCOME":
+                data.initialValue = event.amount;
+                data.isAdjustInflation = event.isinflationAdjusted;
+                data.percentageIncrease = event.userContributions * 100;
+                data.isSocialSecurity = event.isSocialSecurity;
+                data.expectedAnnualChangeDistribution = distributionToFrontend(event.expectedAnnualChangeDistribution);
+                break;
+            case "EXPENSE":
+                data.initialValue = event.amount;
+                data.isAdjustInflation = event.isinflationAdjusted;
+                data.percentageIncrease = event.userContributions * 100;
+                data.isDiscretionary = event.isDiscretionary;
+                data.expectedAnnualChangeDistribution = distributionToFrontend(event.expectedAnnualChangeDistribution);
+                break;
+            case "INVEST":
+                data.allocationMethod = allocateMethodToFrontend(event.assetAllocationType);
+                data.allocatedInvestments = event.allocatedInvestments
+                data.maximumCash = event.maximumCash;
+                data.investmentRows = event.percentageAllocations.map((allocation, index) => {
+                    if (event.assetAllocationType === "GLIDE") {
+                        return {
+                            investment: event.allocatedInvestments[index],
+                            initialPercentage: allocation[0],
+                            finalPercentage: allocation[1],
+                        }
+                    } else {
+                        return {
+                            investment: event.allocatedInvestments[index],
+                            percentage: allocation[0],
+                        }
+                    }
+                });
+                break;
+            case "REBALANCE":
+                data.allocationMethod = allocateMethodToFrontend(event.assetAllocationType);
+                data.investmentRows = event.percentageAllocations.map((allocation, index) => {
+                    if (event.assetAllocationType === "GLIDE") {
+                        return {
+                            investment: event.allocatedInvestments[index],
+                            initialPercentage: allocation[0],
+                            finalPercentage: allocation[1],
+                        }
+                    } else {
+                        return {
+                            investment: event.allocatedInvestments[index],
+                            percentage: allocation[0],
+                        }
+                    }
+                });
+                data.maximumCash = event.maximumCash;
+                data.taxStatus = taxStatusToFrontend(event.taxStatus);
+                break;
+            default:
+                // Should not happen
+                return res.status(400).send("Unhandled event type");
+        }
+        return res.status(200).send(data);
+    } catch (error) {
+        console.error("Error in events route:", error);
+        return res.status(500).send("Error retrieving events.");
+    }
 });
 
 router.post("/event/:scenarioId", async (req, res) => {
