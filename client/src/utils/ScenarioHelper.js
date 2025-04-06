@@ -55,6 +55,10 @@ export const stateMap = {
 };
 
 export const distributionToString = (distribution) => {
+  if (!distribution) {
+    return "No Distribution"; //TODO: need to adjust this to handle the case of startWithEvent / startAfterEvent for the ScenarioSimulation page.
+  }
+
   if (distribution.distributionType) { // This is for distribution directly from the database
     switch (distribution.distributionType) {
       case "FIXED_AMOUNT":
