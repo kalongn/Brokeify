@@ -119,7 +119,7 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
         return res.status(200).send("Investment type added.");
     } catch (error) {
         console.error("Error in investment type route:", error);
-        return res.status(500).send("Error retrieving investment type.");
+        return res.status(500).send("Error creating investment type.");
     }
 });
 
@@ -159,7 +159,7 @@ router.put("/investmentType/:scenarioId/:investmentTypeId", async (req, res) => 
         return res.status(200).send("Investment type updated.");
     } catch (error) {
         console.error("Error in investment type route:", error);
-        return res.status(500).send("Error retrieving investment type.");
+        return res.status(500).send("Error updating investment type.");
     }
 });
 
