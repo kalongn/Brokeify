@@ -23,17 +23,62 @@ const numericQuantities = [
     "Total Expenses (including taxes)",
     "Early Withdrawal Tax"
 ];
-
+{/*TODO: Add error validation*/ }
 const AddChart = ({ onClose }) => {
     const [selectedChart, setSelectedChart] = useState(null);
     const [selectedShadedQuantity, setSelectedShadedQuantity] = useState('');
     const [selectedBarQuantity, setSelectedBarQuantity] = useState('');
+    const [validationErrors, setValidationErrors] = useState({});
 
     const isShadedQuantityNumeric = numericQuantities.includes(selectedShadedQuantity);
 
     const handleChartClick = (chartType) => {
         setSelectedChart(chartType);
+        setValidationErrors((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors.chartSelection;
+            return newErrors;
+        });
     };
+
+    const validateForm = () => {
+        const errors = {};
+         if (!selectedChart) {
+        errors.chartSelection = 'Please select a chart type.';
+    }
+        if (selectedChart === 'shaded') {
+            if (!selectedShadedQuantity) errors.shadedQuantity = 'Please select a quantity.';
+            if (isShadedQuantityNumeric) {
+                const radios = document.getElementsByName('shadedDollar');
+                if (![...radios].some(r => r.checked)) {
+                    errors.dollarValue = 'Please choose a dollar value (Today or Future).';
+                }
+            }
+        }
+
+        if (selectedChart === 'stacked') {
+            if (!selectedBarQuantity) errors.barQuantity = 'Please select a quantity.';
+            const barRadios = document.getElementsByName('barValueType');
+            if (![...barRadios].some(r => r.checked)) {
+                errors.barType = 'Please select Median or Average.';
+            }
+
+            const thresholdInput = document.querySelector('input[type="number"]');
+            if (!thresholdInput || thresholdInput.value === '') {
+                errors.threshold = 'Please enter an aggregation threshold.';
+            }
+
+            const dollarRadios = document.getElementsByName('shadedDollar');
+            if (![...dollarRadios].some(r => r.checked)) {
+                errors.dollarValue = 'Please choose a dollar value (Today or Future).';
+            }
+        }
+
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+
 
     return (
         <div className={styles.modalOverlay}>
@@ -83,6 +128,9 @@ const AddChart = ({ onClose }) => {
                                         <option key={q} value={q}>{q}</option>
                                     ))}
                                 </select>
+                                {validationErrors.shadedQuantity && (
+                                    <p className={styles.error}>{validationErrors.shadedQuantity}</p>
+                                )}
                                 {isShadedQuantityNumeric && (
                                     <div className={styles.numericSettings}>
                                         <p>Dollar Value</p>
@@ -90,6 +138,9 @@ const AddChart = ({ onClose }) => {
                                             <p><input type="radio" name="shadedDollar" /> Today</p>
                                             <p><input type="radio" name="shadedDollar" /> Future</p>
                                         </div>
+                                        {validationErrors.dollarValue && (
+                                            <p className={styles.error}>{validationErrors.dollarValue}</p>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -112,6 +163,9 @@ const AddChart = ({ onClose }) => {
                                     <p><input type="radio" name="barValueType" /> Median</p>
                                     <p><input type="radio" name="barValueType" /> Average</p>
                                 </div>
+                                {validationErrors.barType && (
+                                        <p className={styles.error}>{validationErrors.barType}</p>
+                                )}
                                 <div className={styles.selectContainer}>
                                     <select
                                         value={selectedBarQuantity}
@@ -122,14 +176,20 @@ const AddChart = ({ onClose }) => {
                                             <option key={q} value={q}>{q}</option>
                                         ))}
                                     </select>
+                                    {validationErrors.barQuantity && (
+                                    <p className={styles.error}>{validationErrors.barQuantity}</p>
+                                    )}
                                 </div>
 
                                 <p className={styles.thresholdLabel}>
                                     Aggregation Threshold
                                     <input type="number" />
                                     {/*TOD0: Get and add the questionmark icon to reflect like below*/}
-                                   {/* <span className={styles.tooltip} title="Categories with values less than this threshold will be combined into an 'Other' category.">?</span>*/}
+                                    {/* <span className={styles.tooltip} title="Categories with values less than this threshold will be combined into an 'Other' category.">?</span>*/}
                                 </p>
+                                {validationErrors.threshold && (
+                                    <p className={styles.error}>{validationErrors.threshold}</p>
+                                )}
 
                                 <div className={styles.numericSettings}>
                                     <p>Dollar Value</p>
@@ -137,6 +197,9 @@ const AddChart = ({ onClose }) => {
                                         <p><input type="radio" name="shadedDollar" /> Today</p>
                                         <p><input type="radio" name="shadedDollar" /> Future</p>
                                     </div>
+                                    {validationErrors.dollarValue && (
+                                        <p className={styles.error}>{validationErrors.dollarValue}</p>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -144,7 +207,15 @@ const AddChart = ({ onClose }) => {
                 </div>
 
                 <div className={styles.footer}>
-                    <Link className={styles.saveButton} disabled={!selectedChart} to="/Visualizations/Charts" >
+                {validationErrors.chartSelection && (
+        <p className={styles.error}>{validationErrors.chartSelection}</p>
+    )}
+                    <Link className={styles.saveButton}
+                        onClick={(e) => {
+                            if (!validateForm()) e.preventDefault();
+                        }}
+
+                        to="/Visualizations/Charts" >
                         Save & Add Chart</Link>
                 </div>
             </div>
