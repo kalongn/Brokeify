@@ -1,26 +1,70 @@
+import { useState, useEffect, useImperativeHandle } from "react";
+import { useParams, useOutletContext } from "react-router-dom";
+import Axios from "axios";
+
+import { distributionToString } from "../../utils/ScenarioHelper";
+import SortableList from "../../components/SortableList";
 import styles from "./Form.module.css";
 
-import { useState } from "react";
-import SortableList from "../../components/SortableList";
-
 const RMDStrategy = () => {
-  // TODO: pull from list of investments and reformat into below
-  // investments has name, value, expectedAnnualReturn, taxability
-  // name and value are from investment while expectedAnnualReturn and taxability are from investment type
-  // Keys must be named as id, amount, percentage, additional
-  const investments = [
-    { id: "Investment Withdrawal 1", amount: `$100`, percentage: `1.9% return`, additional: `Taxable` },
-    { id: "Investment Withdrawal 2", amount: `$5000`, percentage: `4% return`, additional: `Taxable` },
-    { id: "Investment Withdrawal 3", amount: `$50`, percentage: `9% return`, additional: `Tax-exempt` },
-  ];
-  const [strategy, setStrategy] = useState([investments]);
+
+  const { scenarioId } = useParams();
+  const { childRef } = useOutletContext();
+
+  const [strategy, setStrategy] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    // Fetch the existing spending strategy data from the server
+    Axios.get(`/rmd-strategy/${scenarioId}`).then((response) => {
+      const rmdStrategy = response.data;
+      const strategyData = rmdStrategy.map((investment) => ({
+        _id: investment.id,
+        id: investment.type + " (" + investment.taxStatus + ")",
+        amount: `$${investment.value}`,
+        percentage: `${distributionToString(investment.expectedAnnualReturnDistribution)}`,
+        additional: investment.taxability ? "Taxable" : "Tax-exempt",
+      }));
+      setStrategy(strategyData);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Error fetching RMD strategy:', error);
+    });
+  }, [scenarioId]);
+
   const handleReorder = (list) => {
     setStrategy(list);
-    if(!strategy) {
+    if (!strategy) {
       console.log("no strategy");
     }
   };
-  // TODO: save rmd strategy to db
+
+  // Expose the handleSubmit function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
+
+  const uploadToBackend = async () => {
+    const updatedStrategy = strategy.map((investment) => ({
+      id: investment._id,
+    }));
+
+    try {
+      const response = await Axios.post(`/rmd-strategy/${scenarioId}`, updatedStrategy);
+      console.log(response.data);
+      return true;
+    }
+    catch (error) {
+      console.error("Error uploading spending strategy:", error);
+      return false
+    }
+  }
+  const handleSubmit = async () => {
+    return await uploadToBackend();
+  };
 
   return (
     <div>
@@ -30,10 +74,13 @@ const RMDStrategy = () => {
         from pre-tax retirement accounts to non-retirement accounts
         when a Required Minimum Distribution (RMD) is triggered.
       </p>
-      <SortableList
-        items={investments}
-        handleReorder={handleReorder}
-      />
+      {loading ?
+        <p>Loading...</p>
+        :
+        <SortableList
+          items={strategy}
+          handleReorder={handleReorder}
+        />}
     </div>
   );
 };

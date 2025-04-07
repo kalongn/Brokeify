@@ -86,11 +86,8 @@ const Investments = () => {
     else {
       formData.forEach((row) => {
         // Check if investment is set and if all fields are filled
-        if (!row.type || !row.dollarValue || !row.taxStatus) {
+        if (!row.type || row.dollarValue === null || row.dollarValue === undefined || !row.taxStatus) {
           newErrors.investmentRow = "All row fields are required";
-          if (row.dollarValue === 0) {
-            newErrors.investmentRow = "Dollar values must be non-zero";
-          }
         }
         else if (row.dollarValue < 0) {
           newErrors.investmentRow = "Dollar values must be non-negative";
@@ -121,11 +118,10 @@ const Investments = () => {
     }
     return await uploadToBackend();
   };
-  formData.map((investment, index) => {
-    console.log(investment);
-    console.log(index);
-  });
-
+  // formData.map((investment, index) => {
+  //   console.log(investment);
+  //   console.log(index);
+  // });
 
   return (
     <div>

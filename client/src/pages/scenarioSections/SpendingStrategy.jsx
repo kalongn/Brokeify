@@ -1,27 +1,70 @@
+import { useState, useEffect, useImperativeHandle } from "react";
+import { useParams, useOutletContext } from "react-router-dom";
+import Axios from "axios";
+
+import { distributionToString } from "../../utils/ScenarioHelper";
+import SortableList from "../../components/SortableList";
 import styles from "./Form.module.css";
 
-import { useState } from "react";
-import SortableList from "../../components/SortableList";
-
 const SpendingStrategy = () => {
-  // TODO: pull from list of discretionary expenses and reformat into below
-  // expenses has name, amount, userContributions, spouseContributions
-  // Keys must be named as id, amount, percentage, additional
-  const expenses = [
-    { id: "Discretionary Expense 1", amount: `$100`, percentage: `1.9% increase`, additional: `0% increase` },
-    { id: "Discretionary Expense 2", amount: `$5000`, percentage: `4% increase`, additional: `3% increase` },
-    { id: "Discretionary Expense 3", amount: `$50`, percentage: `9% increase`, additional: `5% increase` },
-    { id: "Discretionary Expense 4", amount: `$400`, percentage: `8.4% increase`, additional: `3.7% increase` },
-    { id: "Discretionary Expense 5", amount: `$899`, percentage: `0% increase`, additional: `1.4% increase` },
-  ];
-  const [strategy, setStrategy] = useState([expenses]);
+
+  const { scenarioId } = useParams();
+  const { childRef } = useOutletContext();
+
+  const [strategy, setStrategy] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    // Fetch the existing spending strategy data from the server
+    Axios.get(`/spending-strategy/${scenarioId}`).then((response) => {
+      const spendingStrategy = response.data;
+      const strategy = spendingStrategy.map((expense) => ({
+        _id: expense.id,
+        id: expense.name,
+        amount: `$${expense.amount}`,
+        percentage: `${distributionToString(expense.expectedAnnualChangeDistribution)}`,
+        additional: expense.isinflationAdjusted ? "Affected by inflation" : "Not affected by inflation",
+      }));
+      setStrategy(strategy);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Error fetching spending strategy:', error);
+    });
+  }, [scenarioId]);
+
   const handleReorder = (list) => {
     setStrategy(list);
-    if(!strategy) {
+    if (!strategy) {
       console.log("no strategy");
     }
   };
-  // TODO: save spending strategy to db
+
+  // Expose the handleSubmit function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
+
+  const uploadToBackend = async () => {
+    const updatedStrategy = strategy.map((event) => ({
+      id: event._id,
+    }));
+
+    try {
+      const response = await Axios.post(`/spending-strategy/${scenarioId}`, updatedStrategy);
+      console.log(response.data);
+      return true;
+    }
+    catch (error) {
+      console.error("Error uploading spending strategy:", error);
+      return false
+    }
+  }
+  const handleSubmit = async () => {
+    return await uploadToBackend();
+  };
 
   return (
     <div>
@@ -29,10 +72,13 @@ const SpendingStrategy = () => {
       <p>
         Specify the order of discretionary expenses to be paid as cash allows.
       </p>
-      <SortableList
-        items={expenses}
-        handleReorder={handleReorder}
-      />
+      {loading ?
+        <p>Loading...</p>
+        :
+        <SortableList
+          items={strategy}
+          handleReorder={handleReorder}
+        />}
     </div>
   );
 };
