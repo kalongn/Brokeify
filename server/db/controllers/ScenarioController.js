@@ -251,6 +251,18 @@ export default class ScenarioController {
             clonedEvents.push(clonedEventID)
             //return clonedEventID;    
         }
+        //update startswith/startsafter
+        for(const i in clonedEvents){
+            const eventId = clonedEvents[i];
+            const clonedEvent = await eventFactory.read(eventId);
+            
+            if(clonedEvent.startsWith!==undefined){
+                await eventFactory.update(eventId, {startsWith: idMap.get(clonedEvent.startsWith.toString())});
+            }
+            else if(clonedEvent.startsAfter!==undefined){
+                await eventFactory.update(eventId, {startsAfter: idMap.get(clonedEvent.startsAfter.toString())});
+            }
+        }
 
 
         // Clone Scenario
