@@ -102,7 +102,7 @@ router.get("/event/:scenarioId/:eventId", async (req, res) => {
         event.durationTypeDistribution = distributionToFrontend(event.durationTypeDistribution);
 
         const data = {
-            eventType: event.eventType,
+            eventType: event.eventType.toLowerCase(),
             name: event.name,
             description: event.description,
             durationTypeDistribution: event.durationTypeDistribution,
