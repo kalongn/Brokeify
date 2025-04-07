@@ -69,7 +69,7 @@ investments:
     id: S&P 500 after-tax
  
 eventSeries:
-  - name: q
+  - name: salary
     start: {type: fixed, value: 2025} # a fixed, normal, or uniform distribution (as above) or a map with the form {type: startWith, eventSeries: <name>} or {type: startAfter, eventSeries: <name>}
     duration: {type: fixed, value: 40}
     type: income # "income", "expense", "invest", or "rebalance"

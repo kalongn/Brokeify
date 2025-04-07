@@ -301,11 +301,11 @@ const testTax = async (i) => {
 const populateDB = async () => {
     const factory = new ScenarioController();
     
-    //const scenarioID = await parseAndSaveYAML("../yaml_files/scenario.yaml");
-    //const scenario = await factory.read(scenarioID);
-    //console.log(scenario);
-    //const res1 = await connection.dropDatabase();
-    //throw("eee");
+    const scenarioID = await parseAndSaveYAML("../yaml_files/scenario.yaml");
+    const scenario1 = await factory.read(scenarioID);
+    console.log(scenario1);
+    const res1 = await connection.dropDatabase();
+    return;
     const RMDTable = await testRMDTable();
 
     const federalIncomeTax = await testTax(1);
