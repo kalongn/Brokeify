@@ -402,16 +402,13 @@ router.put("/event/:scenarioId/:eventId", async (req, res) => {
         });
 
         index = scenario.orderedSpendingStrategy.length;
-        console.log(scenario.orderedSpendingStrategy);
         if (oldEvent.eventType === "EXPENSE" && oldEvent.isDiscretionary) {
             index = scenario.orderedSpendingStrategy.findIndex(event => event._id.toString() === oldEvent._id.toString());
             scenario.orderedSpendingStrategy.splice(index, 1);
-            console.log(scenario.orderedSpendingStrategy);
         }
 
         if (event.eventType === "EXPENSE" && event.isDiscretionary) {
             scenario.orderedSpendingStrategy.splice(index, 0, event._id)
-            console.log(scenario.orderedSpendingStrategy);
         }
 
         await scenarioController.update(id, {
