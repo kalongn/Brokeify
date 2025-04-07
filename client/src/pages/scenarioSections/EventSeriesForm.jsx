@@ -61,13 +61,14 @@ const EventSeriesForm = () => {
           return { value: event.id, label: event.name };
         });
 
+        console.log("Event options:", eventOptions);
+
         setEvents(eventOptions);
         setAllInvestments(investmentsData);
 
         if (id) {
           const eventResponse = await Axios.get(`/event/${scenarioId}/${id}`);
           const eventData = eventResponse.data;
-          console.log('Event data:', eventData);
           setFormData({
             name: eventData.name,
             description: eventData.description,
@@ -78,19 +79,49 @@ const EventSeriesForm = () => {
             duration: eventData.durationTypeDistribution,
             expectedAnnualChange: eventData.expectedAnnualChangeDistribution || { type: "" },
           }));
+          console.log(eventData.startYearTypeDistribution)
           setEventType(eventData.eventType);
-          setTypeFormData((prev) => ({
-            ...prev,
-            allocationMethod: eventData.allocationMethod || prev.allocationMethod,
-            maximumCash: eventData.maximumCash || prev.maximumCash,
-            investmentRows: eventData.investmentRows || prev.investmentRows,
-            taxStatus: eventData.taxStatus || prev.taxStatus,
-            isAdjustInflation: eventData.isAdjustInflation || prev.isAdjustInflation,
-            initialValue: eventData.initialValue || prev.initialValue,
-            percentageIncrease: eventData.percentageIncrease || prev.percentageIncrease,
-            isDiscretionary: eventData.isDiscretionary || prev.isDiscretionary,
-            isSocialSecurity: eventData.isSocialSecurity || prev.isSocialSecurity,
-          }));
+
+          switch (eventData.eventType) {
+            case "income":
+              setTypeFormData({
+                type: "income",
+                isSocialSecurity: eventData.isSocialSecurity,
+                initialValue: eventData.initialValue,
+                percentageIncrease: eventData.percentageIncrease,
+                isAdjustInflation: eventData.isAdjustInflation,
+              });
+              break;
+            case "expense":
+              setTypeFormData({
+                type: "expense",
+                isDiscretionary: eventData.isDiscretionary,
+                initialValue: eventData.initialValue,
+                percentageIncrease: eventData.percentageIncrease,
+                isAdjustInflation: eventData.isAdjustInflation,
+              });
+              break;
+            case "invest":
+              setTypeFormData({
+                type: "invest",
+                allocationMethod: eventData.allocationMethod,
+                maximumCash: eventData.maximumCash,
+                investmentRows: eventData.investmentRows,
+              });
+              break;
+            case "rebalance":
+              setTypeFormData({
+                type: "rebalance",
+                allocationMethod: eventData.allocationMethod,
+                maximumCash: eventData.maximumCash,
+                investmentRows: eventData.investmentRows,
+                taxStatus: eventData.taxStatus,
+              });
+              break;
+            default:
+              // Should not happen
+              break;
+          }
         }
         setLoading(false);
       } catch (error) {
@@ -289,7 +320,7 @@ const EventSeriesForm = () => {
     }
 
     // Validate start year and duration are within lifetime
-    const deathYear = birthYear + lifeExpectancy.value;
+    const deathYear = birthYear + lifeExpectancy.value; //TODO: @04mHuang fix this as life expectancy is not a number
     const start = distributions.startYear;
     const duration = distributions.duration;
     switch (start.type) {
@@ -460,7 +491,7 @@ const EventSeriesForm = () => {
     }
 
     try {
-      const response = await Axios.post(`/event/${scenarioId}`, event);
+      const response = id ? await Axios.put(`/event/${scenarioId}/${id}`, event) : await Axios.post(`/event/${scenarioId}`, event);
       console.log(response.data);
       handleNavigate();
     } catch (error) {
@@ -471,11 +502,6 @@ const EventSeriesForm = () => {
 
   const handleSubmit = async () => {
     if (!validateFields()) {
-      return;
-    }
-    if (id) {
-      //Implement a new function for this. Edit existing eventseries...don't create new one.
-      alert("Update here - line 300- so that it sets by ID, instead of uploading to backend. Don't create new object, but adjust current one.")
       return;
     }
     await uploadToBackend();

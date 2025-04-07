@@ -9,6 +9,132 @@ const scenarioController = new ScenarioController();
 const eventController = new EventController();
 const distributionController = new DistributionController();
 
+const eventToBackend = async (body) => {
+    const { eventType, name, description, durationTypeDistribution, startYearTypeDistribution, ...data } = body;
+
+    // Duration Distribution
+    const { distributionType, ...durationData } = distributionToBackend(durationTypeDistribution);
+    const requestDurationDistribution = await distributionController.create(distributionType, durationData);
+
+    // start year distribution / event
+    const startYearType = startYearTypeDistribution.type;
+    let resultEvent = {};
+    switch (startYearType) {
+        case "fixed":
+        case "uniform":
+        case "normal":
+            const startYearDistribution = distributionToBackend(startYearTypeDistribution);
+            const { distributionType, ...distributionData } = startYearDistribution;
+            resultEvent = {
+                startYearTypeDistribution: await distributionController.create(distributionType, distributionData)
+            }
+            break;
+        case "eventStart":
+            resultEvent = {
+                startsWith: startYearTypeDistribution.event
+            }
+            break;
+        case "eventEnd":
+            resultEvent = {
+                startsAfter: startYearTypeDistribution.event
+            }
+            break;
+        default:
+            // Should not happen
+            return null;
+    }
+
+    // Percentage Allocations and Allocated Investments for INVEST / REBALANCE event type
+    let percentageAllocations = [];
+    let allocatedInvestments = [];
+    if (eventType === "REBALANCE" || eventType === "INVEST") {
+        allocatedInvestments = data.investmentRows.map(row => {
+            return row.investment;
+        });
+
+        switch (data.allocationMethod) {
+            case "glidePath":
+                percentageAllocations = data.investmentRows.map(row => {
+                    return [row.initialPercentage / 100, row.finalPercentage / 100];
+                });
+                break;
+            case "fixed":
+                percentageAllocations = data.investmentRows.map(row => {
+                    return [row.percentage / 100];
+                });
+                break;
+            default:
+                // Should not happen
+                return null;
+        }
+    }
+
+    // Expected Annual Change Distribution for INVEST / REBALANCE event type
+    let expectedAnnualChangeDistribution = null;
+    if (eventType === "INCOME" || eventType === "EXPENSE") {
+        const { distributionType, ...distributionData } = distributionToBackend(data.expectedAnnualChangeDistribution);
+        expectedAnnualChangeDistribution = await distributionController.create(distributionType, distributionData);
+    }
+
+    // Creating the data for the event
+    switch (eventType) {
+        case "INCOME":
+            resultEvent = {
+                name: name,
+                description: description,
+                durationTypeDistribution: requestDurationDistribution,
+                ...resultEvent,
+                amount: data.initialValue,
+                expectedAnnualChangeDistribution: expectedAnnualChangeDistribution,
+                isinflationAdjusted: data.isAdjustInflation,
+                userContributions: data.percentageIncrease ? data.percentageIncrease / 100 : 1,
+                isSocialSecurity: data.isSocialSecurity,
+            }
+            break;
+        case "EXPENSE":
+            resultEvent = {
+                name: name,
+                description: description,
+                durationTypeDistribution: requestDurationDistribution,
+                ...resultEvent,
+                amount: data.initialValue,
+                expectedAnnualChangeDistribution: expectedAnnualChangeDistribution,
+                isinflationAdjusted: data.isAdjustInflation,
+                userContributions: data.percentageIncrease ? data.percentageIncrease / 100 : 1,
+                isDiscretionary: data.isDiscretionary,
+            }
+            break;
+        case "INVEST":
+            resultEvent = {
+                name: name,
+                description: description,
+                durationTypeDistribution: requestDurationDistribution,
+                ...resultEvent,
+                assetAllocationType: allocateMethodToBackend(data.allocationMethod),
+                percentageAllocations: percentageAllocations,
+                allocatedInvestments: allocatedInvestments,
+                maximumCash: data.maximumCash,
+            }
+            break;
+        case "REBALANCE":
+            resultEvent = {
+                name: name,
+                description: description,
+                durationTypeDistribution: requestDurationDistribution,
+                ...resultEvent,
+                assetAllocationType: allocateMethodToBackend(data.allocationMethod),
+                percentageAllocations: percentageAllocations,
+                allocatedInvestments: allocatedInvestments,
+                maximumCash: data.maximumCash,
+                taxStatus: taxStatusToBackend(data.taxStatus),
+            }
+            break;
+        default:
+            return null;
+    }
+    return resultEvent;
+}
+
 // obtain all the events of the scenario
 router.get("/events/:scenarioId", async (req, res) => {
     if (!req.session.user) {
@@ -204,130 +330,11 @@ router.post("/event/:scenarioId", async (req, res) => {
         if (!await canEdit(userId, id)) {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
-
-        const { eventType, name, description, durationTypeDistribution, startYearTypeDistribution, ...data } = req.body;
-
-        // Duration Distribution
-        const { distributionType, ...durationData } = distributionToBackend(durationTypeDistribution);
-        const requestDurationDistribution = await distributionController.create(distributionType, durationData);
-
-        // start year distribution / event
-        const startYearType = startYearTypeDistribution.type;
-        let resultEvent = {};
-        switch (startYearType) {
-            case "fixed":
-            case "uniform":
-            case "normal":
-                const startYearDistribution = distributionToBackend(startYearTypeDistribution);
-                const { distributionType, ...distributionData } = startYearDistribution;
-                resultEvent = {
-                    startYearTypeDistribution: await distributionController.create(distributionType, distributionData)
-                }
-                break;
-            case "eventStart":
-                resultEvent = {
-                    startsWith: startYearTypeDistribution.event
-                }
-                break;
-            case "eventEnd":
-                resultEvent = {
-                    startsAfter: startYearTypeDistribution.event
-                }
-                break;
-            default:
-                // Should not happen
-                return res.status(400).send("Unhandled event type");
+        const eventType = req.body.eventType;
+        const resultEvent = await eventToBackend(req.body);
+        if (!resultEvent) {
+            return res.status(400).send("Error creating event.");
         }
-
-        // Percentage Allocations and Allocated Investments for INVEST / REBALANCE event type
-        let percentageAllocations = [];
-        let allocatedInvestments = [];
-        if (eventType === "REBALANCE" || eventType === "INVEST") {
-            allocatedInvestments = data.investmentRows.map(row => {
-                return row.investment;
-            });
-
-            switch (data.allocationMethod) {
-                case "glidePath":
-                    percentageAllocations = data.investmentRows.map(row => {
-                        return [row.initialPercentage / 100, row.finalPercentage / 100];
-                    });
-                    break;
-                case "fixed":
-                    percentageAllocations = data.investmentRows.map(row => {
-                        return [row.percentage / 100];
-                    });
-                    break;
-                default:
-                    // Should not happen
-                    return res.status(400).send("Unhandled allocation method");
-            }
-        }
-
-        // Expected Annual Change Distribution for INVEST / REBALANCE event type
-        let expectedAnnualChangeDistribution = null;
-        if (eventType === "INCOME" || eventType === "EXPENSE") {
-            const { distributionType, ...distributionData } = distributionToBackend(data.expectedAnnualChangeDistribution);
-            expectedAnnualChangeDistribution = await distributionController.create(distributionType, distributionData);
-        }
-
-        // Creating the data for the event
-        switch (eventType) {
-            case "INCOME":
-                resultEvent = {
-                    name: name,
-                    description: description,
-                    durationTypeDistribution: requestDurationDistribution,
-                    ...resultEvent,
-                    amount: data.initialValue,
-                    expectedAnnualChangeDistribution: expectedAnnualChangeDistribution,
-                    isinflationAdjusted: data.isAdjustInflation,
-                    userContributions: data.percentageIncrease ? data.percentageIncrease / 100 : 1,
-                    isSocialSecurity: data.isSocialSecurity,
-                }
-                break;
-            case "EXPENSE":
-                resultEvent = {
-                    name: name,
-                    description: description,
-                    durationTypeDistribution: requestDurationDistribution,
-                    ...resultEvent,
-                    amount: data.initialValue,
-                    expectedAnnualChangeDistribution: expectedAnnualChangeDistribution,
-                    isinflationAdjusted: data.isAdjustInflation,
-                    userContributions: data.percentageIncrease ? data.percentageIncrease / 100 : 1,
-                    isDiscretionary: data.isDiscretionary,
-                }
-                break;
-            case "INVEST":
-                resultEvent = {
-                    name: name,
-                    description: description,
-                    durationTypeDistribution: requestDurationDistribution,
-                    ...resultEvent,
-                    assetAllocationType: allocateMethodToBackend(data.allocationMethod),
-                    percentageAllocations: percentageAllocations,
-                    allocatedInvestments: allocatedInvestments,
-                    maximumCash: data.maximumCash,
-                }
-                break;
-            case "REBALANCE":
-                resultEvent = {
-                    name: name,
-                    description: description,
-                    durationTypeDistribution: requestDurationDistribution,
-                    ...resultEvent,
-                    assetAllocationType: allocateMethodToBackend(data.allocationMethod),
-                    percentageAllocations: percentageAllocations,
-                    allocatedInvestments: allocatedInvestments,
-                    maximumCash: data.maximumCash,
-                    taxStatus: taxStatusToBackend(data.taxStatus),
-                }
-                break;
-            default:
-                return res.status(400).send("Unhandled event type");
-        }
-
         // Creating the event
         const event = await eventController.create(eventType, resultEvent);
 
@@ -346,6 +353,77 @@ router.post("/event/:scenarioId", async (req, res) => {
     } catch (error) {
         console.error("Error in events route:", error);
         return res.status(500).send("Error creating events.");
+    }
+});
+
+router.put("/event/:scenarioId/:eventId", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+        if (!await canEdit(userId, id)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
+        }
+        const eventId = req.params.eventId;
+        const oldEvent = await eventController.readWithPopulate(eventId);
+
+        const eventType = req.body.eventType;
+        const resultEvent = await eventToBackend(req.body);
+        if (!resultEvent) {
+            return res.status(400).send("Error creating event.");
+        }
+
+
+        const scenario = await scenarioController.readWithPopulate(id);
+
+        // Creating the updated event
+        const event = await eventController.create(eventType, resultEvent);
+
+        scenario.events.forEach(async (otherEvent) => {
+            if (otherEvent.startsWith && otherEvent.startsWith.toString() === oldEvent._id.toString()) {
+                await eventController.update(otherEvent._id, {
+                    startsWith: event._id
+                });
+            }
+            if (otherEvent.startsAfter && otherEvent.startsAfter.toString() === oldEvent._id.toString()) {
+                await eventController.update(otherEvent._id, {
+                    startsAfter: event._id
+                });
+            }
+        });
+
+        // Updating the event in the scenario
+        let index = scenario.events.findIndex(event => event._id.toString() === eventId);
+        scenario.events[index] = event._id;
+        await scenarioController.update(id, {
+            events: scenario.events
+        });
+
+        index = scenario.orderedSpendingStrategy.length;
+        console.log(scenario.orderedSpendingStrategy);
+        if (oldEvent.eventType === "EXPENSE" && oldEvent.isDiscretionary) {
+            index = scenario.orderedSpendingStrategy.findIndex(event => event._id.toString() === oldEvent._id.toString());
+            scenario.orderedSpendingStrategy.splice(index, 1);
+            console.log(scenario.orderedSpendingStrategy);
+        }
+
+        if (event.eventType === "EXPENSE" && event.isDiscretionary) {
+            scenario.orderedSpendingStrategy.splice(index, 0, event._id)
+            console.log(scenario.orderedSpendingStrategy);
+        }
+
+        await scenarioController.update(id, {
+            orderedSpendingStrategy: scenario.orderedSpendingStrategy
+        });
+
+        // deleting the old event
+        await eventController.delete(oldEvent._id);
+        return res.status(200).send("Event updated.");
+    } catch (error) {
+        console.error("Error in events route:", error);
+        return res.status(500).send("Error updating events.");
     }
 });
 
