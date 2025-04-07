@@ -5,6 +5,22 @@ import Plot from 'react-plotly.js';
     time (i.e., year by year), with shaded regions depicting probability ranges---specifically 10%-90%, 20%-80%, 30%-70%, and 40%-60%---for
      the value of that quantity.
     */}
+
+
+{/*
+Note: this expects a data object in this format: 
+data = {
+  labels: ['2010', '2011', ..., '2019'], // Years
+  median: [...],     // Central tendency (e.g., median) for each year
+  lower10: [...],    // Lower bound of the 10%-90% range
+  upper10: [...],    // Upper bound of the 10%-90% range
+  lower20: [...],    // Lower bound of the 20%-80% range
+  upper20: [...],    // Upper bound of the 20%-80% range
+  ...
+}
+
+    
+    */}
 const ShadedLineChart = ({ data }) => {
     return (
         <Plot

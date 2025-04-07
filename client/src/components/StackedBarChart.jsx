@@ -7,21 +7,21 @@ const StackedBarChart = ({ data }) => {
             data={[
                 {
                     x: data.labels,
-                    y: data.investments,
+                    y: data.investments1,
                     type: 'bar',
-                    name: 'Investments',
+                    name: 'Investment 1',
                 },
                 {
                     x: data.labels,
-                    y: data.expenses,
+                    y: data.investments2,
                     type: 'bar',
-                    name: 'Expenses',
+                    name: 'Investment 2',
                 },
                 {
                     x: data.labels,
-                    y: data.income,
+                    y: data.investments3,
                     type: 'bar',
-                    name: 'Income',
+                    name: 'Investment 3',
                 },
             ]}
             layout={{

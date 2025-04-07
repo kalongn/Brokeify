@@ -29,9 +29,9 @@ const Charts = () => {
         }, },
         { id: 2, type: "Stacked Bar Chart", label: "Total Investments (Median)",data: {
             labels: ['January', 'February', 'March', 'April', 'May'],
-            investments: [100, 200, 300, 400, 500],
-            expenses: [50, 100, 150, 200, 250],
-            income: [150, 200, 250, 300, 350],
+            investments1: [100, 200, 300, 400, 500],
+            investments2: [50, 100, 150, 200, 250],
+            investments3: [150, 200, 250, 300, 350],
         }, },
         { id: 3, type: "Shaded Line Data", label: "Investments", data: ShadedLineData },
     ]);
