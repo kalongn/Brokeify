@@ -278,9 +278,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
 
     const compiledResults = await simulationFactory.create({
         scenario: scenario,
-        results: [await resultFactory.create({
-            yearlyResults: []
-        })]
+        results: []
     });
 
 
@@ -322,6 +320,6 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
     }
     
     await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
-    
+    console.log(compiledResults)
     return compiledResults;
 }

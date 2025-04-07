@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import { RETURN_STATUS } from "./Enums.js";
 const YearlyResultSchema = new mongoose.Schema({
     year: { type: Number, required: true },
     investmentValues: [{ name: { type: mongoose.Schema.Types.ObjectId, ref: 'Investment', required: true }, values: { type: Number, required: true } }],
@@ -13,6 +13,7 @@ const YearlyResultSchema = new mongoose.Schema({
 });
 
 const ResultSchema = new mongoose.Schema({
+    resultStatus: {type: String, enum: RETURN_STATUS},
     yearlyResults: [{ type: YearlyResultSchema, required: true }]
 });
 

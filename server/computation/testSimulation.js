@@ -112,7 +112,7 @@ const testScenario = async () => {
                 value:
                     100
             }),
-            startsAfter: InvestEvent._id,
+            startsWith: InvestEvent._id,
             assetAllocationType: "GLIDE",
             percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
             allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
@@ -178,7 +178,7 @@ const testScenario = async () => {
             userLifeExpectancy: 50,
             spouseLifeExpectancy: 50,
             investmentTypes: [testInvestmentType],
-            events: [InvestEvent, OverlappingInvestEvent],
+            events: [InvestEvent, ExpenseEvent2, ExpenseEvent, RebalanceEvent, IncomeEvent],
             inflationAssumption: 0.02,
             inflationAssumptionDistribution: await DistributionFactory.create("UNIFORM_PERCENTAGE", { lowerBound: 0.01, upperBound: 0.03 }),
             annualPreTaxContributionLimit: 19500,

@@ -277,25 +277,7 @@ export async function getCashInvestment(investmentTypes) {
     return newCashInvestment;
 }
 
-export async function createSimulation(scenario) {
 
-
-    try {
-
-        const simulation = await simulationFactory.create({
-            scenario: scenario,
-            results: [await resultFactory.create({
-                yearlyResults: []
-            })]
-        });
-
-        return simulation;
-    } catch (error) {
-        console.error(error);
-
-    }
-
-}
 export function updateTaxBracketsForInflation(taxData, inflationRate) {
     //Multiplies tax brackes by 1+inflationRate
     
@@ -1153,7 +1135,7 @@ export async function rebalanceInvestments(scenario, currentYear) {
 
 
 export async function simulate(
-    inputScenario,
+    scenario,
     federalIncomeTax,
     stateIncomeTax,
     federalStandardDeductionObject,
@@ -1168,34 +1150,40 @@ export async function simulate(
     let federalStandardDeduction = federalStandardDeductionObject.standardDeduction;
     
     
-    const eventTimeframeBool = await chooseEventTimeframe(inputScenario);
+    const eventTimeframeBool = await chooseEventTimeframe(scenario);
     if(eventTimeframeBool===false){
         console.log("Event Selection Failed, returning failed");
+        const results = await resultFactory.create({
+            resultStatus : 'EVENT_ERROR',
+            yearlyResults : []
+        })
+        return results;
     }
 
-    for (const eventIDIndex in inputScenario.events) {
-        const eventID = inputScenario.events[eventIDIndex];
-        const event = await eventFactory.read(eventID);
+    // for (const eventIDIndex in scenario.events) {
+    //     const eventID = scenario.events[eventIDIndex];
+    //     const event = await eventFactory.read(eventID);
         
-        console.log(`Event ${event.name} has start year ${event.startYear} and duration ${event.duration}`);
+    //     console.log(`Event ${event.name} has start year ${event.startYear} and duration ${event.duration}`);
     
-    }
+    // }
 
-    
-    const simulation = await createSimulation(inputScenario);
-    
+    const results = await resultFactory.create({
+        resultStatus : 'SUCCESS',
+        yearlyResults : []
+    })
 
     let currentYear = 0;
     const realYear = new Date().getFullYear();
-    const endYear = simulation.scenario.userBirthYear + simulation.scenario.userLifeExpectancy - realYear;
+    const endYear = scenario.userBirthYear + scenario.userLifeExpectancy - realYear;
 
 
     let investmentTypes = await Promise.all(
-        simulation.scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
+        scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
     );
     let cashInvestment = await getCashInvestment(investmentTypes);
-    simulation.scenario.investmentTypes = investmentTypes.map(type => type._id);
-    scenarioFactory.update(simulation.scenario._id, simulation.scenario);
+    scenario.investmentTypes = investmentTypes.map(type => type._id);
+    scenarioFactory.update(scenario._id, scenario);
 
 
 
@@ -1206,7 +1194,7 @@ export async function simulate(
         investmentIds.map(async (id) => await investmentFactory.read(id))
     );
     const events = await Promise.all(
-        simulation.scenario.events.map(async (id) => await eventFactory.read(id))
+        scenario.events.map(async (id) => await eventFactory.read(id))
     );
 
 
@@ -1225,7 +1213,7 @@ export async function simulate(
         thisYearGains = 0;
         thisYearTaxes = 0;
         investmentTypes = await Promise.all(
-            simulation.scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
+            scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
         );
         investmentIds = investmentTypes.flatMap(type => type.investments);
 
@@ -1233,13 +1221,13 @@ export async function simulate(
             investmentIds.map(async (id) => await investmentFactory.read(id))
         );
 
-        const inflationRate = await sample(simulation.scenario.inflationAssumption, simulation.scenario.inflationAssumptionDistribution);
+        const inflationRate = await sample(scenario.inflationAssumption, scenario.inflationAssumptionDistribution);
         const inflationeEventDetails = `Year: ${currentYear} - INFLATION - ${Math.ceil(inflationRate * 1000) / 1000}\n`;
         updateLog(inflationeEventDetails);
         
         updateTaxBracketsForInflation(federalIncomeTax, inflationRate);
         updateTaxBracketsForInflation(stateIncomeTax, inflationRate);
-        await updateContributionLimitsForInflation(simulation.scenario, inflationRate);
+        await updateContributionLimitsForInflation(scenario, inflationRate);
 
         federalStandardDeduction *= (1 + inflationRate);
 
@@ -1278,11 +1266,11 @@ export async function simulate(
         const reportedIncome = curYearIncome;
 
 
-        //await processRMDs(rmdTable, currentYear, simulation.scenario.userBirthYear, simulation.scenario);
-        const shouldPerformRMDs = await shouldPerformRMD(currentYear, simulation.scenario.userBirthYear, investments);
+        //await processRMDs(rmdTable, currentYear, scenario.userBirthYear, scenario);
+        const shouldPerformRMDs = await shouldPerformRMD(currentYear, scenario.userBirthYear, investments);
         if (shouldPerformRMDs) {
             
-            const rmd = await processRMDs(rmdTable, currentYear, simulation.scenario.userBirthYear, simulation.scenario);
+            const rmd = await processRMDs(rmdTable, currentYear, scenario.userBirthYear, scenario);
 
             curYearIncome += rmd;
         }
@@ -1291,7 +1279,7 @@ export async function simulate(
         curYearIncome += await updateInvestments(investmentTypes);
 
 
-        const rothConversion = await performRothConversion(curYearIncome, curYearSS, federalIncomeTax, currentYear, simulation.scenario.userBirthYear, simulation.scenario.orderedRothStrategy, investmentTypes);
+        const rothConversion = await performRothConversion(curYearIncome, curYearSS, federalIncomeTax, currentYear, scenario.userBirthYear, scenario.orderedRothStrategy, investmentTypes);
 
 
         curYearIncome += rothConversion.curYearIncome;
@@ -1303,30 +1291,30 @@ export async function simulate(
         thisYearTaxes = calcTaxReturn.t;
         earlyWithdrawalTaxPaid = calcTaxReturn.e;
         let nonDiscretionaryExpenses = 0;
-        const expensesReturn = await processExpenses(simulation.scenario, lastYearTaxes);
+        const expensesReturn = await processExpenses(scenario, lastYearTaxes);
         nonDiscretionaryExpenses = expensesReturn.t;
         thisYearGains += expensesReturn.c;    //if you sell investments
 
         lastYearTaxes = thisYearTaxes;
         //returns amount not paid, paid, and capital gains
         let discretionaryAmountIgnored, discretionaryAmountPaid;
-        const processDiscretionaryResult = await processDiscretionaryExpenses(simulation.scenario, currentYear);
+        const processDiscretionaryResult = await processDiscretionaryExpenses(scenario, currentYear);
         discretionaryAmountIgnored = processDiscretionaryResult.np;
         discretionaryAmountPaid = processDiscretionaryResult.p;
         thisYearGains += processDiscretionaryResult.c;
         let totalExpenses = nonDiscretionaryExpenses + discretionaryAmountPaid;
 
-        await processInvestmentEvents(simulation.scenario, currentYear);
+        await processInvestmentEvents(scenario, currentYear);
 
 
-        thisYearGains += await rebalanceInvestments(simulation.scenario, currentYear);
+        thisYearGains += await rebalanceInvestments(scenario, currentYear);
     
         lastYearGains = thisYearGains;
         thisYearGains = 0;
 
 
         investmentTypes = await Promise.all(
-            simulation.scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
+            scenario.investmentTypes.map(async (id) => await investmentTypeFactory.read(id))
         );
         investmentIds = investmentTypes.flatMap(type => type.investments);
         investments = await Promise.all(
@@ -1338,7 +1326,7 @@ export async function simulate(
         }
         console.log(`The net asset value of ${currentYear+realYear} is ${totalValue}`);
         let boolIsViolated = false;
-        if (totalValue < simulation.scenario.financialGoal) {
+        if (totalValue < scenario.financialGoal) {
             boolIsViolated = true;
         }
         //create array of touples of investment._id, investment.value
@@ -1367,10 +1355,10 @@ export async function simulate(
 
         
         
-        simulation.results[0].yearlyResults.push(yearlyRes);
+        results.yearlyResults.push(yearlyRes);
 
-        await resultFactory.update(simulation.results._id, { yearlyResults: simulation.results.yearlyResults });
-        await updateCSV(currentYear, investments, simulation.scenario);
+        await resultFactory.update(results._id, { yearlyResults: results.yearlyResults });
+        await updateCSV(currentYear, investments, scenario);
         lastYearIncome = curYearIncome;
         lastYearSS = curYearSS;
         lastYearEarlyWithdrawl = rothConversion.curYearEarlyWithdrawals;
@@ -1380,5 +1368,5 @@ export async function simulate(
 
 
     console.log("Simulation complete.");
-    return simulation.results[0];
+    return results;
 }
