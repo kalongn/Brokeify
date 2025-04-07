@@ -13,8 +13,8 @@ const shadedLineQuantities = [
 
 const stackedBarQuantities = [
     "Total Investments by Investments",
-    "Income",
-    "Expenses"
+    "Income By Event Series",
+    "Expenses By Event Series (plus taxes)",
 ];
 
 const numericQuantities = [
@@ -23,7 +23,7 @@ const numericQuantities = [
     "Total Expenses (including taxes)",
     "Early Withdrawal Tax"
 ];
-{/*TODO: Add error validation*/ }
+{/*TODO: Check error validation*/ }
 const AddChart = ({ onClose }) => {
     const [selectedChart, setSelectedChart] = useState(null);
     const [selectedShadedQuantity, setSelectedShadedQuantity] = useState('');
@@ -40,6 +40,41 @@ const AddChart = ({ onClose }) => {
             return newErrors;
         });
     };
+
+    
+    const handleSaveChart = () => {
+        if (selectedChart && validateForm()) {
+            let label = '';
+    
+            // For Line Chart
+            if (selectedChart === 'line') {
+                label = `Line Chart Example`;
+            }
+    
+            // For Shaded Line Chart
+            else if (selectedChart === 'shaded') {
+                label = `Shaded Line Chart: ${selectedShadedQuantity} with ${document.querySelector('input[name="shadedDollar"]:checked')?.value || 'None'} Dollar Value`;
+            }
+    
+            // For Stacked Bar Chart
+            else if (selectedChart === 'stacked') {
+                const barType = document.querySelector('input[name="barValueType"]:checked')?.value || 'None';
+                const threshold = document.querySelector('input[type="number"]').value || 'No Threshold';
+                label = `Stacked Bar Chart: ${selectedBarQuantity} (${barType}) with ${threshold} Aggregation Threshold and ${document.querySelector('input[name="shadedDollar"]:checked')?.value || 'None'} Dollar Value`;
+            }
+    
+            const newChart = {
+                type: selectedChart,
+                label: label,  // Store all information in the label
+                data: {}, // You can leave data as an empty object for now
+            };
+    
+            console.log(newChart);  // Log the new chart object, which includes the label with user-selected information
+            addChart(newChart);  // Assuming `addChart` is passed as a prop
+            onClose();  // Close the modal after saving
+        }
+    };
+    
 
     const validateForm = () => {
         const errors = {};
@@ -215,6 +250,8 @@ const AddChart = ({ onClose }) => {
                     <Link className={styles.saveButton}
                         onClick={(e) => {
                             if (!validateForm()) e.preventDefault();
+                            handleSaveChart();
+                            
                         }}
 
                         to="/Visualizations/Charts" >

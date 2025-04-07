@@ -36,6 +36,14 @@ const Charts = () => {
         { id: 3, type: "Shaded Line Data", label: "Investments", data: ShadedLineData },
     ]);
 
+
+    const addChart = (newChart) => {
+        setCharts((prevCharts) => [
+            ...prevCharts,
+            { ...newChart, id: prevCharts.length + 1 }, // Adding the new chart with a unique ID
+        ]);
+    };
+
     return (
         <Layout>
             <div className={styles.content}>
@@ -43,7 +51,7 @@ const Charts = () => {
                     <h2>Ideal Plan!!</h2>
                     <div className={styles.buttonGroup}>
 
-                        <Link className={styles.buttonDesign} to="/Visualizations/AddChart" >
+                        <Link className={styles.buttonDesign} to={{pathname: "/Visualizations/AddChart", state: {addChart},}} >
                             <button>
                                 Add Charts
                             </button>
