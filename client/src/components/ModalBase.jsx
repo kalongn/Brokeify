@@ -17,7 +17,6 @@ const ModalBase = ({ isOpen, onClose, children }) => {
       overlayClassName={styles.overlay}
       shouldCloseOnOverlayClick={true}
       shouldCloseOnEsc={true}
-      preventScroll={true}
       contentLabel="Modal"
     >
       <button

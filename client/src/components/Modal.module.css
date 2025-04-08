@@ -19,6 +19,7 @@
 }
 
 .modal {
+  position: relative;
   background-color: var(--color-primary-muted);
   color: var(--color-black);
   padding: 2rem;
@@ -28,10 +29,10 @@
 }
 
 #closeModalIcon {
-  position: relative;
+  position: absolute;
   font-size: 1.5em;
-  bottom: 2%;
-  left: 96%;
+  top: 2%;
+  right: 2%;
 }
 #closeModalIcon:hover {
   background-color: rgba(46, 45, 45, 0.2);
