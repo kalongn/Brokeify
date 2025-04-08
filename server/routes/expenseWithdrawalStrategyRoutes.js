@@ -32,6 +32,8 @@ router.get("/expense-withdrawal-strategy/:scenarioId", async (req, res) => {
                     taxability: type.taxability,
                 };
             });
+        }).filter(investment => {
+            return investment.type !== "CASH"
         }).reduce((acc, investment) => {
             acc[investment.id] = {
                 type: investment.type,
