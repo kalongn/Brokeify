@@ -103,6 +103,11 @@ const allocateMethodToBackend = (allocationMethod) => {
     }
 }
 
+const isOwner = async (userId, scenarioId) => {
+    const user = await userController.read(userId);
+    return user.ownerScenarios.some(scenario => scenario._id.toString() === scenarioId);
+}
+
 const canEdit = async (userId, scenarioId) => {
     const user = await userController.read(userId);
     return user.ownerScenarios.some(scenario => scenario._id.toString() === scenarioId) ||
@@ -123,6 +128,7 @@ export {
     taxStatusToBackend,
     allocateMethodToFrontend,
     allocateMethodToBackend,
+    isOwner,
     canEdit,
     canView
 }
