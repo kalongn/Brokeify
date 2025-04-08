@@ -22,6 +22,7 @@ const ScenarioSimulation = () => {
   const [events, setEvents] = useState([]);
   const [strategies, setStrategies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
 
@@ -144,8 +145,9 @@ const ScenarioSimulation = () => {
                 <h2>{scenario.name}</h2>
                 <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
                 <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon} onClick={() => { console.log('Edit Scenario Page') }}> <TbEdit size={25} /> </Link>
-                <Link  className={styles.icon}><FaUserPlus size={23}/></Link>
+                <Link   to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={23}/></Link>
               </div>
+              <ModalSharing isOpen={isOpen} setIsOpen={setIsOpen} />
 
               <div className={styles.buttons}>
                 <button className={styles.runSimulation}>Run Simulation</button>

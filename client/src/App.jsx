@@ -26,9 +26,11 @@ import RothStrategy from './pages/scenarioSections/RothStrategy.jsx';
 import RouteTesting from './pages/RouteTesting.jsx';
 import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
 import ViewScenario from './pages/ViewScenario.jsx';
+import ModalSharing from './components/ModalSharing.jsx';
 
 const App = () => {
   const [verified, setVerified] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,7 +76,7 @@ const App = () => {
           <Route path="event-series" element={<EventSeries />} />
           <Route path="event-series/new" element={<EventSeriesForm />} />
           <Route path="event-series/edit/:id" element={<EventSeriesForm />} />
-          
+  
           <Route path="limits" element={<Limits />} />
           <Route path="spending-strategy" element={<SpendingStrategy />} />
           <Route path="expense-strategy" element={<ExpenseStrategy />} />
@@ -85,6 +87,7 @@ const App = () => {
         <Route path="/Profile" element={<Profile setVerified={setVerified} />} />
         <Route path="/Scenario/:scenarioId" element={<ScenarioSimulation />} />
         <Route path="/ViewScenario/:scenarioId" element={<ViewScenario />} ></Route>
+        <Route path ="/Sharing/:scenarioId" element={<ModalSharing isOpen = {isOpen} setIsOpen ={true}/>} ></Route>
         <Route path="/RouteTesting" element={<RouteTesting />} />
       </Routes>
     </>
