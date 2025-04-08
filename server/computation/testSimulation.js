@@ -20,6 +20,7 @@ import SimulationController from "../db/controllers/SimulationController.js";
 import { simulate } from "./simulator.js";
 import { validateRun } from "./planValidator.js";
 import { parseAndSaveYAML } from "../yaml_parsers/scenarioParser.js";
+import { exportScenarioAsYAML } from "../yaml_parsers/scenarioExporter.js";
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
 
@@ -303,7 +304,9 @@ const populateDB = async () => {
     
     const scenarioID = await parseAndSaveYAML("../yaml_files/scenario.yaml");
     const scenario1 = await factory.read(scenarioID);
-    console.log(scenario1);
+    //console.log(scenario1);
+    const res2 = await exportScenarioAsYAML(scenarioID, "../yaml_files/");
+    console.log(res2);
     const res1 = await connection.dropDatabase();
     return;
     const RMDTable = await testRMDTable();
