@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { VscChromeClose } from "react-icons/vsc";
 
+import ModalSharing from './ModalSharing';
 import styles from './Header.module.css';
 
 const Header = ({ setVerified }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const path = location.pathname;
   const getHeaderTitle = () => {
@@ -40,9 +43,10 @@ const Header = ({ setVerified }) => {
       return (
         <>
           <div className={styles.buttonGroupSimulation}>
-            <button onClick={() => console.log('Share Scenario')}>Share </button>
+            <button onClick={() =>{ setIsOpen(prev => !prev)}}>Share </button>
             <button onClick={() => console.log('Export Scenario')}>Export </button>
           </div>
+          <ModalSharing isOpen={isOpen} setIsOpen={setIsOpen} />
         </>
       );
     }

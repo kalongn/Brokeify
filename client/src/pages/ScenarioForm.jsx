@@ -24,7 +24,6 @@ const ScenarioForm = () => {
     { path: "expense-strategy", label: "Expense Withdrawal Strategy" },
     { path: "rmd-strategy", label: "Required Minimum Distribution Strategy" },
     { path: "roth-strategy", label: "Roth Conversion Strategy & Optimizer" },
-    { path: "sharing", label: "Sharing Settings" },
   ];
 
   // Determine the current section index based on the URL
