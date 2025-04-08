@@ -118,7 +118,7 @@ async function scrape() {
         if (federalIncomeSingle === null) {
             let singleFedTax = { filingStatus: "SINGLE", taxType: "FEDERAL_INCOME", taxBrackets: [] };
             for (const i in returnFederalIncomeScrape[0]) {
-                const bracket = { lowerBound: returnFederalIncomeScrape[0][i].lowBound, upperBound: returnFederalIncomeScrape[0][i].highBound, rate: returnFederalIncomeScrape[0][i].rate };
+                const bracket = { lowerBound: returnFederalIncomeScrape[0][i].lowBound, upperBound: returnFederalIncomeScrape[0][i].highBound, rate: returnFederalIncomeScrape[0][i].rate/100 };
                 singleFedTax.taxBrackets.push(bracket);
             }
             //save to db
@@ -132,7 +132,7 @@ async function scrape() {
         if (federalIncomeMarried === null) {
             let marriedFedTax = { filingStatus: "MARRIEDJOINT", taxType: "FEDERAL_INCOME", taxBrackets: [] };
             for (const i in returnFederalIncomeScrape[0]) {
-                const bracket = { lowerBound: returnFederalIncomeScrape[1][i].lowBound, upperBound: returnFederalIncomeScrape[1][i].highBound, rate: returnFederalIncomeScrape[1][i].rate };
+                const bracket = { lowerBound: returnFederalIncomeScrape[1][i].lowBound, upperBound: returnFederalIncomeScrape[1][i].highBound, rate: returnFederalIncomeScrape[1][i].rate/100 };
                 marriedFedTax.taxBrackets.push(bracket);
             }
             //save to db
@@ -153,7 +153,7 @@ async function scrape() {
         if (capitalGainsSingle === null) {
             let singleCapitalTax = { filingStatus: "SINGLE", taxType: "CAPITAL_GAIN", taxBrackets: [] };
             for (const i in returnCapitalGainsScrape[0]) {
-                const bracket = { lowerBound: returnCapitalGainsScrape[0][i].lowBound, upperBound: returnCapitalGainsScrape[0][i].highBound, rate: returnCapitalGainsScrape[0][i].rate };
+                const bracket = { lowerBound: returnCapitalGainsScrape[0][i].lowBound, upperBound: returnCapitalGainsScrape[0][i].highBound, rate: returnCapitalGainsScrape[0][i].rate/100 };
                 singleCapitalTax.taxBrackets.push(bracket);
             }
             //save to db
@@ -167,7 +167,7 @@ async function scrape() {
         if (capitalGainsMarried === null) {
             let marriedCapitalTax = { filingStatus: "MARRIEDJOINT", taxType: "CAPITAL_GAIN", taxBrackets: [] };
             for (const i in returnCapitalGainsScrape[0]) {
-                const bracket = { lowerBound: returnCapitalGainsScrape[1][i].lowBound, upperBound: returnCapitalGainsScrape[1][i].highBound, rate: returnCapitalGainsScrape[1][i].rate };
+                const bracket = { lowerBound: returnCapitalGainsScrape[1][i].lowBound, upperBound: returnCapitalGainsScrape[1][i].highBound, rate: returnCapitalGainsScrape[1][i].rate/100 };
                 marriedCapitalTax.taxBrackets.push(bracket);
             }
             //save to db
@@ -232,9 +232,9 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
     //deep clone then run simulation then re-splice original scenario in simulation output
 
     const unmodifiedScenario = await scenarioFactory.read(scenarioID);
-    let copiedScenario = await scenarioFactory.clone(unmodifiedScenario.id);
+    let copiedScenario = await scenarioFactory.clone(unmodifiedScenario._id);
     let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, capitalGains, rmdTable, csvFile, logFile);
-    await scenarioFactory.deleteNotDistributions(copiedScenario.id);
+    await scenarioFactory.deleteNotDistributions(copiedScenario._id);
     return simulationResult;
 }
 
@@ -278,9 +278,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
 
     const compiledResults = await simulationFactory.create({
         scenario: scenario,
-        results: [await resultFactory.create({
-            yearlyResults: []
-        })]
+        results: []
     });
 
 
@@ -313,7 +311,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
 
         );
         //Replace runResult.scenario with scenario, to erase the fact we cloned
-        //let clonedScenarioID = runResult.scenario.id;
+        //let clonedScenarioID = runResult.scenario._id;
 
        
 
@@ -321,7 +319,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
 
     }
     
-    await simulationFactory.update(compiledResults.id, { results: compiledResults.results });
-    
+    await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
+    console.log(compiledResults)
     return compiledResults;
 }
