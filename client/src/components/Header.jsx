@@ -46,7 +46,7 @@ const Header = ({ setVerified }) => {
             <button onClick={() =>{ setIsOpen(prev => !prev)}}>Share </button>
             <button onClick={() => console.log('Export Scenario')}>Export </button>
           </div>
-          <ModalSharing isOpen={isOpen} onClose={() => setIsOpen(false)} />
+          <ModalSharing isOpen={isOpen} setIsOpen={setIsOpen} />
         </>
       );
     }

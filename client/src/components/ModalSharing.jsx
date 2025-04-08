@@ -1,7 +1,7 @@
 import ModalBase from "./ModalBase";
 
 const ModalSharing = ({ isOpen, setIsOpen }) => {
-  
+
   return (
   <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
     <p>sharinggg</p>
