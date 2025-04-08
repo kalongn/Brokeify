@@ -22,7 +22,6 @@ import SpendingStrategy from './pages/scenarioSections/SpendingStrategy.jsx';
 import ExpenseStrategy from './pages/scenarioSections/ExpenseStrategy.jsx';
 import RMDStrategy from './pages/scenarioSections/RMDStrategy.jsx';
 import RothStrategy from './pages/scenarioSections/RothStrategy.jsx';
-import Sharing from './pages/scenarioSections/Sharing.jsx';
 
 import RouteTesting from './pages/RouteTesting.jsx';
 import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
@@ -81,7 +80,6 @@ const App = () => {
           <Route path="expense-strategy" element={<ExpenseStrategy />} />
           <Route path="rmd-strategy" element={<RMDStrategy />} />
           <Route path="roth-strategy" element={<RothStrategy />} />
-          <Route path="sharing" element={<Sharing />} />
         </Route>
         <Route path="/SharedScenarios" element={<SharedScenarios />} />
         <Route path="/Profile" element={<Profile setVerified={setVerified} />} />
