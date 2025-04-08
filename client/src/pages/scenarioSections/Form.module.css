@@ -177,3 +177,8 @@ input:disabled {
   display: flex;
   flex: 2 1 auto;
 }
+
+.sharingSettings{
+  
+  padding: 2rem;
+}

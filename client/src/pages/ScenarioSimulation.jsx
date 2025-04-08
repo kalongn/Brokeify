@@ -12,8 +12,8 @@ import Investment from "../components/Investment";
 import Event from "../components/Event";
 import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
-import ModalSharing from "../components/ModalSharing";
-
+//import ModalSharing from "../components/ModalSharing";
+//import Sharing from "./Sharing.jsx";
 const ScenarioSimulation = () => {
 
   const { scenarioId } = useParams(); // Get the scenario ID from the URL params
@@ -22,7 +22,7 @@ const ScenarioSimulation = () => {
   const [events, setEvents] = useState([]);
   const [strategies, setStrategies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
+  //const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
 
@@ -147,8 +147,7 @@ const ScenarioSimulation = () => {
                 <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon} onClick={() => { console.log('Edit Scenario Page') }}> <TbEdit size={25} /> </Link>
                 <Link   to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={23}/></Link>
               </div>
-              <ModalSharing isOpen={isOpen} setIsOpen={setIsOpen} />
-
+              
               <div className={styles.buttons}>
                 <button className={styles.runSimulation}>Run Simulation</button>
                 <button className={styles.seeResults}>See Results</button>
