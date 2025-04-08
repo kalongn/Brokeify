@@ -1,5 +1,6 @@
 import { TbEdit } from "react-icons/tb";
 import { TbFileSearch } from "react-icons/tb";
+import { FaUserPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useParams, Navigate } from "react-router-dom";
@@ -11,7 +12,7 @@ import Investment from "../components/Investment";
 import Event from "../components/Event";
 import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
-
+import ModalSharing from "../components/ModalSharing";
 
 const ScenarioSimulation = () => {
 
@@ -143,6 +144,7 @@ const ScenarioSimulation = () => {
                 <h2>{scenario.name}</h2>
                 <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
                 <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon} onClick={() => { console.log('Edit Scenario Page') }}> <TbEdit size={25} /> </Link>
+                <Link  className={styles.icon}><FaUserPlus size={23}/></Link>
               </div>
 
               <div className={styles.buttons}>
