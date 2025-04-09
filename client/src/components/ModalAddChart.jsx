@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import styles from "./AddChart.module.css";
+import styles from "./ModalAddChart.module.css";
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ModalBase from './ModalBase';
@@ -84,13 +84,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
 
 
   return (
-    // <div className={styles.modalOverlay}>
-    //     <div className={styles.modal}>
     <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
-      <div className={styles.header}>
-        <h2>Select a Chart</h2>
-        {/* <Link className={styles.exitButton} to={"/Visualizations/Charts"}> X</Link> */}
-      </div>
+      <h2 className={styles.header}>Select a Chart</h2>
 
       <div className={styles.chartOptions}>
         {/* Line Chart */}
