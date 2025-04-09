@@ -4,7 +4,6 @@ import { FaUserPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useParams, Navigate } from "react-router-dom";
-import { stateMap, distributionToString } from "../utils/ScenarioHelper";
 import Axios from "axios";
 
 import styles from "./ScenarioSimulation.module.css";
@@ -21,121 +20,39 @@ const ScenarioSimulation = () => {
   const [events, setEvents] = useState([]);
   const [strategies, setStrategies] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  
-  useEffect(() => {
 
+
+  useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
 
     Axios.get(`/scenario/${scenarioId}`).then((response) => {
-
       const scenarioData = response.data;
-
       console.log('Scenario data:', scenarioData);
       setScenario(scenarioData);
 
-      const allInvestments = scenarioData.investmentTypes.flatMap(type =>
-        type.investments.map(investment => ({ type: type, investment }))
-      );
-
-      const allEvents = scenarioData.events;
-
-      const investIdNameMap = {};
-      for (let type of scenarioData.investmentTypes) {
-        for (let investment of type.investments) {
-          investIdNameMap[investment._id] = type.name;
-        }
-      }
-
-      const eventIdNameMap = {};
-      for (let event of allEvents) {
-        eventIdNameMap[event._id] = event.name;
-      }
-
-      const investments = allInvestments.map(investment => ({
-        investmentType: {
-          name: investment.type.name,
-          taxability: investment.type.taxability,
-          expectedAnnualReturn: distributionToString(investment.type.expectedAnnualReturnDistribution)
-        }
-        , value: investment.investment.value,
-        taxStatus: investment.investment.taxStatus
-      }));
-
-      const events = allEvents.map(event => {
-        let startYear;
-      
-        if (event.startYearTypeDistribution) {
-          startYear = distributionToString(event.startYearTypeDistribution);
-        } else if (event.startsWith) {
-          //Get the name of the event that starts with 
-          startYear = `Starts with event: ${event.startsWith || "Unnamed Event"}`;
-        } else if (event.startsAfter) {
-          //Get the name of the event that starts after
-          startYear = `Starts after event: ${event.startsAfter|| "Unnamed Event"}`;
-        } else {
-          startYear = "N/A";
-        }
-      
-        return {
-          name: event.name,
-          amount: event.amount ?? event.maximumCash ?? 0,
-          duration: distributionToString(event.durationTypeDistribution),
-          startYear: startYear,
-          eventType: event.eventType
-        };
-      })
-
-
-      setInvestments(investments);
-      setEvents(events);
-
-      const spendingStrategy = [];
-      for (let eventId of scenarioData.orderedSpendingStrategy) {
-        const eventName = eventIdNameMap[eventId] || "Unknown Event";
-        spendingStrategy.push(eventName);
-      }
-
-      const expenseWithdrawalStrategy = [];
-      for (let investmentId of scenarioData.orderedExpenseWithdrawalStrategy) {
-        const investmentName = investIdNameMap[investmentId] || "Unknown Investment";
-        expenseWithdrawalStrategy.push(investmentName);
-      }
-
-      const rmdStrategy = [];
-      for (let investmentId of scenarioData.orderedRMDStrategy) {
-        const investmentName = investIdNameMap[investmentId] || "Unknown Investment";
-        rmdStrategy.push(investmentName);
-      }
-
-      const rothConversionStrategy = [];
-    
-      for (let investmentId of scenarioData.orderedRothStrategy) {
-        const investmentName = investIdNameMap[investmentId] || "Unknown Investment";
-        rothConversionStrategy.push(investmentName);
-      }
-    
+      setInvestments(scenarioData.investments || []);
+      setEvents(scenarioData.events || []);
 
       const strategyList = [
         {
           title: "Spending Strategy",
-          content: spendingStrategy
+          content: scenarioData.orderedSpendingStrategy
         },
         {
           title: "Expense Withdrawal Strategy",
-          content: expenseWithdrawalStrategy
+          content: scenarioData.orderedExpenseWithdrawalStrategy
         },
         {
           title: "RMD Strategy",
-          content: rmdStrategy
+          content: scenarioData.orderedRMDStrategy
         }
       ];
-      
+
       if (scenarioData.startYearRothOptimizer !== undefined) {
         strategyList.push({
           title: "Roth Conversion Strategy",
-          content: rothConversionStrategy
+          content: scenarioData.orderedRothStrategy
         });
       } else {
         strategyList.push({
@@ -143,12 +60,9 @@ const ScenarioSimulation = () => {
           content: "Roth Optimizer is disabled"
         });
       }
-      
+
       setStrategies(strategyList);
-      
-
       setLoading(false);
-
     }).catch((error) => {
       if (error.response && error.response.status === 403) {
         console.error('You do not have permission to access this scenario.');
@@ -167,24 +81,23 @@ const ScenarioSimulation = () => {
         {loading ? <h1>Loading...</h1>
           :
           <>
-
             <div className={styles.header}>
               <div className={styles.title}>
                 <h2>{scenario.name}</h2>
                 <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
                 <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon} onClick={() => { console.log('Edit Scenario Page') }}> <TbEdit size={25} /> </Link>
-                <Link   to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={23}/></Link>
+                <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={23} /></Link>
               </div>
-              
+
               <div className={styles.buttons}>
                 <button className={styles.runSimulation}>Run Simulation</button>
                 <button className={styles.seeResults}>See Results</button>
               </div>
             </div>
-            
+
             <div>
               <div className={styles.mainContent}>
-                {/**Basic Info */}
+                {/* Basic Info */}
                 <div className={styles.basicInfo}>
                   <h3>Basic Information</h3>
                   <div className={styles.info}>
@@ -194,7 +107,7 @@ const ScenarioSimulation = () => {
                     </div>
                     <div className={styles.infoItem2}>
                       <p>State of Residence: </p>
-                      <div className={styles.inputInfo}> {stateMap[scenario.stateOfResidence] || "N/A"} </div>
+                      <div className={styles.inputInfo}> {scenario.stateOfResidence || "N/A"} </div>
                     </div>
                     <div className={styles.infoItem3}>
                       <p>Filing Status: </p>
@@ -202,11 +115,11 @@ const ScenarioSimulation = () => {
                     </div>
                     <div className={styles.infoItem4}>
                       <p>Life Expenctancy: </p>
-                      <div className={styles.inputInfo}> {scenario.userLifeExpectancyDistribution ? distributionToString(scenario.userLifeExpectancyDistribution) : "N/A"} years </div>
+                      <div className={styles.inputInfo}> {scenario.userLifeExpectancyDistribution ? scenario.userLifeExpectancyDistribution : "N/A"} years </div>
                     </div>
                   </div>
                 </div>
-                 {/**Strategies */}
+                {/* Strategies */}
                 <div className={styles.strategies}>
 
                   <div className="accordion">
@@ -216,7 +129,7 @@ const ScenarioSimulation = () => {
                   </div>
 
                 </div>
-                 {/**Investments */}
+                {/* Investments */}
                 <div className={styles.investments}>
                   <h3 className={styles.investmentTitle}>Investments</h3>
 
@@ -236,7 +149,7 @@ const ScenarioSimulation = () => {
                   )}
 
                 </div>
-                  {/**Events */}
+                {/* Events */}
                 <div className={styles.events}>
                   <h3 className={styles.eventTitle}>Events</h3>
                   {events.length > 0 ? (
@@ -244,7 +157,7 @@ const ScenarioSimulation = () => {
                       <Event
                         key={index}
                         Name={event.name}
-                        DollarValue={event.amount ?? event.maximumCash ?? 0}
+                        DollarValue={event.amount}
                         Duration={event.duration}
                         StartYear={event.startYear}
                         Type={event.eventType}
