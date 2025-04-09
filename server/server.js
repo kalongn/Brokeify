@@ -21,6 +21,7 @@ import 'dotenv/config'
 */
 import './auth/google.js'; // Import the Google OAuth configuration
 import routes from './routes/index.js'; // Import the routes
+import guestDeletionCronJob from './cron_job/guestDeletion.js'; // Import the cron job for guest deletion
 
 const mongoDB = `${process.env.DB_ADDRESS}`;
 mongoose.connect(mongoDB);
@@ -43,19 +44,21 @@ app.use(cors(corsOptions));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 
+const dayInSeconds = 24 * 60 * 60; // 1 day in seconds
+
 app.use(
     session({
         secret: `${process.env.SECRET}`,
         cookie: {
             httpOnly: true,
-            maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days in milliseconds.
+            maxAge: 1000 * dayInSeconds, // use miliseconds
         },
         resave: false,
         saveUninitialized: false,
         store: MongoStore.create({
             mongoUrl: mongoDB,
             collectionName: 'sessions',
-            ttl: 7 * 24 * 60 * 60, // 7 days in seconds
+            ttl: dayInSeconds,
             autoRemove: 'interval', // Automatically remove expired sessions
             autoRemoveInterval: 10 // Interval in minutes to check for expired sessions
         })
@@ -68,6 +71,9 @@ app.use(passport.session());
 
 // Use the routes defined in the routes/index.js file
 app.use('/', routes);
+
+// Start the cron job for guest deletion
+guestDeletionCronJob();
 
 const port = process.env.SERVER_PORT || 8000;
 const expressServer = app.listen(port, () => {

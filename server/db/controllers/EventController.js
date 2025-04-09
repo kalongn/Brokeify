@@ -82,6 +82,17 @@ export default class EventController {
         }
     }
 
+    async readWithPopulate(id) {
+        try {
+            const event = await Event.findById(id)
+                .populate("startYearTypeDistribution durationTypeDistribution expectedAnnualChangeDistribution");
+            return event;
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
     /**
      * This function updates the Event with the given id with the given data
      * @param {mongoose.Types.ObjectId} id 
@@ -97,16 +108,16 @@ export default class EventController {
             switch (event.eventType) {
                 case "REBALANCE":
                     return await Rebalance.findByIdAndUpdate
-                        (id, data, { new: true, runValidators: true });
+                        (id, data, { new: true });
                 case "INVEST":
                     return await Invest.findByIdAndUpdate
-                        (id, data, { new: true, runValidators: true });
+                        (id, data, { new: true });
                 case "INCOME":
                     return await Income.findByIdAndUpdate
-                        (id, data, { new: true, runValidators: true });
+                        (id, data, { new: true });
                 case "EXPENSE":
                     return await Expense.findByIdAndUpdate
-                        (id, data, { new: true, runValidators: true });
+                        (id, data, { new: true });
                 default:
                     throw new Error("Unhandled event type");
             }

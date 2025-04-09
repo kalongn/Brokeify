@@ -20,6 +20,7 @@ import SimulationController from "../db/controllers/SimulationController.js";
 import { simulate } from "./simulator.js";
 import { validateRun } from "./planValidator.js";
 import { parseAndSaveYAML } from "../yaml_parsers/scenarioParser.js";
+import { exportScenarioAsYAML } from "../yaml_parsers/scenarioExporter.js";
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
 
@@ -92,18 +93,35 @@ const testScenario = async () => {
         const InvestEvent = await EventFactory.create("INVEST", {
             name: "Invest",
             description: "Invest in the portfolio",
-            startYear: 2021,
+            
             startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
             duration: 100,
             durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", {
                 value:
-                    1
+                    100
             }),
             assetAllocationType: "GLIDE",
             percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
             allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
             maximumCash: 1000,
         });
+        const OverlappingInvestEvent = await EventFactory.create("INVEST", {
+            name: "Invest OVERLAP",
+            description: "Invest in the portfolio OVERLAP",
+            duration: 100,
+            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", {
+                value:
+                    100
+            }),
+            startsWith: InvestEvent._id,
+            assetAllocationType: "GLIDE",
+            percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
+            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
+            maximumCash: 1000,
+            
+        });
+        
+        
 
         const IncomeEvent = await EventFactory.create("INCOME", {
             name: "Income",
@@ -151,16 +169,17 @@ const testScenario = async () => {
             spouseContributions: 0,
             isDiscretionary: false
         });
+        
 
         const testScenario = await factory.create({
-            name: "Test Scenario",
+            name: "Test Scenario 222",
             filingStatus: "SINGLE",
             userBirthYear: 1990,
             spouseBirthYear: 1990,
-            userLifeExpectancy: 90,
-            spouseLifeExpectancy: 90,
+            userLifeExpectancy: 50,
+            spouseLifeExpectancy: 50,
             investmentTypes: [testInvestmentType],
-            events: [RebalanceEvent, InvestEvent, IncomeEvent, ExpenseEvent, ExpenseEvent2],
+            events: [InvestEvent, ExpenseEvent2, ExpenseEvent, RebalanceEvent, IncomeEvent],
             inflationAssumption: 0.02,
             inflationAssumptionDistribution: await DistributionFactory.create("UNIFORM_PERCENTAGE", { lowerBound: 0.01, upperBound: 0.03 }),
             annualPreTaxContributionLimit: 19500,
@@ -176,18 +195,19 @@ const testScenario = async () => {
         //console.log(testScenario);
 
         const scenarios = await factory.readAll();
-        // console.log(scenarios);
+        //console.log(scenarios);
 
-        const scenario = await factory.read(scenarios[0].id);
+        const scenario = await factory.read(testScenario._id);
+        
         return scenario;
-        // console.log(scenario);
+        // 
 
-        // await factory.update(scenario.id, { name: "New Scenario" });
-        // const updatedScenario = await factory.read(scenario.id);
+        // await factory.update(scenario._id, { name: "New Scenario" });
+        // const updatedScenario = await factory.read(scenario._id);
         // console.log(updatedScenario);
 
-        // await factory.delete(updatedScenario.id);
-        // const deletedScenario = await factory.read(updatedScenario.id);
+        // await factory.delete(updatedScenario._id);
+        // const deletedScenario = await factory.read(updatedScenario._id);
         // console.log(deletedScenario);
     } catch (error) {
         console.error(error);
@@ -301,17 +321,21 @@ const testTax = async (i) => {
 const populateDB = async () => {
     const factory = new ScenarioController();
     
-    //const scenarioID = await parseAndSaveYAML("../yaml_files/scenario.yaml");
-    //const scenario = await factory.read(scenarioID);
-    //console.log(scenario);
-    //const res1 = await connection.dropDatabase();
-    //throw("eee");
+
+    const scenarioID = await parseAndSaveYAML("../yaml_files/scenario.yaml");
+    const scenario1 = await factory.read(scenarioID);
+    //console.log(scenario1);
+    const res2 = await exportScenarioAsYAML(scenarioID, "../yaml_files/");
+    console.log(res2);
+    const res1 = await connection.dropDatabase();
+    return;
     const RMDTable = await testRMDTable();
 
-    const federalIncomeTax = await testTax(1);
+
+    //const federalIncomeTax = await testTax(1);
     const stateIncomeTax = await testTax(2);
-    const federalStandardDeduction = await testTax(3);
-    const capitalGainTax = await testTax(5);
+    //const federalStandardDeduction = await testTax(3);
+    //const capitalGainTax = await testTax(5);
     const scenario = await testScenario();
     //const scenario = await testScenario();
     //console.log(scenario);
@@ -319,7 +343,7 @@ const populateDB = async () => {
     console.log('====================== Simulation Test =====================');
     //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
-        await validateRun(scenario.id, 1, stateIncomeTax.id, "GUEST");
+        await validateRun(scenario._id, 1, stateIncomeTax._id, "GUEST");
     }
     catch (err) {
         const res = await connection.dropDatabase();
@@ -327,5 +351,5 @@ const populateDB = async () => {
     }
     //drop all objects in database
     const res = await connection.dropDatabase();
-    console.log(res);
+    //console.log(res);
 };

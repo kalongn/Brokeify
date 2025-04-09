@@ -141,4 +141,13 @@ export default class TaxController {
             throw new Error(error);
         }
     }
+
+    async delete(id) {
+        try {
+            return await Tax.findByIdAndDelete(id);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
 }

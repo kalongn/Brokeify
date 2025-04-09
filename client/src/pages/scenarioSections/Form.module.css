@@ -118,6 +118,12 @@ input:disabled {
   width: 10%;
 }
 
+.groupButtons{
+  display: flex;
+  justify-content: end;
+ 
+}
+
 .tableButton {
   padding: 0.7rem;
   box-shadow: none;
@@ -128,11 +134,16 @@ input:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: auto;
+  margin: 0px;
 }
 
 .tableButton:hover {
   background-color: var(--color-primary-muted);
+}
+
+.disabledButton:hover {
+  background-color: transparent;
+  cursor: not-allowed;
 }
 
 .select>div {
@@ -159,4 +170,13 @@ input:disabled {
   font-weight: 550;
   margin-bottom: 1%;
   display: block;
+}
+#addEmailSection {
+  display: flex;
+  flex: 2 1 auto;
+}
+
+.sharingSettings{
+  
+  padding: 2rem;
 }

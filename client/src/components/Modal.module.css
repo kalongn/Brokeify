@@ -1,0 +1,41 @@
+/* Prompt to AI (ChatGPT): I want it to cover everything except the nav bar 
+  which is not the parent component.
+  I had to adjust .overlay and .modal dimensions and opted to use relative units.
+*/
+
+.overlay {
+  position: fixed;
+  top: 0;
+  /* size of side bar */
+  left: 20%;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(46, 45, 45, 0.3);
+  /* needs to be above header */
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  position: relative;
+  background-color: var(--color-primary-muted);
+  color: var(--color-black);
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 85%;
+  height: 80%;
+  overflow-y: auto;
+}
+
+#closeModalIcon {
+  position: absolute;
+  font-size: 1.5em;
+  top: 2%;
+  right: 2%;
+}
+
+#closeModalIcon:hover {
+  background-color: rgba(46, 45, 45, 0.2);
+}

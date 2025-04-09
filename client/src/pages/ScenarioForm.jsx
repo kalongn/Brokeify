@@ -24,7 +24,6 @@ const ScenarioForm = () => {
     { path: "expense-strategy", label: "Expense Withdrawal Strategy" },
     { path: "rmd-strategy", label: "Required Minimum Distribution Strategy" },
     { path: "roth-strategy", label: "Roth Conversion Strategy & Optimizer" },
-    { path: "sharing", label: "Sharing Settings" },
   ];
 
   // Determine the current section index based on the URL
@@ -69,7 +68,7 @@ const ScenarioForm = () => {
             Prompt to AI (Copilot): Create navigation buttons to go between sections
             Generated code worked and only condensed Next and Save & Close buttons code
            */}
-          {!path.includes("new") && <div id={styles.navButtons}>
+          {!(path.includes("new") || path.includes("edit")) && <div id={styles.navButtons}>
             <button
               className={styles.deemphasizedButton}
               onClick={handleBack}
