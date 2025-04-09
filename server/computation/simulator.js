@@ -94,8 +94,7 @@ export async function sample(expectedValue, distributionID) {
 
     //sample from distribution
 
-    const distribution = distributionID.hasOwnProperty('id') ? distributionID : await distributionFactory.read(distributionID);
-    // console.log(distribution);
+    const distribution = distributionID.distributionType!==undefined ? distributionID : await distributionFactory.read(distributionID);
     if (distribution === null) {
 
         return expectedValue;
@@ -238,6 +237,23 @@ async function chooseEventTimeframe(scenario) {
 
 }
 
+async function chooseLifeExpectancies(scenario){
+    
+    const userLife = await sample(0, scenario.userLifeExpectancyDistribution);
+
+    if(userLife<0){
+        return false;
+    }
+    await scenarioFactory.update(scenario._id, {userLifeExpectancy: userLife});
+    if(scenario.filingStatus==="MARRIEDJOINT"){
+        const spouseLife = await sample(0, scenario.spouseLifeExpectancyDistribution);
+        if(spouseLife<0){
+            return false;
+        }
+        await scenarioFactory.update(scenario._id, {spouseLifeExpectancy: spouseLife});
+    }
+    return true;
+}
 export async function getCashInvestment(investmentTypes) {
     const cashName = "Cash";
     const investmentTypeFactory = new InvestmentTypeController();
@@ -296,7 +312,7 @@ export async function updateContributionLimitsForInflation(scenario, inflationRa
     scenario.annualPostTaxContributionLimit = scenario.annualPostTaxContributionLimit * (1 + inflationRate);
     await scenarioFactory.update(scenario._id, { annualPreTaxContributionLimit: scenario.annualPreTaxContributionLimit, annualPostTaxContributionLimit: scenario.annualPostTaxContributionLimit });
 }
-export async function adjustEventAmount(event, inflationRate) {
+export async function adjustEventAmount(event, inflationRate, scenario) {
     //adjusts event.amount for inflation and expected change
     if (event.eventType === "INVEST" || event.eventType === "REBALANCE") {
         return;
@@ -307,9 +323,10 @@ export async function adjustEventAmount(event, inflationRate) {
 
     let amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
     let distribution = await distributionFactory.read(event.expectedAnnualChangeDistribution);
-    
-    if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {
-        
+    if(scenario.filingStatus==="SINGLE"){
+        amountRate*=event.userContributions;
+    }
+    if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {     
     }
     else {
         
@@ -578,7 +595,7 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
     let fedIncomeTax = 0;
     for (const bracketIndex in federalIncomeTax.taxBrackets) {
         const bracket = federalIncomeTax.taxBrackets[bracketIndex];
-
+        
 
         if (bracket.lowerBound > curYearFedTaxableIncome) {
             break;
@@ -587,16 +604,17 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
             if (bracket.upperBound < curYearFedTaxableIncome) {
 
                 fedIncomeTax += (bracket.upperBound - bracket.lowerBound) * bracket.rate;
-
+                
             }
             else {
-
+                
                 fedIncomeTax += (curYearFedTaxableIncome - bracket.lowerBound) * bracket.rate;
-
+                
                 break;
             }
         }
     }
+    
     eventDetails = `Year: ${currentYear} - TAX - Paying $${Math.ceil(fedIncomeTax * 100) / 100} in federal income tax.\n`;
     updateLog(eventDetails);
     totalTax += fedIncomeTax;
@@ -1136,21 +1154,34 @@ export async function rebalanceInvestments(scenario, currentYear) {
 
 export async function simulate(
     scenario,
-    federalIncomeTax,
-    stateIncomeTax,
-    federalStandardDeductionObject,
-    capitalGainTax,
+    federalIncomeTaxArray,
+    stateIncomeTaxArray,
+    federalStandardDeductionObjectArray,
+    capitalGainTaxArray,
     rmdTable,
     csvFileL,
     logFileL
 ) {
+    let federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction;
+    if(scenario.filingStatus==="SINGLE"){
+        federalIncomeTax = federalIncomeTaxArray[0];
+        stateIncomeTax = stateIncomeTaxArray[0];
+        capitalGainTax = capitalGainTaxArray[0];
+        federalStandardDeduction = federalStandardDeductionObjectArray[0];
+    }
+    else{
+        federalIncomeTax = federalIncomeTaxArray[1];
+        stateIncomeTax = stateIncomeTaxArray[1];
+        capitalGainTax = capitalGainTaxArray[1];
+        federalStandardDeduction = federalStandardDeductionObjectArray[1];
+    }
+
     csvFile = csvFileL;
     logFile = logFileL;
     
-    let federalStandardDeduction = federalStandardDeductionObject.standardDeduction;
-    
     
     const eventTimeframeBool = await chooseEventTimeframe(scenario);
+    const chooseLifeExpectanciesBool = await chooseLifeExpectancies(scenario);
     if(eventTimeframeBool===false){
         console.log("Event Selection Failed, returning failed");
         const results = await resultFactory.create({
@@ -1159,14 +1190,15 @@ export async function simulate(
         })
         return results;
     }
-
-    // for (const eventIDIndex in scenario.events) {
-    //     const eventID = scenario.events[eventIDIndex];
-    //     const event = await eventFactory.read(eventID);
-        
-    //     console.log(`Event ${event.name} has start year ${event.startYear} and duration ${event.duration}`);
-    
-    // }
+    if(chooseLifeExpectanciesBool===false){
+        console.log("Life Expectancies Failed, returning failed");
+        const results = await resultFactory.create({
+            resultStatus : 'LIFE_ERROR',
+            yearlyResults : []
+        })
+        return results;
+    }
+    scenario = await scenarioFactory.read(scenario._id);
 
     const results = await resultFactory.create({
         resultStatus : 'SUCCESS',
@@ -1175,6 +1207,7 @@ export async function simulate(
 
     let currentYear = 0;
     const realYear = new Date().getFullYear();
+    
     const endYear = scenario.userBirthYear + scenario.userLifeExpectancy - realYear;
 
 
@@ -1193,9 +1226,7 @@ export async function simulate(
     let investments = await Promise.all(
         investmentIds.map(async (id) => await investmentFactory.read(id))
     );
-    const events = await Promise.all(
-        scenario.events.map(async (id) => await eventFactory.read(id))
-    );
+    
 
 
     let lastYearTaxes = 0;
@@ -1225,28 +1256,63 @@ export async function simulate(
         const inflationeEventDetails = `Year: ${currentYear} - INFLATION - ${Math.ceil(inflationRate * 1000) / 1000}\n`;
         updateLog(inflationeEventDetails);
         
-        updateTaxBracketsForInflation(federalIncomeTax, inflationRate);
-        updateTaxBracketsForInflation(stateIncomeTax, inflationRate);
+
+        //Could change from married to single if spouse dies, so we have to maintain both
+        updateTaxBracketsForInflation(federalIncomeTaxArray[0], inflationRate);
+        updateTaxBracketsForInflation(federalIncomeTaxArray[1], inflationRate);
+        updateTaxBracketsForInflation(stateIncomeTaxArray[0], inflationRate);
+        updateTaxBracketsForInflation(stateIncomeTaxArray[1], inflationRate);
+        updateTaxBracketsForInflation(capitalGainTaxArray[0], inflationRate);
+        updateTaxBracketsForInflation(capitalGainTaxArray[1], inflationRate);
+        federalStandardDeductionObjectArray[0].standardDeduction *= (1 + inflationRate);
+        federalStandardDeductionObjectArray[1].standardDeduction *= (1 + inflationRate);
+        if(scenario.filingStatus==="SINGLE"){
+            federalIncomeTax = federalIncomeTaxArray[0];
+            stateIncomeTax = stateIncomeTaxArray[0];
+            capitalGainTax = capitalGainTaxArray[0];
+            federalStandardDeduction = federalStandardDeductionObjectArray[0];
+        }
+        else{
+            federalIncomeTax = federalIncomeTaxArray[1];
+            stateIncomeTax = stateIncomeTaxArray[1];
+            capitalGainTax = capitalGainTaxArray[1];
+            federalStandardDeduction = federalStandardDeductionObjectArray[0];
+        }
+
         await updateContributionLimitsForInflation(scenario, inflationRate);
 
-        federalStandardDeduction *= (1 + inflationRate);
-
         
+
+        const events = scenario.events;
         //update events
-        for (const event of events) {
+        for (const i of events) {
+            
+            const event = await eventFactory.read(i);
+            
             if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
-                await adjustEventAmount(event, inflationRate);
+                await adjustEventAmount(event, inflationRate, scenario);
             }
         }
         const incomeByEvent = [];
-        for (const event of events.filter(e => e.eventType === "INCOME")) {
-            const income = event.amount;
-            if (!(event.startYear <= realYear + currentYear && event.duration + event.startYear <= realYear + currentYear)) {
+        
+        for (const i of events) {
+            
+            const event = await eventFactory.read(i);
+            if(event.eventType!=="INCOME"){
+                
                 continue;
             }
+
+            const income = event.amount;
+
+            if (!(event.startYear<=realYear+currentYear&&event.startYear+event.duration>=realYear+currentYear)) {
+                continue;
+            }
+
             const incomeEventDetails = `Year: ${currentYear} - INCOME - ${event.name}: ${event.description} - Amount is $${Math.ceil(income * 100) / 100}\n`;
             updateLog(incomeEventDetails);
             event.amount = income;
+            
             incomeByEvent.push({
                 name: event._id,
                 values: income
@@ -1287,7 +1353,7 @@ export async function simulate(
 
         
         let earlyWithdrawalTaxPaid = 0;
-        const calcTaxReturn = calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction, lastYearIncome, lastYearSS, lastYearEarlyWithdrawl, lastYearGains, currentYear);
+        const calcTaxReturn = calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax, federalStandardDeduction.standardDeduction, lastYearIncome, lastYearSS, lastYearEarlyWithdrawl, lastYearGains, currentYear);
         thisYearTaxes = calcTaxReturn.t;
         earlyWithdrawalTaxPaid = calcTaxReturn.e;
         let nonDiscretionaryExpenses = 0;
@@ -1362,11 +1428,45 @@ export async function simulate(
         lastYearIncome = curYearIncome;
         lastYearSS = curYearSS;
         lastYearEarlyWithdrawl = rothConversion.curYearEarlyWithdrawals;
+
+
+        //finally, check if spouse has died (sad)
+        //if so, update shared thingies, and tax to be paid
+        if(scenario.filingStatus==="MARRIEDJOINT"){
+            if(currentYear+realYear>scenario.spouseLifeExpectancy + scenario.spouseBirthYear){
+                //spouse died
+                const spouseDied = `Year: ${currentYear} - SPOUSE DIED\n`;
+                updateLog(spouseDied);
+                //update events
+                for(const i in scenario.events){
+                    const event = await eventFactory.read(scenario.events[i]);
+                    if(event.eventType==="INCOME"||event.eventType==="EXPENSE"){
+                        //if spouse was 100%, remove it completley
+                        if(event.userContributions===0){
+                            await eventFactory.delete(event._id);
+                        }
+                        else{
+                            await eventFactory.update(event._id, {amount: event.amount*(event.userContributions)});
+                        }
+                    }
+                }
+
+                //update tax status
+                await scenarioFactory.update(scenario._id, {filingStatus: "SINGLE"});
+
+                
+
+            }
+        }
+
+
+
+        scenario = await scenarioFactory.read(scenario);
         currentYear++;
 
     }
 
-
+    
     console.log("Simulation complete.");
     return results;
 }

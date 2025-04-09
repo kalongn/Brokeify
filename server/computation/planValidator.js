@@ -240,7 +240,7 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
 
 
 //recives ID of scenario in db
-export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
+export async function validateRun(scenarioID, numTimes, stateTaxIDArray, username) {
     //first, validate scenario's invariants
     
     try {
@@ -255,23 +255,21 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
     //depending on if scenario is single or joint, pass in different values to run:
     const scenario = await scenarioFactory.read(scenarioID);
    
-    let fedIncome = null;
-    let capitalGains = null;
-    let fedDeduction = null;
+    
     let rmdTable = scrapeReturn.rmdTable;
-    if (scenario.filingStatus === "SINGLE") {
-        fedIncome = scrapeReturn.federalIncomeSingle;
-        capitalGains = scrapeReturn.capitalGainsSingle;
-        fedDeduction = scrapeReturn.federalDeductionSingle;
-    }
-    else {
-        fedIncome = scrapeReturn.federalIncomeMarried;
-        capitalGains = scrapeReturn.capitalGainsMarried;
-        fedDeduction = scrapeReturn.federalDeductionMarried;
-    }
+    
+    const fedIncome0 = scrapeReturn.federalIncomeSingle;
+    const capitalGains0 = scrapeReturn.capitalGainsSingle;
+    const fedDeduction0 = scrapeReturn.federalDeductionSingle;
+    
+    
+    const fedIncome1 = scrapeReturn.federalIncomeMarried;
+    const capitalGains1 = scrapeReturn.capitalGainsMarried;
+    const fedDeduction1 = scrapeReturn.federalDeductionMarried;
+    
 
-    const stateTax = await taxFactory.read(stateTaxID);
-
+    const stateTax0 = await taxFactory.read(stateTaxIDArray[0]);
+    const stateTax1 = await taxFactory.read(stateTaxIDArray[1]);
     //Array of simulations
 
 
@@ -301,10 +299,10 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
 
         let runResult = await run(
             scenarioID,
-            fedIncome,
-            capitalGains,
-            fedDeduction,
-            stateTax,
+            [fedIncome0, fedIncome1],
+            [capitalGains0, capitalGains1],
+            [fedDeduction0, fedDeduction1],
+            [stateTax0, stateTax1],
             rmdTable,
             csvFile,
             logFile
@@ -314,12 +312,10 @@ export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
         //let clonedScenarioID = runResult.scenario._id;
 
        
-
         compiledResults.results.push(runResult);
 
     }
     
     await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
-    console.log(compiledResults)
     return compiledResults;
 }
