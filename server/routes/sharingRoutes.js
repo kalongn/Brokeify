@@ -18,10 +18,17 @@ router.get("/sharing/:scenarioId", async (req, res) => {
         }
         const scenario = await scenarioController.read(id);
 
+        const sharedUser = []
+        for (let editor of scenario.editorEmails) {
+            sharedUser.push({ email: editor, permissions: "Editor" });
+        }
+        for (let viewer of scenario.viewerEmails) {
+            sharedUser.push({ email: viewer, permissions: "Viewer" });
+        }
+
         const data = {
             ownerEmail: scenario.ownerEmail,
-            editorEmails: scenario.editorEmails,
-            viewerEmails: scenario.viewerEmails,
+            sharedUser: sharedUser,
         }
 
         return res.status(200).send(data);
