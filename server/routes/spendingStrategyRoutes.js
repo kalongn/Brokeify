@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import express from 'express';
 
-import { canEdit, distributionToFrontend } from "./helper.js";
+import { canEdit, distributionToString } from "./helper.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
 
 
@@ -29,7 +29,7 @@ router.get("/spending-strategy/:scenarioId", async (req, res) => {
                 id: event._id,
                 name: event.name,
                 amount: event.amount,
-                expectedAnnualChangeDistribution: distributionToFrontend(event.expectedAnnualChangeDistribution),
+                expectedAnnualChangeDistribution: distributionToString(event.expectedAnnualChangeDistribution),
                 isinflationAdjusted: event.isinflationAdjusted,
             };
         }));
