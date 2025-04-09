@@ -15,10 +15,7 @@ const Sharing = () => {
   const [ownerEmail, setOwnerEmail] = useState("");
 
   // List of users added and shared to
-  const [sharedUsers, setSharedUsers] = useState([
-    { email: 'william.shakespige@gmail.com', permissions: "Viewer" },
-    { email: 'eb.white12@gmail.com', permissions: "Editor" },
-  ]);
+  const [sharedUsers, setSharedUsers] = useState([]);
 
   // email and permissions states are for before a user is added
   const [email, setEmail] = useState("");
