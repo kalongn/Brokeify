@@ -52,7 +52,25 @@ const Sharing = () => {
   };
 
   // For changing an added user's permissions
-  const handlePermissionsChange = (targetUserEmail, newPermissions) => {
+  const handlePermissionsChange = async (targetUserEmail, newPermissions) => {
+    const oldPermissions = sharedUsers.find((user) => user.email === targetUserEmail).permissions;
+    if (newPermissions === oldPermissions) {
+      return;
+    }
+
+    try {
+      const reponse = await Axios.patch(`/sharing/${scenarioId}/update`, {
+        email: targetUserEmail,
+        oldPermissions: oldPermissions,
+        newPermissions: newPermissions,
+      });
+      console.log(reponse.data);
+    } catch (error) {
+      console.error("Error updating user permissions:", error);
+      setErrors("An Unknown error occurred while updating the user permissions");
+      return;
+    }
+
     setSharedUsers(sharedUsers.map((user) => {
       if (user.email === targetUserEmail) {
         return { ...user, permissions: newPermissions };
@@ -104,11 +122,12 @@ const Sharing = () => {
 
   const removeUser = async (targetUserEmail) => {
     try {
-      await Axios.delete(`/sharing/${scenarioId}/remove`, {
+      const response = await Axios.delete(`/sharing/${scenarioId}/remove`, {
         data: {
           email: targetUserEmail,
         }
       });
+      console.log(response.data);
     } catch (error) {
       console.error("Error removing user:", error);
       setErrors("An Unknown error occurred while removing the user");
