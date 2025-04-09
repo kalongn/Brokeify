@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import express from 'express';
 
-import { canEdit, distributionToFrontend, taxStatusToFrontend } from "./helper.js";
+import { canEdit, distributionToString, taxStatusToFrontend } from "./helper.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
 
 const router = express.Router();
@@ -38,7 +38,7 @@ router.get("/rmd-strategy/:scenarioId", async (req, res) => {
             acc[investment.id] = {
                 type: investment.type,
                 value: investment.value,
-                expectedAnnualReturnDistribution: distributionToFrontend(investment.expectedAnnualReturnDistribution),
+                expectedAnnualReturnDistribution: distributionToString(investment.expectedAnnualReturnDistribution),
                 taxStatus: taxStatusToFrontend(investment.taxStatus),
                 taxability: investment.taxability,
             };

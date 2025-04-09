@@ -53,21 +53,6 @@ export const stateMap = {
   "WY": "Wyoming"
 };
 
-export const distributionToString = (distribution) => {
-  if (distribution.type) { // This is for after using the distributionToFrontend function in the backend
-    switch (distribution.type) {
-      case "fixed":
-        return distribution.isPercentage ? `Fixed ${distribution.value}%` : `Fixed ${distribution.value}`;
-      case "uniform":
-        return distribution.isPercentage ? `Uniform ${distribution.lowerBound}% to ${distribution.upperBound}%` : `Uniform ${distribution.lowerBound} to ${distribution.upperBound}`;
-      case "normal":
-        return distribution.isPercentage ? `Normal ${distribution.mean}% ± ${distribution.standardDeviation}%` : `Normal ${distribution.mean} ± ${distribution.standardDeviation}`;
-      default:
-        return "Unknown Distribution Type";
-    }
-  }
-};
-
 export const validateRequired = (newErrors, field, value) => {
   if (value === null || value === undefined || (typeof value === "string" && value.trim() === "")) {
     newErrors[field] = "This field is required";
