@@ -52,9 +52,9 @@ const Sharing = () => {
   };
 
   // For changing an added user's permissions
-  const handlePermissionsChange = (currUser, newPermissions) => {
+  const handlePermissionsChange = (targetUserEmail, newPermissions) => {
     setSharedUsers(sharedUsers.map((user) => {
-      if (user.email === currUser) {
+      if (user.email === targetUserEmail) {
         return { ...user, permissions: newPermissions };
       }
       return user;
@@ -90,9 +90,10 @@ const Sharing = () => {
       console.log(response.data);
       setSharedUsers([...sharedUsers, { email: email, permissions: permissions }]);
       setEmail("");
+      setErrors("");
       e.target.form.querySelector('input[type="email"]').value = "";
     } catch (error) {
-      if (error.reponse && (error.response.status === 404 || error.response.status === 400)) {
+      if (error.response?.status === 404 || error.response?.status === 400) {
         setErrors("Input email incorrect or does not have an account");
         return;
       }
@@ -101,8 +102,19 @@ const Sharing = () => {
     }
   };
 
-  const removeUser = (currUser) => {
-    setSharedUsers(sharedUsers.filter((user) => user.email !== currUser));
+  const removeUser = async (targetUserEmail) => {
+    try {
+      await Axios.delete(`/sharing/${scenarioId}/remove`, {
+        data: {
+          email: targetUserEmail,
+        }
+      });
+    } catch (error) {
+      console.error("Error removing user:", error);
+      setErrors("An Unknown error occurred while removing the user");
+      return;
+    }
+    setSharedUsers(sharedUsers.filter((user) => user.email !== targetUserEmail));
   }
 
   return (

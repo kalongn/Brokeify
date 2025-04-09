@@ -82,4 +82,37 @@ router.post("/sharing/:scenarioId/add", async (req, res) => {
     }
 });
 
+router.delete("/sharing/:scenarioId/remove", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+
+        if (!await isOwner(userId, id)) {
+            return res.status(403).send("You do not have permission to access the sharing settings of this scenario.");
+        }
+        const { email } = req.body;
+
+        const scenario = await scenarioController.read(id);
+        scenario.editorEmails = scenario.editorEmails.filter((editor) => editor !== email);
+        scenario.viewerEmails = scenario.viewerEmails.filter((viewer) => viewer !== email);
+
+        const user = await userController.findByEmail(email);
+        await userController.update(user._id, {
+            $pull: { editorScenarios: id, viewerScenarios: id },
+        });
+        
+        await scenarioController.update(id, {
+            editorEmails: scenario.editorEmails,
+            viewerEmails: scenario.viewerEmails,
+        });
+        return res.status(200).send("User removed successfully.");
+    } catch (error) {
+        console.error("Error in sharing route:", error);
+        return res.status(500).send("Error removing user from scenario.");
+    }
+});
+
 export default router;
