@@ -1,10 +1,12 @@
 import express from 'express';
 
 import ScenarioController from '../db/controllers/ScenarioController.js';
+import UserController from '../db/controllers/UserController.js';
 import { canView, distributionToString, stateAbbreviationToString, taxStatusToFrontend } from './helper.js';
 
 const router = express.Router();
 const scenarioController = new ScenarioController();
+const userController = new UserController();
 
 router.get("/scenario/:scenarioId", async (req, res) => {
     if (req.session.user) {
@@ -81,6 +83,17 @@ router.get("/scenario/:scenarioId", async (req, res) => {
                 return investmentIdNameMap[investId] || "Unnamed Investment";
             });
 
+            let permisison = 0; // Default permission (0 = no permission)
+            const user = userController.read(req.session.user);
+            if (scenario.ownerEmail === user.email) {
+                permisison = 3; // Owner permission
+            } else if (scenario.editorEmails.includes(user.email)) {
+                permisison = 2; // Editor permission
+            }
+            else if (scenario.viewerEmails.includes(user.email)) {
+                permisison = 1; // Viewer permissio
+            }
+
 
             const data = {
                 name: scenario.name,
@@ -96,6 +109,7 @@ router.get("/scenario/:scenarioId", async (req, res) => {
                 orderedRMDStrategy: rmdStrategy,
                 startYearRothOptimizer: scenario.startYearRothOptimizer,
                 orderedRothStrategy: rothStrategy,
+                permisison: permisison,
             }
 
             return res.status(200).send(data);

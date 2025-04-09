@@ -19,6 +19,7 @@ const ScenarioSimulation = () => {
   const [investments, setInvestments] = useState([]);
   const [events, setEvents] = useState([]);
   const [strategies, setStrategies] = useState([]);
+  const [permission, setPermission] = useState(0);
   const [loading, setLoading] = useState(true);
 
 
@@ -30,7 +31,7 @@ const ScenarioSimulation = () => {
       const scenarioData = response.data;
       console.log('Scenario data:', scenarioData);
       setScenario(scenarioData);
-
+      setPermission(scenarioData.permisison);
       setInvestments(scenarioData.investments || []);
       setEvents(scenarioData.events || []);
 
@@ -84,9 +85,9 @@ const ScenarioSimulation = () => {
             <div className={styles.header}>
               <div className={styles.title}>
                 <h2>{scenario.name}</h2>
-                <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
-                <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon} onClick={() => { console.log('Edit Scenario Page') }}> <TbEdit size={25} /> </Link>
-                <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={23} /></Link>
+                {permission > 0 && <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon}><TbFileSearch size={25} /></Link>}
+                {permission > 1 && <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon}><TbEdit size={25} /></Link>}
+                {permission > 2 && <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={25} /></Link>}
               </div>
 
               <div className={styles.buttons}>
