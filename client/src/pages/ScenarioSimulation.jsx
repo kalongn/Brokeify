@@ -12,8 +12,7 @@ import Investment from "../components/Investment";
 import Event from "../components/Event";
 import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
-//import ModalSharing from "../components/ModalSharing";
-//import Sharing from "./Sharing.jsx";
+
 const ScenarioSimulation = () => {
 
   const { scenarioId } = useParams(); // Get the scenario ID from the URL params
@@ -22,8 +21,8 @@ const ScenarioSimulation = () => {
   const [events, setEvents] = useState([]);
   const [strategies, setStrategies] = useState([]);
   const [loading, setLoading] = useState(true);
-  //const [isOpen, setIsOpen] = useState(false);
-
+  
+  
   useEffect(() => {
 
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
