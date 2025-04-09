@@ -63,6 +63,9 @@ const stateAbbreviationToString = (stateAbbreviation) => {
 }
 
 const distributionToString = (distribution) => {
+    if (!distribution) {
+        return null;
+    }
     if (distribution.distributionType) { // This is for distribution directly from the database
         switch (distribution.distributionType) {
             case "FIXED_AMOUNT":
