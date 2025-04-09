@@ -63,6 +63,9 @@ const stateAbbreviationToString = (stateAbbreviation) => {
 }
 
 const distributionToString = (distribution) => {
+    if (!distribution) {
+        return null;
+    }
     if (distribution.distributionType) { // This is for distribution directly from the database
         switch (distribution.distributionType) {
             case "FIXED_AMOUNT":
@@ -187,6 +190,11 @@ const allocateMethodToBackend = (allocationMethod) => {
     }
 }
 
+const isOwner = async (userId, scenarioId) => {
+    const user = await userController.read(userId);
+    return user.ownerScenarios.some(scenario => scenario._id.toString() === scenarioId);
+}
+
 const canEdit = async (userId, scenarioId) => {
     const user = await userController.read(userId);
     return user.ownerScenarios.some(scenario => scenario._id.toString() === scenarioId) ||
@@ -209,6 +217,7 @@ export {
     taxStatusToBackend,
     allocateMethodToFrontend,
     allocateMethodToBackend,
+    isOwner,
     canEdit,
     canView
 }

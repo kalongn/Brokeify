@@ -137,6 +137,15 @@ export default class UserController {
         }
     }
 
+    async findByEmail(email) {
+        try {
+            return await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
     /**
      * This function deletes a User with the given id
      * @param {mongoose.Types.ObjectId} id 
