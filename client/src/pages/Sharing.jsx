@@ -91,7 +91,11 @@ const Sharing = () => {
       setErrors("Invalid email format");
       return;
     }
-    if (sharedUsers.some((user) => user.email === email)) {
+    if (sharedUsers.some((user) => {
+      const [local, domain] = user.email.split('@');
+      const [localInput, domainInput] = email.split('@');
+      return local.toLowerCase() === localInput.toLowerCase() && domain === domainInput;
+    })) {
       setErrors("User already added");
       return;
     }
