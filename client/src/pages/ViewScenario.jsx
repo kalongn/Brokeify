@@ -6,7 +6,6 @@ import { BiSolidCircle } from "react-icons/bi";
 import { BiCircle } from "react-icons/bi";
 import { useParams, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { stateMap } from "../utils/ScenarioHelper";
 import Axios from "axios";
 
 
@@ -34,73 +33,19 @@ const ViewScenario = () => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
 
-    Axios.get(`/scenario/${scenarioId}`).then((response) => {
+    Axios.get(`/scenario-detail/${scenarioId}`).then((response) => {
       const scenarioData = response.data;
       console.log('Scenario data:', scenarioData);
       setScenarioData(scenarioData);
 
-      const allInvestments = [];
-      const investmentIdInvestmentMap = {};
-      for (let type of scenarioData.investmentTypes) {
-        for (let investment of type.investments) {
-          const investmentStructure = {
-            name: type.name,
-            value: investment.value,
-            taxStatus: investment.taxStatus,
-          }
-          investmentIdInvestmentMap[investment._id] = investmentStructure;
-          allInvestments.push(investmentStructure)
-        }
-      }
-
-      const allEvents = [];
-      const eventIdEventMap = {};
-      for (let event of scenarioData.events) {
-        const eventStructure = {
-          name: event.name,
-          type: event.eventType
-        }
-        eventIdEventMap[event._id] = eventStructure;
-        allEvents.push(eventStructure);
-      }
-
-      setInvestments(allInvestments);
-      setEvents(allEvents);
-
-      const SpendingStrategy = [];
-      for (let eventId of scenarioData.orderedSpendingStrategy) {
-        if (eventIdEventMap[eventId]) {
-          SpendingStrategy.push(eventIdEventMap[eventId]);
-        }
-      }
-      setOrderedSpendingStrategy(SpendingStrategy);
-
-      const ExpenseWithdrawalStrategy = [];
-      for (let investmentId of scenarioData.orderedExpenseWithdrawalStrategy) {
-        if (investmentIdInvestmentMap[investmentId]) {
-          ExpenseWithdrawalStrategy.push(investmentIdInvestmentMap[investmentId]);
-        }
-      }
-      setOrderedExpenseWithdrawalStrategy(ExpenseWithdrawalStrategy);
-
-      const RMDStrategy = [];
-      for (let investmentId of scenarioData.orderedRMDStrategy) {
-        if (investmentIdInvestmentMap[investmentId]) {
-          RMDStrategy.push(investmentIdInvestmentMap[investmentId]);
-        }
-      }
-      setOrderedRMDStrategy(RMDStrategy);
-
-      const RothStrategy = [];
-      for (let investmentId of scenarioData.orderedRothStrategy) {
-        if (investmentIdInvestmentMap[investmentId]) {
-          RothStrategy.push(investmentIdInvestmentMap[investmentId]);
-        }
-      }
-      setOrderedRothStrategy(RothStrategy);
+      setInvestments(scenarioData.investments || []);
+      setEvents(scenarioData.events || []);
+      setOrderedSpendingStrategy(scenarioData.orderedSpendingStrategy || []);
+      setOrderedExpenseWithdrawalStrategy(scenarioData.orderedExpenseWithdrawalStrategy || []);
+      setOrderedRMDStrategy(scenarioData.orderedRMDStrategy || []);
+      setOrderedRothStrategy(scenarioData.orderedRothStrategy || []);
 
       setLoading(false);
-
     }).catch((error) => {
       if (error.response && error.response.status === 403) {
         console.error('You do not have permission to access this scenario.');
@@ -149,7 +94,7 @@ const ViewScenario = () => {
             </div>
 
             <p className={styles.question}>State of Residence</p>
-            <div className={styles.textbox}>{stateMap[scenarioData.stateOfResidence]}</div>
+            <div className={styles.textbox}>{scenarioData.stateOfResidence}</div>
 
             <p className={styles.question}>Marital Status</p>
             <div className={styles.textbox}>
@@ -250,7 +195,7 @@ const ViewScenario = () => {
                 </div>
               ))}
             </div>
-            
+
             {/**Event Series Section */}
             <h2>Event Series</h2>
             <p className={styles.description}>
@@ -269,11 +214,11 @@ const ViewScenario = () => {
                 </div>
               ))}
             </div>
-              
+
             {/**Inflation and Contribution Limits Section */}
             <h2>Inflation & Contribution Limits</h2>
             <p className={styles.question}>Inflation Assumption</p>
-            
+
             {
               scenarioData.inflationAssumptionDistribution?.distributionType === "NORMAL_PERCENTAGE" ? (
                 <>
@@ -322,15 +267,13 @@ const ViewScenario = () => {
                   )
             }
 
-            
+
             <p className={styles.question}>Retirement Accounts Initial Limit on Annual Contributions</p>
-            <p className={styles.question}>Pre-Tax</p>
-            <div className={styles.textbox}>{scenarioData.annualPreTaxContributionLimit}</div>
 
             <p className={styles.question}>After-Tax</p>
             <div className={styles.textbox}>{scenarioData.annualPostTaxContributionLimit}</div>
 
-            
+
             {/**Spending Strategy Section */}
             <h2>Spending Strategy</h2>
             <p className={styles.description}>
@@ -348,7 +291,7 @@ const ViewScenario = () => {
               ))}
             </div>
 
-              
+
             {/**Expense Withdrawl Section */}
             <h2>Expense Withdrawal Strategy</h2>
             <p className={styles.description}>
@@ -388,7 +331,7 @@ const ViewScenario = () => {
 
               </div>
             ))}
-            
+
             {/**Roth Optimizer Section */}
             <h2>Roth Conversion Strategy & Optimizer</h2>
             <p className={styles.description}>

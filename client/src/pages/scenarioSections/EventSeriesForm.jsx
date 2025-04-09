@@ -34,6 +34,7 @@ const EventSeriesForm = () => {
     duration: { type: "" },
     expectedAnnualChange: { type: "" },
   });
+  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
   const taxStatuses = [
@@ -46,24 +47,90 @@ const EventSeriesForm = () => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
 
-    Axios.get(`/event/${scenarioId}`).then((response) => {
-      const scenarioData = response.data.scenario;
-      setBirthYear(scenarioData.birthYear);
-      setLifeExpectancy(scenarioData.lifeExpectancy);
-      setMaritalStatus(scenarioData.maritalStatus);
-      const eventsData = response.data.events;
-      const investmentsData = response.data.investments;
+    const fetchScenarioData = async () => {
+      try {
+        const response = await Axios.get(`/event/${scenarioId}`);
+        const scenarioData = response.data.scenario;
+        setBirthYear(scenarioData.birthYear);
+        setLifeExpectancy(scenarioData.lifeExpectancy);
+        setMaritalStatus(scenarioData.maritalStatus);
+        const eventsData = response.data.events;
+        const investmentsData = response.data.investments;
 
-      const eventOptions = eventsData.map((event) => {
-        return { value: event.id, label: event.name };
-      });
+        const eventOptions = eventsData.map((event) => {
+          return { value: event.id, label: event.name };
+        });
 
-      setEvents(eventOptions);
-      setAllInvestments(investmentsData);
-    }).catch((error) => {
-      console.error('Error fetching event series:', error);
-    });
-  }, [scenarioId]);
+        console.log("Event options:", eventOptions);
+
+        setEvents(eventOptions);
+        setAllInvestments(investmentsData);
+
+        if (id) {
+          const eventResponse = await Axios.get(`/event/${scenarioId}/${id}`);
+          const eventData = eventResponse.data;
+          setFormData({
+            name: eventData.name,
+            description: eventData.description,
+          });
+          setDistributions((prev) => ({
+            ...prev,
+            startYear: eventData.startYearTypeDistribution,
+            duration: eventData.durationTypeDistribution,
+            expectedAnnualChange: eventData.expectedAnnualChangeDistribution || { type: "" },
+          }));
+          console.log(eventData.startYearTypeDistribution)
+          setEventType(eventData.eventType);
+
+          switch (eventData.eventType) {
+            case "income":
+              setTypeFormData({
+                type: "income",
+                isSocialSecurity: eventData.isSocialSecurity,
+                initialValue: eventData.initialValue,
+                percentageIncrease: eventData.percentageIncrease,
+                isAdjustInflation: eventData.isAdjustInflation,
+              });
+              break;
+            case "expense":
+              setTypeFormData({
+                type: "expense",
+                isDiscretionary: eventData.isDiscretionary,
+                initialValue: eventData.initialValue,
+                percentageIncrease: eventData.percentageIncrease,
+                isAdjustInflation: eventData.isAdjustInflation,
+              });
+              break;
+            case "invest":
+              setTypeFormData({
+                type: "invest",
+                allocationMethod: eventData.allocationMethod,
+                maximumCash: eventData.maximumCash,
+                investmentRows: eventData.investmentRows,
+              });
+              break;
+            case "rebalance":
+              setTypeFormData({
+                type: "rebalance",
+                allocationMethod: eventData.allocationMethod,
+                maximumCash: eventData.maximumCash,
+                investmentRows: eventData.investmentRows,
+                taxStatus: eventData.taxStatus,
+              });
+              break;
+            default:
+              // Should not happen
+              break;
+          }
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching event series:', error);
+      }
+    };
+
+    fetchScenarioData();
+  }, [scenarioId, id]);
 
   useEffect(() => {
     switch (eventType) {
@@ -89,12 +156,6 @@ const EventSeriesForm = () => {
       }
     }
   }, [allInvestments, eventType, typeFormData.taxStatus]);
-
-  useEffect(() => {
-    if (id) {
-      //TODO (middleware): Add this in the index.js
-    }
-  }, [id]);
 
   // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
@@ -259,7 +320,7 @@ const EventSeriesForm = () => {
     }
 
     // Validate start year and duration are within lifetime
-    const deathYear = birthYear + lifeExpectancy.value;
+    const deathYear = birthYear + lifeExpectancy.value; //TODO: @04mHuang fix this as life expectancy is not a number
     const start = distributions.startYear;
     const duration = distributions.duration;
     switch (start.type) {
@@ -373,7 +434,7 @@ const EventSeriesForm = () => {
     switch (eventType) {
       case "income":
         event = {
-          eventType: "INCOME",
+          eventType: eventType.toUpperCase(),
           name: formData.name,
           description: formData.description,
           durationTypeDistribution: distributions.duration,
@@ -387,7 +448,7 @@ const EventSeriesForm = () => {
         break;
       case "expense":
         event = {
-          eventType: "EXPENSE",
+          eventType: eventType.toUpperCase(),
           name: formData.name,
           description: formData.description,
           durationTypeDistribution: distributions.duration,
@@ -401,7 +462,7 @@ const EventSeriesForm = () => {
         break;
       case "invest":
         event = {
-          eventType: "INVEST",
+          eventType: eventType.toUpperCase(),
           name: formData.name,
           description: formData.description,
           durationTypeDistribution: distributions.duration,
@@ -413,7 +474,7 @@ const EventSeriesForm = () => {
         break;
       case "rebalance":
         event = {
-          eventType: "REBALANCE",
+          eventType: eventType.toUpperCase(),
           name: formData.name,
           description: formData.description,
           durationTypeDistribution: distributions.duration,
@@ -430,7 +491,7 @@ const EventSeriesForm = () => {
     }
 
     try {
-      const response = await Axios.post(`/event/${scenarioId}`, event);
+      const response = id ? await Axios.put(`/event/${scenarioId}/${id}`, event) : await Axios.post(`/event/${scenarioId}`, event);
       console.log(response.data);
       handleNavigate();
     } catch (error) {
@@ -443,347 +504,348 @@ const EventSeriesForm = () => {
     if (!validateFields()) {
       return;
     }
-    if (id) {
-      //Implement a new function for this. Edit existing eventseries...don't create new one.
-      alert("Update here - line 300- so that it sets by ID, instead of uploading to backend. Don't create new object, but adjust current one.")
-      return;
-    }
     await uploadToBackend();
   };
 
   return (
     <div id={styles.newItemContainer}>
-      <h2>New Event Series</h2>
-      <form>
-        <label>
-          Event Series Name
-          <input type="text" name="name" className={styles.newline} onChange={handleChange} />
-          {errors.name && <span className={styles.error}>{errors.name}</span>}
-        </label>
-        <label>
-          Description
-          <textarea name="description" onChange={handleChange} />
-        </label>
-        <label>Start Year</label>
-        <div className={styles.columns}>
-          <Distributions
-            options={["fixed", "uniform", "normal"]}
-            name="startYear"
-            defaultValue={distributions.startYear}
-            onChange={handleDistributionsChange}
-          />
-          <div>
+      {loading ?
+        <p>Loading...</p>
+        :
+        <>
+          <h2>New Event Series</h2>
+          <form>
             <label>
-              <input
-                type="radio"
-                name="startYear"
-                value="eventStart"
-                checked={distributions.startYear.type === "eventStart"}
-                onChange={handleChange}
-              />
-              Same Year that Specified Event Starts
+              Event Series Name
+              <input type="text" name="name" defaultValue={formData.name} className={styles.newline} onChange={handleChange} />
+              {errors.name && <span className={styles.error}>{errors.name}</span>}
             </label>
-            <br />
             <label>
-              <input
-                type="radio"
+              Description
+              <textarea name="description" defaultValue={formData.description} onChange={handleChange} />
+            </label>
+            <label>Start Year</label>
+            <div className={styles.columns}>
+              <Distributions
+                options={["fixed", "uniform", "normal"]}
                 name="startYear"
-                value="eventEnd"
-                checked={distributions.startYear.type === "eventEnd"}
-                onChange={handleChange}
+                defaultValue={distributions.startYear}
+                onChange={handleDistributionsChange}
               />
-              Year After Specified Event Ends
-            </label>
-            {distributions.startYear.type.includes("event") && <Select
-              options={events}
-              className={styles.select}
-              onChange={(option) => handleSelectChange(option, "event")}
-              value={events.find(opt => opt.value === distributions.startYear.event)}
-            />}
-            {errors.startYearEvent && <span className={styles.error}>{errors.startYearEvent}</span>}
-          </div>
-        </div>
-        {errors.startYear && <span className={styles.error}>{errors.startYear}</span>}
-        <label>Duration (in years)</label>
-        <Distributions
-          options={["fixed", "uniform", "normal"]}
-          name="duration"
-          defaultValue={distributions.duration}
-          onChange={handleDistributionsChange}
-        />
-        {errors.duration && <span className={styles.error}>{errors.duration}</span>}
-        <label className={styles.newline}>
-          Type
-        </label>
-        <div>
-          <label className={styles.radioButton}>
-            <input type="radio" name="eventType" value="income" onChange={handleChange} />
-            Income
-          </label>
-          <label className={styles.radioButton}>
-            <input type="radio" name="eventType" value="expense" onChange={handleChange} />
-            Expense
-          </label>
-        </div>
-        <div>
-          <label className={styles.radioButton}>
-            <input type="radio" name="eventType" value="invest" onChange={handleChange} />
-            Invest
-          </label>
-          <label className={styles.radioButton}>
-            <input type="radio" name="eventType" value="rebalance" onChange={handleChange} />
-            Rebalance
-          </label>
-        </div>
-        {errors.eventType && <span className={styles.error}>{errors.eventType}</span>}
-        <hr />
-
-        {(eventType === "income" || eventType === "expense") && (
-          <div>
-            {/* TODO: replace with toggle button */}
-            {eventType === "income" && (
-              <label>
-                <input type="checkbox" name="isSocialSecurity" onChange={handleChange} />
-                Social Security
-              </label>
-            )}
-            {eventType === "expense" && (
-              <label>
-                <input type="checkbox" name="isDiscretionary" onChange={handleChange} />
-                Discretionary
-              </label>
-            )}
-            <label className={styles.newline}>
-              Initial Value
-              <input
-                type="number"
-                name="initialValue"
-                className={styles.newline}
-                onChange={handleChange}
-                value={typeFormData.initialValue}
-              />
-              {errors.initialValue && <span className={styles.error}>{errors.initialValue}</span>}
-            </label>
-            <label>Expected Annual Change</label>
+              <div>
+                <label>
+                  <input
+                    type="radio"
+                    name="startYear"
+                    value="eventStart"
+                    checked={distributions.startYear.type === "eventStart"}
+                    onChange={handleChange}
+                  />
+                  Same Year that Specified Event Starts
+                </label>
+                <br />
+                <label>
+                  <input
+                    type="radio"
+                    name="startYear"
+                    value="eventEnd"
+                    checked={distributions.startYear.type === "eventEnd"}
+                    onChange={handleChange}
+                  />
+                  Year After Specified Event Ends
+                </label>
+                {distributions.startYear.type.includes("event") && <Select
+                  options={events}
+                  className={styles.select}
+                  onChange={(option) => handleSelectChange(option, "event")}
+                  value={events.find(opt => opt.value === distributions.startYear.event)}
+                />}
+                {errors.startYearEvent && <span className={styles.error}>{errors.startYearEvent}</span>}
+              </div>
+            </div>
+            {errors.startYear && <span className={styles.error}>{errors.startYear}</span>}
+            <label>Duration (in years)</label>
             <Distributions
               options={["fixed", "uniform", "normal"]}
-              name="expectedAnnualChange"
-              requirePercentage={true}
+              name="duration"
+              defaultValue={distributions.duration}
               onChange={handleDistributionsChange}
-              defaultValue={distributions.expectedAnnualChange}
             />
-            {errors.expectedAnnualChange && <span className={styles.error}>{errors.expectedAnnualChange}</span>}
-            {maritalStatus === "MARRIEDJOINT" && <label>
-              Specific Percentage Increase
-              <input
-                type="number"
-                name="percentageIncrease"
-                className={styles.newline}
-                onChange={handleChange}
-                value={typeFormData.percentageIncrease}
-              />
-            </label>}
-            {errors.percentageIncrease && <span className={styles.error}>{errors.percentageIncrease}</span>}
-            <label>
-              <input type="checkbox" name="isAdjustInflation" onChange={handleChange} />
-              Adjust for Inflation
-            </label>
-          </div>
-        )}
-        {(eventType === "invest" || eventType === "rebalance") && (
-          <div>
+            {errors.duration && <span className={styles.error}>{errors.duration}</span>}
             <label className={styles.newline}>
-              Investment Allocation Method
+              Type
             </label>
-            <label className={styles.radioButton}>
-              <input
-                type="radio"
-                name="allocationMethod"
-                value="fixed"
-                checked={typeFormData.allocationMethod === "fixed"}
-                onChange={handleChange}
-              />
-              Fixed Percentages
-            </label>
-            <label className={styles.radioButton}>
-              <input
-                type="radio"
-                name="allocationMethod"
-                value="glidePath"
-                checked={typeFormData.allocationMethod === "glidePath"}
-                onChange={handleChange}
-              />
-              Glide Path
-            </label>
-            {errors.allocationMethod && <span className={styles.error}>{errors.allocationMethod}</span>}
-
-            {eventType === "rebalance" && (
-              <label className={styles.newline}>
-                Tax Status
-                <Select
-                  options={taxStatuses}
-                  className={styles.select}
-                  onChange={(option) => handleSelectChange(option, "taxStatus")}
-                  value={taxStatuses.find(opt => opt.value === typeFormData.taxStatus)}
-                />
-                {errors.taxStatus && <span className={styles.error}>{errors.taxStatus}</span>}
+            <div>
+              <label className={styles.radioButton}>
+                <input type="radio" name="eventType" value="income" defaultChecked={eventType === "income"} onChange={handleChange} />
+                Income
               </label>
-            )}
+              <label className={styles.radioButton}>
+                <input type="radio" name="eventType" value="expense" defaultChecked={eventType === "expense"} onChange={handleChange} />
+                Expense
+              </label>
+            </div>
+            <div>
+              <label className={styles.radioButton}>
+                <input type="radio" name="eventType" value="invest" defaultChecked={eventType === "invest"} onChange={handleChange} />
+                Invest
+              </label>
+              <label className={styles.radioButton}>
+                <input type="radio" name="eventType" value="rebalance" defaultChecked={eventType === "rebalance"} onChange={handleChange} />
+                Rebalance
+              </label>
+            </div>
+            {errors.eventType && <span className={styles.error}>{errors.eventType}</span>}
+            <hr />
 
-            {/* Render inputs based on the selected allocation method */}
-            {typeFormData.allocationMethod === "fixed" && (
-              <div id={styles.inputTable}>
-                <table id={styles.inputTable}>
-                  <thead>
-                    <tr>
-                      <th>Investment</th>
-                      <th>Percentage</th>
-                      {/* To account for remove button */}
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {typeFormData.investmentRows?.map((row, index) => (
-                      <tr key={index}>
-                        <td>
-                          <Select
-                            options={investments}
-                            value={investments.find((option) => option.value === row.investment)}
-                            onChange={(selectedOption) =>
-                              handleInvestmentRowChange(index, "investment", selectedOption.value)
-                            }
-                            placeholder="Select Investment"
-                            className={styles.select}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            value={row.percentage}
-                            onChange={(e) =>
-                              handleInvestmentRowChange(index, "percentage", e.target.value)
-                            }
-                            placeholder="%"
-                          />
-                          {errors.investmentRows?.[index]?.percentage && (<span className={styles.error}>{errors.investmentRows[index].percentage}</span>)}
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => removeInvestmentRow(index)}
-                            className={styles.tableButton}
-                          >
-                            <FaTimes />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {errors.investmentRow && (<span className={styles.error}>{errors.investmentRow}</span>)}
-                <button id={styles.addButton}
-                  type="button"
-                  onClick={addInvestmentRow}
-                  style={{ backgroundColor: "var(--color-white)" }}
-                >
-                  Add Investment
-                </button>
-              </div>
-            )}
-
-            {typeFormData.allocationMethod === "glidePath" && (
+            {(eventType === "income" || eventType === "expense") && (
               <div>
-                <table id={styles.inputTable}>
-                  <thead>
-                    <tr>
-                      <th>Investment</th>
-                      <th>Initial Percentage (must sum to 100)</th>
-                      <th>Final Percentages (must sum to 100)</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {typeFormData.investmentRows?.map((row, index) => (
-                      <tr key={index}>
-                        <td>
-                          <Select
-                            options={investments}
-                            value={investments.find((option) => option.value === row.investment)}
-                            onChange={(selectedOption) =>
-                              handleInvestmentRowChange(index, "investment", selectedOption.value)
-                            }
-                            placeholder="Select Investment"
-                            className={styles.select}
-                          />
-
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            value={row.initialPercentage}
-                            onChange={(e) =>
-                              handleInvestmentRowChange(index, "initialPercentage", e.target.value)
-                            }
-                            placeholder="Initial %"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            value={row.finalPercentage}
-                            onChange={(e) =>
-                              handleInvestmentRowChange(index, "finalPercentage", e.target.value)
-                            }
-                            placeholder="Final %"
-                          />
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => removeInvestmentRow(index)}
-                            className={styles.tableButton}
-                          >
-                            <FaTimes />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {errors.investmentRow && (<span className={styles.error}>{errors.investmentRow}</span>)}
-                <button
-                  id={styles.addButton}
-                  type="button"
-                  onClick={addInvestmentRow}
-                  style={{ backgroundColor: "var(--color-white)" }}
-                >
-                  Add Investment
-                </button>
+                {/* TODO: replace with toggle button */}
+                {eventType === "income" && (
+                  <label>
+                    <input type="checkbox" name="isSocialSecurity" defaultChecked={typeFormData.isSocialSecurity} onChange={handleChange} />
+                    Social Security
+                  </label>
+                )}
+                {eventType === "expense" && (
+                  <label>
+                    <input type="checkbox" name="isDiscretionary" defaultChecked={typeFormData.isDiscretionary} onChange={handleChange} />
+                    Discretionary
+                  </label>
+                )}
+                <label className={styles.newline}>
+                  Initial Value
+                  <input
+                    type="number"
+                    name="initialValue"
+                    className={styles.newline}
+                    onChange={handleChange}
+                    value={typeFormData.initialValue}
+                  />
+                  {errors.initialValue && <span className={styles.error}>{errors.initialValue}</span>}
+                </label>
+                <label>Expected Annual Change</label>
+                <Distributions
+                  options={["fixed", "uniform", "normal"]}
+                  name="expectedAnnualChange"
+                  requirePercentage={true}
+                  onChange={handleDistributionsChange}
+                  defaultValue={distributions.expectedAnnualChange}
+                />
+                {errors.expectedAnnualChange && <span className={styles.error}>{errors.expectedAnnualChange}</span>}
+                {maritalStatus === "MARRIEDJOINT" && <label>
+                  Specific Percentage Increase
+                  <input
+                    type="number"
+                    name="percentageIncrease"
+                    className={styles.newline}
+                    onChange={handleChange}
+                    value={typeFormData.percentageIncrease}
+                  />
+                </label>}
+                {errors.percentageIncrease && <span className={styles.error}>{errors.percentageIncrease}</span>}
+                <label>
+                  <input type="checkbox" name="isAdjustInflation" defaultChecked={typeFormData.isAdjustInflation} onChange={handleChange} />
+                  Adjust for Inflation
+                </label>
               </div>
             )}
-            <label className={styles.newline}>
-              Maximum Cash (in pre-defined cash investment)
-              <input type="number" name="maximumCash" className={styles.newline} onChange={handleChange} />
-              {errors.maximumCash && <span className={styles.error}>{errors.maximumCash}</span>}
-            </label>
-          </div>
-        )}
-      </form>
+            {(eventType === "invest" || eventType === "rebalance") && (
+              <div>
+                <label className={styles.newline}>
+                  Investment Allocation Method
+                </label>
+                <label className={styles.radioButton}>
+                  <input
+                    type="radio"
+                    name="allocationMethod"
+                    value="fixed"
+                    checked={typeFormData.allocationMethod === "fixed"}
+                    onChange={handleChange}
+                  />
+                  Fixed Percentages
+                </label>
+                <label className={styles.radioButton}>
+                  <input
+                    type="radio"
+                    name="allocationMethod"
+                    value="glidePath"
+                    checked={typeFormData.allocationMethod === "glidePath"}
+                    onChange={handleChange}
+                  />
+                  Glide Path
+                </label>
+                {errors.allocationMethod && <span className={styles.error}>{errors.allocationMethod}</span>}
 
-      <div id={buttonStyles.navButtons} style={{ margin: "1rem 0" }}>
-        <button
-          onClick={handleNavigate}
-          className={buttonStyles.deemphasizedButton}
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSubmit}
-          className={buttonStyles.emphasizedButton}
-        >
-          {id ? "Update" : "Create"}
-        </button>
-      </div>
+                {eventType === "rebalance" && (
+                  <label className={styles.newline}>
+                    Tax Status
+                    <Select
+                      options={taxStatuses}
+                      className={styles.select}
+                      onChange={(option) => handleSelectChange(option, "taxStatus")}
+                      value={taxStatuses.find(opt => opt.value === typeFormData.taxStatus)}
+                    />
+                    {errors.taxStatus && <span className={styles.error}>{errors.taxStatus}</span>}
+                  </label>
+                )}
+
+                {/* Render inputs based on the selected allocation method */}
+                {typeFormData.allocationMethod === "fixed" && (
+                  <div id={styles.inputTable}>
+                    <table id={styles.inputTable}>
+                      <thead>
+                        <tr>
+                          <th>Investment</th>
+                          <th>Percentage</th>
+                          {/* To account for remove button */}
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {typeFormData.investmentRows?.map((row, index) => (
+                          <tr key={index}>
+                            <td>
+                              <Select
+                                options={investments}
+                                value={investments.find((option) => option.value === row.investment)}
+                                onChange={(selectedOption) =>
+                                  handleInvestmentRowChange(index, "investment", selectedOption.value)
+                                }
+                                placeholder="Select Investment"
+                                className={styles.select}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                value={row.percentage}
+                                onChange={(e) =>
+                                  handleInvestmentRowChange(index, "percentage", e.target.value)
+                                }
+                                placeholder="%"
+                              />
+                              {errors.investmentRows?.[index]?.percentage && (<span className={styles.error}>{errors.investmentRows[index].percentage}</span>)}
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                onClick={() => removeInvestmentRow(index)}
+                                className={styles.tableButton}
+                              >
+                                <FaTimes />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {errors.investmentRow && (<span className={styles.error}>{errors.investmentRow}</span>)}
+                    <button id={styles.addButton}
+                      type="button"
+                      onClick={addInvestmentRow}
+                      style={{ backgroundColor: "var(--color-white)" }}
+                    >
+                      Add Investment
+                    </button>
+                  </div>
+                )}
+
+                {typeFormData.allocationMethod === "glidePath" && (
+                  <div>
+                    <table id={styles.inputTable}>
+                      <thead>
+                        <tr>
+                          <th>Investment</th>
+                          <th>Initial Percentage (must sum to 100)</th>
+                          <th>Final Percentages (must sum to 100)</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {typeFormData.investmentRows?.map((row, index) => (
+                          <tr key={index}>
+                            <td>
+                              <Select
+                                options={investments}
+                                value={investments.find((option) => option.value === row.investment)}
+                                onChange={(selectedOption) =>
+                                  handleInvestmentRowChange(index, "investment", selectedOption.value)
+                                }
+                                placeholder="Select Investment"
+                                className={styles.select}
+                              />
+
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                value={row.initialPercentage}
+                                onChange={(e) =>
+                                  handleInvestmentRowChange(index, "initialPercentage", e.target.value)
+                                }
+                                placeholder="Initial %"
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                value={row.finalPercentage}
+                                onChange={(e) =>
+                                  handleInvestmentRowChange(index, "finalPercentage", e.target.value)
+                                }
+                                placeholder="Final %"
+                              />
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                onClick={() => removeInvestmentRow(index)}
+                                className={styles.tableButton}
+                              >
+                                <FaTimes />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {errors.investmentRow && (<span className={styles.error}>{errors.investmentRow}</span>)}
+                    <button
+                      id={styles.addButton}
+                      type="button"
+                      onClick={addInvestmentRow}
+                      style={{ backgroundColor: "var(--color-white)" }}
+                    >
+                      Add Investment
+                    </button>
+                  </div>
+                )}
+                <label className={styles.newline}>
+                  Maximum Cash (in pre-defined cash investment)
+                  <input type="number" name="maximumCash" defaultValue={typeFormData.maximumCash} className={styles.newline} onChange={handleChange} />
+                  {errors.maximumCash && <span className={styles.error}>{errors.maximumCash}</span>}
+                </label>
+              </div>
+            )}
+          </form>
+
+          <div id={buttonStyles.navButtons} style={{ margin: "1rem 0" }}>
+            <button
+              onClick={handleNavigate}
+              className={buttonStyles.deemphasizedButton}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              className={buttonStyles.emphasizedButton}
+            >
+              {id ? "Update" : "Create"}
+            </button>
+          </div>
+        </>
+      }
     </div>
   );
 };

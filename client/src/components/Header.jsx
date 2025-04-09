@@ -15,6 +15,11 @@ const Header = ({ setVerified }) => {
     if (path.startsWith('/ViewScenario')) {
       return 'View Scenario';
     }
+
+    if (path.startsWith('/Sharing')) {
+      return 'Sharing Settings';
+    }
+
     switch (path) {
       case '/Home':
         return 'My Scenarios';
@@ -40,7 +45,6 @@ const Header = ({ setVerified }) => {
       return (
         <>
           <div className={styles.buttonGroupSimulation}>
-            <button onClick={() => console.log('Share Scenario')}>Share </button>
             <button onClick={() => console.log('Export Scenario')}>Export </button>
           </div>
         </>
@@ -55,6 +59,16 @@ const Header = ({ setVerified }) => {
         </>
       );
     }
+    if (path.startsWith('/Sharing')) {
+      const pathParts = path.split('/');
+      const id = pathParts[pathParts.length - 1];
+      return (
+        <>
+          <Link to={`/Scenario/${id}`} className={styles.icon}><VscChromeClose /></Link>
+        </>
+      );
+    }
+
 
     switch (path) {
       case '/Home':

@@ -20,7 +20,7 @@ const EventSchema = new mongoose.Schema({
 const Event = mongoose.model('Event', EventSchema);
 
 const RebalanceSchema = new mongoose.Schema({
-    assetAllocationType: { type: String, enum: ASSET_ALLOCATION_TYPE, required: true },
+    assetAllocationType: { type: String, enum: ASSET_ALLOCATION_TYPE },
     percentageAllocations: [[{ type: Number }]], // Glide Path use [[Before, After], [Before, After], ...], Fixed use [[Percentage], [Percentage], ....]
     allocatedInvestments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     maximumCash: { type: Number, default: 0 },
@@ -28,7 +28,7 @@ const RebalanceSchema = new mongoose.Schema({
 });
 
 const InvestSchema = new mongoose.Schema({
-    assetAllocationType: { type: String, enum: ASSET_ALLOCATION_TYPE, required: true },
+    assetAllocationType: { type: String, enum: ASSET_ALLOCATION_TYPE },
     percentageAllocations: [[{ type: Number }]], // Glide Path use [[Before, After], [Before, After], ...], Fixed use [[Percentage], [Percentage], ....]
     allocatedInvestments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
     maximumCash: { type: Number, default: 0 },

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import express from 'express';
 
-import { canEdit, distributionToFrontend, taxStatusToFrontend } from "./helper.js";
+import { canEdit, distributionToString, taxStatusToFrontend } from "./helper.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
 
 const router = express.Router();
@@ -32,11 +32,13 @@ router.get("/expense-withdrawal-strategy/:scenarioId", async (req, res) => {
                     taxability: type.taxability,
                 };
             });
+        }).filter(investment => {
+            return investment.type !== "CASH"
         }).reduce((acc, investment) => {
             acc[investment.id] = {
                 type: investment.type,
                 value: investment.value,
-                expectedAnnualReturnDistribution: distributionToFrontend(investment.expectedAnnualReturnDistribution),
+                expectedAnnualReturnDistribution: distributionToString(investment.expectedAnnualReturnDistribution),
                 taxStatus: taxStatusToFrontend(investment.taxStatus),
                 taxability: investment.taxability,
             };
