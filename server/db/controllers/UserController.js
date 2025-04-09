@@ -139,8 +139,7 @@ export default class UserController {
 
     async findByEmail(email) {
         try {
-            return await User.findOne
-                ({ email });
+            return await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
         }
         catch (error) {
             throw new Error(error);

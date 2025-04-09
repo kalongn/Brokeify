@@ -106,8 +106,9 @@ const Sharing = () => {
         permissions: permissions,
       });
 
-      console.log(response.data);
-      setSharedUsers([...sharedUsers, { email: email, permissions: permissions }]);
+      console.log(response.data.status);
+      const correctedEmail = response.data.email;
+      setSharedUsers([...sharedUsers, { email: correctedEmail, permissions: permissions }]);
       setEmail("");
       setErrors("");
       e.target.form.querySelector('input[type="email"]').value = "";

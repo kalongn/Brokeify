@@ -59,12 +59,12 @@ router.post("/sharing/:scenarioId/add", async (req, res) => {
 
         const scenario = await scenarioController.read(id);
         if (permissions === "Editor") {
-            scenario.editorEmails.push(email);
+            scenario.editorEmails.push(user.email);
             await userController.update(user._id, {
                 $push: { editorScenarios: id },
             });
         } else if (permissions === "Viewer") {
-            scenario.viewerEmails.push(email);
+            scenario.viewerEmails.push(user.email);
             await userController.update(user._id, {
                 $push: { viewerScenarios: id },
             });
@@ -75,7 +75,13 @@ router.post("/sharing/:scenarioId/add", async (req, res) => {
             editorEmails: scenario.editorEmails,
             viewerEmails: scenario.viewerEmails,
         });
-        return res.status(200).send("User added successfully.");
+
+        const data = {
+            email: user.email,
+            status: "User added successfully.",
+        }
+
+        return res.status(200).send(data);
     } catch (error) {
         console.error("Error in sharing route:", error);
         return res.status(500).send("Error Adding new user to scenario.");
@@ -133,14 +139,14 @@ router.patch("/sharing/:scenarioId/update", async (req, res) => {
 
         if (oldPermissions === "Editor" && newPermissions === "Viewer") {
             scenario.editorEmails = scenario.editorEmails.filter((editor) => editor !== email);
-            scenario.viewerEmails.push(email);
+            scenario.viewerEmails.push(user.email);
             await userController.update(user._id, {
                 $pull: { editorScenarios: id },
                 $push: { viewerScenarios: id },
             });
         } else if (oldPermissions === "Viewer" && newPermissions === "Editor") {
             scenario.viewerEmails = scenario.viewerEmails.filter((viewer) => viewer !== email);
-            scenario.editorEmails.push(email);
+            scenario.editorEmails.push(user.email);
             await userController.update(user._id, {
                 $pull: { viewerScenarios: id },
                 $push: { editorScenarios: id },
