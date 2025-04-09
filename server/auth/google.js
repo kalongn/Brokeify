@@ -25,8 +25,15 @@ passport.use(new Strategy({
             userSpecificTaxes: [],
             userSimulations: []
         });
+    } else {
+        user.firstName = profile.name.givenName;
+        user.lastName = profile.name.familyName;
+        user.email = profile.emails[0].value;
+        user.picture = profile.photos[0].value;
+        user.refreshToken = refreshToken;
+        user.accessToken = accessToken;
+        await userController.update(user._id, user);
     }
-    // console.log("User found or created: ", user);
     return done(null, user._id);
 }
 ));

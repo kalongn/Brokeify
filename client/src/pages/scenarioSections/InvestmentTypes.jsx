@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
-import { HiDotsVertical } from 'react-icons/hi';
+import { useNavigate, useParams } from "react-router-dom";
+import { FaTimes } from 'react-icons/fa';
+import { FaEdit } from "react-icons/fa";
+
 import Axios from 'axios';
 
 import styles from "./Form.module.css";
@@ -8,7 +10,7 @@ import styles from "./Form.module.css";
 // This page does not submit any data, so childRef is not used
 const InvestmentTypes = () => {
 
-  const { scenarioId } = useOutletContext(); // TODO: update page to include childRef once investment type deletion is implemented
+  const { scenarioId } = useParams(); // TODO: update page to include childRef once investment type deletion is implemented
   const [investmentTypes, setInvestmentTypes] = useState([]);
   useEffect(() => {
 
@@ -27,9 +29,15 @@ const InvestmentTypes = () => {
   const newInvestmentType = () => {
     navigate(`/ScenarioForm/${scenarioId}/investment-types/new`);
   }
+  //New route to update scenario
+  const editInvestmentType = (id) => {
+    navigate(`/ScenarioForm/${scenarioId}/investment-types/edit/${id}`);
+  };
+
+
   return (
     <div>
-      <h2>Investment Types</h2>
+      <h2 id={styles.heading}>Investment Types</h2>
       <p>
         Create investment types or view the default ones.
       </p>
@@ -52,12 +60,39 @@ const InvestmentTypes = () => {
                 {investmentType.taxability ? "Taxable" : "Tax-Exempt"}
               </td>
               <td>
-                <button
-                  className={styles.tableButton}
-                  onClick={() => alert("NOT IMPLEMENTED YET")}
-                >
-                  <HiDotsVertical />
-                </button>
+                <div className={styles.groupButtons}>
+                  <button
+                    className={index === 0
+                      ? `${styles.tableButton} ${styles.disabledButton}`
+                      : styles.tableButton}
+                    onClick={() => {
+                      if (index === 0) return;
+                      editInvestmentType(investmentType.id);
+                    }
+                    }
+                    style={{ opacity: index === 0 ? 0.2 : 1 }}
+                    disabled={index === 0}
+
+                  >
+                    <FaEdit />
+                  </button>
+
+                  <button
+                    className={index === 0
+                      ? `${styles.tableButton} ${styles.disabledButton}`
+                      : styles.tableButton}
+                    onClick={() => {
+                      if (index === 0) return;
+                      alert("NOT IMPLEMENTED YET")
+                    }
+                    }
+                    style={{ opacity: index === 0 ? 0.2 : 1 }}
+                    disabled={index === 0}
+                  >
+                    <FaTimes />
+                  </button>
+
+                </div>
               </td>
             </tr>
           ))}

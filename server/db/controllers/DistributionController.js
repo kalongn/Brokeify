@@ -134,6 +134,9 @@ export default class DistributionController {
      * @throws Error if the distribution is not found
      */
     async delete(id) {
+        if (id === undefined || id === null) {
+            return null;
+        }
         try {
             return await Distribution.findByIdAndDelete(id);
         }

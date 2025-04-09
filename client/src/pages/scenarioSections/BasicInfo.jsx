@@ -209,7 +209,6 @@ const BasicInfo = () => {
     return await uploadToBackend();
   };
 
-  // TODO: apply the heading style to all other section components
   return (
     <div id={styles.formSection}>
       <h2 id={styles.heading}>Basic Information</h2>
