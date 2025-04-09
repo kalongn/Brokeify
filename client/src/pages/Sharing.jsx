@@ -47,16 +47,7 @@ const Sharing = () => {
   // For adding a new person with email
   const handleEmailChange = (e) => {
     const value = e.target.value;
-    // Prompt to AI (Amazon Q): I want to validate inputs as email before setting state
-    // The regex did not need any changes
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (emailRegex.test(value)) {
-      setEmail(value);
-    }
-    else {
-      setErrors("Invalid email");
-    }
-    // Clear errors when user makes changes
+    setEmail(value);
     setErrors("");
   };
 
@@ -71,21 +62,42 @@ const Sharing = () => {
   }
 
   // For adding and removing a user to the scenario
-  const addUser = (e) => {
+  const addUser = async (e) => {
     e.preventDefault();
-    if (email) {
-      // AI-generated (Amazon Q): Autocomplete likely due to TODO note "Check if user is already in the list"
-      // This code snippet did not need any changes
-      if (sharedUsers.some((user) => user.email === email)) {
-        setErrors("User already added");
-        return;
-      }
+    if (!email) {
+      setErrors("Email cannot be empty");
+      return;
+    }
+
+    // Prompt to AI (Amazon Q): I want to validate inputs as email before setting state
+    // The regex did not need any changes
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrors("Invalid email format");
+      return;
+    }
+    if (sharedUsers.some((user) => user.email === email)) {
+      setErrors("User already added");
+      return;
+    }
+
+    try {
+      const response = await Axios.post(`/sharing/${scenarioId}/add`, {
+        email: email,
+        permissions: permissions,
+      });
+
+      console.log(response.data);
       setSharedUsers([...sharedUsers, { email: email, permissions: permissions }]);
       setEmail("");
       e.target.form.querySelector('input[type="email"]').value = "";
-    }
-    else {
-      setErrors("Invalid email");
+    } catch (error) {
+      if (error.reponse && (error.response.status === 404 || error.response.status === 400)) {
+        setErrors("Input email incorrect or does not have an account");
+        return;
+      }
+      console.error("Error adding user:", error);
+      setErrors("An Unknown error occurred while adding the user");
     }
   };
 
@@ -110,7 +122,6 @@ const Sharing = () => {
               <table>
                 <tbody>
                   <tr>
-                    {/* TODO: replace with user's name */}
                     <td>{ownerEmail} (you)</td>
                     <td>Owner</td>
                     <td></td>

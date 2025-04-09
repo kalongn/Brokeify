@@ -4,6 +4,7 @@ import ScenarioController from "../db/controllers/ScenarioController.js";
 import { isOwner } from "./helper.js";
 
 const router = express.Router();
+const userController = new UserController();
 const scenarioController = new ScenarioController();
 
 router.get("/sharing/:scenarioId", async (req, res) => {
@@ -35,6 +36,49 @@ router.get("/sharing/:scenarioId", async (req, res) => {
     } catch (error) {
         console.error("Error in sharing route:", error);
         return res.status(500).send("Error retrieving scenario data.");
+    }
+});
+
+router.post("/sharing/:scenarioId/add", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+
+        if (!await isOwner(userId, id)) {
+            return res.status(403).send("You do not have permission to access the sharing settings of this scenario.");
+        }
+        const { email, permissions } = req.body;
+
+        const user = await userController.findByEmail(email);
+        if (!user) {
+            return res.status(404).send("User not found.");
+        }
+
+        const scenario = await scenarioController.read(id);
+        if (permissions === "Editor") {
+            scenario.editorEmails.push(email);
+            await userController.update(user._id, {
+                $push: { editorScenarios: id },
+            });
+        } else if (permissions === "Viewer") {
+            scenario.viewerEmails.push(email);
+            await userController.update(user._id, {
+                $push: { viewerScenarios: id },
+            });
+        } else {
+            return res.status(400).send("Invalid permissions.");
+        }
+        await scenarioController.update(id, {
+            editorEmails: scenario.editorEmails,
+            viewerEmails: scenario.viewerEmails,
+        });
+        return res.status(200).send("User added successfully.");
+    } catch (error) {
+        console.error("Error in sharing route:", error);
+        return res.status(500).send("Error Adding new user to scenario.");
     }
 });
 
