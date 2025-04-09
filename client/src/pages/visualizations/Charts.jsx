@@ -5,7 +5,7 @@ import Accordion from "../../components/Accordion";
 import ShadedLineChart from "../../components/ShadedLineChart";
 import StackedBarChart from "../../components/StackedBarChart";
 import LineChart from "../../components/LineChart";
-// import { Link } from "react-router-dom";
+
 import ModalAddChart from "../../components/ModalAddChart";
 
 const Charts = () => {
