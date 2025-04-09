@@ -1390,7 +1390,7 @@ export async function simulate(
         for (const investmentIndex in investments) {
             totalValue += investments[investmentIndex].value;
         }
-        console.log(`The net asset value of ${currentYear+realYear} is ${totalValue}`);
+        //console.log(`The net asset value of ${currentYear+realYear} is ${totalValue}`);
         let boolIsViolated = false;
         if (totalValue < scenario.financialGoal) {
             boolIsViolated = true;

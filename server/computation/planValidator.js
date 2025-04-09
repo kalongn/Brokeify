@@ -5,6 +5,8 @@
 import * as fs from 'fs';
 import { join } from 'path';
 import { format } from 'date-fns';
+import { Worker } from 'worker_threads';
+import path from 'path';
 
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
@@ -228,9 +230,8 @@ async function scrape() {
 
 
 
-async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, rmdTable, csvFile, logFile) {
+export async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, rmdTable, csvFile, logFile) {
     //deep clone then run simulation then re-splice original scenario in simulation output
-
     const unmodifiedScenario = await scenarioFactory.read(scenarioID);
     let copiedScenario = await scenarioFactory.clone(unmodifiedScenario._id);
     let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, capitalGains, rmdTable, csvFile, logFile);
@@ -238,84 +239,78 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
     return simulationResult;
 }
 
-
+function runInWorker(data) {
+    return new Promise((resolve, reject) => {
+        const worker = new Worker(path.resolve('./runWorker.js'), { workerData: data });
+        worker.on('message', resolve);
+        worker.on('error', reject);
+        worker.on('exit', code => {
+            if (code !== 0) reject(new Error(`Worker stopped with code ${code}`));
+        });
+    });
+}
+  
 //recives ID of scenario in db
 export async function validateRun(scenarioID, numTimes, stateTaxIDArray, username) {
-    //first, validate scenario's invariants
-    
-    try {
-        await validate(scenarioID);
-
-    }
-    catch (err) {
-        throw err;
-    }
+    await validate(scenarioID);
     const scrapeReturn = await scrape();
-    
-    //depending on if scenario is single or joint, pass in different values to run:
     const scenario = await scenarioFactory.read(scenarioID);
-   
+  
     
-    let rmdTable = scrapeReturn.rmdTable;
+    const fedIncome = [
+        JSON.parse(JSON.stringify(scrapeReturn.federalIncomeSingle)),
+        JSON.parse(JSON.stringify(scrapeReturn.federalIncomeMarried))
+    ];
     
-    const fedIncome0 = scrapeReturn.federalIncomeSingle;
-    const capitalGains0 = scrapeReturn.capitalGainsSingle;
-    const fedDeduction0 = scrapeReturn.federalDeductionSingle;
+    const capitalGains = [
+        JSON.parse(JSON.stringify(scrapeReturn.capitalGainsSingle)),
+        JSON.parse(JSON.stringify(scrapeReturn.capitalGainsMarried))
+    ];
     
+    const fedDeduction = [
+        JSON.parse(JSON.stringify(scrapeReturn.federalDeductionSingle)),
+        JSON.parse(JSON.stringify(scrapeReturn.federalDeductionMarried))
+    ];
     
-    const fedIncome1 = scrapeReturn.federalIncomeMarried;
-    const capitalGains1 = scrapeReturn.capitalGainsMarried;
-    const fedDeduction1 = scrapeReturn.federalDeductionMarried;
-    
-
-    const stateTax0 = await taxFactory.read(stateTaxIDArray[0]);
-    const stateTax1 = await taxFactory.read(stateTaxIDArray[1]);
-    //Array of simulations
-
-
-
+    const rmdTable = JSON.parse(JSON.stringify(scrapeReturn.rmdTable));
+  
+    const stateTax = [
+        JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[0]))),
+        JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[1]))),
+    ];
+  
     const compiledResults = await simulationFactory.create({
         scenario: scenario,
         results: []
     });
-
-
-
-
-    //TODO: parralelism
-    for (let i = 0; i < numTimes; i++) {
-        
-        let csvFile;
-        let logFile;
-        if (i === 0) {
-            
-
-            //create logs on first run
-            const datetime = new Date();
-            csvFile = (await createSimulationCSV(username, datetime, "../logs")).toString();
-
-            logFile = await createEventLog(username, datetime, "../logs");
-        }
-
-        let runResult = await run(
-            scenarioID,
-            [fedIncome0, fedIncome1],
-            [capitalGains0, capitalGains1],
-            [fedDeduction0, fedDeduction1],
-            [stateTax0, stateTax1],
-            rmdTable,
-            csvFile,
-            logFile
-
-        );
-        //Replace runResult.scenario with scenario, to erase the fact we cloned
-        //let clonedScenarioID = runResult.scenario._id;
-
-       
-        compiledResults.results.push(runResult);
-
-    }
+  
+    const datetime = new Date();
+    const csvFile = (await createSimulationCSV(username, datetime, "../logs")).toString();
+    const logFile = await createEventLog(username, datetime, "../logs");
+    scenarioID = scenarioID.toString();
     
+    const promises = [];
+    for (let i = 0; i < numTimes; i++) {
+      promises.push(
+        runInWorker({
+            scenarioID,
+            fedIncome,
+            capitalGains,
+            fedDeduction,
+            stateTax,
+            rmdTable,
+            csvFile: i === 0 ? csvFile : null,
+            logFile: i === 0 ? logFile : null
+        })
+      );
+    }
+  
+    const results = await Promise.all(promises);
+    for (const res of results) {
+        if (res.error) throw new Error(res.error);
+        compiledResults.results.push(res);
+    }
+  
     await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
     return compiledResults;
-}
+  }
