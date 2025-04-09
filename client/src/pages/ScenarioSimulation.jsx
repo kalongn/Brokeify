@@ -31,7 +31,7 @@ const ScenarioSimulation = () => {
       const scenarioData = response.data;
       console.log('Scenario data:', scenarioData);
       setScenario(scenarioData);
-      setPermission(scenarioData.permisison);
+      setPermission(scenarioData.permission);
       setInvestments(scenarioData.investments || []);
       setEvents(scenarioData.events || []);
 

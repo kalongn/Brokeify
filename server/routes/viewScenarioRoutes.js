@@ -83,15 +83,15 @@ router.get("/scenario/:scenarioId", async (req, res) => {
                 return investmentIdNameMap[investId] || "Unnamed Investment";
             });
 
-            let permisison = 0; // Default permission (0 = no permission)
+            let permission = 0; // Default permission (0 = no permission)
             const user = await userController.read(req.session.user);
             if (scenario.ownerEmail === user.email) {
-                permisison = 3; // Owner permission
+                permission = 3; // Owner permission
             } else if (scenario.editorEmails.includes(user.email)) {
-                permisison = 2; // Editor permission
+                permission = 2; // Editor permission
             }
             else if (scenario.viewerEmails.includes(user.email)) {
-                permisison = 1; // Viewer permissio
+                permission = 1; // Viewer permissio
             }
 
 
@@ -109,7 +109,7 @@ router.get("/scenario/:scenarioId", async (req, res) => {
                 orderedRMDStrategy: rmdStrategy,
                 startYearRothOptimizer: scenario.startYearRothOptimizer,
                 orderedRothStrategy: rothStrategy,
-                permisison: permisison,
+                permission: permission,
             }
 
             return res.status(200).send(data);
