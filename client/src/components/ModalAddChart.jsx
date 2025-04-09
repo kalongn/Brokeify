@@ -86,6 +86,40 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
       e.preventDefault();
       return;
     }
+
+    let content = {};
+    if (selectedChart === 'line') {
+      content = { content: "Probability of Success over Time"};
+    }
+    if (selectedChart === 'shaded') {
+      const dollarRadios = document.getElementsByName('shadedDollar');
+      const dollarValue = [...dollarRadios].find(r => r.checked)?.nextSibling?.nodeValue.trim();
+  
+      content = {
+        quantity: selectedShadedQuantity,
+        dollarValue: isShadedQuantityNumeric ? dollarValue : null
+      };
+    }
+  
+    if (selectedChart === 'stacked') {
+      const barRadios = document.getElementsByName('barValueType');
+      const valueType = [...barRadios].find(r => r.checked)?.nextSibling?.nodeValue.trim();
+  
+      const thresholdInput = document.querySelector('input[type="number"]');
+      const dollarRadios = document.getElementsByName('shadedDollar');
+      const dollarValue = [...dollarRadios].find(r => r.checked)?.nextSibling?.nodeValue.trim();
+  
+      content = {
+        quantity: selectedBarQuantity,
+        valueType,
+        threshold: parseFloat(thresholdInput.value),
+        dollarValue
+      };
+    }
+
+
+
+
     setCharts((prevCharts) => [...prevCharts, { type: selectedChart }]);
     setIsOpen(false);
   }
