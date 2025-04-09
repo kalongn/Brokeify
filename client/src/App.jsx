@@ -26,11 +26,9 @@ import RothStrategy from './pages/scenarioSections/RothStrategy.jsx';
 import RouteTesting from './pages/RouteTesting.jsx';
 import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
 import ViewScenario from './pages/ViewScenario.jsx';
-import ModalSharing from './components/ModalSharing.jsx';
 import Sharing from './pages/Sharing.jsx';
 const App = () => {
   const [verified, setVerified] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
