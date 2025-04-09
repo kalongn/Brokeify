@@ -20,6 +20,10 @@ const Header = ({ setVerified }) => {
       return 'Sharing Settings';
     }
 
+    if (path.startsWith('/Visualizations/Charts')) {
+      return 'Visualization: Charts';
+    }
+
     switch (path) {
       case '/Home':
         return 'My Scenarios';
@@ -33,6 +37,7 @@ const Header = ({ setVerified }) => {
         return 'Scenario Simulation';
       case '/ViewScenario':
         return 'View Scenario';
+      
       default:
         return 'Brokeify';
     }
@@ -60,6 +65,16 @@ const Header = ({ setVerified }) => {
       );
     }
     if (path.startsWith('/Sharing')) {
+      const pathParts = path.split('/');
+      const id = pathParts[pathParts.length - 1];
+      return (
+        <>
+          <Link to={`/Scenario/${id}`} className={styles.icon}><VscChromeClose /></Link>
+        </>
+      );
+    }
+
+    if (path.startsWith('/Visualizations/Charts')) {
       const pathParts = path.split('/');
       const id = pathParts[pathParts.length - 1];
       return (

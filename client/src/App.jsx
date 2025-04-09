@@ -88,7 +88,7 @@ const App = () => {
         <Route path="/ViewScenario/:scenarioId" element={<ViewScenario />} ></Route>
         <Route path ="/Sharing/:scenarioId" element={<Sharing />} ></Route>
         <Route path="/RouteTesting" element={<RouteTesting />} />
-        <Route path="/Visualizations/Charts" element={<Charts />} />        
+        <Route path="/Visualizations/Charts/:scenarioId" element={<Charts />} />        
       </Routes>
     </>
   )
