@@ -24,7 +24,6 @@ import RMDStrategy from './pages/scenarioSections/RMDStrategy.jsx';
 import RothStrategy from './pages/scenarioSections/RothStrategy.jsx';
 import Charts from './pages/visualizations/Charts.jsx';
 
-import AddChart from './components/AddChart.jsx';
 import RouteTesting from './pages/RouteTesting.jsx';
 import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
 import ViewScenario from './pages/ViewScenario.jsx';
@@ -89,10 +88,7 @@ const App = () => {
         <Route path="/ViewScenario/:scenarioId" element={<ViewScenario />} ></Route>
         <Route path ="/Sharing/:scenarioId" element={<Sharing />} ></Route>
         <Route path="/RouteTesting" element={<RouteTesting />} />
-        <Route path="/Visualizations/Charts" element={<Charts />} />
-        
-        <Route path="/Visualizations/AddChart" element={<AddChart />} />
-        
+        <Route path="/Visualizations/Charts" element={<Charts />} />        
       </Routes>
     </>
   )
