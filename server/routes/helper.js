@@ -2,6 +2,90 @@ import UserController from '../db/controllers/UserController.js';
 
 const userController = new UserController();
 
+const stateMap = {
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PA": "Pennsylvania",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming"
+};
+
+const stateAbbreviationToString = (stateAbbreviation) => {
+    if (stateAbbreviation) {
+        return stateMap[stateAbbreviation] || stateAbbreviation;
+    }
+    return null;
+}
+
+const distributionToString = (distribution) => {
+    if (distribution.distributionType) { // This is for distribution directly from the database
+        switch (distribution.distributionType) {
+            case "FIXED_AMOUNT":
+                return `Fixed ${distribution.value}`;
+            case "FIXED_PERCENTAGE":
+                return `Fixed ${distribution.value * 100}%`;
+            case "UNIFORM_AMOUNT":
+                return `Uniform ${distribution.lowerBound} to ${distribution.upperBound}`;
+            case "UNIFORM_PERCENTAGE":
+                return `Uniform ${distribution.lowerBound * 100}% to ${distribution.upperBound * 100}%`;
+            case "NORMAL_AMOUNT":
+                return `Normal ${distribution.mean} ± ${distribution.standardDeviation}`;
+            case "NORMAL_PERCENTAGE":
+                return `Normal ${distribution.mean * 100}% ± ${distribution.standardDeviation * 100}%`;
+            default:
+                return null;
+        }
+    }
+    return null;
+}
+
+
+
 const distributionToFrontend = (distribution) => {
     if (!distribution) {
         return null;
@@ -124,6 +208,8 @@ const canView = async (userId, scenarioId) => {
 export {
     distributionToFrontend,
     distributionToBackend,
+    distributionToString,
+    stateAbbreviationToString,
     taxStatusToFrontend,
     taxStatusToBackend,
     allocateMethodToFrontend,

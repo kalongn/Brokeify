@@ -2,7 +2,6 @@ import { useState, useEffect, useImperativeHandle } from "react";
 import { useParams, useOutletContext } from "react-router-dom";
 import Axios from "axios";
 
-import { distributionToString } from "../../utils/ScenarioHelper";
 import SortableList from "../../components/SortableList";
 import styles from "./Form.module.css";
 
@@ -25,7 +24,7 @@ const RMDStrategy = () => {
         _id: investment.id,
         id: investment.type + " (" + investment.taxStatus + ")",
         amount: `$${investment.value}`,
-        percentage: `${distributionToString(investment.expectedAnnualReturnDistribution)}`,
+        percentage: investment.expectedAnnualReturnDistribution,
         additional: investment.taxability ? "Taxable" : "Tax-exempt",
       }));
       setStrategy(strategyData);

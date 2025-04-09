@@ -2,7 +2,6 @@ import { useState, useEffect, useImperativeHandle } from "react";
 import { useParams, useOutletContext } from "react-router-dom";
 import Axios from "axios";
 
-import { distributionToString } from "../../utils/ScenarioHelper";
 import SortableList from "../../components/SortableList";
 import styles from "./Form.module.css";
 
@@ -25,7 +24,7 @@ const SpendingStrategy = () => {
         _id: expense.id,
         id: expense.name,
         amount: `$${expense.amount}`,
-        percentage: `${distributionToString(expense.expectedAnnualChangeDistribution)}`,
+        percentage: expense.expectedAnnualChangeDistribution,
         additional: expense.isinflationAdjusted ? "Affected by inflation" : "Not affected by inflation",
       }));
       setStrategy(strategy);

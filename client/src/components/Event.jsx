@@ -7,7 +7,7 @@ const Event = ({ Name, DollarValue, Duration, StartYear, Type }) => {
       <h4>{Name}</h4>
       <div className={styles.eventDetails}>
         <p className={styles.eventInfo1}>${DollarValue}</p>
-        <p className={styles.eventInfo2}>Start Year: {StartYear}</p>
+        <p className={styles.eventInfo2}>{StartYear}</p>
         <p className={styles.eventInfo3}>{Duration} Years</p>
         <p className={styles.eventInfo4}>{Type}</p>
       </div>
