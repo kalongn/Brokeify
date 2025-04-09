@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import styles from "./ModalAddChart.module.css";
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import ModalBase from './ModalBase';
 
 const shadedLineQuantities = [
@@ -27,6 +26,7 @@ const numericQuantities = [
 {/*TODO: Add error validation*/ }
 const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
   const [selectedChart, setSelectedChart] = useState(null);
+  // const [formData, setFormData] = useState({});
   const [selectedShadedQuantity, setSelectedShadedQuantity] = useState('');
   const [selectedBarQuantity, setSelectedBarQuantity] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
@@ -81,7 +81,14 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
     return Object.keys(errors).length === 0;
   };
 
-
+  const handleSaveChart = (e) => {
+    if (!validateForm()) {
+      e.preventDefault();
+      return;
+    }
+    setCharts((prevCharts) => [...prevCharts, { type: selectedChart }]);
+    setIsOpen(false);
+  }
 
   return (
     <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
@@ -134,8 +141,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
                 <div className={styles.numericSettings}>
                   <p>Dollar Value</p>
                   <div className={styles.radioGroup}>
-                    <p><input type="radio" name="shadedDollar" /> Today</p>
-                    <p><input type="radio" name="shadedDollar" /> Future</p>
+                    <label><input type="radio" name="shadedDollar" /> Today</label>
+                    <label><input type="radio" name="shadedDollar" /> Future</label>
                   </div>
                   {validationErrors.dollarValue && (
                     <p className={styles.error}>{validationErrors.dollarValue}</p>
@@ -159,8 +166,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
           {selectedChart === 'stacked' && (
             <div className={styles.chartSettings}>
               <div className={styles.radioGroup}>
-                <p><input type="radio" name="barValueType" /> Median</p>
-                <p><input type="radio" name="barValueType" /> Average</p>
+                <label><input type="radio" name="barValueType" /> Median</label>
+                <label><input type="radio" name="barValueType" /> Average</label>
               </div>
               {validationErrors.barType && (
                 <p className={styles.error}>{validationErrors.barType}</p>
@@ -209,16 +216,12 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
         {validationErrors.chartSelection && (
           <p className={styles.error}>{validationErrors.chartSelection}</p>
         )}
-        <Link
+        <button
           className={styles.saveButton}
-          onClick={(e) => {
-            if (!validateForm()) e.preventDefault();
-          }}
-
-          to="/Visualizations/Charts"
+          onClick={(e) => handleSaveChart(e)}
         >
           Save & Add Chart
-        </Link>
+        </button>
       </div>
     </ModalBase>
   );
