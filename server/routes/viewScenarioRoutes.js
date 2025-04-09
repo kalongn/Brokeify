@@ -84,7 +84,7 @@ router.get("/scenario/:scenarioId", async (req, res) => {
             });
 
             let permisison = 0; // Default permission (0 = no permission)
-            const user = userController.read(req.session.user);
+            const user = await userController.read(req.session.user);
             if (scenario.ownerEmail === user.email) {
                 permisison = 3; // Owner permission
             } else if (scenario.editorEmails.includes(user.email)) {
