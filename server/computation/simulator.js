@@ -803,21 +803,23 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
     
     //determine the expenses you are 'going to pay' in order to log them
     let logToPay = amountICanPay;
-    for (const eventIDIndex in scenario.events) {
-        const eventID = scenario.events[eventIDIndex];
-        const event = await eventFactory.read(eventID);
-        const realYear = new Date().getFullYear();
-        if (logToPay <= 0) {
-            break;
-        }
-        if (!(event.startYear <= realYear + currentYear && event.duration + event.startYear >= realYear + currentYear)) {
-            continue;
-        }
-        if (event.eventType === "EXPENSE" && event.isDiscretionary === true) {
-            let eventAmount = Math.min(logToPay, event.amount);
-            let eventDetails = `Year: ${currentYear} - EXPENSE - Paying $${Math.ceil(eventAmount * 100) / 100} due to event ${event.name}: ${event.description}.\n`;
-            updateLog(eventDetails);
-            logToPay -= event.amount;
+    if(logFile!==null){
+        for (const eventIDIndex in scenario.events) {
+            const eventID = scenario.events[eventIDIndex];
+            const event = await eventFactory.read(eventID);
+            const realYear = new Date().getFullYear();
+            if (logToPay <= 0) {
+                break;
+            }
+            if (!(event.startYear <= realYear + currentYear && event.duration + event.startYear >= realYear + currentYear)) {
+                continue;
+            }
+            if (event.eventType === "EXPENSE" && event.isDiscretionary === true) {
+                let eventAmount = Math.min(logToPay, event.amount);
+                let eventDetails = `Year: ${currentYear} - EXPENSE - Paying $${Math.ceil(eventAmount * 100) / 100} due to event ${event.name}: ${event.description}.\n`;
+                updateLog(eventDetails);
+                logToPay -= event.amount;
+            }
         }
     }
     //start from cash:
@@ -996,31 +998,33 @@ export async function processInvestmentEvents(scenario, currentYear) {
         }
 
         //distribute to all investments
-        for (const investmentIDIndex in event.allocatedInvestments) {
-            const investmentID = event.allocatedInvestments[investmentIDIndex];
-            const investment = await investmentFactory.read(investmentID);
-            
-            await investmentFactory.update(investment._id, { value: Math.round((investment.value + tentativeInvestmentAmounts[investmentIDIndex])*100)/100 });
-            //get investment type:
-            for (const investmentTypeIDIndex in scenario.investmentTypes) {
-                const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
-                const investmentType = await investmentTypeFactory.read(investmentTypeID);
+        if(logFile!==null){
+            for (const investmentIDIndex in event.allocatedInvestments) {
+                const investmentID = event.allocatedInvestments[investmentIDIndex];
+                const investment = await investmentFactory.read(investmentID);
                 
-                
-                for (const j in investmentType.investments) {
+                await investmentFactory.update(investment._id, { value: Math.round((investment.value + tentativeInvestmentAmounts[investmentIDIndex])*100)/100 });
+                //get investment type:
+                for (const investmentTypeIDIndex in scenario.investmentTypes) {
+                    const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
+                    const investmentType = await investmentTypeFactory.read(investmentTypeID);
                     
                     
-                    if (investmentType.investments[j].toString() == investmentID.toString()) {
-                        let eventDetails = `Year: ${currentYear} - INVEST - Investing $${Math.ceil(tentativeInvestmentAmounts[investmentIDIndex] * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
-                        updateLog(eventDetails);
-                        break;
+                    for (const j in investmentType.investments) {
+                        
+                        
+                        if (investmentType.investments[j].toString() == investmentID.toString()) {
+                            let eventDetails = `Year: ${currentYear} - INVEST - Investing $${Math.ceil(tentativeInvestmentAmounts[investmentIDIndex] * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
+                            updateLog(eventDetails);
+                            break;
+                        }
+                        
                     }
                     
+
                 }
-                
 
             }
-
         }
         return;
     }
@@ -1097,16 +1101,18 @@ export async function rebalanceInvestments(scenario, currentYear) {
                 amountSold += sellValue;
 
                 //get investment type:
-                for (const investmentTypeIDIndex in scenario.investmentTypes) {
-                    const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
-                    const investmentType = await investmentTypeFactory.read(investmentTypeID);
-                    for (const j in investmentType.investments) {
-                        if (investmentType.investments[j].toString() == investmentID.toString()) {
-                            let eventDetails = `Year: ${currentYear} - REBALANCE - Selling $${Math.ceil(sellValue * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
-                            updateLog(eventDetails);
+                if(logFile!==null){
+                    for (const investmentTypeIDIndex in scenario.investmentTypes) {
+                        const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
+                        const investmentType = await investmentTypeFactory.read(investmentTypeID);
+                        for (const j in investmentType.investments) {
+                            if (investmentType.investments[j].toString() == investmentID.toString()) {
+                                let eventDetails = `Year: ${currentYear} - REBALANCE - Selling $${Math.ceil(sellValue * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
+                                updateLog(eventDetails);
+                            }
                         }
-                    }
 
+                    }
                 }
 
 
@@ -1127,19 +1133,21 @@ export async function rebalanceInvestments(scenario, currentYear) {
                 let buyValue = targetValues[investmentIDIndex] - actualValues[investmentIDIndex];
                 await investmentFactory.update(investment._id, { value: Math.round((targetValues[investmentIDIndex])*100)/100 });
                 //get investment type:
-                for (const investmentTypeIDIndex in scenario.investmentTypes) {
-                    const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
-                    const investmentType = await investmentTypeFactory.read(investmentTypeID);
-                    for (const j in investmentType.investments) {
-                        
-                        
-                        if (investmentType.investments[j] == investmentID) {
-                            let eventDetails = `Year: ${currentYear} - REBALANCE - Buying $${Math.ceil(buyValue * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
-                            console.log(eventDetails);
-                            updateLog(eventDetails);
+                if(logFile!==null){
+                    for (const investmentTypeIDIndex in scenario.investmentTypes) {
+                        const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
+                        const investmentType = await investmentTypeFactory.read(investmentTypeID);
+                        for (const j in investmentType.investments) {
+                            
+                            
+                            if (investmentType.investments[j] == investmentID) {
+                                let eventDetails = `Year: ${currentYear} - REBALANCE - Buying $${Math.ceil(buyValue * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
+                                console.log(eventDetails);
+                                updateLog(eventDetails);
+                            }
                         }
-                    }
 
+                    }
                 }
 
             }
