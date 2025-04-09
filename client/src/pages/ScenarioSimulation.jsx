@@ -1,5 +1,6 @@
 import { TbEdit } from "react-icons/tb";
 import { TbFileSearch } from "react-icons/tb";
+import { FaUserPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useParams, Navigate } from "react-router-dom";
@@ -12,7 +13,6 @@ import Event from "../components/Event";
 import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
 
-
 const ScenarioSimulation = () => {
 
   const { scenarioId } = useParams(); // Get the scenario ID from the URL params
@@ -21,7 +21,8 @@ const ScenarioSimulation = () => {
   const [events, setEvents] = useState([]);
   const [strategies, setStrategies] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  
+  
   useEffect(() => {
 
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -62,13 +63,29 @@ const ScenarioSimulation = () => {
         taxStatus: investment.investment.taxStatus
       }));
 
-      const events = allEvents.map(event => ({
-        name: event.name,
-        amount: event.amount ?? event.maximumCash ?? 0,
-        duration: distributionToString(event.durationTypeDistribution),
-        startYear: distributionToString(event.startYearTypeDistribution),
-        eventType: event.eventType
-      }));
+      const events = allEvents.map(event => {
+        let startYear;
+      
+        if (event.startYearTypeDistribution) {
+          startYear = distributionToString(event.startYearTypeDistribution);
+        } else if (event.startsWith) {
+          //Get the name of the event that starts with 
+          startYear = `Starts with event: ${event.startsWith || "Unnamed Event"}`;
+        } else if (event.startsAfter) {
+          //Get the name of the event that starts after
+          startYear = `Starts after event: ${event.startsAfter|| "Unnamed Event"}`;
+        } else {
+          startYear = "N/A";
+        }
+      
+        return {
+          name: event.name,
+          amount: event.amount ?? event.maximumCash ?? 0,
+          duration: distributionToString(event.durationTypeDistribution),
+          startYear: startYear,
+          eventType: event.eventType
+        };
+      })
 
 
       setInvestments(investments);
@@ -93,12 +110,14 @@ const ScenarioSimulation = () => {
       }
 
       const rothConversionStrategy = [];
+    
       for (let investmentId of scenarioData.orderedRothStrategy) {
         const investmentName = investIdNameMap[investmentId] || "Unknown Investment";
         rothConversionStrategy.push(investmentName);
       }
+    
 
-      setStrategies([
+      const strategyList = [
         {
           title: "Spending Strategy",
           content: spendingStrategy
@@ -110,12 +129,23 @@ const ScenarioSimulation = () => {
         {
           title: "RMD Strategy",
           content: rmdStrategy
-        },
-        {
+        }
+      ];
+      
+      if (scenarioData.startYearRothOptimizer !== undefined) {
+        strategyList.push({
           title: "Roth Conversion Strategy",
           content: rothConversionStrategy
-        }
-      ]);
+        });
+      } else {
+        strategyList.push({
+          title: "Roth Conversion Strategy",
+          content: "Roth Optimizer is disabled"
+        });
+      }
+      
+      setStrategies(strategyList);
+      
 
       setLoading(false);
 
@@ -143,8 +173,9 @@ const ScenarioSimulation = () => {
                 <h2>{scenario.name}</h2>
                 <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
                 <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon} onClick={() => { console.log('Edit Scenario Page') }}> <TbEdit size={25} /> </Link>
+                <Link   to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={23}/></Link>
               </div>
-
+              
               <div className={styles.buttons}>
                 <button className={styles.runSimulation}>Run Simulation</button>
                 <button className={styles.seeResults}>See Results</button>
