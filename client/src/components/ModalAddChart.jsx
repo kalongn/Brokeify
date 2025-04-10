@@ -144,7 +144,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
           <h3>Line Chart</h3>
           <p>Probability of Success over Time</p>
           <div className={styles.chartPreview}>
-            <img src="/src/assets/lineChartEx.svg" alt="Line Chart Preview" />
+            <img src="/src/assets/lineChartEx.png" alt="Line Chart Preview" />
           </div>
           {selectedChart === 'line' && (
             <div className={styles.chartSettings}>
@@ -202,7 +202,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
           <h3>Stacked Bar Chart</h3>
           <p>Median or Average Values of a Selected Quantity over Time</p>
           <div className={styles.chartPreview}>
-            <img src="/src/assets/stackedBarChartEx.svg" alt="Stacked Bar Chart Preview" />
+            <img src="/src/assets/stackedBarChartEx.png" alt="Stacked Bar Chart Preview" />
           </div>
           {selectedChart === 'stacked' && (
             <div className={styles.chartSettings}>
