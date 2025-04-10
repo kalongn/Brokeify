@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { VscChromeClose } from "react-icons/vsc";
-{/*Note: I think this can be deleted as it sould be same as modal... but not sure. */}
+{/*Note: I think this can be deleted as it sould be same as modal... but not sure.
+    Just keeping in case I need it for future reference,
+    
+    
+    */}
 const shadedLineQuantities = [
     "Total Investments",
     "Total Income",
@@ -68,11 +72,11 @@ const AddChart = ({ onClose }) => {
             const newChart = {
                 type: selectedChart,
                 label: label,  // Store all information in the label
-                data: {}, // You can leave data as an empty object for now
+                data: {}, // Can leave data as an empty object for now 
             };
     
-            console.log(newChart);  // Log the new chart object, which includes the label with user-selected information
-            addChart(newChart);  // Assuming `addChart` is passed as a prop
+            console.log(newChart); 
+            //addChart(newChart);  
             onClose();  // Close the modal after saving
         }
     };

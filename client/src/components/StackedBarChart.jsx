@@ -1,6 +1,5 @@
-import React from 'react';
 import Plot from 'react-plotly.js';
-
+import PropTypes from 'prop-types';
 {/*
     Note:
     Add data in format like this labels is the time frame. Then get each value for each investment/whatever the user selected. 
@@ -46,6 +45,13 @@ const StackedBarChart = ({ data }) => {
             }}
         />
     );
+};
+
+
+StackedBarChart.propTypes = {
+    data: PropTypes.shape({
+        labels: PropTypes.arrayOf(PropTypes.string),
+    })
 };
 
 export default StackedBarChart;

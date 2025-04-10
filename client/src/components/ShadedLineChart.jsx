@@ -1,4 +1,3 @@
-import React from 'react';
 import Plot from 'react-plotly.js';
 {/*Note: I used ChatGPT to generate this code.
     Prompt: Using Plotly.js and React.js. create a shaded line chart component that plots the  median value of a selected quantity over 
@@ -150,4 +149,18 @@ const ShadedLineChart = ({ data }) => {
     );
 };
 
+ShadedLineChart.propTypes = {
+    data: PropTypes.shape({
+        labels: PropTypes.arrayOf(PropTypes.string),
+        median: PropTypes.arrayOf(PropTypes.number),
+        lower10: PropTypes.arrayOf(PropTypes.number),
+        upper10: PropTypes.arrayOf(PropTypes.number),
+        lower20: PropTypes.arrayOf(PropTypes.number),
+        upper20: PropTypes.arrayOf(PropTypes.number),
+        lower30: PropTypes.arrayOf(PropTypes.number),
+        upper30: PropTypes.arrayOf(PropTypes.number),
+        lower40: PropTypes.arrayOf(PropTypes.number),
+        upper40: PropTypes.arrayOf(PropTypes.number),
+    })
+};
 export default ShadedLineChart;

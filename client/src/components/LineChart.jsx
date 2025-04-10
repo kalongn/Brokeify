@@ -1,5 +1,5 @@
-import React from 'react';
 import Plot from 'react-plotly.js';
+import PropTypes from 'prop-types';
 {/*
     Note format for this data is simple: 
     add labels as an array for the time periods, and values as an array of numbers of the probability of success.
@@ -30,4 +30,10 @@ const LineChart = ({ data }) => {
     );
 };
 
+LineChart.propTypes = {
+    data: PropTypes.shape({
+        labels: PropTypes.arrayOf(PropTypes.string),
+        values: PropTypes.arrayOf(PropTypes.number),
+    }).isRequired,
+};
 export default LineChart;
