@@ -189,7 +189,7 @@ const allocateMethodToBackend = (allocationMethod) => {
             return null;
     }
 }
-const isGuest = async (userId) => {
+const isNotGuest = async (userId) => {
     const user = await userController.read(userId);
     return user.permission !== "GUEST";
 }
@@ -222,7 +222,7 @@ export {
     taxStatusToBackend,
     allocateMethodToFrontend,
     allocateMethodToBackend,
-    isGuest,
+    isNotGuest,
     isOwner,
     canEdit,
     canView

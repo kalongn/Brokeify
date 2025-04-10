@@ -1,7 +1,7 @@
 import express from "express";
 import UserController from "../db/controllers/UserController.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
-import { isGuest, isOwner } from "./helper.js";
+import { isNotGuest, isOwner } from "./helper.js";
 
 const router = express.Router();
 const userController = new UserController();
@@ -14,7 +14,7 @@ router.get("/sharing/:scenarioId", async (req, res) => {
     try {
         const userId = req.session.user;
         const id = req.params.scenarioId;
-        if (!await isGuest(userId) || !await isOwner(userId, id)) {
+        if (!await isNotGuest(userId) || !await isOwner(userId, id)) {
             return res.status(403).send("You do not have permission to access the sharing settings of this scenario.");
         }
         const scenario = await scenarioController.read(id);
