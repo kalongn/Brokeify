@@ -191,7 +191,7 @@ const allocateMethodToBackend = (allocationMethod) => {
 }
 const isGuest = async (userId) => {
     const user = await userController.read(userId);
-    return user.permission !== "GUEST";ƒ
+    return user.permission !== "GUEST";
 }
 
 const isOwner = async (userId, scenarioId) => {
