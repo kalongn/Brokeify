@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { FaTimes } from 'react-icons/fa';
 import Select from 'react-select';
 import Axios from "axios";
@@ -10,6 +10,7 @@ import Layout from "../components/Layout";
 const Sharing = () => {
 
   const { scenarioId } = useParams();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [ownerEmail, setOwnerEmail] = useState("");
@@ -38,8 +39,11 @@ const Sharing = () => {
       setLoading(false);
     }).catch((error) => {
       console.error("Error fetching sharing data:", error);
+      if ([401, 403, 404].includes(error.response?.status)) {
+        navigate("/Home");
+      }
     });
-  }, [scenarioId]);
+  }, [navigate, scenarioId]);
 
   // For adding a new person with email
   const handleEmailChange = (e) => {
