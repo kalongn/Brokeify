@@ -6,9 +6,18 @@
 
 }
 
+.accordion h3 {
+    margin: 0;
+    padding: 0;
+   
+
+
+}
+
 .accordionTitle {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-top: 1rem;
     border-bottom: solid 1px var(--color-silver);
 }

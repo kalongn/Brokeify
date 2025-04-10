@@ -22,6 +22,7 @@ import SpendingStrategy from './pages/scenarioSections/SpendingStrategy.jsx';
 import ExpenseStrategy from './pages/scenarioSections/ExpenseStrategy.jsx';
 import RMDStrategy from './pages/scenarioSections/RMDStrategy.jsx';
 import RothStrategy from './pages/scenarioSections/RothStrategy.jsx';
+import Charts from './pages/visualizations/Charts.jsx';
 
 import RouteTesting from './pages/RouteTesting.jsx';
 import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
@@ -87,6 +88,7 @@ const App = () => {
         <Route path="/ViewScenario/:scenarioId" element={<ViewScenario />} ></Route>
         <Route path ="/Sharing/:scenarioId" element={<Sharing />} ></Route>
         <Route path="/RouteTesting" element={<RouteTesting />} />
+        <Route path="/Visualizations/Charts/:scenarioId" element={<Charts />} />        
       </Routes>
     </>
   )

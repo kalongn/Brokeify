@@ -94,7 +94,8 @@ const ScenarioSimulation = () => {
 
               <div className={styles.buttons}>
                 <button className={styles.runSimulation}>Run Simulation</button>
-                <button className={styles.seeResults}>See Results</button>
+                <Link className={styles.seeResults} to={`/Visualizations/Charts/${scenarioId}`} > See Results</Link>
+                
               </div>
             </div>
 
