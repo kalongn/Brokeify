@@ -110,6 +110,7 @@ router.get("/scenario/:scenarioId", async (req, res) => {
                 startYearRothOptimizer: scenario.startYearRothOptimizer,
                 orderedRothStrategy: rothStrategy,
                 permission: permission,
+                canShare: user.permission !== "GUEST",
             }
 
             return res.status(200).send(data);

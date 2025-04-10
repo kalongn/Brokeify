@@ -189,11 +189,16 @@ const allocateMethodToBackend = (allocationMethod) => {
             return null;
     }
 }
+const isNotGuest = async (userId) => {
+    const user = await userController.read(userId);
+    return user.permission !== "GUEST";
+}
 
 const isOwner = async (userId, scenarioId) => {
     const user = await userController.read(userId);
     return user.ownerScenarios.some(scenario => scenario._id.toString() === scenarioId);
 }
+
 
 const canEdit = async (userId, scenarioId) => {
     const user = await userController.read(userId);
@@ -217,6 +222,7 @@ export {
     taxStatusToBackend,
     allocateMethodToFrontend,
     allocateMethodToBackend,
+    isNotGuest,
     isOwner,
     canEdit,
     canView

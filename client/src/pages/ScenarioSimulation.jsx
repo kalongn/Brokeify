@@ -20,6 +20,7 @@ const ScenarioSimulation = () => {
   const [events, setEvents] = useState([]);
   const [strategies, setStrategies] = useState([]);
   const [permission, setPermission] = useState(0);
+  const [canShare, setCanShare] = useState(false);
   const [loading, setLoading] = useState(true);
 
 
@@ -34,6 +35,7 @@ const ScenarioSimulation = () => {
       setPermission(scenarioData.permission);
       setInvestments(scenarioData.investments || []);
       setEvents(scenarioData.events || []);
+      setCanShare(scenarioData.canShare);
 
       const strategyList = [
         {
@@ -87,7 +89,7 @@ const ScenarioSimulation = () => {
                 <h2>{scenario.name}</h2>
                 {permission > 0 && <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon}><TbFileSearch size={25} /></Link>}
                 {permission > 1 && <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon}><TbEdit size={25} /></Link>}
-                {permission > 2 && <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={25} /></Link>}
+                {permission > 2 && canShare && <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={25} /></Link>}
               </div>
 
               <div className={styles.buttons}>
