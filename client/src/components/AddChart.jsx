@@ -7,6 +7,12 @@ import { VscChromeClose } from "react-icons/vsc";
 {/*Note: I think this can be deleted as it sould be same as modal... but not sure.
     Just keeping in case I need it for future reference,
     
+
+
+
+    IGNORE THIS FILE 
+
+    DON'T ADD CODE HERE (ACTUAL ONE IS IN MODALADDCHART.JSX)
     
     */}
 const shadedLineQuantities = [
@@ -178,8 +184,8 @@ const AddChart = ({ onClose }) => {
                                     <div className={styles.numericSettings}>
                                         <p>Dollar Value</p>
                                         <div className={styles.radioGroup}>
-                                            <p><input type="radio" name="shadedDollar" /> Today</p>
-                                            <p><input type="radio" name="shadedDollar" /> Future</p>
+                                            <p><input type="radio" name="stackedDollar" /> Today</p>
+                                            <p><input type="radio" name="stackedDollar" /> Future</p>
                                         </div>
                                         {validationErrors.dollarValue && (
                                             <p className={styles.error}>{validationErrors.dollarValue}</p>

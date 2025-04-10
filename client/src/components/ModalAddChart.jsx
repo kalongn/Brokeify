@@ -99,7 +99,6 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
       const dollarRadios = document.getElementsByName('shadedDollar');
       const dollarValue = [...dollarRadios].find(r => r.checked)?.value;
       
-      console.log('Dollar Value:', dollarValue); 
       cContent = {
         quantity: selectedShadedQuantity,
         dollarValue: isShadedQuantityNumeric ? dollarValue : null,
