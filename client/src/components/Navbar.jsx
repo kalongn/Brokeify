@@ -1,5 +1,3 @@
-// TODO: to be actually implement then random stuff here
-
 import style from './NavBar.module.css';
 import { Link } from 'react-router-dom';
 import { FaPlus } from "react-icons/fa6";
