@@ -40,7 +40,7 @@ const Sharing = () => {
     }).catch((error) => {
       console.error("Error fetching sharing data:", error);
       if ([401, 403, 404].includes(error.response?.status)) {
-        navigate("/Home");
+        navigate(`/Scenario/${scenarioId}`);
       }
     });
   }, [navigate, scenarioId]);
