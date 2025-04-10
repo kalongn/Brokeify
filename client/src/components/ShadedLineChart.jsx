@@ -18,8 +18,28 @@ data = {
   upper20: [...],    // Upper bound of the 20%-80% range
   ...
 }
+*/}
 
-    
+{/*
+    From proj req: This type of line chart includes a line for the median value of a selected quantity 
+    over time (i.e., year by year), with shaded regions depicting probability ranges---specifically 10%-90%, 20%-80%, 
+    30%-70%, and 40%-60%---for the value of that quantity.
+        
+*/}
+
+{/*
+    data.content = {
+        quantity: [can be one of the following 5:
+            1. total investments (the chart should also include a horizontal line 
+            representing the financial goal)
+            2. total income
+            3. total expenses, including taxes
+            4. early withdrawal tax
+            5. percentage of total discretionary expenses incurred (the percentage is
+             based on the amounts,not the number, of the discretionary expenses in that year)
+        ],
+        dollarValue: Future or Today <-- note this only exists for those that show dollarvalues (not % for ex) 
+      };
     */}
 const ShadedLineChart = ({ data }) => {
     return (

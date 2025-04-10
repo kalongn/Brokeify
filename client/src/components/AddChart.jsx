@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { VscChromeClose } from "react-icons/vsc";
-
+{/*Note: I think this can be deleted as it sould be same as modal... but not sure. */}
 const shadedLineQuantities = [
     "Total Investments",
     "Total Income",
