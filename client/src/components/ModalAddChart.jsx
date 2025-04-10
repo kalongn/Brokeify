@@ -127,7 +127,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
       };
     }
 
-
+    {/*Middleware/Backend TODO: Get appropriate data from database*/}
     setCharts((prevCharts) => [...prevCharts, { type: cType, content: cContent, label: cContent.label, data: {} }]);
     setIsOpen(false);
   }

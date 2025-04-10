@@ -44,15 +44,9 @@ const Charts = () => {
     { id: 3, type: "Shaded Line Data", label: "Investments", data: ShadedLineData },
   ]);
 
-  const addChart = (newChart) => {
-    setCharts((prevCharts) => [
-      ...prevCharts,
-      { ...newChart, id: prevCharts.length + 1 }, // Adding the new chart with a unique ID
-    ]);
-  };
 
   const handleGenerateCharts = () => {
-    setShowCharts(true);  // Set showCharts to true when "Generate Charts" is clicked
+    setShowCharts(true); 
   };
 
   return (
@@ -92,11 +86,11 @@ const Charts = () => {
             </div>
           )}
 
-          {/* Conditionally render charts only after clicking "Generate Charts" */}
+          {/*After user taps on "Generate Charts", charts will show*/}
           {showCharts && charts.length > 0 && charts.map((chart) => (
             <div key={chart.id} className={styles.chart}>
-              <h3>{chart.label}</h3>
-              {/* Conditionally render chart components based on type */}
+              <h3>{chart.type}</h3>
+              {/* Charts will show depending on type */}
               {chart.type === "Shaded Line Data" && <ShadedLineChart data={chart.data} />}
               {chart.type === "Line Chart" && <LineChart data={chart.data} />}
               {chart.type === "Stacked Bar Chart" && <StackedBarChart data={chart.data} />}
