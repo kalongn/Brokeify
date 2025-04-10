@@ -1,4 +1,5 @@
 import Plot from 'react-plotly.js';
+import PropTypes from 'prop-types';
 {/*Note: I used ChatGPT to generate this code.
     Prompt: Using Plotly.js and React.js. create a shaded line chart component that plots the  median value of a selected quantity over 
     time (i.e., year by year), with shaded regions depicting probability ranges---specifically 10%-90%, 20%-80%, 30%-70%, and 40%-60%---for
