@@ -128,8 +128,6 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
     }
 
 
-
-
     setCharts((prevCharts) => [...prevCharts, { type: cType, content: cContent, label: cContent.label, data: {} }]);
     setIsOpen(false);
   }
