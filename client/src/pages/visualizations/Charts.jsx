@@ -10,7 +10,7 @@ import ModalAddChart from "../../components/ModalAddChart";
 
 const Charts = () => {
   const [showAddModal, setShowAddModal] = useState(false);
-
+  const[showCharts, setShowChart] = useState(false);
   const ShadedLineData = {
     labels: ['2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019'],
     median: [0.5, 0.6, 0.55, 0.7, 0.65, 0.6, 0.75, 0.8, 0.85, 0.9],
@@ -51,16 +51,20 @@ const Charts = () => {
         ]);
     };
 
+    const handleGenerateCharts = () => {
+      setShowCharts(true);  // Set showCharts to true when "Generate Charts" is clicked
+    };
+
   return (
     <Layout>
       <div className={styles.content}>
         <div className={styles.leftSide}>
           <h2>Ideal Plan!!</h2>
           <div className={styles.buttonGroup}>
-            <button onClick={() => setShowAddModal(true)}>
+            <button className ={styles.addCharts}onClick={() => setShowAddModal(true)}>
               Add Charts
             </button>
-            <button>Generate Charts</button>
+            <button onClick={handleGenerateCharts}>Generate Charts</button>
           </div>
           <ModalAddChart isOpen={showAddModal} setIsOpen={setShowAddModal} setCharts={setCharts} />
 
@@ -79,26 +83,29 @@ const Charts = () => {
         <div className={styles.rightSide}>
           {/* Display Charts */}
           <div className={styles.chartsDisplay}>
-            {charts.map((chart) => (
+          {showCharts && charts.length === 0 && (
+              <div className={styles.noChartsMessage}>
+                Please add a selection of charts, and then generate.
+              </div>
+            )}
+
+            {/* Conditionally render charts only after clicking "Generate Charts" */}
+            {showCharts && charts.length > 0 && charts.map((chart) => (
               <div key={chart.id} className={styles.chart}>
                 <h3>{chart.label}</h3>
                 {/* Conditionally render chart components based on type */}
-                {chart.type === "Shaded Line Data" && <ShadedLineChart data={chart.data} />}
-                {/* You can add more conditions for different chart types like Line Chart, Stacked Bar Chart */}
-                {chart.type === "Line Chart" && (
-                  <div>
-                    <LineChart data={chart.data} />
-
-                  </div>
-                )}
-                {chart.type === "Stacked Bar Chart" && (
-                  <div>
-                    <StackedBarChart data={chart.data} />
-                  </div>
-                )}
-
+                {chart.type === "Shaded Line Chart" && <ShadedLineChart data={chart.data} />}
+                {chart.type === "Line Chart" && <LineChart data={chart.data} />}
+                {chart.type === "Stacked Bar Chart" && <StackedBarChart data={chart.data} />}
               </div>
             ))}
+            {!showCharts && (
+              <div className={styles.chartCount}>
+                No Charts Generated Yet...
+              </div>
+            )}
+            
+            
           </div>
         </div>
 

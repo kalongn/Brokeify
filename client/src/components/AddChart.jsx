@@ -3,6 +3,8 @@ import styles from "./AddChart.module.css";
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { VscChromeClose } from "react-icons/vsc";
+
 const shadedLineQuantities = [
     "Total Investments",
     "Total Income",
@@ -122,7 +124,7 @@ const AddChart = ({ onClose }) => {
             <div className={styles.modal}>
                 <div className={styles.header}>
                     <h2>Select a Chart</h2>
-                    <Link className={styles.exitButton} to={"/Visualizations/Charts"}> X</Link>
+                    <Link className={styles.exitButton} to={"/Visualizations/Charts"}><VscChromeClose/></Link>
                 </div>
 
                 <div className={styles.chartOptions}>

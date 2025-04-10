@@ -31,11 +31,14 @@
 
 
 button {
-    min-width: 10rem;
+   
     background-color: #d0ded9;
     border-radius: 6px;
     
     
+}
+.addChart{
+    min-width: 10rem;
 }
 .rightSide{
     grid-area: 1 / 2 / 2 / 3;
