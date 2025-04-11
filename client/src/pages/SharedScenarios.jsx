@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import Axios from "axios";
 import ScenarioCard from "../components/ScenarioCard";
 import style from './Home.module.css';
+
+
 const SharedScenarios = () => {
 
   const [scenarios, setScenarios] = useState([]);
   const [isGuest, setGuest] = useState(true);
-
+  
   //TODO: Get user logged In/isGuest 
 
   useEffect(() => {
@@ -21,6 +23,7 @@ const SharedScenarios = () => {
         setScenarios(response.data);
       })
       .catch((error) => {
+        setGuest(true); //TODO: REMOVE HERE. temporarily kept it for ESLint
         console.error('Error fetching user scenarios:', error);
       });
   }, []);
@@ -29,7 +32,7 @@ const SharedScenarios = () => {
     <Layout>
       <div className={style.background}>
       {isGuest ? (
-          <p>Whoops...you don't have access as a guest. Please consider making an account to share scenarios. </p>
+          <p>Whoops...you don&apos;t have access as a guest. Please consider making an account to share scenarios. </p>
         ) : (
           scenarios.length === 0 ? (
             <h1>No Scenarios Found</h1>
