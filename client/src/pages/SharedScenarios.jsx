@@ -35,7 +35,7 @@ const SharedScenarios = () => {
           <p>Whoops...you don&apos;t have access as a guest. Please consider making an account to share scenarios. </p>
         ) : (
           scenarios.length === 0 ? (
-            <h1>No Scenarios Found</h1>
+            <h1>No Shared Scenarios Found</h1>
           ) : (
             scenarios.map((scenario, index) => (
               <ScenarioCard
