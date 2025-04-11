@@ -84,8 +84,8 @@ const ScenarioSimulation = () => {
 
   const runSimulation = () => {
     const num = numSimulations;
-    if (isNaN(num) || num < 50 || num > 100) {
-      window.alert("Please enter a number between 50 and 100.");
+    if (isNaN(num) || num < 10 || num > 50) {
+      window.alert("Please enter a number between 10 and 50.");
       //Decided to pop-up because not sure where to keep the error message
       return;
     }
@@ -94,7 +94,7 @@ const ScenarioSimulation = () => {
     window.alert(`Running simulation with ${num} runs...`);
     console.log("Number of runs:", num);
   };
-  
+
   return (
     <Layout>
       <div className={styles.container}>
@@ -109,27 +109,25 @@ const ScenarioSimulation = () => {
                 {permission > 2 && canShare && <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={25} /></Link>}
               </div>
               <div className={styles.buttonBox}>
-              <div className={styles.buttons}>
-                <div className={styles.simulationButtons}>
-                <p className ={styles.description}>Number of Runs</p>
-                  <div>
-                  <input
-                  id="sim-count"
-                  type="number"
-                  min="50"
-                  max="100"
-                  step="1"
-                  className={styles.simInput}
-                  value={numSimulations}
-                  onChange={(e) => setNumSimulations(e.target.value)}
-                /> </div>
-                
-              
+                <div className={styles.buttons}>
+                  <div className={styles.simulationButtons}>
+                    <p className={styles.description}>Number of Runs</p>
+                    <div>
+                      <input
+                        id="sim-count"
+                        type="number"
+                        min="10"
+                        max="50"
+                        step="1"
+                        className={styles.simInput}
+                        value={numSimulations}
+                        onChange={(e) => setNumSimulations(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <button className={styles.runSimulation} onClick={runSimulation}>Run Simulation</button>
+                  <Link className={styles.seeResults} to={`/Visualizations/Charts/${scenarioId}`} > See Results</Link>
                 </div>
-                  <button className={styles.runSimulation}  onClick={runSimulation}>Run Simulation</button>
-                
-                <Link className={styles.seeResults} to={`/Visualizations/Charts/${scenarioId}`} > See Results</Link>
-              </div>
               </div>
             </div>
 
