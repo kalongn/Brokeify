@@ -14,7 +14,13 @@ const ScenarioSimulation = () => {
     const [isRunning, setIsRunning] = useState(false);
     const[loading,setLoading] = useState(false);
     const [previousRun, setPreviousRun] = useState(null);
-    // Sample scenarios array for testing purposes
+    // Sample scenarios array for testing purposes (Note: get name so that it displays as such in dropdown.  Need id to navigate 
+    //for results button 
+
+    //For the sake of ESLint Errors
+    console.log(loading)
+    console.log(previousRun)
+
     const scenarios = [
         {
           _id: "67f6e777015c679cd03c4638",
@@ -36,27 +42,26 @@ const ScenarioSimulation = () => {
         setErrorMessage(''); // Clear previous error message
         setIsRunning(true); // Set simulation as running
 
-        // Start the Ladda button spinner
         const laddaBtn = Ladda.create(e.currentTarget);
-        laddaBtn.start();
+        laddaBtn.start();  // Start the Ladda button spinner
 
         let progress = 0;
         const interval = setInterval(() => {
             if (progress < 1) {
                 progress += 0.1; // Increase progress by 10%
-                laddaBtn.setProgress(progress); // Update Ladda progress
+                laddaBtn.setProgress(progress);
             }
         }, 1000);
 
         try {
-            // Simulate a delay representing the time the simulation takes
+            
             await new Promise((resolve) => setTimeout(resolve, 12000)); // Simulating a 12-second delay for testing
 
-            setIsRunning(false); // Set simulation as finished
-            setLoading(false); // Hide loading spinner
-            setPreviousRun(true);
-            // Placeholder for any actual logic once simulation is finished
-            console.log(`Simulation completed with ${num} runs.`);
+            setIsRunning(false); // Simulation done
+            setLoading(false); // Loading icons gone
+            setPreviousRun(true); //TODO: Update this with the current run! 
+            
+            //console.log(`Simulation completed: ${num}  simulation runs.`);
         } catch (error) {
             setErrorMessage('An error occurred during the simulation.');
             console.error('Simulation error:', error);
@@ -71,7 +76,7 @@ const ScenarioSimulation = () => {
         <div className={styles.background}>
             <h2>Scenario Simulation</h2>
 
-            {/* Scenario Selection */}
+       
             <div className = {styles.section}>
                 <div className={styles.group}>
                 <p>Select a Scenario:</p>
@@ -85,8 +90,6 @@ const ScenarioSimulation = () => {
                     ))}
                 </select>
                 </div>
-               
-            {/* Number of Runs Input */}
             
             <div>
             <p>Enter number of simulation runs: </p>
@@ -102,15 +105,12 @@ const ScenarioSimulation = () => {
                 />
             </div>
 
-            {/* Error Message */}
             {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
 
-            {/* Run Simulation Button */}
             <div className={styles.buttonBox}>
                 <div className={styles.buttons}>
                     <div className={styles.simulationButtons}>
                     </div>
-                    {/*<button className={styles.runSimulation} onClick={runSimulation}>Run Simulation</button>*/}
                     <button
                         className={`${styles.runSimulation} ladda-button`}
                         data-style="expand-left"
@@ -125,7 +125,6 @@ const ScenarioSimulation = () => {
                 </div>
             </div>
 
-            {/* Additional Section for Results (Optional) */}
             <div className = {styles.section}>
                 <h2>Results</h2>
             {isRunning ? (

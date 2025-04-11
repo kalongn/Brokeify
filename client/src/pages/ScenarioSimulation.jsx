@@ -26,14 +26,7 @@ const ScenarioSimulation = () => {
   const [permission, setPermission] = useState(0);
   const [canShare, setCanShare] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [numSimulations, setNumSimulations] = useState(50);
-  const [isRunning, setIsRunning] = useState(true);
-  const [previousRun, setPreviousRun] = useState(null);
-
-  //NOte: the seeResults button is disabled if the simulation is running. 
-  //If there is a previousRun, it will show up, but it will be disabled if the user taps on it while the simulation is running.
-  //TODO: If loading, make sure all other buttons are disabled (editingScenario, sharing, etc.)
-
+  
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -90,48 +83,6 @@ const ScenarioSimulation = () => {
     });
   }, [scenarioId]);
 
-
-  const runSimulation = async (e) => {
-    const num = numSimulations;
-    if (isNaN(num) || num < 10 || num > 50) {
-      window.alert("Please enter a number between 10 and 50.");
-      //Decided to pop-up because not sure where to keep the error message
-      return;
-    }
-
-    setIsRunning(true);
-    {/*Note: Used ChatGPT to create the Ladda button template -- adjusted to suit our project a little more; added comments 
-    to expain parts of this button*/}
-    const laddaBtn = Ladda.create(e.currentTarget);
-    laddaBtn.start();
-
-    let progress = 0;
-    const interval = setInterval(() => {
-      if (progress < 1) {
-        progress += 0.1; // Increase progress by 10%
-        laddaBtn.setProgress(progress); // Update progress
-      }
-    }, 1000); // Update every 1000ms (can do an approx time of however sim takes to load)-can also just remove progress bat if we want lol
-
-    try {
-      // Currently running for 12 seconds - we need to adjust this manually (set it to the avg runtime of simulation)
-      await new Promise((resolve) => setTimeout(resolve, 12000));
-
-      setPreviousRun(true); //Update to actual run 
-    } catch (error) {
-      console.error("Simulation error:", error);
-    } finally {
-      clearInterval(interval); // Clear the progress interval
-      laddaBtn.stop(); // Stop the progress bar
-
-      setIsRunning(false); // Set running state to false
-    }
-
-    // TODO: Implement the simulation logic here
-    //Temporarily just testing lol -- can remove this statement below
-    //window.alert(`Running simulation with ${num} runs...`);
-    console.log("Number of runs:", num);
-  };
   return (
     <Layout>
       <div className={styles.container}>
