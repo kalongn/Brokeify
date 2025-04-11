@@ -43,7 +43,7 @@ const SharedScenarios = () => {
                 key={index}
                 id={scenario.id}
                 title={scenario.name}
-                maritalStatus={scenario.ownerEmail}
+                maritalStatus={scenario.ownerName}
                 targetAmount={scenario.financialGoal}
                 investments={scenario.investmentsLength}
                 events={scenario.eventsLength}

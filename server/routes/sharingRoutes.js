@@ -28,7 +28,7 @@ router.get("/sharedScenarios", async (req, res) => {
             sharedScenarios.push({
                 id: scenario._id,
                 name: scenario.name,
-                ownerEmail: scenario.ownerEmail,
+                ownerName: scenario.ownerFirstName + " " + scenario.ownerLastName,
                 financialGoal: scenario.financialGoal,
                 investmentsLength: investmentsLength,
                 eventsLength: scenario.events.length,
@@ -44,7 +44,7 @@ router.get("/sharedScenarios", async (req, res) => {
             sharedScenarios.push({
                 id: scenario._id,
                 name: scenario.name,
-                ownerEmail: scenario.ownerEmail,
+                ownerName: scenario.ownerFirstName + " " + scenario.ownerLastName,
                 financialGoal: scenario.financialGoal,
                 investmentsLength: investmentsLength,
                 eventsLength: scenario.events.length,
