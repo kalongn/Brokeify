@@ -96,13 +96,15 @@ const Sharing = () => {
       return;
     }
 
-    if (email.toLowerCase() === ownerEmail.toLowerCase()) {
+    const trimEmail = email.trim();
+
+    if (trimEmail.toLowerCase() === ownerEmail.toLowerCase()) {
       setErrors("You cannot add yourself");
       return;
     }
 
     if (sharedUsers.some((user) => {
-      return user.email.toLowerCase() === email.toLowerCase();
+      return user.email.toLowerCase() === trimEmail.toLowerCase();
     })) {
       setErrors("User already added");
       return;
@@ -110,7 +112,7 @@ const Sharing = () => {
 
     try {
       const response = await Axios.post(`/sharing/${scenarioId}/add`, {
-        email: email,
+        email: trimEmail,
         permissions: permissions,
       });
 
