@@ -60,7 +60,6 @@ const Investments = () => {
 
     updatedInvestments[index][field] = processedValue;
     setFormData(updatedInvestments);
-    console.log(updatedInvestments);
   };
 
   const addNewInvestment = () => {
@@ -79,6 +78,7 @@ const Investments = () => {
 
   const validateFields = () => {
     const newErrors = {};
+    const dupCheck = new Set();
     // Check if there are any investments
     if (!formData[0]) {
       newErrors.investmentRow = "At least one investment must be added";
@@ -92,7 +92,13 @@ const Investments = () => {
         else if (row.dollarValue < 0) {
           newErrors.investmentRow = "Dollar values must be non-negative";
         }
+        else {
+          dupCheck.add(`${row.type}-${row.taxStatus}`)
+        }
       });
+      if (dupCheck.size !== formData.length) {
+        newErrors.investmentRow = "Investments with the same type and tax status are not allowed";
+      }
     }
     // Set all errors at once
     setErrors(newErrors);
