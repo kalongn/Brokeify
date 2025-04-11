@@ -22,6 +22,7 @@ const ScenarioSimulation = () => {
   const [permission, setPermission] = useState(0);
   const [canShare, setCanShare] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [numSimulations, setNumSimulations] = useState(50);
 
 
   useEffect(() => {
@@ -91,11 +92,28 @@ const ScenarioSimulation = () => {
                 {permission > 1 && <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon}><TbEdit size={25} /></Link>}
                 {permission > 2 && canShare && <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={25} /></Link>}
               </div>
-
+              <div className={styles.buttonBox}>
               <div className={styles.buttons}>
-                <button className={styles.runSimulation}>Run Simulation</button>
-                <Link className={styles.seeResults} to={`/Visualizations/Charts/${scenarioId}`} > See Results</Link>
+                <div className={styles.simulationButtons}>
+                <p className ={styles.description}>Number of Runs</p>
+                  <div>
+                  <input
+                  id="sim-count"
+                  type="number"
+                  min="50"
+                  max="100"
+                  step="1"
+                  className={styles.simInput}
+                  value={numSimulations}
+                  onChange={(e) => setNumSimulations(e.target.value)}
+                /> </div>
                 
+              
+                </div>
+                  <button className={styles.runSimulation}>Run Simulation</button>
+                
+                <Link className={styles.seeResults} to={`/Visualizations/Charts/${scenarioId}`} > See Results</Link>
+              </div>
               </div>
             </div>
 
