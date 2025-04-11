@@ -20,7 +20,7 @@ router.get("/sharedScenarios", async (req, res) => {
 
         const sharedScenarios = [];
         for (let i = 0; i < user.editorScenarios.length; i++) {
-            const scenario = user.ownerScenarios[i];
+            const scenario = user.editorScenarios[i];
             let investmentsLength = 0;
             for (let type of scenario.investmentTypes) {
                 investmentsLength += type.investments.length;
