@@ -79,6 +79,22 @@ const ScenarioSimulation = () => {
       return <Navigate to="/Home" />;
     });
   }, [scenarioId]);
+
+
+
+  const runSimulation = () => {
+    const num = numSimulations;
+    if (isNaN(num) || num < 50 || num > 100) {
+      window.alert("Please enter a number between 50 and 100.");
+      //Decided to pop-up because not sure where to keep the error message
+      return;
+    }
+    // TODO: Implement the simulation logic here
+    //Temporarily just testing lol -- can remove this statement below
+    window.alert(`Running simulation with ${num} runs...`);
+    console.log("Number of runs:", num);
+  };
+  
   return (
     <Layout>
       <div className={styles.container}>
@@ -110,7 +126,7 @@ const ScenarioSimulation = () => {
                 
               
                 </div>
-                  <button className={styles.runSimulation}>Run Simulation</button>
+                  <button className={styles.runSimulation}  onClick={runSimulation}>Run Simulation</button>
                 
                 <Link className={styles.seeResults} to={`/Visualizations/Charts/${scenarioId}`} > See Results</Link>
               </div>
