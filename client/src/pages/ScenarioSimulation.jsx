@@ -13,9 +13,6 @@ import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
 
 
-import 'ladda/dist/ladda.min.css';
-import * as Ladda from 'ladda/js/ladda'; // or import from submodule path
-
 const ScenarioSimulation = () => {
 
   const { scenarioId } = useParams(); // Get the scenario ID from the URL params

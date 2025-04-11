@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 
@@ -17,7 +17,6 @@ const ScenarioSimulation = () => {
     
     //For the sake of ESLint Errors
     console.log(loading);
-    console.log(previousRun);
 
     // Sample scenarios array for testing purposes (Note: get name so that it displays as such in dropdown.  Need id to navigate 
     //for results button 
