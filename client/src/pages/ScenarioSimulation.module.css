@@ -4,6 +4,12 @@
     padding: 1.5rem;
 }
 
+.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
 
 .container h3 {
     padding: 0rem;

@@ -23,6 +23,12 @@ const ScenarioSimulation = () => {
   const [canShare, setCanShare] = useState(false);
   const [loading, setLoading] = useState(true);
   const [numSimulations, setNumSimulations] = useState(50);
+  const [isRunning, setIsRunning] = useState(true);
+  const [previousRun, setPreviousRun] = useState(null);
+
+  //NOte: the seeResults button is disabled if the simulation is running. 
+  //If there is a previousRun, it will show up, but it will be disabled if the user taps on it while the simulation is running.
+ //TODO: If loading, make sure all other buttons are disabled (editingScenario, sharing, etc.)
 
 
   useEffect(() => {
@@ -81,7 +87,6 @@ const ScenarioSimulation = () => {
   }, [scenarioId]);
 
 
-
   const runSimulation = () => {
     const num = numSimulations;
     if (isNaN(num) || num < 10 || num > 50) {
@@ -89,6 +94,8 @@ const ScenarioSimulation = () => {
       //Decided to pop-up because not sure where to keep the error message
       return;
     }
+    
+    setIsRunning(true); 
     // TODO: Implement the simulation logic here
     //Temporarily just testing lol -- can remove this statement below
     window.alert(`Running simulation with ${num} runs...`);
@@ -126,8 +133,16 @@ const ScenarioSimulation = () => {
                     </div>
                   </div>
                   <button className={styles.runSimulation} onClick={runSimulation}>Run Simulation</button>
-                  <Link className={styles.seeResults} to={`/Visualizations/Charts/${scenarioId}`} > See Results</Link>
-                </div>
+                  {previousRun && (<Link  
+                   className={`${styles.seeResults} ${isRunning ? styles.disabled : ""}`}
+                    onClick={(e) => {
+                      if (isRunning) e.preventDefault(); 
+                      window.alert("Results are not available yet. Please wait for simulation to finish running.");
+                    }}
+                  
+                  to={`/Visualizations/Charts/${scenarioId}`} > {isRunning ? "Loading..." : "See Results"}</Link>
+                  )}
+                  </div>
               </div>
             </div>
 
