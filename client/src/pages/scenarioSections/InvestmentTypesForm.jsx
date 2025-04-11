@@ -1,5 +1,5 @@
 import { useState, useImperativeHandle, useEffect } from "react";
-import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
 import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Axios from "axios";
 import Distributions from "../../components/Distributions";
@@ -8,6 +8,8 @@ import buttonStyles from "../ScenarioForm.module.css";
 
 const InvestmentTypesForm = () => {
   const navigate = useNavigate();
+  // Access the list of investmentTypesNames passed from InvestmentTypes section page
+  const investmentTypeNames = useLocation().state;
 
   const { childRef } = useOutletContext();
   const { scenarioId, id } = useParams();
@@ -57,7 +59,7 @@ const InvestmentTypesForm = () => {
   }, [id, scenarioId]);
 
 
-  // Expose the validateFields function to the parent component
+  // Expose the handleSubmit function to the parent component
   useImperativeHandle(childRef, () => ({
     handleSubmit,
   }));
@@ -117,6 +119,15 @@ const InvestmentTypesForm = () => {
     if (formData.expenseRatio !== null && formData.expenseRatio > 100) {
       newErrors.expenseRatio = "Expense ratio must be between 0 and 100";
     }
+
+    // Check for duplicate names
+    investmentTypeNames.forEach((name) => {
+      if (name === formData.investmentType.trim()) {
+        newErrors.investmentType = "Investment type name already exists";
+        return;
+      }
+    });
+
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
@@ -141,7 +152,7 @@ const InvestmentTypesForm = () => {
       console.log(response.data);
       handleNavigate();
     } catch (error) {
-      console.error('Error creating investment type:', error); //TODO: handle error on duplicate Investment Type name @04mHuang
+      console.error('Error creating investment type:', error);
       return false;
     }
   }
