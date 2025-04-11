@@ -6,8 +6,6 @@ import Select from "react-select";
 
 import styles from "./Form.module.css";
 
-//TODO: @04mHuang make cash row InvestmentType and TaxStatus unmodifiable and not deletable
-
 const Investments = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
@@ -60,22 +58,33 @@ const Investments = () => {
 
     updatedInvestments[index][field] = processedValue;
     setFormData(updatedInvestments);
-    console.log(updatedInvestments);
   };
 
   const addNewInvestment = () => {
-    setFormData([...formData, { id: undefined, type: null, dollarValue: null, taxStatus: null }]);
+    // uid needed to provide unique keys when mapping the formData to the table
+    setFormData([...formData, { id: undefined, type: null, dollarValue: null, taxStatus: null, uid: Date.now() }]);
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, investments: "" }));
   };
+  const removeInvestment = (uid) => {
+    const updatedInvestments = formData.filter((investment) => investment.uid !== uid);
+    setFormData(updatedInvestments);
+  }
 
-  // TODO: fix bug where deleting a row above actually removes the one below
-  const removeInvestment = (index) => {
-    alert("NOT IMPLEMENTED YET + index clicked: " + index);
-    // const updatedInvestments = formData.filter((_, i) => i !== index);
-    // setFormData(updatedInvestments);
-  };
-  // console.log(investments);
+  // TODO: This snippet below is an attempt to make a composite unique key. 
+  // Any suggestions besides using Date.now() which seems to work successfully right now?
+
+  // const removeInvestment = (investment, index) => {
+  //   // const updatedInvestments = formData.filter((_, i) => i !== index);
+  //   const updatedInvestments = formData.filter((item, i) => !(
+  //     i === index &&
+  //     item.type === investment.type &&
+  //     item.taxStatus === investment.taxStatus
+  //   ));
+  //   console.log(`${index}-${investment.type}-${investment.taxStatus}`);
+  //   console.log(updatedInvestments);
+  //   setFormData(updatedInvestments);
+  // };
 
   const validateFields = () => {
     const newErrors = {};
@@ -118,10 +127,6 @@ const Investments = () => {
     }
     return await uploadToBackend();
   };
-  // formData.map((investment, index) => {
-  //   console.log(investment);
-  //   console.log(index);
-  // });
 
   return (
     <div>
@@ -147,7 +152,7 @@ const Investments = () => {
            */}
           {/* Dynamically render rows of investments */}
           {formData.map((investment, index) => (
-            <tr key={index}>
+            <tr key={investment.uid}>
               <td>
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
@@ -188,7 +193,7 @@ const Investments = () => {
               </td>
               <td>
                 <button
-                  onClick={() => removeInvestment(index)}
+                  onClick={() => removeInvestment(investment.uid)}
                   className={styles.tableButton}>
                   <FaTimes />
                 </button>
