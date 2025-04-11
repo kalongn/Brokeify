@@ -100,7 +100,7 @@ const ScenarioSimulation = () => {
     }
 
     setIsRunning(true);
-   {/*Note: Used ChatGPT to create the Ladda button template -- adjusted to suit our project a little more; added comments 
+    {/*Note: Used ChatGPT to create the Ladda button template -- adjusted to suit our project a little more; added comments 
     to expain parts of this button*/}
     const laddaBtn = Ladda.create(e.currentTarget);
     laddaBtn.start();
@@ -116,7 +116,7 @@ const ScenarioSimulation = () => {
     try {
       // Currently running for 12 seconds - we need to adjust this manually (set it to the avg runtime of simulation)
       await new Promise((resolve) => setTimeout(resolve, 12000));
-      
+
       setPreviousRun(true); //Update to actual run 
     } catch (error) {
       console.error("Simulation error:", error);
@@ -132,7 +132,6 @@ const ScenarioSimulation = () => {
     //window.alert(`Running simulation with ${num} runs...`);
     console.log("Number of runs:", num);
   };
-
   return (
     <Layout>
       <div className={styles.container}>
@@ -145,45 +144,6 @@ const ScenarioSimulation = () => {
                 {permission > 0 && <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon}><TbFileSearch size={25} /></Link>}
                 {permission > 1 && <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon}><TbEdit size={25} /></Link>}
                 {permission > 2 && canShare && <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={25} /></Link>}
-              </div>
-              <div className={styles.buttonBox}>
-                <div className={styles.buttons}>
-                  <div className={styles.simulationButtons}>
-                    <p className={styles.description}>Number of Runs</p>
-                    <div>
-                      <input
-                        id="sim-count"
-                        type="number"
-                        min="10"
-                        max="50"
-                        step="1"
-                        className={styles.simInput}
-                        value={numSimulations}
-                        onChange={(e) => setNumSimulations(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  {/*<button className={styles.runSimulation} onClick={runSimulation}>Run Simulation</button>*/}
-                  <button
-                    className={`${styles.runSimulation} ladda-button`}
-                    data-style="expand-left"
-                    data-spinner-size="25"
-                    onClick={(e) => runSimulation(e)}
-                  >
-                    <span>Run Simulation</span>
-                  </button>
-
-
-                  {previousRun && !isRunning && (<Link
-                    className={`${styles.seeResults} ${isRunning ? styles.disabled : ""}`}
-                    onClick={(e) => {
-                      if (isRunning) e.preventDefault();
-                      window.alert("Results are not available yet. Please wait for simulation to finish running.");
-                    }}
-
-                    to={`/Visualizations/Charts/${scenarioId}`} > {isRunning ? "Loading..." : "See Results"}</Link>
-                  )}
-                </div>
               </div>
             </div>
 
