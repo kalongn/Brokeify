@@ -16,8 +16,8 @@ const SharedScenarios = () => {
     Axios.defaults.withCredentials = true;
     Axios.get("/sharedScenarios")
       .then((response) => {
-        const reponseIsGuest = response.data.isGuest;
-        if (reponseIsGuest) {
+        const responseIsGuest = response.data.isGuest;
+        if (responseIsGuest) {
           setGuest(true);
           return;
         }
