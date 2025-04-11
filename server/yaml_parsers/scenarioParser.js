@@ -10,7 +10,6 @@ and saves the investments, investmenttypes, events, and ulamately the scenario t
 
 import yaml from 'js-yaml';
 import fs from 'fs';
-import { sample } from '../computation/simulator.js';
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
 import InvestmentController from "../db/controllers/InvestmentController.js";
