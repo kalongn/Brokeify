@@ -22,6 +22,7 @@ const ScenarioSimulation = () => {
   const [permission, setPermission] = useState(0);
   const [canShare, setCanShare] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [numSimulations, setNumSimulations] = useState(1000); // Default or placeholder value
 
 
   useEffect(() => {
@@ -93,9 +94,22 @@ const ScenarioSimulation = () => {
               </div>
 
               <div className={styles.buttons}>
-                <button className={styles.runSimulation}>Run Simulation</button>
+
+                <div> <input
+                  id="sim-count"
+                  type="number"
+                  min="50"
+                  max="100"
+                  step="1"
+                  className={styles.simInput}
+                  value={numSimulations}
+                  onChange={(e) => setNumSimulations(e.target.value)}
+                />
+
+                  <button className={styles.runSimulation}>Run Simulation</button>
+                </div>
                 <Link className={styles.seeResults} to={`/Visualizations/Charts/${scenarioId}`} > See Results</Link>
-                
+
               </div>
             </div>
 
