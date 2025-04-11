@@ -95,10 +95,16 @@ const Sharing = () => {
       setErrors("Invalid email format");
       return;
     }
+
+    const trimEmail = email.trim();
+
+    if (trimEmail.toLowerCase() === ownerEmail.toLowerCase()) {
+      setErrors("You cannot add yourself");
+      return;
+    }
+
     if (sharedUsers.some((user) => {
-      const [local, domain] = user.email.split('@');
-      const [localInput, domainInput] = email.split('@');
-      return local.toLowerCase() === localInput.toLowerCase() && domain === domainInput;
+      return user.email.toLowerCase() === trimEmail.toLowerCase();
     })) {
       setErrors("User already added");
       return;
@@ -106,7 +112,7 @@ const Sharing = () => {
 
     try {
       const response = await Axios.post(`/sharing/${scenarioId}/add`, {
-        email: email,
+        email: trimEmail,
         permissions: permissions,
       });
 
