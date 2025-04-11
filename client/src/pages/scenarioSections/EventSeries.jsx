@@ -83,7 +83,7 @@ const EventSeries = () => {
                   <button
                     className={styles.tableButton}
                     onClick={() => {
-                      removeEventSeires(event.id);
+                      removeEventSeries(event.id);
                     }}
                   //style={{ opacity: index === 0 ? 0.2 : 1 }}
                   >
