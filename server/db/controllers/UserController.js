@@ -106,7 +106,7 @@ export default class UserController {
     async readWithScenarios(id) {
         try {
             return await User.findById(id).populate({
-                path: 'ownerScenarios',
+                path: 'ownerScenarios editorScenarios viewerScenarios',
                 populate: { path: 'investmentTypes' }
             });
         }

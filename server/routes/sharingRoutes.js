@@ -7,6 +7,56 @@ const router = express.Router();
 const userController = new UserController();
 const scenarioController = new ScenarioController();
 
+router.get("/sharedScenarios", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const user = await userController.readWithScenarios(userId);
+        if (user.permission === "GUEST") {
+            return res.status(200).send({ isGuest: true });
+        }
+
+        const sharedScenarios = [];
+        for (let i = 0; i < user.editorScenarios.length; i++) {
+            const scenario = user.editorScenarios[i];
+            let investmentsLength = 0;
+            for (let type of scenario.investmentTypes) {
+                investmentsLength += type.investments.length;
+            }
+            sharedScenarios.push({
+                id: scenario._id,
+                name: scenario.name,
+                ownerName: scenario.ownerFirstName + " " + scenario.ownerLastName,
+                financialGoal: scenario.financialGoal,
+                investmentsLength: investmentsLength,
+                eventsLength: scenario.events.length,
+            });
+        }
+        for (let i = 0; i < user.viewerScenarios.length; i++) {
+            const scenario = user.viewerScenarios[i];
+            let investmentsLength = 0;
+            for (let type of scenario.investmentTypes) {
+                investmentsLength += type.investments.length;
+            }
+
+            sharedScenarios.push({
+                id: scenario._id,
+                name: scenario.name,
+                ownerName: scenario.ownerFirstName + " " + scenario.ownerLastName,
+                financialGoal: scenario.financialGoal,
+                investmentsLength: investmentsLength,
+                eventsLength: scenario.events.length,
+            });
+        }
+        return res.status(200).send(sharedScenarios);
+    } catch (error) {
+        console.error("Error in shared scenarios route:", error);
+        return res.status(500).send("Error retrieving shared scenarios.");
+    }
+});
+
 router.get("/sharing/:scenarioId", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
