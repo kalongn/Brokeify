@@ -1,6 +1,7 @@
 import { useState, useEffect, useImperativeHandle } from "react";
 import { useOutletContext } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
+import { v4 as uuidv4 } from "uuid";
 import Axios from 'axios';
 import Select from "react-select";
 
@@ -61,30 +62,15 @@ const Investments = () => {
   };
 
   const addNewInvestment = () => {
-    // uid needed to provide unique keys when mapping the formData to the table
-    setFormData([...formData, { id: undefined, type: null, dollarValue: null, taxStatus: null, uid: Date.now() }]);
+    // uuid needed to provide unique keys when mapping the formData to the table
+    setFormData([...formData, { id: undefined, type: null, dollarValue: null, taxStatus: null, uuid: uuidv4() }]);
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, investments: "" }));
   };
-  const removeInvestment = (uid) => {
-    const updatedInvestments = formData.filter((investment) => investment.uid !== uid);
+  const removeInvestment = (uuid) => {
+    const updatedInvestments = formData.filter((investment) => investment.uuid !== uuid);
     setFormData(updatedInvestments);
   }
-
-  // TODO: This snippet below is an attempt to make a composite unique key. 
-  // Any suggestions besides using Date.now() which seems to work successfully right now?
-
-  // const removeInvestment = (investment, index) => {
-  //   // const updatedInvestments = formData.filter((_, i) => i !== index);
-  //   const updatedInvestments = formData.filter((item, i) => !(
-  //     i === index &&
-  //     item.type === investment.type &&
-  //     item.taxStatus === investment.taxStatus
-  //   ));
-  //   console.log(`${index}-${investment.type}-${investment.taxStatus}`);
-  //   console.log(updatedInvestments);
-  //   setFormData(updatedInvestments);
-  // };
 
   const validateFields = () => {
     const newErrors = {};
@@ -152,7 +138,7 @@ const Investments = () => {
            */}
           {/* Dynamically render rows of investments */}
           {formData.map((investment, index) => (
-            <tr key={investment.uid}>
+            <tr key={investment.uuid}>
               <td>
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
@@ -193,7 +179,7 @@ const Investments = () => {
               </td>
               <td>
                 <button
-                  onClick={() => removeInvestment(investment.uid)}
+                  onClick={() => removeInvestment(investment.uuid)}
                   className={styles.tableButton}>
                   <FaTimes />
                 </button>
