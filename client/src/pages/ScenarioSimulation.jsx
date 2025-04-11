@@ -12,6 +12,10 @@ import Event from "../components/Event";
 import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
 
+
+import 'ladda/dist/ladda.min.css';
+import * as Ladda from 'ladda/js/ladda'; // or import from submodule path
+
 const ScenarioSimulation = () => {
 
   const { scenarioId } = useParams(); // Get the scenario ID from the URL params
@@ -28,7 +32,7 @@ const ScenarioSimulation = () => {
 
   //NOte: the seeResults button is disabled if the simulation is running. 
   //If there is a previousRun, it will show up, but it will be disabled if the user taps on it while the simulation is running.
- //TODO: If loading, make sure all other buttons are disabled (editingScenario, sharing, etc.)
+  //TODO: If loading, make sure all other buttons are disabled (editingScenario, sharing, etc.)
 
 
   useEffect(() => {
@@ -87,18 +91,45 @@ const ScenarioSimulation = () => {
   }, [scenarioId]);
 
 
-  const runSimulation = () => {
+  const runSimulation = async (e) => {
     const num = numSimulations;
     if (isNaN(num) || num < 10 || num > 50) {
       window.alert("Please enter a number between 10 and 50.");
       //Decided to pop-up because not sure where to keep the error message
       return;
     }
-    
-    setIsRunning(true); 
+
+    setIsRunning(true);
+   {/*Note: Used ChatGPT to create the Ladda button template -- adjusted to suit our project a little more; added comments 
+    to expain parts of this button*/}
+    const laddaBtn = Ladda.create(e.currentTarget);
+    laddaBtn.start();
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      if (progress < 1) {
+        progress += 0.1; // Increase progress by 10%
+        laddaBtn.setProgress(progress); // Update progress
+      }
+    }, 1000); // Update every 1000ms (can do an approx time of however sim takes to load)-can also just remove progress bat if we want lol
+
+    try {
+      // Currently running for 12 seconds - we need to adjust this manually (set it to the avg runtime of simulation)
+      await new Promise((resolve) => setTimeout(resolve, 12000));
+      
+      setPreviousRun(true); //Update to actual run 
+    } catch (error) {
+      console.error("Simulation error:", error);
+    } finally {
+      clearInterval(interval); // Clear the progress interval
+      laddaBtn.stop(); // Stop the progress bar
+
+      setIsRunning(false); // Set running state to false
+    }
+
     // TODO: Implement the simulation logic here
     //Temporarily just testing lol -- can remove this statement below
-    window.alert(`Running simulation with ${num} runs...`);
+    //window.alert(`Running simulation with ${num} runs...`);
     console.log("Number of runs:", num);
   };
 
@@ -132,17 +163,27 @@ const ScenarioSimulation = () => {
                       />
                     </div>
                   </div>
-                  <button className={styles.runSimulation} onClick={runSimulation}>Run Simulation</button>
-                  {previousRun && (<Link  
-                   className={`${styles.seeResults} ${isRunning ? styles.disabled : ""}`}
+                  {/*<button className={styles.runSimulation} onClick={runSimulation}>Run Simulation</button>*/}
+                  <button
+                    className={`${styles.runSimulation} ladda-button`}
+                    data-style="expand-left"
+                    data-spinner-size="25"
+                    onClick={(e) => runSimulation(e)}
+                  >
+                    <span>Run Simulation</span>
+                  </button>
+
+
+                  {previousRun && !isRunning && (<Link
+                    className={`${styles.seeResults} ${isRunning ? styles.disabled : ""}`}
                     onClick={(e) => {
-                      if (isRunning) e.preventDefault(); 
+                      if (isRunning) e.preventDefault();
                       window.alert("Results are not available yet. Please wait for simulation to finish running.");
                     }}
-                  
-                  to={`/Visualizations/Charts/${scenarioId}`} > {isRunning ? "Loading..." : "See Results"}</Link>
+
+                    to={`/Visualizations/Charts/${scenarioId}`} > {isRunning ? "Loading..." : "See Results"}</Link>
                   )}
-                  </div>
+                </div>
               </div>
             </div>
 
