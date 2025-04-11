@@ -121,13 +121,13 @@ const InvestmentTypesForm = () => {
     }
 
     // Check for duplicate names
-    investmentTypeNames.forEach((name) => {
-      if (name === formData.investmentType.trim()) {
-        newErrors.investmentType = "Investment type name already exists";
-        return;
-      }
-    });
-
+    const hasDuplicateName = investmentTypeNames.find(name =>
+      name === formData.investmentType.trim()
+    );
+    if(hasDuplicateName) {
+      newErrors.investmentType = "Investment type name already exists";
+    }
+    
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
