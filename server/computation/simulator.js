@@ -1417,6 +1417,7 @@ export async function simulate(
         
         const yearlyRes = {
             year: currentYear + realYear,
+            inflationRate: inflationRate,
             investmentValues: investmentValuesArray,
             incomeByEvent: incomeByEvent,
             totalIncome: reportedIncome,

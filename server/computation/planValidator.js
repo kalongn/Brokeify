@@ -60,6 +60,54 @@ async function createEventLog(user, datetime, folder) {
 }
 
 async function validate(scenarioID) {
+    const scenario = await scenarioFactory.read(scenarioID);
+    
+    
+    //ensures no circly dependancies for events
+    for(const i in scenario.events){
+        let event = await eventFactory.read(scenario.events[i]);
+        let dependancyID = null;
+        
+        if(event.startsWith&&event.startsAfter){
+            throw("Event Cannot Start Both With And After");
+        }
+        if(event.startsWith!==undefined&&event.startsWith!==null){
+            dependancyID = event.startsWith;
+            
+        }
+        else if(event.startsAfter!==undefined&&event.startsAfter!==null){
+            dependancyID = event.startsAfter;
+            
+        }
+        while(dependancyID!=null){  //itarate through dependancies
+            
+            if(dependancyID.toString()===event._id.toString()){
+                
+                
+                throw("Circular Event Dependancies");
+            }
+            const newEvent = await eventFactory.read(dependancyID.toString());
+            if(!newEvent){
+                throw("Referenced Event Does Not Exist");
+            }
+            if(newEvent.startsWith&&newEvent.startsAfter){
+                throw("Event Cannot Start Both With And After");
+            }
+            if(newEvent.startsWith!==undefined&&newEvent.startsWith!==null){
+                dependancyID = newEvent.startsWith;
+            }
+            else if(newEvent.startsAfter!==undefined&&newEvent.startsAfter!==null){
+                dependancyID = newEvent.startsAfter;
+            }
+            else{
+                dependancyID = null;
+            }
+            event = newEvent;
+        }
+    }
+
+    
+
 
 }
 async function scrape() {

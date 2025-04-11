@@ -340,7 +340,7 @@ const populateDB = async () => {
     console.log('====================== Simulation Test =====================');
     //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
-        const r = await validateRun(scenario._id, 100, [stateIncomeTax._id, stateIncomeTax._id], "GUEST");
+        const r = await validateRun(scenario._id, 1, [stateIncomeTax._id, stateIncomeTax._id], "GUEST");
         console.log(r);
     }
     catch (err) {
