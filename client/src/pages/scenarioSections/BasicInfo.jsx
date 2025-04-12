@@ -3,8 +3,11 @@ import { useOutletContext } from "react-router-dom";
 import { stateMap, validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Select from "react-select";
 import Distributions from "../../components/Distributions";
-import styles from "./Form.module.css";
+import ErrorMessage from "../../components/ErrorMessage";
 import Axios from "axios";
+
+import styles from "./Form.module.css";
+import errorStyles from "../../components/ErrorMessage.module.css";
 
 const BasicInfo = () => {
   // Prompt to AI (Amazon Q): I want field validation in the children and the submit button is in the parent
@@ -213,103 +216,115 @@ const BasicInfo = () => {
     <div id={styles.formSection}>
       <h2 id={styles.heading}>Basic Information</h2>
       {loading ? <div> Loading...</div> :
-        <form>
-          <label>
-            Scenario Name
-            <input
-              type="text"
-              name="name"
-              className={styles.newline}
-              onChange={handleTextChange}
-              defaultValue={formData.name || undefined}
-              required
-            />
-            {errors.name && <span className={styles.error}>{errors.name}</span>}
-          </label>
-          <label>
-            Financial Goal
-            <p className={styles.description}>
-              Specify a non-negative number representing the desired yearly
-              minimum total value of your investments.
-            </p>
-            <div className={`${styles.moneyInputContainer} ${styles.shortInput}`}>
-              <input type="number" name="financialGoal" min="0"
-                defaultValue={formData.financialGoal || undefined} onChange={handleTextChange} />
-            </div>
-            {errors.financialGoal && <span className={styles.error}>{errors.financialGoal}</span>}
-          </label>
-          <label className={styles.newline}>
-            State of Residence
-            {/* 
+        <>
+          <ErrorMessage errors={errors} />
+          <form>
+            <label>
+              Scenario Name
+              <input
+                type="text"
+                name="name"
+                className={errors.name ? errorStyles.errorInput : ""}
+                onChange={handleTextChange}
+                defaultValue={formData.name || undefined}
+              />
+            </label>
+            <label>
+              Financial Goal
+              <p className={styles.description}>
+                Specify a non-negative number representing the desired yearly
+                minimum total value of your investments.
+              </p>
+              <div className={`${styles.moneyInputContainer} ${styles.shortInput}`}>
+                <input
+                  type="number"
+                  name="financialGoal"
+                  id="financialGoal"
+                  className={errors.financialGoal ? errorStyles.errorInput : ""}
+                  defaultValue={formData.financialGoal || undefined} onChange={handleTextChange} />
+              </div>
+            </label>
+            <label className={styles.newline}>
+              State of Residence
+              {/* 
               Prompt to AI (Amazon Q): Rewrite the highlighted code to account for the structure
               of stateMap in the utility file: <PASTED_UTILITY_FILE_CODE>
             */}
-            <Select
-              options={Object.entries(stateMap).map(([value, label]) => ({ value, label }))}
-              className={`${styles.shortInput} ${styles.select}`}
-              onChange={handleSelectChange}
-              value={formData.state ? { value: formData.state, label: stateMap[formData.state] } : undefined}
-            />
-
-            {errors.state && <span className={styles.error}>{errors.state}</span>}
-          </label>
-          <label className={styles.newline}>
-            Martial Status
-          </label>
-          <div className={styles.radioButtonContainer}>
-            <label className={styles.radioButton}>
-              <input
-                type="radio"
-                checked={formData.maritalStatus === "SINGLE"}
-                onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "SINGLE" }))}
+              <Select
+                options={Object.entries(stateMap).map(([value, label]) => ({ value, label }))}
+                id="state"
+                className={`${styles.shortInput} ${styles.select} ${errors.state ? errorStyles.errorInput : ""}`}
+                onChange={handleSelectChange}
+                value={formData.state ? { value: formData.state, label: stateMap[formData.state] } : undefined}
               />
-              Single
             </label>
-            <label className={styles.radioButton}>
-              <input
-                type="radio"
-                checked={formData.maritalStatus === "MARRIEDJOINT"}
-                onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "MARRIEDJOINT" }))}
-              />
-              Married
+            <label className={styles.newline}>
+              Martial Status
             </label>
-            {errors.maritalStatus && <span className={styles.error}>{errors.maritalStatus}</span>}
-          </div>
-          <div className={styles.columns}>
-            <div>
-              <label className={styles.newline}>
-                Your Birth Year
-                <input type="number" name="birthYear" onChange={handleTextChange} defaultValue={formData.birthYear} />
-                {errors.birthYear && <span className={styles.error}>{errors.birthYear}</span>}
+            <div id="maritalStatus" className={styles.radioButtonContainer}>
+              <label className={`${styles.radioButton} ${errors.maritalStatus ? errorStyles.highlight : ""}`}>
+                <input
+                  type="radio"
+                  checked={formData.maritalStatus === "SINGLE"}
+                  onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "SINGLE" }))}
+                />
+                Single
               </label>
-              <label>Your Life Expectancy</label>
-              <Distributions
-                options={["fixed", "normal"]}
-                name="lifeExpectancy"
-                onChange={handleDistributionsChange}
-                defaultValue={distributions.lifeExpectancy}
-              />
-              {errors.lifeExpectancy && <span className={styles.error}>{errors.lifeExpectancy}</span>}
-            </div>
-            {formData.maritalStatus === "MARRIEDJOINT" && <div>
-              <label className={styles.newline}>
-                Spouse Birth Year
-                <input type="number" name="spouseBirthYear" onChange={handleTextChange} defaultValue={formData.spouseBirthYear} />
-                {errors.spouseBirthYear && <span className={styles.error}>{errors.spouseBirthYear}</span>}
+              <label className={`${styles.radioButton} ${errors.maritalStatus ? errorStyles.highlight : ""}`}>
+                <input
+                  type="radio"
+                  checked={formData.maritalStatus === "MARRIEDJOINT"}
+                  onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "MARRIEDJOINT" }))}
+                />
+                Married
               </label>
-              <label>Spouse Life Expectancy</label>
-              <Distributions
-                options={["fixed", "normal"]}
-                name="spouseLifeExpectancy"
-                onChange={handleDistributionsChange}
-                defaultValue={distributions.spouseLifeExpectancy}
-              />
-              {errors.spouseLifeExpectancy && <span className={styles.error}>{errors.spouseLifeExpectancy}</span>}
             </div>
-            }
-          </div>
-          <br />
-        </form>}
+            <div className={styles.columns}>
+              <div>
+                <label className={styles.newline}>
+                  Your Birth Year
+                  <input
+                    type="number"
+                    name="birthYear"
+                    id="birthYear"
+                    className={errors.birthYear ? errorStyles.errorInput : ""}
+                    onChange={handleTextChange} defaultValue={formData.birthYear}
+                  />
+                </label>
+                <label id="lifeExpectancy">Your Life Expectancy</label>
+                <Distributions
+                  options={["fixed", "normal"]}
+                  name="lifeExpectancy"
+                  onChange={handleDistributionsChange}
+                  defaultValue={distributions.lifeExpectancy}
+                  className={errors.lifeExpectancy ? errorStyles.highlight : ""}
+                />
+              </div>
+              {formData.maritalStatus === "MARRIEDJOINT" && <div>
+                <label id="spouseBirthYear" className={styles.newline}>
+                  Spouse Birth Year
+                  <input
+                    type="number"
+                    name="spouseBirthYear"
+                    onChange={handleTextChange}
+                    defaultValue={formData.spouseBirthYear}
+                    className={errors.financialGoal ? errorStyles.errorInput : ""}
+                  />
+                </label>
+                <label id="spouseLifeExpectancy">Spouse Life Expectancy</label>
+                <Distributions
+                  options={["fixed", "normal"]}
+                  name="spouseLifeExpectancy"
+                  onChange={handleDistributionsChange}
+                  defaultValue={distributions.spouseLifeExpectancy}
+                  className={errors.lifeExpectancy ? errorStyles.highlight : ""}
+                />
+              </div>
+              }
+            </div>
+            <br />
+          </form>
+        </>}
     </div>
   );
 };
