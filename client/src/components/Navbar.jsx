@@ -1,5 +1,3 @@
-// TODO: to be actually implement then random stuff here
-
 import style from './NavBar.module.css';
 import { Link } from 'react-router-dom';
 import { FaPlus } from "react-icons/fa6";
@@ -21,6 +19,7 @@ const Navbar = () => {
       <div className={style.navLinks}>
         <Link to='/Home' className={style.navLink} onClick={() => { console.log('My Scenarios Page') }}>My Scenarios</Link>
         <Link to='/SharedScenarios' className={style.navLink} onClick={() => { console.log('Shared Scenarios Page') }}>Shared Scenarios</Link>
+        <Link to='/Simulation' className={style.navLink} onClick={() => { console.log('Simulation Page') }}>Simulation</Link>
       </div>
 
       <div className={style.profileLink}>

@@ -26,7 +26,9 @@ const ScenarioSchema = new mongoose.Schema({
     endYearRothOptimizer: { type: Number },
     ownerFirstName: { type: String },
     ownerLastName: { type: String },
-
+    ownerEmail: { type: String },
+    editorEmails: [{ type: String }],
+    viewerEmails: [{ type: String }],
 });
 
 const Scenario = mongoose.model('Scenario', ScenarioSchema);
