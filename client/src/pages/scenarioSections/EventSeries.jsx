@@ -34,9 +34,20 @@ const EventSeries = () => {
     navigate(`/ScenarioForm/${scenarioId}/event-series/edit/${id}`);
   };
 
-  const removeEventSeries = (id) => {
-    const updatedInvestmentTypes = events.filter((event) => event.id !== id);
-    setEvents(updatedInvestmentTypes);
+  const removeEventSeries = async (id) => {
+    try {
+      const response = await Axios.delete(`/event/${scenarioId}/${id}`);
+      console.log(response.data);
+      const updatedInvestmentTypes = events.filter((event) => event.id !== id);
+      setEvents(updatedInvestmentTypes);
+    } catch (error) {
+      if (error.response?.status === 409) {
+        alert("Cannot delete event series. It is being reference in other event (starts with / starts after).");
+      } else {
+        alert("Unknown Error deleting event series. Please try again.");
+      }
+      console.error("Error deleting event series:", error);
+    }
   }
 
   return (
@@ -68,22 +79,14 @@ const EventSeries = () => {
                 <div className={styles.groupButtons}>
                   <button
                     className={styles.tableButton}
-                    onClick={() => {
-
-                      editEventSeries(event.id);
-                      alert(event.id);
-                    }
-                    }
+                    onClick={() => { editEventSeries(event.id); }}
                   >
                     <FaEdit />
                   </button>
 
                   <button
                     className={styles.tableButton}
-                    onClick={() => {
-                      removeEventSeries(event.id);
-                    }}
-                  //style={{ opacity: index === 0 ? 0.2 : 1 }}
+                    onClick={() => { removeEventSeries(event.id); }}
                   >
                     <FaTimes />
                   </button>
