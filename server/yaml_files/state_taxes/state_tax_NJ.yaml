@@ -1,0 +1,49 @@
+year: 2024
+state: NY
+single:
+  - lowerBound: 0
+    upperBound: 20000
+    rate: 1.4
+  - lowerBound: 20001
+    upperBound: 35000
+    rate: 1.75
+  - lowerBound: 35001
+    upperBound: 40000
+    rate: 3.5
+  - lowerBound: 40001
+    upperBound: 75000
+    rate: 5.525
+  - lowerBound: 75001
+    upperBound: 500000
+    rate: 6.37
+  - lowerBound: 500001
+    upperBound: 1000000
+    rate: 8.97
+  - lowerBound: 1000001
+    upperBound: Infinity
+    rate: 10.75
+married:
+  - lowerBound: 0
+    upperBound: 20000
+    rate: 1.4
+  - lowerBound: 20001
+    upperBound: 50000
+    rate: 1.75
+  - lowerBound: 50001
+    upperBound: 70000
+    rate: 2.45
+  - lowerBound: 70001
+    upperBound: 80000
+    rate: 3.5
+  - lowerBound: 80001
+    upperBound: 150000
+    rate: 5.525
+  - lowerBound: 150001
+    upperBound: 500000
+    rate: 6.37
+  - lowerBound: 500001
+    upperBound: 1000000
+    rate: 8.97
+  - lowerBound: 1000001
+    upperBound: Infinity
+    rate: 10.75
