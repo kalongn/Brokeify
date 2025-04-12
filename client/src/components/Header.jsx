@@ -1,8 +1,9 @@
 import { useLocation, Link } from 'react-router-dom';
 import { useState } from "react";
-import PropTypes from 'prop-types';
 import { VscChromeClose } from "react-icons/vsc";
+import PropTypes from 'prop-types';
 import ModalImport from './ModalImport';
+import Axios from 'axios';
 
 import styles from './Header.module.css';
 
@@ -48,7 +49,36 @@ const Header = ({ setVerified }) => {
     // Scenario simulation page
     if (path.startsWith('/Scenario/')) {
       return (
-        <button className={styles.buttonGroupSimulation} onClick={() => console.log('Export Scenario')}>Export </button>
+        <button className={styles.buttonGroupSimulation} onClick={async () => {
+          const pathParts = path.split('/');
+          const id = pathParts[pathParts.length - 1];
+          try {
+            const response = await Axios.get(`${import.meta.env.VITE_SERVER_ADDRESS}/scenario/${id}/export`, { withCredentials: true, responseType: 'blob' });
+            console.log(response);
+            const blob = new Blob([response.data], { type: 'application/yaml' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            // AI Co-pilot, obtain the filename from the response headers
+            const disposition = response.headers['content-disposition'];
+            let filename = `${id}.yaml`; // fallback
+            if (disposition && disposition.includes('filename=')) {
+              const match = disposition.match(/filename="?([^"]+)"?/);
+              if (match?.[1]) {
+                filename = match[1];
+              }
+            }
+            console.log(filename);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          } catch (error) {
+            console.error('Error downloading file:', error);
+            alert('Error downloading file. Please try again.');
+          }
+        }}>Export</button>
       );
     }
     // View scenario page
