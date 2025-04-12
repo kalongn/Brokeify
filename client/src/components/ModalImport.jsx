@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import ModalBase from "./ModalBase";
+import styles from "./ModalImport.module.css";
+import buttonStyles from "../pages/ScenarioForm.module.css";
 
 const ModalImport = ({ isOpen, onClose }) => {
   // Modal reused between scenario import and profile state tax upload
@@ -44,13 +46,15 @@ const ModalImport = ({ isOpen, onClose }) => {
   };
 
   return (
-    <ModalBase isOpen={isOpen} onClose={handleClose}>
-      <h2>{title}</h2>
+    <ModalBase isOpen={isOpen} onClose={handleClose} id={styles.modal}>
+      <h2 className={styles.title}>{title}</h2>
       <p>{description}</p>
       <input type="file" accept=".yaml, .yml" onChange={handleFileChange} />
       {status && <p>{status}</p>}
-      <button onClick={handleClose}>Close</button>
-      <button onClick={handleUpload}>Upload File</button>
+      <div id={buttonStyles.navButtons}>
+        <button onClick={handleClose} className={buttonStyles.deemphasizedButton}>Cancel</button>
+        <button onClick={handleUpload} className={buttonStyles.emphasizedButton}>Upload File</button>
+      </div>
     </ModalBase>
   );
 }
