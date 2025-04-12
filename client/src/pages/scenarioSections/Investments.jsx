@@ -71,9 +71,22 @@ const Investments = () => {
     setErrors(prev => ({ ...prev, investments: "" }));
   };
 
-  const removeInvestment = (uuid) => {
-    const updatedInvestments = formData.filter((investment) => investment.uuid !== uuid);
-    setFormData(updatedInvestments);
+  const removeInvestment = async (uuid) => {
+    const deletectRow = formData.find((investment) => investment.uuid === uuid);
+    if (!deletectRow.id) {
+      setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
+      return;
+    }
+    
+    try {
+      const response = await Axios.delete(`/investments/${scenarioId}`, {
+        data: { investmentId: deletectRow.id, typeId: deletectRow.typeId },
+      });
+      console.log(response.data);
+      setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
+    } catch (error) {
+      console.error('Error deleting investment:', error);
+    }
   }
 
   const validateFields = () => {
@@ -84,9 +97,7 @@ const Investments = () => {
       newErrors.investmentRow = "At least one investment must be added";
     }
     else {
-      console.log(investmentTypes);
       formData.forEach((row) => {
-        console.log(row);
         // Check if investment is set and if all fields are filled
         if (!row.typeId || row.dollarValue === null || row.dollarValue === undefined || !row.taxStatus) {
           newErrors.investmentRow = "All row fields are required";
@@ -98,7 +109,6 @@ const Investments = () => {
           dupCheck.add(`${row.typeId}-${row.taxStatus}`)
         }
       });
-      console.log(dupCheck);
       if (dupCheck.size !== formData.length) {
         newErrors.investmentRow = "Investments with the same type and tax status are not allowed";
       }
