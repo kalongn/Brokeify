@@ -44,7 +44,6 @@ const Investments = () => {
         if (investment.uuid) return investment;
         return { ...investment, uuid: uuidv4() }
       });
-      console.log(investments);
       setFormData(investments);
     }).catch((error) => {
       console.error('Error fetching investments:', error);
