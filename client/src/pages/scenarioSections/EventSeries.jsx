@@ -8,7 +8,6 @@ import styles from "./Form.module.css";
 
 
 // This page does not submit any data, so childRef is not used
-// TODO: update page to include childRef once event series deletion is implemented
 const EventSeries = () => {
   const navigate = useNavigate();
   const { scenarioId } = useParams();
@@ -35,7 +34,6 @@ const EventSeries = () => {
     navigate(`/ScenarioForm/${scenarioId}/event-series/edit/${id}`);
   };
 
-  // TODO: need route to delete event series
   const removeEventSeries = (id) => {
     const updatedInvestmentTypes = events.filter((event) => event.id !== id);
     setEvents(updatedInvestmentTypes);
