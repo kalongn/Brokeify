@@ -79,6 +79,9 @@ const Investments = () => {
   };
 
   const removeInvestment = async (uuid) => {
+    if (!confirm("Are you sure you want to delete this investment?")) {
+      return;
+    }
     const deleteRow = formData.find((investment) => investment.uuid === uuid);
     if (!deleteRow.id) {
       setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
