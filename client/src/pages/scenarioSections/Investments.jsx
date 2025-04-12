@@ -32,15 +32,15 @@ const Investments = () => {
     Axios.defaults.withCredentials = true;
 
     Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
-      const investmentTypeOptions = response.data.map((investmentType) => {
-        if (investmentType.name === "Cash") {
-          setCashId(investmentType.id);
-          return { value: investmentType.id, label: investmentType.name, isDisabled: true };
-        } else {
+      const investmentTypeOptions = response.data
+        .filter((investmentType) => {
+          if (investmentType.name === "Cash") {
+            setCashId(investmentType.id);
+          }
+          return investmentType.name !== "Cash"
+        }).map((investmentType) => {
           return { value: investmentType.id, label: investmentType.name };
-        }
-      });
-
+        });
       setInvestmentTypes(investmentTypeOptions);
     }).catch((error) => {
       console.error('Error fetching investment types:', error);
