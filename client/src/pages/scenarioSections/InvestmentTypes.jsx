@@ -37,9 +37,21 @@ const InvestmentTypes = () => {
     navigate(`/ScenarioForm/${scenarioId}/investment-types/edit/${id}`);
   };
 
-  const removeInvestmentType = (id) => {
-    const updatedInvestmentTypes = investmentTypes.filter((invType) => invType.id !== id);
-    setInvestmentTypes(updatedInvestmentTypes);
+  const removeInvestmentType = async (id) => {
+    if (!confirm("Are you sure you want to delete this investment type?")) {
+      return;
+    }
+    try {
+      const response = await Axios.delete(`/investmentType/${scenarioId}/${id}`);
+      console.log(response.data);
+      const updatedInvestmentTypes = investmentTypes.filter((invType) => invType.id !== id);
+      setInvestmentTypes(updatedInvestmentTypes);
+    } catch (error) {
+      if (error.response.status === 409) {
+        alert("You cannot delete this investment type because it is used in an investment.");
+      }
+      console.error('Error deleting investment type:', error);
+    }
   }
 
   return (
