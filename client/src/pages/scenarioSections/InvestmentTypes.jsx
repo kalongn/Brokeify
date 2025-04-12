@@ -50,8 +50,9 @@ const InvestmentTypes = () => {
       //TODO: show error to the user in a nicer way @04mHuang
       if (error.response.status === 409) {
         alert("This investment type is being used in an investment. Please remove it from the investment before deleting.");
+      } else {
+        alert("Unknown Error deleting investment type. Please try again.");
       }
-      alert("Unknown Error deleting investment type. Please try again.");
       console.error('Error deleting investment type:', error);
     }
   }
