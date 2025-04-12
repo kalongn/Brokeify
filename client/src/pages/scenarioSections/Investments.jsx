@@ -11,6 +11,7 @@ const Investments = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
+  const [cashId, setCashId] = useState(null);
   const [investmentTypes, setInvestmentTypes] = useState([]);
   const [formData, setFormData] = useState([]);
   const [errors, setErrors] = useState([]);
@@ -31,9 +32,15 @@ const Investments = () => {
     Axios.defaults.withCredentials = true;
 
     Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
-      const investmentTypeOptions = response.data.map((investmentType) => {
-        return { value: investmentType.name, label: investmentType.name };
-      });
+      const investmentTypeOptions = response.data
+        .filter((investmentType) => {
+          if (investmentType.name === "Cash") {
+            setCashId(investmentType.id);
+          }
+          return investmentType.name !== "Cash"
+        }).map((investmentType) => {
+          return { value: investmentType.id, label: investmentType.name };
+        });
       setInvestmentTypes(investmentTypeOptions);
     }).catch((error) => {
       console.error('Error fetching investment types:', error);
@@ -66,13 +73,35 @@ const Investments = () => {
 
   const addNewInvestment = () => {
     // uuid needed to provide unique keys when mapping the formData to the table
-    setFormData([...formData, { id: undefined, type: null, dollarValue: null, taxStatus: null, uuid: uuidv4() }]);
+    setFormData([...formData, { id: undefined, typeId: null, dollarValue: null, taxStatus: null, uuid: uuidv4() }]);
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, investments: "" }));
   };
-  const removeInvestment = (uuid) => {
-    const updatedInvestments = formData.filter((investment) => investment.uuid !== uuid);
-    setFormData(updatedInvestments);
+
+  const removeInvestment = async (uuid) => {
+    if (!confirm("Are you sure you want to delete this investment?")) {
+      return;
+    }
+    const deleteRow = formData.find((investment) => investment.uuid === uuid);
+    if (!deleteRow.id) {
+      setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
+      return;
+    }
+
+    try {
+      const response = await Axios.delete(`/investments/${scenarioId}`, {
+        data: { investmentId: deleteRow.id, typeId: deleteRow.typeId },
+      });
+      console.log(response.data);
+      setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
+    } catch (error) {
+      if (error.response?.status === 409) {
+        setErrors((prev) => ({ ...prev, investmentRow: "Investment cannot be deleted because it is used in an invest / rebalance event." }));
+      } else {
+        setErrors((prev) => ({ ...prev, investmentRow: "An unknown error occurred while deleting the investment." }));
+      }
+      console.error('Error deleting investment:', error);
+    }
   }
 
   const validateFields = () => {
@@ -85,17 +114,17 @@ const Investments = () => {
     else {
       formData.forEach((row) => {
         // Check if investment is set and if all fields are filled
-        if (!row.type || row.dollarValue === null || row.dollarValue === undefined || !row.taxStatus) {
+        if (!row.typeId || row.dollarValue === null || row.dollarValue === undefined || !row.taxStatus) {
           newErrors.investmentRow = "All row fields are required";
         }
         else if (row.dollarValue < 0) {
           newErrors.investmentRow = "Dollar values must be non-negative";
         }
         else {
-          dupCheck.add(`${row.type}-${row.taxStatus}`)
+          dupCheck.add(`${row.typeId}-${row.taxStatus}`)
         }
       });
-      if (dupCheck.size !== formData.length) {
+      if (newErrors.investmentRow === undefined && dupCheck.size !== formData.length) {
         newErrors.investmentRow = "Investments with the same type and tax status are not allowed";
       }
     }
@@ -153,12 +182,13 @@ const Investments = () => {
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={investmentTypes}
-                  defaultValue={investment.type ?
-                    { value: investment.type, label: investment.type }
+                  defaultValue={investment.typeName && investment.typeId ?
+                    { value: investment.typeId, label: investment.typeName }
                     : null
                   }
+                  isDisabled={investment.typeId === cashId}
                   onChange={(e) =>
-                    handleInputChange(index, "type", e.value)
+                    handleInputChange(index, "typeId", e.value)
                   }
                 />
               </td>
@@ -182,6 +212,7 @@ const Investments = () => {
                     { value: investment.taxStatus, label: investment.taxStatus }
                     : null
                   }
+                  isDisabled={investment.typeId === cashId}
                   onChange={(e) =>
                     handleInputChange(index, "taxStatus", e.value)
                   }
@@ -189,8 +220,12 @@ const Investments = () => {
               </td>
               <td>
                 <button
+                  disabled={investment.typeId === cashId}
                   onClick={() => removeInvestment(investment.uuid)}
-                  className={styles.tableButton}>
+                  className={investment.typeId === cashId
+                    ? `${styles.tableButton} ${styles.disabledButton}`
+                    : styles.tableButton}
+                >
                   <FaTimes />
                 </button>
               </td>
