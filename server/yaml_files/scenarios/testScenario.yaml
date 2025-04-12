@@ -14,7 +14,7 @@ birthYears: [1985, 1987] # a list with length 1 or 2, depending on maritalStatus
 lifeExpectancy: [ {type: fixed, value: 80}, {type: normal, mean: 52, stdev: 3} ] # a list with length 1 or 2, depending on maritalStatus.
 
 investmentTypes:
-  - name: cash
+  - name: Cash
     description: cash
     returnAmtOrPct: amount # "amount" or "percent"
     returnDistribution: {type: fixed, value: 0}
@@ -43,10 +43,10 @@ investmentTypes:
 
 # investment id is a unique identifier.  without it, we would need to use a pair (investment type, tax status) to identify an investment.
 investments:
-  - investmentType: cash
+  - investmentType: Cash
     value: 100
     taxStatus: non-retirement # "non-retirement", "pre-tax", or "after-tax"
-    id: cash
+    id: Cash
 
   - investmentType: S&P 500
     value: 10000
