@@ -9,7 +9,6 @@ import styles from "./Form.module.css";
 
 // This page does not submit any data, so childRef is not used
 const InvestmentTypes = () => {
-
   const { scenarioId } = useParams(); // TODO: update page to include childRef once investment type deletion is implemented
   const [investmentTypes, setInvestmentTypes] = useState([]);
   useEffect(() => {
@@ -27,13 +26,22 @@ const InvestmentTypes = () => {
 
   const navigate = useNavigate();
   const newInvestmentType = () => {
-    navigate(`/ScenarioForm/${scenarioId}/investment-types/new`);
+    // Pass the list of investmentTypes to avoid fetching list again later
+    const investmentTypeNames = investmentTypes.map((investmentType) => investmentType.name);
+    navigate(`/ScenarioForm/${scenarioId}/investment-types/new`, {
+      state: investmentTypeNames
+    });
   }
   //New route to update scenario
   const editInvestmentType = (id) => {
     navigate(`/ScenarioForm/${scenarioId}/investment-types/edit/${id}`);
   };
 
+  // TODO: need route to delete investment type
+  const removeInvestmentType = (id) => {
+    const updatedInvestmentTypes = investmentTypes.filter((invType) => invType.id !== id);
+    setInvestmentTypes(updatedInvestmentTypes);
+  }
 
   return (
     <div>
@@ -41,7 +49,6 @@ const InvestmentTypes = () => {
       <p>
         Create investment types or view the default ones.
       </p>
-      {/* TODO: fix global table styling */}
       <table id={styles.inputTable}>
         <thead>
           <tr>
@@ -52,7 +59,7 @@ const InvestmentTypes = () => {
         </thead>
         <tbody>
           {investmentTypes.map((investmentType, index) => (
-            <tr key={index}>
+            <tr key={investmentType.id}>
               <td>
                 {investmentType.name}
               </td>
@@ -83,7 +90,7 @@ const InvestmentTypes = () => {
                       : styles.tableButton}
                     onClick={() => {
                       if (index === 0) return;
-                      alert("NOT IMPLEMENTED YET")
+                      removeInvestmentType(investmentType.id);
                     }
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
