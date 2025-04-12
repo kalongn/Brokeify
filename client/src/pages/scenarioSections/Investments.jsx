@@ -119,7 +119,7 @@ const Investments = () => {
           dupCheck.add(`${row.typeId}-${row.taxStatus}`)
         }
       });
-      if (dupCheck.size !== formData.length) {
+      if (newErrors.investmentRow === undefined && dupCheck.size !== formData.length) {
         newErrors.investmentRow = "Investments with the same type and tax status are not allowed";
       }
     }
