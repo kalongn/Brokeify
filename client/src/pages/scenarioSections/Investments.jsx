@@ -32,7 +32,7 @@ const Investments = () => {
 
     Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
       const investmentTypeOptions = response.data.map((investmentType) => {
-        return { value: investmentType.name, label: investmentType.name };
+        return { value: investmentType.id, label: investmentType.name };
       });
       setInvestmentTypes(investmentTypeOptions);
     }).catch((error) => {
@@ -66,10 +66,11 @@ const Investments = () => {
 
   const addNewInvestment = () => {
     // uuid needed to provide unique keys when mapping the formData to the table
-    setFormData([...formData, { id: undefined, type: null, dollarValue: null, taxStatus: null, uuid: uuidv4() }]);
+    setFormData([...formData, { id: undefined, typeId: null, dollarValue: null, taxStatus: null, uuid: uuidv4() }]);
     // Clear errors when user makes changes
     setErrors(prev => ({ ...prev, investments: "" }));
   };
+
   const removeInvestment = (uuid) => {
     const updatedInvestments = formData.filter((investment) => investment.uuid !== uuid);
     setFormData(updatedInvestments);
@@ -83,18 +84,21 @@ const Investments = () => {
       newErrors.investmentRow = "At least one investment must be added";
     }
     else {
+      console.log(investmentTypes);
       formData.forEach((row) => {
+        console.log(row);
         // Check if investment is set and if all fields are filled
-        if (!row.type || row.dollarValue === null || row.dollarValue === undefined || !row.taxStatus) {
+        if (!row.typeId || row.dollarValue === null || row.dollarValue === undefined || !row.taxStatus) {
           newErrors.investmentRow = "All row fields are required";
         }
         else if (row.dollarValue < 0) {
           newErrors.investmentRow = "Dollar values must be non-negative";
         }
         else {
-          dupCheck.add(`${row.type}-${row.taxStatus}`)
+          dupCheck.add(`${row.typeId}-${row.taxStatus}`)
         }
       });
+      console.log(dupCheck);
       if (dupCheck.size !== formData.length) {
         newErrors.investmentRow = "Investments with the same type and tax status are not allowed";
       }
@@ -153,12 +157,12 @@ const Investments = () => {
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
                   options={investmentTypes}
-                  defaultValue={investment.type ?
-                    { value: investment.type, label: investment.type }
+                  defaultValue={investment.typeName && investment.typeId ?
+                    { value: investment.typeId, label: investment.typeName }
                     : null
                   }
                   onChange={(e) =>
-                    handleInputChange(index, "type", e.value)
+                    handleInputChange(index, "typeId", e.value)
                   }
                 />
               </td>
