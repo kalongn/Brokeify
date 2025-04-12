@@ -9,7 +9,7 @@ import styles from "./Form.module.css";
 
 // This page does not submit any data, so childRef is not used
 const InvestmentTypes = () => {
-  const { scenarioId } = useParams(); // TODO: update page to include childRef once investment type deletion is implemented
+  const { scenarioId } = useParams();
   const [investmentTypes, setInvestmentTypes] = useState([]);
   useEffect(() => {
 
@@ -37,7 +37,6 @@ const InvestmentTypes = () => {
     navigate(`/ScenarioForm/${scenarioId}/investment-types/edit/${id}`);
   };
 
-  // TODO: need route to delete investment type
   const removeInvestmentType = (id) => {
     const updatedInvestmentTypes = investmentTypes.filter((invType) => invType.id !== id);
     setInvestmentTypes(updatedInvestmentTypes);
