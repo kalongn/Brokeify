@@ -35,6 +35,12 @@ const EventSeries = () => {
     navigate(`/ScenarioForm/${scenarioId}/event-series/edit/${id}`);
   };
 
+  // TODO: need route to delete event series
+  const removeEventSeries = (id) => {
+    const updatedInvestmentTypes = events.filter((event) => event.id !== id);
+    setEvents(updatedInvestmentTypes);
+  }
+
   return (
     <div>
       <h2 id={styles.heading}>Event Series</h2>
@@ -52,8 +58,8 @@ const EventSeries = () => {
           </tr>
         </thead>
         <tbody>
-          {events.map((event, index) => (
-            <tr key={index}>
+          {events.map((event) => (
+            <tr key={event.id}>
               <td>
                 {event.name}
               </td>
@@ -65,22 +71,21 @@ const EventSeries = () => {
                   <button
                     className={styles.tableButton}
                     onClick={() => {
-                      
+
                       editEventSeries(event.id);
                       alert(event.id);
                     }
                     }
-                     >
+                  >
                     <FaEdit />
                   </button>
 
                   <button
                     className={styles.tableButton}
                     onClick={() => {
-                      alert("NOT IMPLEMENTED YET")
-                    }
-                    }
-                    //style={{ opacity: index === 0 ? 0.2 : 1 }}
+                      removeEventSeries(event.id);
+                    }}
+                  //style={{ opacity: index === 0 ? 0.2 : 1 }}
                   >
                     <FaTimes />
                   </button>

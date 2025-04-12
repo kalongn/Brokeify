@@ -12,6 +12,7 @@ import Event from "../components/Event";
 import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
 
+
 const ScenarioSimulation = () => {
 
   const { scenarioId } = useParams(); // Get the scenario ID from the URL params
@@ -22,7 +23,7 @@ const ScenarioSimulation = () => {
   const [permission, setPermission] = useState(0);
   const [canShare, setCanShare] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -78,6 +79,7 @@ const ScenarioSimulation = () => {
       return <Navigate to="/Home" />;
     });
   }, [scenarioId]);
+
   return (
     <Layout>
       <div className={styles.container}>
@@ -90,12 +92,6 @@ const ScenarioSimulation = () => {
                 {permission > 0 && <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon}><TbFileSearch size={25} /></Link>}
                 {permission > 1 && <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon}><TbEdit size={25} /></Link>}
                 {permission > 2 && canShare && <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={25} /></Link>}
-              </div>
-
-              <div className={styles.buttons}>
-                <button className={styles.runSimulation}>Run Simulation</button>
-                <Link className={styles.seeResults} to={`/Visualizations/Charts/${scenarioId}`} > See Results</Link>
-                
               </div>
             </div>
 
