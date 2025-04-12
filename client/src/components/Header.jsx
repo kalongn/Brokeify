@@ -43,15 +43,12 @@ const Header = ({ setVerified }) => {
         return 'Brokeify';
     }
   };
-  // TODO: implement the IMPORT SCENARIO button functionality
+
   const getHeaderButtons = () => {
     // Scenario simulation page
     if (path.startsWith('/Scenario/')) {
       return (
-        <div className={styles.buttonGroupSimulation}>
-          <button onClick={() => console.log('Share Scenario')}>Share </button>
-          <button onClick={() => console.log('Export Scenario')}>Export </button>
-        </div>
+        <button className={styles.buttonGroupSimulation} onClick={() => console.log('Export Scenario')}>Export </button>
       );
     }
     // View scenario page
