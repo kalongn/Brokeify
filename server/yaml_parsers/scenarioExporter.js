@@ -139,7 +139,7 @@ export async function exportScenarioAsYAML(scenarioID, folder){
             ["NON_RETIREMENT", "non-retirement"],
             ["PRE_TAX_RETIREMENT", "pre-tax"],
             ["AFTER_TAX_RETIREMENT", "after-tax"],
-            
+            ["CASH", ""],
         ]);
         const investmentTypesArray = [];
         const investmentArray = [];
