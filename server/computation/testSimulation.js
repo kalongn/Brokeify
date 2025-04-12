@@ -20,6 +20,7 @@ import SimulationController from "../db/controllers/SimulationController.js";
 import { simulate } from "./simulator.js";
 import { validateRun } from "./planValidator.js";
 import { parseAndSaveYAML } from "../yaml_parsers/scenarioParser.js";
+import { parseStateTaxYAML } from "../yaml_parsers/stateTaxParser.js";
 import { exportScenarioAsYAML } from "../yaml_parsers/scenarioExporter.js";
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
@@ -319,8 +320,12 @@ const testTax = async (i) => {
 
 const populateDB = async () => {
     const factory = new ScenarioController();
+    const taxfactory = new TaxController();
+    const stateTax = await parseStateTaxYAML("../yaml_files/state_taxes/state_tax_NY.yaml")
+    //console.log(stateTax)
+    const s = await taxfactory.read(stateTax[0]);
     
-
+    
     const scenarioID = await parseAndSaveYAML("../yaml_files/scenarios/testScenario.yaml");
     const scenario = await factory.read(scenarioID);
     //console.log(scenario1);
@@ -332,7 +337,7 @@ const populateDB = async () => {
 
 
     //const federalIncomeTax = await testTax(1);
-    const stateIncomeTax = await testTax(2);
+    //const stateIncomeTax = await testTax(2);
     //const federalStandardDeduction = await testTax(3);
     //const capitalGainTax = await testTax(5);
     const scenario = await testScenario();
@@ -342,7 +347,8 @@ const populateDB = async () => {
     console.log('====================== Simulation Test =====================');
     //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
-        await validateRun(scenario._id, 1, stateIncomeTax._id, "GUEST");
+        const r = await validateRun(scenario._id, 1, stateTax, "GUEST");
+        console.log(r);
     }
     catch (err) {
         const res = await connection.dropDatabase();
