@@ -47,9 +47,11 @@ const InvestmentTypes = () => {
       const updatedInvestmentTypes = investmentTypes.filter((invType) => invType.id !== id);
       setInvestmentTypes(updatedInvestmentTypes);
     } catch (error) {
+      //TODO: show error to the user in a nicer way @04mHuang
       if (error.response.status === 409) {
-        alert("You cannot delete this investment type because it is used in an investment.");
+        alert("This investment type is being used in an investment. Please remove it from the investment before deleting.");
       }
+      alert("Unknown Error deleting investment type. Please try again.");
       console.error('Error deleting investment type:', error);
     }
   }
