@@ -93,7 +93,7 @@ export async function exportScenarioAsYAML(scenarioID) {
             lifeExpectancy: lifeExpectancy,
             inflationAssumption: inflationAssumption,
             afterTaxContributionLimit: scenario.annualPostTaxContributionLimit,
-            RothConversionOpt: scenario.startYearRothOptimizer == true,
+            RothConversionOpt: scenario.startYearRothOptimizer !== undefined,
             RothConversionStart: scenario.startYearRothOptimizer,
             RothConversionEnd: scenario.endYearRothOptimizer,
             financialGoal: scenario.financialGoal,
