@@ -1,0 +1,22 @@
+#This is a sample file for state tax
+#The file name format will be state_tax_[abbreviation]
+#Ex: state_tax_NY
+#This file will have information for both married and single
+#And has information for the state(redundant) and year
+
+year: 2025
+state: NY
+single:
+  - lowerBound: 0
+    upperBound: 10000
+    rate: 0
+  - lowerBound: 10000
+    upperBound: 20000
+    rate: 5
+married:
+  - lowerBound: 0
+    upperBound: 20000
+    rate: 0
+  - lowerBound: 20000
+    upperBound: Infinity
+    rate: 2

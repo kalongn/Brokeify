@@ -1,0 +1,59 @@
+#Pre-made NY yaml file
+year: 2024
+state: NY
+single:
+  - lowerBound: 0
+    upperBound: 8500
+    rate: 4
+  - lowerBound: 8500
+    upperBound: 11700
+    rate: 4.5
+  - lowerBound: 11700
+    upperBound: 13900
+    rate: 5.25
+  - lowerBound: 13900
+    upperBound: 80650
+    rate: 5.5
+  - lowerBound: 80650
+    upperBound: 215400
+    rate: 6
+  - lowerBound: 215400
+    upperBound: 1077550
+    rate: 6.85
+  - lowerBound: 1077550
+    upperBound: 5000000	
+    rate: 9.65
+  - lowerBound: 5000000
+    upperBound: 25000000	
+    rate: 10.3
+  - lowerBound: 25000000
+    upperBound: Infinity	
+    rate: 10.9
+married:
+  - lowerBound: 0
+    upperBound: 17150
+    rate: 4
+  - lowerBound: 17150
+    upperBound: 23600
+    rate: 4.5
+  - lowerBound: 23600
+    upperBound: 27900
+    rate: 5.25
+  - lowerBound: 27900
+    upperBound: 161550
+    rate: 5.5
+  - lowerBound: 161550
+    upperBound: 323200
+    rate: 6
+  - lowerBound: 323200
+    upperBound: 2155350
+    rate: 6.85
+  - lowerBound: 2155350
+    upperBound: 5000000	
+    rate: 9.65
+  - lowerBound: 5000000
+    upperBound: 25000000	
+    rate: 10.3
+  - lowerBound: 25000000
+    upperBound: Infinity	
+    rate: 10.9
