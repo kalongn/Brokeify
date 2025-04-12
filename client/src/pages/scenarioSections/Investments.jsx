@@ -11,6 +11,7 @@ const Investments = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
+  const [cashId, setCashId] = useState(null);
   const [investmentTypes, setInvestmentTypes] = useState([]);
   const [formData, setFormData] = useState([]);
   const [errors, setErrors] = useState([]);
@@ -32,8 +33,14 @@ const Investments = () => {
 
     Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
       const investmentTypeOptions = response.data.map((investmentType) => {
-        return { value: investmentType.id, label: investmentType.name };
+        if (investmentType.name === "Cash") {
+          setCashId(investmentType.id);
+          return { value: investmentType.id, label: investmentType.name, isDisabled: true };
+        } else {
+          return { value: investmentType.id, label: investmentType.name };
+        }
       });
+
       setInvestmentTypes(investmentTypeOptions);
     }).catch((error) => {
       console.error('Error fetching investment types:', error);
@@ -77,7 +84,7 @@ const Investments = () => {
       setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
       return;
     }
-    
+
     try {
       const response = await Axios.delete(`/investments/${scenarioId}`, {
         data: { investmentId: deletectRow.id, typeId: deletectRow.typeId },
@@ -171,6 +178,7 @@ const Investments = () => {
                     { value: investment.typeId, label: investment.typeName }
                     : null
                   }
+                  isDisabled={investment.typeId === cashId}
                   onChange={(e) =>
                     handleInputChange(index, "typeId", e.value)
                   }
@@ -196,6 +204,7 @@ const Investments = () => {
                     { value: investment.taxStatus, label: investment.taxStatus }
                     : null
                   }
+                  isDisabled={investment.typeId === cashId}
                   onChange={(e) =>
                     handleInputChange(index, "taxStatus", e.value)
                   }
@@ -203,8 +212,12 @@ const Investments = () => {
               </td>
               <td>
                 <button
+                  disabled={investment.typeId === cashId}
                   onClick={() => removeInvestment(investment.uuid)}
-                  className={styles.tableButton}>
+                  className={investment.typeId === cashId
+                    ? `${styles.tableButton} ${styles.disabledButton}`
+                    : styles.tableButton}
+                >
                   <FaTimes />
                 </button>
               </td>
