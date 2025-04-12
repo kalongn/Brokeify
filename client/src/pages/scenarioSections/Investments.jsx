@@ -95,6 +95,11 @@ const Investments = () => {
       console.log(response.data);
       setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
     } catch (error) {
+      if (error.response?.status === 409) {
+        setErrors((prev) => ({ ...prev, investmentRow: "Investment cannot be deleted because it is used in an invest / rebalance event." }));
+      } else {
+        setErrors((prev) => ({ ...prev, investmentRow: "An unknown error occurred while deleting the investment." }));
+      }
       console.error('Error deleting investment:', error);
     }
   }

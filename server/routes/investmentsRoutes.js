@@ -155,6 +155,19 @@ router.delete("/investments/:scenarioId", async (req, res) => {
         const { investmentId, typeId } = req.body;
         const deleteInvestment = await investmentController.read(investmentId);
 
+        const scenario = await scenarioController.readWithPopulate(id);
+        const events = scenario.events;
+
+        for (let event of events) {
+            if (event.eventType === "INVEST" || event.eventType === "REBALANCE") {
+                for (let investment of event.allocatedInvestments) {
+                    if (investment.toString() === investmentId) {
+                        return res.status(409).send("Investment cannot be deleted because it is used in a distribution.");
+                    }
+                }
+            }
+        }
+
         await investmentTypeController.update(typeId, {
             $pull: { investments: investmentId }
         });
