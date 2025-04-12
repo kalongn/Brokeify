@@ -42,7 +42,7 @@ const EventSeries = () => {
       setEvents(updatedInvestmentTypes);
     } catch (error) {
       if (error.response?.status === 409) {
-        alert("Cannot delete event series. It is being reference in other event (starts with / starts after).");
+        alert("Cannot delete event series. It is being referenced in other event (starts with / starts after).");
       } else {
         alert("Unknown Error deleting event series. Please try again.");
       }
