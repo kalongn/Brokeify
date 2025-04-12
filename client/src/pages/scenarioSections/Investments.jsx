@@ -79,15 +79,15 @@ const Investments = () => {
   };
 
   const removeInvestment = async (uuid) => {
-    const deletectRow = formData.find((investment) => investment.uuid === uuid);
-    if (!deletectRow.id) {
+    const deleteRow = formData.find((investment) => investment.uuid === uuid);
+    if (!deleteRow.id) {
       setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
       return;
     }
 
     try {
       const response = await Axios.delete(`/investments/${scenarioId}`, {
-        data: { investmentId: deletectRow.id, typeId: deletectRow.typeId },
+        data: { investmentId: deleteRow.id, typeId: deleteRow.typeId },
       });
       console.log(response.data);
       setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
