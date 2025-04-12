@@ -54,7 +54,6 @@ const Header = ({ setVerified }) => {
           const id = pathParts[pathParts.length - 1];
           try {
             const response = await Axios.get(`${import.meta.env.VITE_SERVER_ADDRESS}/scenario/${id}/export`, { withCredentials: true, responseType: 'blob' });
-            console.log(response);
             const blob = new Blob([response.data], { type: 'application/yaml' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -69,7 +68,6 @@ const Header = ({ setVerified }) => {
                 filename = match[1];
               }
             }
-            console.log(filename);
             a.download = filename;
             document.body.appendChild(a);
             a.click();
