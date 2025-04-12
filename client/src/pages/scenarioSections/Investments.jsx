@@ -40,7 +40,10 @@ const Investments = () => {
     });
 
     Axios.get(`/investments/${scenarioId}`).then((response) => {
-      const investments = response.data;
+      const investments = response.data?.map(investment => {
+        if (investment.uuid) return investment;
+        return { ...investment, uuid: uuidv4() }
+      });
       setFormData(investments);
     }).catch((error) => {
       console.error('Error fetching investments:', error);
