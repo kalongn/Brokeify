@@ -299,7 +299,7 @@ function runInWorker(data) {
 }
   
 //recives ID of scenario in db
-export async function validateRun(scenarioID, numTimes, stateTaxIDArray, username) {
+export async function validateRun(scenarioID, numTimes, stateTaxIDArray, username, seed) {
     await validate(scenarioID);
     const scrapeReturn = await scrape();
     const scenario = await scenarioFactory.read(scenarioID);

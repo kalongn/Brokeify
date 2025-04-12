@@ -121,7 +121,7 @@ export async function simulate(
     );
     
 
-
+    let cumulativeInflation = 1;
     let lastYearTaxes = 0;
     let thisYearTaxes = 0;
     let lastYearGains = 0;
@@ -148,7 +148,7 @@ export async function simulate(
         const inflationRate = await sample(scenario.inflationAssumption, scenario.inflationAssumptionDistribution);
         const inflationeEventDetails = `Year: ${currentYear} - INFLATION - ${Math.ceil(inflationRate * 1000) / 1000}\n`;
         updateLog(inflationeEventDetails);
-        
+        cumulativeInflation = cumulativeInflation * (1+inflationRate);
 
         //Could change from married to single if spouse dies, so we have to maintain both
         updateTaxBracketsForInflation(federalIncomeTaxArray[0], inflationRate);
@@ -303,6 +303,7 @@ export async function simulate(
         const yearlyRes = {
             year: currentYear + realYear,
             inflationRate: inflationRate,
+            cumulativeInflation: cumulativeInflation,
             investmentValues: investmentValuesArray,
             incomeByEvent: incomeByEvent,
             totalIncome: reportedIncome,

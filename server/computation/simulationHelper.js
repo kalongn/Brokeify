@@ -252,21 +252,21 @@ export async function adjustEventAmount(event, inflationRate, scenario) {
     if (event.isinflationAdjusted) {
         event.amount = event.amount * (1 + inflationRate);
     }
-
-    let amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
-    let distribution = await distributionFactory.read(event.expectedAnnualChangeDistribution);
-    if(scenario.filingStatus==="SINGLE"){
-        amountRate*=event.userContributions;
-    }
-    if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {     
-    }
-    else {
+    if(event.startYear<=realYear+currentYear&&event.startYear+event.duration>=realYear+currentYear){
+        let amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
+        let distribution = await distributionFactory.read(event.expectedAnnualChangeDistribution);
+        if(scenario.filingStatus==="SINGLE"){
+            amountRate*=event.userContributions;
+        }
+        if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {     
+        }
+        else {
+            
+            amountRate = (amountRate) * event.amount;
+        }
         
-        amountRate = (amountRate) * event.amount;
+        event.amount = Math.round((event.amount + amountRate)*100)/100;
     }
-    
-    event.amount = Math.round((event.amount + amountRate)*100)/100;
-
     await eventFactory.update(event._id, event);
     return event.amount;
 }

@@ -3,6 +3,7 @@ import { RETURN_STATUS } from "./Enums.js";
 const YearlyResultSchema = new mongoose.Schema({
     year: { type: Number, required: true },
     inflationRate: { type: Number, required: true },
+    cumulativeInflation: { type: Number, required: true },
     investmentValues: [{ name: { type: mongoose.Schema.Types.ObjectId, ref: 'Investment', required: true }, values: { type: Number, required: true } }],
     incomeByEvent: [{ name: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true }, values: { type: Number, required: true } }],
     totalIncome: { type: Number, required: true },
