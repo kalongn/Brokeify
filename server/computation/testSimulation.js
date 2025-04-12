@@ -321,8 +321,8 @@ const populateDB = async () => {
     const factory = new ScenarioController();
     
 
-    const scenarioID = await parseAndSaveYAML("../yaml_files/scenario.yaml");
-    const scenario1 = await factory.read(scenarioID);
+    const scenarioID = await parseAndSaveYAML("../yaml_files/scenarios/testScenario.yaml");
+    const scenario = await factory.read(scenarioID);
     //console.log(scenario1);
     const res2 = await exportScenarioAsYAML(scenarioID, "../yaml_files/");
     console.log(res2);
