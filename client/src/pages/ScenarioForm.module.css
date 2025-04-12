@@ -18,11 +18,11 @@
 
 .deemphasizedButton,
 .emphasizedButton {
-  padding-left: 3rem;
-  padding-right: 3rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
 }
 
-.deemphasizedButton:disabled {
+.deemphasizedButton {
   background-color: var(--color-white);
 }
 

@@ -7,11 +7,14 @@ import { FaDownload } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
 
 import Layout from "../components/Layout";
+import ModalImport from "../components/ModalImport";
 import style from './Profile.module.css';
 
 //TODO: Tax YAML upload button, and file table buttons as well including the tax upload Date.
 const Profile = ({ setVerified }) => {
   const [user, setUser] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
@@ -28,7 +31,7 @@ const Profile = ({ setVerified }) => {
   }, []);
 
   const uploadTax = () => {
-    alert("TODO: Feature not IMPLEMENT YET.");
+    setShowImportModal(true);
   };
 
 
@@ -63,6 +66,7 @@ const Profile = ({ setVerified }) => {
           <h2>File Upload</h2>
           <div>Here you can upload a YAML file containing information about state income taxes and brackets. Note that without this data, the financial projection will ignore state income taxes not in the database.</div>
           <button className={style.uploadButton} onClick={() => uploadTax()}> <FaUpload />  Upload YAML</button>
+          <ModalImport isOpen={showImportModal} onClose={setShowImportModal} />
           <table>
             <thead>
               <tr>

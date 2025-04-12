@@ -1,10 +1,13 @@
 import { useLocation, Link } from 'react-router-dom';
+import { useState } from "react";
 import PropTypes from 'prop-types';
 import { VscChromeClose } from "react-icons/vsc";
+import ModalImport from './ModalImport';
 
 import styles from './Header.module.css';
 
 const Header = ({ setVerified }) => {
+  const [showImportModal, setShowImportModal] = useState(false);
   const location = useLocation();
   const path = location.pathname;
   const getHeaderTitle = () => {
@@ -79,7 +82,10 @@ const Header = ({ setVerified }) => {
     switch (path) {
       case '/Home':
         return (
-          <button onClick={() => console.log('Import Scenario')}>Import Scenario</button>
+          <>
+            <button onClick={() => setShowImportModal(true)}>Import Scenario</button>
+            <ModalImport isOpen={showImportModal} onClose={setShowImportModal} />
+          </>
         );
       case '/Profile':
         return (
