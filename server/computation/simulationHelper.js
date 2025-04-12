@@ -244,7 +244,7 @@ export async function updateContributionLimitsForInflation(scenario, inflationRa
     scenario.annualPostTaxContributionLimit = scenario.annualPostTaxContributionLimit * (1 + inflationRate);
     await scenarioFactory.update(scenario._id, { annualPreTaxContributionLimit: scenario.annualPreTaxContributionLimit, annualPostTaxContributionLimit: scenario.annualPostTaxContributionLimit });
 }
-export async function adjustEventAmount(event, inflationRate, scenario) {
+export async function adjustEventAmount(event, inflationRate, scenario, currentYear) {
     //adjusts event.amount for inflation and expected change
     if (event.eventType === "INVEST" || event.eventType === "REBALANCE") {
         return;
@@ -252,6 +252,7 @@ export async function adjustEventAmount(event, inflationRate, scenario) {
     if (event.isinflationAdjusted) {
         event.amount = event.amount * (1 + inflationRate);
     }
+    const realYear = new Date().getFullYear();
     if(event.startYear<=realYear+currentYear&&event.startYear+event.duration>=realYear+currentYear){
         let amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
         let distribution = await distributionFactory.read(event.expectedAnnualChangeDistribution);
