@@ -23,7 +23,6 @@ const RebalanceSchema = new mongoose.Schema({
     assetAllocationType: { type: String, enum: ASSET_ALLOCATION_TYPE },
     percentageAllocations: [[{ type: Number }]], // Glide Path use [[Before, After], [Before, After], ...], Fixed use [[Percentage], [Percentage], ....]
     allocatedInvestments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Investment' }],
-    maximumCash: { type: Number, default: 0 },
     taxStatus: { type: String, enum: TAX_STATUS }
 });
 
