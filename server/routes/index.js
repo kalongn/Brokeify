@@ -14,6 +14,9 @@ import spendingStrategyRoutes from './spendingStrategyRoutes.js';
 import expenseWithdrawalStrategyRoutes from './expenseWithdrawalStrategyRoutes.js';
 import rmdStrategyRoutes from './RMDStrategyRoutes.js';
 import rothStrategyRoutes from './rothStrategyRoutes.js';
+import sharingRoutes from './sharingRoutes.js';
+
+import scenarioYamlRoutes from './scenarioYamlRoutes.js';
 
 const router = express.Router();
 router.use(authRoutes);
@@ -30,6 +33,9 @@ router.use(spendingStrategyRoutes);
 router.use(expenseWithdrawalStrategyRoutes);
 router.use(rmdStrategyRoutes);
 router.use(rothStrategyRoutes);
+router.use(sharingRoutes);
+
+router.use(scenarioYamlRoutes);
 
 router.get("/", async (req, res) => {
     console.log(req.session); // can be used to debug session data

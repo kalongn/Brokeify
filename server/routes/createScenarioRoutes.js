@@ -32,6 +32,9 @@ router.post("/newScenario", async (req, res) => {
             })],
             ownerFirstName: user.firstName,
             ownerLastName: user.lastName,
+            ownerEmail: user.email,
+            editorEmails: [],
+            viewerEmails: [],
         });
         await userController.update(req.session.user, {
             $push: { ownerScenarios: newScenario._id }

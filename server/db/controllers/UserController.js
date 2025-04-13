@@ -106,7 +106,7 @@ export default class UserController {
     async readWithScenarios(id) {
         try {
             return await User.findById(id).populate({
-                path: 'ownerScenarios',
+                path: 'ownerScenarios editorScenarios viewerScenarios',
                 populate: { path: 'investmentTypes' }
             });
         }
@@ -131,6 +131,15 @@ export default class UserController {
         try {
             return await User.findOne
                 ({ googleId });
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    async findByEmail(email) {
+        try {
+            return await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
         }
         catch (error) {
             throw new Error(error);

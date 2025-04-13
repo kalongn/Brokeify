@@ -113,7 +113,6 @@ const EventSeriesForm = () => {
               setTypeFormData({
                 type: "rebalance",
                 allocationMethod: eventData.allocationMethod,
-                maximumCash: eventData.maximumCash,
                 investmentRows: eventData.investmentRows,
                 taxStatus: eventData.taxStatus,
               });
@@ -257,7 +256,7 @@ const EventSeriesForm = () => {
           setTypeFormData({ type: value, allocationMethod: "", maximumCash: "", investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
           break;
         case "rebalance":
-          setTypeFormData({ type: value, taxStatus: null, allocationMethod: "", maximumCash: "", investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
+          setTypeFormData({ type: value, taxStatus: null, allocationMethod: "", investmentRows: [{ investment: "", percentage: "", initialPercentage: "", finalPercentage: "" }] });
           break;
         default:
           // Should not happen
@@ -479,7 +478,6 @@ const EventSeriesForm = () => {
           description: formData.description,
           durationTypeDistribution: distributions.duration,
           startYearTypeDistribution: distributions.startYear,
-          maximumCash: typeFormData.maximumCash,
           allocationMethod: typeFormData.allocationMethod,
           investmentRows: typeFormData.investmentRows,
           taxStatus: typeFormData.taxStatus,
@@ -821,11 +819,13 @@ const EventSeriesForm = () => {
                     </button>
                   </div>
                 )}
-                <label className={styles.newline}>
-                  Maximum Cash (in pre-defined cash investment)
-                  <input type="number" name="maximumCash" defaultValue={typeFormData.maximumCash} className={styles.newline} onChange={handleChange} />
-                  {errors.maximumCash && <span className={styles.error}>{errors.maximumCash}</span>}
-                </label>
+                {eventType === "invest" && (
+                  <label className={styles.newline}>
+                    Maximum Cash (in pre-defined cash investment)
+                    <input type="number" name="maximumCash" defaultValue={typeFormData.maximumCash} className={styles.newline} onChange={handleChange} />
+                    {errors.maximumCash && <span className={styles.error}>{errors.maximumCash}</span>}
+                  </label>
+                )}
               </div>
             )}
           </form>

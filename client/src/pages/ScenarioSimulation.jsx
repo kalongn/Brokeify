@@ -12,6 +12,7 @@ import Event from "../components/Event";
 import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
 
+
 const ScenarioSimulation = () => {
 
   const { scenarioId } = useParams(); // Get the scenario ID from the URL params
@@ -19,8 +20,10 @@ const ScenarioSimulation = () => {
   const [investments, setInvestments] = useState([]);
   const [events, setEvents] = useState([]);
   const [strategies, setStrategies] = useState([]);
+  const [permission, setPermission] = useState(0);
+  const [canShare, setCanShare] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -30,9 +33,10 @@ const ScenarioSimulation = () => {
       const scenarioData = response.data;
       console.log('Scenario data:', scenarioData);
       setScenario(scenarioData);
-
+      setPermission(scenarioData.permission);
       setInvestments(scenarioData.investments || []);
       setEvents(scenarioData.events || []);
+      setCanShare(scenarioData.canShare);
 
       const strategyList = [
         {
@@ -75,6 +79,7 @@ const ScenarioSimulation = () => {
       return <Navigate to="/Home" />;
     });
   }, [scenarioId]);
+
   return (
     <Layout>
       <div className={styles.container}>
@@ -84,14 +89,9 @@ const ScenarioSimulation = () => {
             <div className={styles.header}>
               <div className={styles.title}>
                 <h2>{scenario.name}</h2>
-                <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon} onClick={() => { console.log('View Scenario Page') }}><TbFileSearch size={25} /></Link>
-                <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon} onClick={() => { console.log('Edit Scenario Page') }}> <TbEdit size={25} /> </Link>
-                <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={23} /></Link>
-              </div>
-
-              <div className={styles.buttons}>
-                <button className={styles.runSimulation}>Run Simulation</button>
-                <button className={styles.seeResults}>See Results</button>
+                {permission > 0 && <Link to={`/ViewScenario/${scenarioId}`} className={styles.icon}><TbFileSearch size={25} /></Link>}
+                {permission > 1 && <Link to={`/ScenarioForm/${scenarioId}`} className={styles.icon}><TbEdit size={25} /></Link>}
+                {permission > 2 && canShare && <Link to={`/Sharing/${scenarioId}`} className={styles.icon}><FaUserPlus size={25} /></Link>}
               </div>
             </div>
 

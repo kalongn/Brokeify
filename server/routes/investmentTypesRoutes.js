@@ -163,4 +163,33 @@ router.put("/investmentType/:scenarioId/:investmentTypeId", async (req, res) => 
     }
 });
 
+router.delete("/investmentType/:scenarioId/:investmentTypeId", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+        if (!await canEdit(userId, id)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
+        }
+        const investmentTypeId = req.params.investmentTypeId;
+
+        const investmentType = await investmentTypeController.read(investmentTypeId);
+        if (investmentType.investments.length > 0) {
+            return res.status(409).send("Cannot delete investment type with investments.");
+        }
+
+        await scenarioController.update(id, {
+            $pull: { investmentTypes: investmentTypeId }
+        });
+
+        await investmentTypeController.delete(investmentTypeId);
+        return res.status(200).send("Investment type deleted.");
+    } catch (error) {
+        console.error("Error in investment type route:", error);
+        return res.status(500).send("Error deleting investment type.");
+    }
+});
+
 export default router;

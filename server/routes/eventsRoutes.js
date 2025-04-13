@@ -125,7 +125,6 @@ const eventToBackend = async (body) => {
                 assetAllocationType: allocateMethodToBackend(data.allocationMethod),
                 percentageAllocations: percentageAllocations,
                 allocatedInvestments: allocatedInvestments,
-                maximumCash: data.maximumCash,
                 taxStatus: taxStatusToBackend(data.taxStatus),
             }
             break;
@@ -306,7 +305,6 @@ router.get("/event/:scenarioId/:eventId", async (req, res) => {
                         }
                     }
                 });
-                data.maximumCash = event.maximumCash;
                 data.taxStatus = taxStatusToFrontend(event.taxStatus);
                 break;
             default:
@@ -421,6 +419,49 @@ router.put("/event/:scenarioId/:eventId", async (req, res) => {
     } catch (error) {
         console.error("Error in events route:", error);
         return res.status(500).send("Error updating events.");
+    }
+});
+
+router.delete("/event/:scenarioId/:eventId", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+        if (!await canEdit(userId, id)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
+        }
+        const eventId = req.params.eventId;
+
+        const scenario = await scenarioController.readWithPopulate(id);
+        const events = scenario.events;
+        const event = await eventController.readWithPopulate(eventId);
+
+        for (let otherEvent of events) {
+            if (otherEvent.startsWith && otherEvent.startsWith.toString() === event._id.toString()) {
+                return res.status(409).send("Event cannot be deleted because it is used in another event.");
+            }
+            if (otherEvent.startsAfter && otherEvent.startsAfter.toString() === event._id.toString()) {
+                return res.status(409).send("Event cannot be deleted because it is used in another event.");
+            }
+        }
+
+        if (event.eventType === "EXPENSE" && event.isDiscretionary) {
+            await scenarioController.update(id, {
+                $pull: { orderedSpendingStrategy: eventId }
+            });
+        }
+
+        await scenarioController.update(id, {
+            $pull: { events: eventId }
+        });
+
+        await eventController.delete(eventId);
+        return res.status(200).send("Event deleted.");
+    } catch (error) {
+        console.error("Error in events route:", error);
+        return res.status(500).send("Error deleting events.");
     }
 });
 
