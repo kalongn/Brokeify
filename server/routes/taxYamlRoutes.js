@@ -70,7 +70,7 @@ router.post('/stateTax/import', upload.single('file'), async (req, res) => {
         return res.status(200).send("Tax imported successfully.");
     } catch (error) {
         console.error("Error importing state tax from YAML:", error);
-        resreturn.status(500).send("Error importing state tax.");
+        return res.status(500).send("Error importing state tax.");
     }
 });
 

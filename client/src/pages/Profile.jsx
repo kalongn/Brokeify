@@ -77,11 +77,11 @@ const Profile = ({ setVerified }) => {
       return;
     }
     try {
-      const reponse = Axios.delete(`/stateTax/${taxId}/delete`);
-      console.log(reponse.data);
+      const response = Axios.delete(`/stateTax/${taxId}/delete`);
+      console.log(response.data);
       navigate(0);
     } catch (error) {
-      if (error.reponse?.status === 401) {
+      if (error.response?.status === 401) {
         alert("You are not authorized to download this file.");
       } else if (error.response?.status === 403) {
         alert("You cannot download someone else tax file.");
