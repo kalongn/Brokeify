@@ -54,10 +54,11 @@ export const stateMap = {
 };
 
 export const validateRequired = (newErrors, field, value) => {
+  const name = field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1');
   if (value === null || value === undefined || (typeof value === "string" && value.trim() === "")) {
-    newErrors[field] = "This field is required";
+    newErrors[field] = `${name} field is required`;
   } else if (typeof value === "number" && value < 0) {
-    newErrors[field] = "Value must be non-negative";
+    newErrors[field] = `${name} value must be non-negative`;
   }
   return newErrors;
 }
@@ -65,39 +66,40 @@ export const validateRequired = (newErrors, field, value) => {
 export const validateDistribution = (newErrors, field, dist) => {
   // Check if a type of distribution has been selected
   const type = dist.type;
+  const name = field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1');
   if (type === null || type === undefined || type === "") {
-    newErrors[field] = "This field is required";
+    newErrors[field] = `${name} choice is required`;
     return;
   }
   let isPercentage = dist.isPercentage || false;
   switch (type) {
     case "fixed":
       if (dist.value === null || dist.value === undefined) {
-        newErrors[field] = "This field is required";
+        newErrors[field] = `${name} field is required`;
       } else if (dist.value < 0) {
-        newErrors[field] = "Value must be non-negative";
+        newErrors[field] = `${name} value must be non-negative`;
       } else if (isPercentage && dist.value > 100) {
-        newErrors[field] = "Percentage must be between 0 and 100";
+        newErrors[field] = `${name} percentage must be between 0 and 100`;
       }
       break;
     case "uniform":
       if ((dist.lowerBound === null || dist.upperBound === null) || (dist.lowerBound === undefined || dist.upperBound === undefined)) {
-        newErrors[field] = "Both lower and upper bounds are required";
+        newErrors[field] = `${name} lower and upper bounds are required`;
       } else if (dist.lowerBound < 0 || dist.upperBound < 0) {
-        newErrors[field] = "Bounds must be non-negative";
+        newErrors[field] = `${name} bounds must be non-negative`;
       } else if (dist.lowerBound > dist.upperBound) {
-        newErrors[field] = "Lower bound must be less than or equal to upper bound";
+        newErrors[field] = `${name} lower bound must be less than or equal to upper bound`;
       } else if (isPercentage && (dist.lowerBound > 100 || dist.upperBound > 100)) {
-        newErrors[field] = "Percentage must be between 0 and 100";
+        newErrors[field] = `${name} percentage must be between 0 and 100`;
       }
       break;
     case "normal":
       if ((dist.mean === null || dist.standardDeviation === null) || (dist.mean === undefined || dist.standardDeviation === undefined)) {
-        newErrors[field] = "Both mean and standard deviation are required";
+        newErrors[field] = `${name} mean and standard deviation are required`;
       } else if (dist.mean < 0 || dist.standardDeviation < 0) {
-        newErrors[field] = "Both mean and standard deviation must be non-negative";
+        newErrors[field] = `${name} mean and standard deviation must be non-negative`;
       } else if (isPercentage && (dist.mean > 100 || dist.standardDeviation > 100)) {
-        newErrors[field] = "Mean and standard deviation must be less than 100";
+        newErrors[field] = `${name} mean and standard deviation must be less than 100`;
       }
       break;
     default:

@@ -15,18 +15,9 @@ const ErrorMessage = ({ errors }) => {
       <ul className={styles.errorList}>
         {Object.entries(errors).map(([key, value]) => (
           <li key={key}>
-            <a href={`#${key}`}>{key}-{value}</a>
+            <a href={`#${key}`}>{value}</a>
           </li>
         ))}
-        {/* <li>
-          <a href="#financialGoal">Oops! Something went wrong. Please try again later.</a>
-        </li>
-        <li>
-          Oops! Something went wrong. Please try again later.
-        </li>
-        <li>
-          Oops! Something went wrong. Please try again later.
-        </li> */}
       </ul>
     </div>
   )
