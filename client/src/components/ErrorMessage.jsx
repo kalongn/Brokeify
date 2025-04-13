@@ -13,7 +13,7 @@ const ErrorMessage = ({ errors }) => {
     <div className={styles.errorBox}>
       <div className={styles.errorMessage}>
         <MdError size={24} />
-        <span>There are some errors.</span>
+        <span>Try submitting the form again after fixing these problems.</span>
       </div>
       <ul className={styles.errorList}>
         {Object.entries(errors).map(([key, value]) => (
