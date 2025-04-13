@@ -35,8 +35,40 @@ const Profile = ({ setVerified }) => {
   };
 
 
-  const downloadTax = (taxId) => {
-    alert(`TDOO: export the YAML file of ${taxId} to the client.`);
+  const downloadTax = async (taxId) => {
+    try {
+
+
+      const response = await Axios.get(`/stateTax/${taxId}/export`, {
+        responseType: 'blob',
+      });
+      const blob = new Blob([response.data], { type: 'application/yaml' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+
+      // AI Co-pilot, obtain the filename from the response headers
+      const disposition = response.headers['content-disposition'];
+      let filename = `${taxId}.yaml`; // fallback
+      if (disposition && disposition.includes('filename=')) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match?.[1]) {
+          filename = match[1];
+        }
+      }
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (error) {
+      if (error.reponse?.status === 401) {
+        alert("You are not authorized to download this file.");
+      } else if (error.response?.status === 403) {
+        alert("You cannot download someone else tax file.");
+      } else {
+        alert("Unknown error downloading the tax file.");
+      }
+    }
   }
 
   const deleteTax = (taxId) => {
@@ -81,7 +113,7 @@ const Profile = ({ setVerified }) => {
                   <tr>
                     <td>{tax.state + "_" + tax.filingStatus + "_" + tax.year}</td>
                     <td>{tax.dateCreated}</td>
-                    <td className={style.fileActions}><button onClick={() => downloadTax(tax._id)}><FaDownload /></button><button onClick={() => deleteTax(tax._id)}><FaTrashAlt /></button></td>
+                    <td className={style.fileActions}><button onClick={() => downloadTax(tax.id)}><FaDownload /></button><button onClick={() => deleteTax(tax.id)}><FaTrashAlt /></button></td>
                   </tr>
                 </tbody>
               )) : user && user.userSpecificTaxes && user.userSpecificTaxes.length === 0 ?
