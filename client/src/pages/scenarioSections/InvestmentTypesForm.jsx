@@ -30,8 +30,6 @@ const InvestmentTypesForm = () => {
   });
   const [errors, setErrors] = useState({});
 
-  const investmentTypeNames = investmentTypes.map((investmentType) => investmentType.name);
-
   useEffect(() => {
     if (id) {
       Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -57,16 +55,17 @@ const InvestmentTypesForm = () => {
       }).catch((error) => {
         console.error('Error fetching investment type:', error);
       });
-
-      Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
-        setInvestmentTypes(response.data);
-      }
-      ).catch((error) => {
-        console.error('Error fetching investment types:', error);
-      });
     } else {
       setLoading(false);
     }
+
+    // Fetch investment types to check for duplicate names
+    Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
+      setInvestmentTypes(response.data);
+    }
+    ).catch((error) => {
+      console.error('Error fetching investment types:', error);
+    });
   }, [id, scenarioId]);
 
 
@@ -131,8 +130,8 @@ const InvestmentTypesForm = () => {
 
     // Check for duplicate names
     if (formData.investmentType !== null) {
-      const hasDuplicateName = investmentTypeNames.find(name =>
-        name === formData.investmentType.trim()
+      const hasDuplicateName = investmentTypes.find(inv =>
+        inv.name === formData.investmentType.trim()
       );
       if (hasDuplicateName) {
         newErrors.investmentType = "Investment type name already exists";
