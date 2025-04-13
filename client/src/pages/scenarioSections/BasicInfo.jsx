@@ -101,8 +101,6 @@ const BasicInfo = () => {
       }
       return updatedDistributions;
     });
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
   // Prompt to AI (Amazon Q): How do I get the form fields for the fields to be saved? Number fields should be parsed to numbers
@@ -115,14 +113,10 @@ const BasicInfo = () => {
       processedValue = Number(value);
     }
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
   const handleSelectChange = (selectedOption) => {
     setFormData((prev) => ({ ...prev, state: selectedOption.value }));
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, state: "" }));
   };
 
   const validateFields = () => {
