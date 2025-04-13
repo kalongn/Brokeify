@@ -288,7 +288,7 @@ export async function run(scenarioID, fedIncome, capitalGains, fedDeduction, sta
 
 function runInWorker(data) {
     return new Promise((resolve, reject) => {
-        const worker = new Worker(path.resolve('./runWorker.js'), { workerData: data });
+        const worker = new Worker(path.resolve('./computation/runWorker.js'), { workerData: data });
         worker.on('message', resolve);
         worker.on('error', reject);
         worker.on('exit', code => {
