@@ -214,6 +214,7 @@ export async function exportScenarioAsYAML(scenarioID) {
                     discretionary: event.isDiscretionary
                 };
                 eventsArray.push(eToPush);
+                idMap.set(event._id.toString(), event.name);
             }
             else if (event.eventType == "INVEST") {
                 let assetAllocation, assetAllocation2, glidePath;
@@ -288,8 +289,12 @@ export async function exportScenarioAsYAML(scenarioID) {
         }
         scenarioObject.eventSeries = eventsArray;
 
+        const spendingStrategy = [];
+        for(const i in scenario.orderedSpendingStrategy){
+            spendingStrategy.push(idMap.get(scenario.orderedSpendingStrategy[i].toString()));
+        }
+        scenarioObject.spendingStrategy = spendingStrategy;
         const yamlStr = yaml.dump(scenarioObject);
-
         return { filename, yamlStr };
     }
     catch (error) {
