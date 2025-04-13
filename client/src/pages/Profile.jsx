@@ -79,7 +79,7 @@ const Profile = ({ setVerified }) => {
               user.userSpecificTaxes.map((tax, index) => (
                 <tbody key={index}>
                   <tr>
-                    <td>{tax.state + "_" + tax.filingStatus}</td>
+                    <td>{tax.state + "_" + tax.filingStatus + "_" + tax.year}</td>
                     <td>{tax.dateCreated}</td>
                     <td className={style.fileActions}><button onClick={() => downloadTax(tax._id)}><FaDownload /></button><button onClick={() => deleteTax(tax._id)}><FaTrashAlt /></button></td>
                   </tr>

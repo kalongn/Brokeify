@@ -14,6 +14,7 @@ router.get("/profile", async (req, res) => {
                 return {
                     id: tax._id,
                     taxType: tax.taxType,
+                    year: tax.year,
                     filingStatus: tax.filingStatus,
                     dateCreated: tax.dateCreated,
                     state: tax.state,
