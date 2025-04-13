@@ -42,7 +42,6 @@ const ModalImport = ({ isOpen, onClose }) => {
           navigate(`/Scenario/${scenarioId}`);
         } else if (location.pathname === "/Profile") {
           handleClose();
-          navigate(0);
         } else {
           throw new Error("Unknown path");
         }

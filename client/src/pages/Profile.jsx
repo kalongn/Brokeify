@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Axios from "axios";
 import PropTypes from 'prop-types';
@@ -16,30 +16,40 @@ const Profile = ({ setVerified }) => {
   const [user, setUser] = useState(null);
   const [showImportModal, setShowImportModal] = useState(false);
 
+  const updateUser = useCallback(async () => {
+    try {
+      const response = await Axios.get("/profile");
+      console.log("User Profile Data:", response.data);
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error fetching user session:', error);
+      if (error.response?.status === 401) {
+        alert("You are not authorized to view this page.");
+        navigate("/");
+      }
+      else if (error.response?.status === 403) {
+        alert("You do not have permission to view this page.");
+        navigate("/");
+      }
+    }
+  }, [navigate]);
+
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
+    updateUser();
+  });
 
-    Axios.get("/profile")
-      .then((response) => {
-        console.log("User Profile Data:", response.data);
-        setUser(response.data);
-      })
-      .catch((error) => {
-        console.error('Error fetching user session:', error);
-      });
-
-  }, []);
+  useEffect(() => {
+    updateUser();
+  }, [showImportModal, updateUser]);
 
   const uploadTax = () => {
     setShowImportModal(true);
   };
 
-
   const downloadTax = async (taxId) => {
     try {
-
-
       const response = await Axios.get(`/stateTax/${taxId}/export`, {
         responseType: 'blob',
       });
@@ -79,7 +89,7 @@ const Profile = ({ setVerified }) => {
     try {
       const response = Axios.delete(`/stateTax/${taxId}/delete`);
       console.log(response.data);
-      navigate(0);
+      updateUser();
     } catch (error) {
       if (error.response?.status === 401) {
         alert("You are not authorized to download this file.");
