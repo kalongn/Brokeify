@@ -222,6 +222,7 @@ const testRMDTable = async () => {
 
     try {
         const rmd = await factory.create({
+            year: 2024,
             ages: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79],
             distributionPeriods: [27.4, 26.5, 25.6, 24.7, 23.8, 22.9, 22.0, 21.2, 20.3, 19.5]
         });
