@@ -5,6 +5,8 @@
 import * as fs from 'fs';
 import { join } from 'path';
 import { format } from 'date-fns';
+import { Worker } from 'worker_threads';
+import path from 'path';
 
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
@@ -58,6 +60,54 @@ async function createEventLog(user, datetime, folder) {
 }
 
 async function validate(scenarioID) {
+    const scenario = await scenarioFactory.read(scenarioID);
+    
+    
+    //ensures no circly dependancies for events
+    for(const i in scenario.events){
+        let event = await eventFactory.read(scenario.events[i]);
+        let dependancyID = null;
+        
+        if(event.startsWith&&event.startsAfter){
+            throw("Event Cannot Start Both With And After");
+        }
+        if(event.startsWith!==undefined&&event.startsWith!==null){
+            dependancyID = event.startsWith;
+            
+        }
+        else if(event.startsAfter!==undefined&&event.startsAfter!==null){
+            dependancyID = event.startsAfter;
+            
+        }
+        while(dependancyID!=null){  //itarate through dependancies
+            
+            if(dependancyID.toString()===event._id.toString()){
+                
+                
+                throw("Circular Event Dependancies");
+            }
+            const newEvent = await eventFactory.read(dependancyID.toString());
+            if(!newEvent){
+                throw("Referenced Event Does Not Exist");
+            }
+            if(newEvent.startsWith&&newEvent.startsAfter){
+                throw("Event Cannot Start Both With And After");
+            }
+            if(newEvent.startsWith!==undefined&&newEvent.startsWith!==null){
+                dependancyID = newEvent.startsWith;
+            }
+            else if(newEvent.startsAfter!==undefined&&newEvent.startsAfter!==null){
+                dependancyID = newEvent.startsAfter;
+            }
+            else{
+                dependancyID = null;
+            }
+            event = newEvent;
+        }
+    }
+
+    
+
 
 }
 async function scrape() {
@@ -228,9 +278,8 @@ async function scrape() {
 
 
 
-async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, rmdTable, csvFile, logFile) {
+export async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, rmdTable, csvFile, logFile) {
     //deep clone then run simulation then re-splice original scenario in simulation output
-
     const unmodifiedScenario = await scenarioFactory.read(scenarioID);
     let copiedScenario = await scenarioFactory.clone(unmodifiedScenario._id);
     let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, capitalGains, rmdTable, csvFile, logFile);
@@ -238,88 +287,78 @@ async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncom
     return simulationResult;
 }
 
-
+function runInWorker(data) {
+    return new Promise((resolve, reject) => {
+        const worker = new Worker(path.resolve('./runWorker.js'), { workerData: data });
+        worker.on('message', resolve);
+        worker.on('error', reject);
+        worker.on('exit', code => {
+            if (code !== 0) reject(new Error(`Worker stopped with code ${code}`));
+        });
+    });
+}
+  
 //recives ID of scenario in db
-export async function validateRun(scenarioID, numTimes, stateTaxID, username) {
-    //first, validate scenario's invariants
-    
-    try {
-        await validate(scenarioID);
-
-    }
-    catch (err) {
-        throw err;
-    }
+export async function validateRun(scenarioID, numTimes, stateTaxIDArray, username, seed) {
+    await validate(scenarioID);
     const scrapeReturn = await scrape();
-    
-    //depending on if scenario is single or joint, pass in different values to run:
     const scenario = await scenarioFactory.read(scenarioID);
-   
-    let fedIncome = null;
-    let capitalGains = null;
-    let fedDeduction = null;
-    let rmdTable = scrapeReturn.rmdTable;
-    if (scenario.filingStatus === "SINGLE") {
-        fedIncome = scrapeReturn.federalIncomeSingle;
-        capitalGains = scrapeReturn.capitalGainsSingle;
-        fedDeduction = scrapeReturn.federalDeductionSingle;
-    }
-    else {
-        fedIncome = scrapeReturn.federalIncomeMarried;
-        capitalGains = scrapeReturn.capitalGainsMarried;
-        fedDeduction = scrapeReturn.federalDeductionMarried;
-    }
-
-    const stateTax = await taxFactory.read(stateTaxID);
-
-    //Array of simulations
-
-
-
+  
+    
+    const fedIncome = [
+        JSON.parse(JSON.stringify(scrapeReturn.federalIncomeSingle)),
+        JSON.parse(JSON.stringify(scrapeReturn.federalIncomeMarried))
+    ];
+    
+    const capitalGains = [
+        JSON.parse(JSON.stringify(scrapeReturn.capitalGainsSingle)),
+        JSON.parse(JSON.stringify(scrapeReturn.capitalGainsMarried))
+    ];
+    
+    const fedDeduction = [
+        JSON.parse(JSON.stringify(scrapeReturn.federalDeductionSingle)),
+        JSON.parse(JSON.stringify(scrapeReturn.federalDeductionMarried))
+    ];
+    
+    const rmdTable = JSON.parse(JSON.stringify(scrapeReturn.rmdTable));
+  
+    const stateTax = [
+        JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[0]))),
+        JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[1]))),
+    ];
+  
     const compiledResults = await simulationFactory.create({
         scenario: scenario,
         results: []
     });
-
-
-
-
-    //TODO: parralelism
+  
+    const datetime = new Date();
+    const csvFile = (await createSimulationCSV(username, datetime, "../logs")).toString();
+    const logFile = await createEventLog(username, datetime, "../logs");
+    scenarioID = scenarioID.toString();
+    
+    const promises = [];
     for (let i = 0; i < numTimes; i++) {
-        
-        let csvFile;
-        let logFile;
-        if (i === 0) {
-            
-
-            //create logs on first run
-            const datetime = new Date();
-            csvFile = (await createSimulationCSV(username, datetime, "../logs")).toString();
-
-            logFile = await createEventLog(username, datetime, "../logs");
-        }
-
-        let runResult = await run(
+      promises.push(
+        runInWorker({
             scenarioID,
             fedIncome,
             capitalGains,
             fedDeduction,
             stateTax,
             rmdTable,
-            csvFile,
-            logFile
-
-        );
-        //Replace runResult.scenario with scenario, to erase the fact we cloned
-        //let clonedScenarioID = runResult.scenario._id;
-
-       
-
-        compiledResults.results.push(runResult);
-
+            csvFile: i === 0 ? csvFile : null,
+            logFile: i === 0 ? logFile : null
+        })
+      );
     }
-    
+  
+    const results = await Promise.all(promises);
+    for (const res of results) {
+        if (res.error) throw new Error(res.error);
+        compiledResults.results.push(res);
+    }
+  
     await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
-    console.log(compiledResults)
     return compiledResults;
-}
+  }

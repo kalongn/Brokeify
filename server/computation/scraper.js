@@ -6,7 +6,7 @@ import * as cheerio from 'cheerio';
 
 export async function scrapeFederalIncomeTaxBrackets() {
     try {
-        const url = 'https://www.irs.gov/filing/federal-income-tax-rates-and-brackets';
+        const url = `${process.env.FED_INCOME}`;
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
 
@@ -69,7 +69,7 @@ export async function scrapeFederalIncomeTaxBrackets() {
 
 export async function scrapeStandardDeductions() {
     try {
-        const url = 'https://www.irs.gov/publications/p17';
+        const url = `${process.env.FED_STANDARD_DEDUCTIONS}`;
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
 
@@ -114,7 +114,7 @@ export async function scrapeStandardDeductions() {
 
 export async function fetchCapitalGainsData() {
     try {
-        const url = 'https://www.irs.gov/taxtopics/tc409';
+        const url = `${process.env.FED_CAPITAL_GAINS}`;
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
 
@@ -286,7 +286,7 @@ export async function fetchCapitalGainsData() {
 //scrape RMD tables
 export async function fetchRMDTable() {
     try {
-        const url = 'https://www.irs.gov/publications/p590b#en_US_2023_publink100090310';
+        const url = `${process.env.FED_RMD}`;
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
 
