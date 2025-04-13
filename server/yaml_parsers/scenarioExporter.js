@@ -305,14 +305,14 @@ export async function exportScenarioAsYAML(scenarioID) {
         for (const i in scenario.orderedRMDStrategy) {
             rmdStrategy.push(idMap.get(scenario.orderedRMDStrategy[i].toString()));
         }
-        scenarioObject.rmdStrategy = rmdStrategy;
+        scenarioObject.RMDStrategy = rmdStrategy;
 
         if (scenario.startYearRothOptimizer !== undefined) {
             const rothStrategy = [];
             for (const i in scenario.orderedRothStrategy) {
                 rothStrategy.push(idMap.get(scenario.orderedRothStrategy[i].toString()));
             }
-            scenarioObject.rothStrategy = rothStrategy;
+            scenarioObject.RothConversionStrategy = rothStrategy;
         }
 
         const yamlStr = yaml.dump(scenarioObject);
