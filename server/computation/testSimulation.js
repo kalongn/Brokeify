@@ -327,12 +327,12 @@ const populateDB = async () => {
     const s = await taxfactory.read(stateTax[0]);
     
     
-    const scenarioID = await parseAndSaveYAML("../yaml_files/scenarios/testScenario.yaml");
+    const scenarioID = await parseAndSaveYAML("../yaml_files/scenarios/testScenario2.yaml");
     const scenario = await factory.read(scenarioID);
-    //console.log(scenario1);
+    console.log(scenario);
     
     
-    const RMDTable = await testRMDTable();
+    //const RMDTable = await testRMDTable();
 
 
     //const federalIncomeTax = await testTax(1);
@@ -345,8 +345,8 @@ const populateDB = async () => {
     console.log('====================== Simulation Test =====================');
     //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
-        const r = await validateRun(scenario._id, 1, stateTax, "GUEST");
-        console.log(r);
+        //const r = await validateRun(scenario._id, 1, stateTax, "GUEST", 1);
+        //console.log(r);
     }
     catch (err) {
         const res = await connection.dropDatabase();
