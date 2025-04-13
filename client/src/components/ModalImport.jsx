@@ -35,7 +35,7 @@ const ModalImport = ({ isOpen, onClose }) => {
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
-        console.log(response.data.message);
+        console.log(response.data);
         if (location.pathname === "/Home") {
           // Redirect to the scenario simulation page
           const scenarioId = response.data.scenarioId;

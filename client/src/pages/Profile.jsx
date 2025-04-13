@@ -38,7 +38,7 @@ const Profile = ({ setVerified }) => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
     updateUser();
-  });
+  }, [updateUser]);
 
   useEffect(() => {
     updateUser();
@@ -82,12 +82,12 @@ const Profile = ({ setVerified }) => {
     }
   }
 
-  const deleteTax = (taxId) => {
+  const deleteTax = async (taxId) => {
     if (!confirm("Are you sure you want to delete this file?")) {
       return;
     }
     try {
-      const response = Axios.delete(`/stateTax/${taxId}/delete`);
+      const response = await Axios.delete(`/stateTax/${taxId}/delete`);
       console.log(response.data);
       updateUser();
     } catch (error) {
