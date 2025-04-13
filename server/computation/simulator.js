@@ -223,7 +223,7 @@ export async function simulate(
 
       incomeByEvent.push({
         name: event._id,
-        values: income,
+        value: income,
       });
 
       const a = await investmentFactory.read(cashInvestment._id);
@@ -330,7 +330,7 @@ export async function simulate(
     const investmentValuesArray = [];
     for (const investmentIndex in investments) {
       const touple = {
-        id: investments[investmentIndex]._id,
+        name: investments[investmentIndex]._id,
         value: investments[investmentIndex].value,
       };
       investmentValuesArray.push(touple);
