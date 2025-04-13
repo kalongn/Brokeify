@@ -102,7 +102,7 @@ async function validate(scenarioID) {
 }
 
 
-export async function scrape() {
+async function scrape() {
     //check to see if federalIncomeTax, federalStandardDeduction, capitalGains exist
     //scrape, parse, and save to DB if not
 
