@@ -31,7 +31,7 @@ const ModalImport = ({ isOpen, onClose }) => {
         const formData = new FormData();
         formData.append("file", file);
         const response = await Axios.post(
-          location.pathname === "/Home" ? `/scenario/import` : `/profile/uploadStateTax`,
+          location.pathname === "/Home" ? `/scenario/import` : `/stateTax/import`,
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -40,12 +40,19 @@ const ModalImport = ({ isOpen, onClose }) => {
           // Redirect to the scenario simulation page
           const scenarioId = response.data.scenarioId;
           navigate(`/Scenario/${scenarioId}`);
+        } else if (location.pathname === "/Profile") {
+          handleClose();
+          navigate(0);
         } else {
-          // TODO: Tax import success message
+          throw new Error("Unknown path");
         }
       } catch (error) {
+        if (location.pathname === "/Profile" && error.response?.status === 409) {
+          setStatus("A tax of the same state, same year, same filing status already exists.");
+        } else {
+          setStatus("File upload failed");
+        }
         console.error("Error uploading file:", error);
-        setStatus("File upload failed");
       }
     }
   };

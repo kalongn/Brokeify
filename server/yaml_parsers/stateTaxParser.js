@@ -1,7 +1,9 @@
 import yaml from 'js-yaml';
-
 import TaxController from "../db/controllers/TaxController.js";
+import UserController from "../db/controllers/UserController.js";
+
 const taxController = new TaxController()
+const userController = new UserController();
 
 /*
 Used ChatGPT for the following function:
@@ -27,6 +29,14 @@ export async function parseStateTaxYAML(yamlStr, userId) {
                 rate: Number(rate)
             }));
         };
+        const user = await userController.readWithTaxes(userId);
+        if (!user.userSpecificTaxes) {
+            user.userSpecificTaxes = [];
+        }
+        
+        if (user.userSpecificTaxes.some(t => t.state === state && t.filingStatus === filingStatus && t.year === year)) {
+            return 1; // Tax already exists
+        }
 
         const taxId = await taxController.create("STATE_INCOME", {
             year: Number(year),
@@ -35,6 +45,10 @@ export async function parseStateTaxYAML(yamlStr, userId) {
             brackets: parseBrackets(rates)
         });
 
+        user.userSpecificTaxes.push(taxId);
+        await userController.update(userId, user);
+
+        return 0;
     } catch (err) {
         throw (err);
     }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Axios from "axios";
 import PropTypes from 'prop-types';
 
@@ -10,8 +11,8 @@ import Layout from "../components/Layout";
 import ModalImport from "../components/ModalImport";
 import style from './Profile.module.css';
 
-//TODO: Tax YAML upload button, and file table buttons as well including the tax upload Date.
 const Profile = ({ setVerified }) => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [showImportModal, setShowImportModal] = useState(false);
 
@@ -72,7 +73,23 @@ const Profile = ({ setVerified }) => {
   }
 
   const deleteTax = (taxId) => {
-    alert(`TODO: delete the tax file with id ${taxId} from the database.`);
+    if (!confirm("Are you sure you want to delete this file?")) {
+      return;
+    }
+    try {
+      const reponse = Axios.delete(`/stateTax/${taxId}/delete`);
+      console.log(reponse.data);
+      navigate(0);
+    } catch (error) {
+      if (error.reponse?.status === 401) {
+        alert("You are not authorized to download this file.");
+      } else if (error.response?.status === 403) {
+        alert("You cannot download someone else tax file.");
+      } else {
+        alert("Unknown error downloading the tax file.");
+      }
+      console.error('Error deleting tax file:', error);
+    }
   }
 
   return (
