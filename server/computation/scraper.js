@@ -78,7 +78,7 @@ export async function scrapeFederalIncomeTaxBrackets() {
         taxBrackets.push(headOfHousehold);
 
 
-        return {year: year, taxBrackets: taxBrackets};
+        return { year: year, taxBrackets: taxBrackets };
     } catch (error) {
         console.error('Error fetching tax brackets:', error);
         return [];
@@ -139,7 +139,7 @@ export async function scrapeStandardDeductions() {
             }
         });
 
-        return {year: year, standardDeductions: standardDeductions};
+        return { year: year, standardDeductions: standardDeductions };
     }
     catch (error) {
         console.error('Error fetching standard deductions:', error);
@@ -155,6 +155,22 @@ export async function fetchCapitalGainsData() {
         const url = `${process.env.FED_CAPITAL_GAINS}`;
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
+
+        let year = null;
+        $('p').each((i, element) => {
+            const text = $(element).text();
+            const match = text.match(/For taxable years beginning in (\d{4})/i);
+            if (match) {
+                year = match[1];
+                return false; // Stop loop once found
+            }
+        });
+        if (!year) {
+            console.log('Tax Year not found, default to current Year');
+            year = new Date().getFullYear(); // Default to current year if not found
+        } else {
+            year = Number(year); // Convert to number
+        }
 
         let unparsedBullets1 = [];
         let unparsedBullets2 = [];
@@ -311,7 +327,7 @@ export async function fetchCapitalGainsData() {
         taxBrackets.push(headOfHousehold);
 
 
-        return taxBrackets;
+        return { year: year, taxBrackets: taxBrackets };
     }
     catch (error) {
         console.error('Error fetching capital gains tax rates:', error);

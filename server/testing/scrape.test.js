@@ -55,28 +55,32 @@ test('scrape standard deductions', async () => {
 });
 
 test('scrape federal capital gains', async () => {
-    const res = await fetchCapitalGainsData();
+    const {year, taxBrackets} = await fetchCapitalGainsData();
     //check that there are 4 tables
-    expect(res.length).toBe(4);
+    expect(taxBrackets.length).toBe(4);
     //check that rates are monotonically increasing
-    for(const i in res.length){
-        for(const j in res[i].length){
+    for(const i in taxBrackets.length){
+        for(const j in taxBrackets[i].length){
             if(j!==0){
-                expect(res[i][j].rate).toBeGreaterThanOrEqual(res[i][j-1].rate);
+                expect(taxBrackets[i][j].rate).toBeGreaterThanOrEqual(taxBrackets[i][j-1].rate);
             }
         }
     }
     //check that every high bound is greater than every low bound
     //check that the high bound of braxket x is 1 less than low bound of x+1 bracket
-    for(const i in res.length){
-        for(const j in res[i].length){
+    for(const i in taxBrackets.length){
+        for(const j in taxBrackets[i].length){
             
-            expect(res[i][j].highBound).toBeGreaterThanOrEqual(res[i][j].lowBound);
+            expect(taxBrackets[i][j].highBound).toBeGreaterThanOrEqual(taxBrackets[i][j].lowBound);
             if(j!==0){
-                expect(res[i][j].lowBound).toBe(res[i][j-1].highBound+1);
+                expect(taxBrackets[i][j].lowBound).toBe(taxBrackets[i][j-1].highBound+1);
             }
         }
     }
+
+    //check that the year is correct
+    const expectYear = 2024; // This can be outdated, but we can check the year in the test
+    expect(year).toBe(expectYear);
 });
 
 test('scrape rmd table', async () => {

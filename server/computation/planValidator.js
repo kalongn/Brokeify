@@ -191,33 +191,35 @@ export async function scrape() {
     }
 
     if (capitalGainsSingle === null || capitalGainsMarried === null) {
-        const returnCapitalGainsScrape = await fetchCapitalGainsData();
+        const { year, taxBrackets } = await fetchCapitalGainsData();
 
 
         if (capitalGainsSingle === null) {
             let singleCapitalTax = { filingStatus: "SINGLE", taxType: "CAPITAL_GAIN", taxBrackets: [] };
-            for (const i in returnCapitalGainsScrape[0]) {
-                const bracket = { lowerBound: returnCapitalGainsScrape[0][i].lowBound, upperBound: returnCapitalGainsScrape[0][i].highBound, rate: returnCapitalGainsScrape[0][i].rate / 100 };
+            for (const i in taxBrackets[0]) {
+                const bracket = { lowerBound: taxBrackets[0][i].lowBound, upperBound: taxBrackets[0][i].highBound, rate: taxBrackets[0][i].rate / 100 };
                 singleCapitalTax.taxBrackets.push(bracket);
             }
             //save to db
 
             await taxFactory.create("CAPITAL_GAIN", {
                 filingStatus: singleCapitalTax.filingStatus,
-                taxBrackets: singleCapitalTax.taxBrackets
+                taxBrackets: singleCapitalTax.taxBrackets,
+                year: year
             });
             capitalGainsSingle = singleCapitalTax;
         }
         if (capitalGainsMarried === null) {
             let marriedCapitalTax = { filingStatus: "MARRIEDJOINT", taxType: "CAPITAL_GAIN", taxBrackets: [] };
-            for (const i in returnCapitalGainsScrape[0]) {
-                const bracket = { lowerBound: returnCapitalGainsScrape[1][i].lowBound, upperBound: returnCapitalGainsScrape[1][i].highBound, rate: returnCapitalGainsScrape[1][i].rate / 100 };
+            for (const i in taxBrackets[0]) {
+                const bracket = { lowerBound: taxBrackets[1][i].lowBound, upperBound: taxBrackets[1][i].highBound, rate: taxBrackets[1][i].rate / 100 };
                 marriedCapitalTax.taxBrackets.push(bracket);
             }
             //save to db
             await taxFactory.create("CAPITAL_GAIN", {
                 filingStatus: marriedCapitalTax.filingStatus,
-                taxBrackets: marriedCapitalTax.taxBrackets
+                taxBrackets: marriedCapitalTax.taxBrackets,
+                year: year
             });
             capitalGainsMarried = marriedCapitalTax;
         }
