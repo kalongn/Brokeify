@@ -20,6 +20,7 @@ import SimulationController from "../db/controllers/SimulationController.js";
 import { simulate } from "./simulator.js";
 import { validateRun } from "./planValidator.js";
 import { parseAndSaveYAML } from "../yaml_parsers/scenarioParser.js";
+import { parseStateTaxYAML } from "../yaml_parsers/stateTaxParser.js";
 import { exportScenarioAsYAML } from "../yaml_parsers/scenarioExporter.js";
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
@@ -221,6 +222,7 @@ const testRMDTable = async () => {
 
     try {
         const rmd = await factory.create({
+            year: 2024,
             ages: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79],
             distributionPeriods: [27.4, 26.5, 25.6, 24.7, 23.8, 22.9, 22.0, 21.2, 20.3, 19.5]
         });
@@ -286,13 +288,7 @@ const testTax = async (i) => {
             return federalStandardDeduction;
         }
         else if (i == 4) {
-            const stateStandardDeduction = await factory.create("STATE_STANDARD", {
-                filingStatus: "SINGLE",
-                state: "CA",
-                standardDeduction: 4601
-            });
-            ///console.log(stateStandardDeduction);
-            return stateStandardDeduction;
+            return null;
         }
 
         else if (i == 5) {
@@ -319,9 +315,13 @@ const testTax = async (i) => {
 
 const populateDB = async () => {
     const factory = new ScenarioController();
+    const taxfactory = new TaxController();
+    const stateTax = await parseStateTaxYAML("../yaml_files/state_taxes/state_tax_NY.yaml")
+    //console.log(stateTax)
+    const s = await taxfactory.read(stateTax[0]);
     
-
-    const scenarioID = await parseAndSaveYAML("../yaml_files/testScenario.yaml");
+    
+    const scenarioID = await parseAndSaveYAML("../yaml_files/scenarios/testScenario.yaml");
     const scenario = await factory.read(scenarioID);
     //console.log(scenario1);
     
@@ -330,7 +330,7 @@ const populateDB = async () => {
 
 
     //const federalIncomeTax = await testTax(1);
-    const stateIncomeTax = await testTax(2);
+    //const stateIncomeTax = await testTax(2);
     //const federalStandardDeduction = await testTax(3);
     //const capitalGainTax = await testTax(5);
     // const scenario = await testScenario();
