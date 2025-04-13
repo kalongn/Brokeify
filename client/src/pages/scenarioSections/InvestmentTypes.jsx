@@ -26,11 +26,7 @@ const InvestmentTypes = () => {
 
   const navigate = useNavigate();
   const newInvestmentType = () => {
-    // Pass the list of investmentTypes to avoid fetching list again later
-    const investmentTypeNames = investmentTypes.map((investmentType) => investmentType.name);
-    navigate(`/ScenarioForm/${scenarioId}/investment-types/new`, {
-      state: investmentTypeNames
-    });
+    navigate(`/ScenarioForm/${scenarioId}/investment-types/new`);
   }
   //New route to update scenario
   const editInvestmentType = (id) => {
