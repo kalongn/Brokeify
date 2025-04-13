@@ -203,20 +203,20 @@ async function fillInvestEvent(eventID, eventData, idMap) {
 
     if (glidePath) {
         for (const i in eventData.assetAllocation) {
-            const toPush = [Object.values(eventData.assetAllocation[i])[0], Object.values(eventData.assetAllocation2[i])[0]];
+            const toPush = [eventData.assetAllocation[i], eventData.assetAllocation2[i]];
             percentageAllocations.push(toPush);
         }
     }
     else {
         for (const i in eventData.assetAllocation) {
-            const toPush = [Object.values(eventData.assetAllocation[i])[0]];
+            const toPush = [eventData.assetAllocation[i]];
             percentageAllocations.push(toPush);
         }
     }
 
     const allocatedInvestments = [];
     for (const i in eventData.assetAllocation) {
-        const toPush = idMap.get(Object.keys(i)[0].toString());
+        const toPush = idMap.get(i.toString());
         allocatedInvestments.push(toPush);
     }
 
@@ -269,13 +269,13 @@ async function fillRebalanceEvent(eventID, eventData, idMap, taxStatusMap) {
     const percentageAllocations = [];
     if (glidePath) {
         for (const i in eventData.assetAllocation) {
-            const toPush = [Object.values(eventData.assetAllocation[i])[0], Object.values(eventData.assetAllocation2[i])[0]];
+            const toPush = [eventData.assetAllocation[i], eventData.assetAllocation2[i]];
             percentageAllocations.push(toPush);
         }
     }
     else {
         for (const i in eventData.assetAllocation) {
-            const toPush = [Object.values(eventData.assetAllocation[i])[0]];
+            const toPush = [eventData.assetAllocation[i]];
             percentageAllocations.push(toPush);
         }
     }
@@ -284,9 +284,9 @@ async function fillRebalanceEvent(eventID, eventData, idMap, taxStatusMap) {
     const allocatedInvestments = [];
     let taxStatus = ""; // Infer from the first asset allocation and its type, might run into trouble if user modifies the yaml file into invalid state
     for (const i in eventData.assetAllocation) {
-        const toPush = idMap.get(Object.keys(i)[0].toString());
+        const toPush = idMap.get(i.toString());
         if (taxStatus === "") {
-            taxStatus = taxStatusMap.get(Object.keys(i)[0].toString().split(" ").at(-1));
+            taxStatus = taxStatusMap.get(i.toString().split(" ").at(-1));
         }
         allocatedInvestments.push(toPush);
     }
