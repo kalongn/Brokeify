@@ -91,7 +91,7 @@ const App = () => {
         <Route path="/Simulation" element={<SimulationPage />} />
         
         <Route path="/RouteTesting" element={<RouteTesting />} />
-        <Route path="/Visualizations/Charts/:scenarioId" element={<Charts />} />        
+        <Route path="/Visualizations/Charts/:simulationId" element={<Charts />} />        
       </Routes>
     </>
   )
