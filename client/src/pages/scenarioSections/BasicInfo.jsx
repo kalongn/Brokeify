@@ -139,23 +139,23 @@ const BasicInfo = () => {
 
 
     // Validate birth year
-    if (formData.birthYear !== undefined) {
+    if (formData.birthYear !== undefined && errors.birthYear !== undefined) {
       if (formData.birthYear < 1900 || formData.birthYear > currentYear) {
-        newErrors.birthYear = `Birth year must be between 1900 and ${currentYear}`;
+        newErrors.birthYear = `Birth Year must be between 1900 and ${currentYear}`;
       }
       // Validate life expectancy distribution
       if (distributions.lifeExpectancy.value !== undefined && distributions.lifeExpectancy.value !== null) {
         if (formData.birthYear + distributions.lifeExpectancy.value < currentYear) {
-          newErrors.lifeExpectancy = "Life expectancy cannot result in a death year in the past";
+          newErrors.lifeExpectancy = "Spouse Life Expectancy cannot result in a death year in the past";
         }
         else if (distributions.lifeExpectancy.value > 122) {
-          newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
+          newErrors.lifeExpectancy = "Spouse Life Expectancy cannot reasonably exceed 122";
         }
       }
     }
 
     // Validate spouse birth year
-    if (formData.spouseBirthYear !== undefined && formData.maritalStatus === "MARRIEDJOINT") {
+    if (formData.spouseBirthYear !== undefined && errors.spouseBirthYear !== undefined && formData.maritalStatus === "MARRIEDJOINT") {
       if ((formData.spouseBirthYear < 1900 || formData.spouseBirthYear > currentYear)) {
         newErrors.spouseBirthYear = `Birth year must be between 1900 and ${currentYear}`;
       }
@@ -302,7 +302,7 @@ const BasicInfo = () => {
                     name="spouseBirthYear"
                     onChange={handleTextChange}
                     defaultValue={formData.spouseBirthYear}
-                    className={errors.financialGoal ? errorStyles.errorInput : ""}
+                    className={errors.spouseBirthYear ? errorStyles.errorInput : ""}
                   />
                 </label>
                 <label id="spouseLifeExpectancy">Spouse Life Expectancy</label>
@@ -311,7 +311,7 @@ const BasicInfo = () => {
                   name="spouseLifeExpectancy"
                   onChange={handleDistributionsChange}
                   defaultValue={distributions.spouseLifeExpectancy}
-                  className={errors.lifeExpectancy ? errorStyles.highlight : ""}
+                  className={errors.spouseLifeExpectancy ? errorStyles.highlight : ""}
                 />
               </div>
               }

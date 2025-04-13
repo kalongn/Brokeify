@@ -5,6 +5,9 @@ import styles from './ErrorMessage.module.css'
 
 const ErrorMessage = ({ errors }) => {
   console.log(errors);
+  if(Object.keys(errors).length === 0) {
+    return;
+  }
 
   return (
     <div className={styles.errorBox}>
