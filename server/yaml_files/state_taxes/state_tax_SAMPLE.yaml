@@ -7,7 +7,7 @@
 year: 2025
 state: NY
 filingStatus: MARRIEDJOINT # or SINGLE
-rate:
+rates:
   - lowerBound: 0
     upperBound: 8500
     rate: 4

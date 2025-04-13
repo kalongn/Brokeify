@@ -1,7 +1,7 @@
 year: 2024
 state: CT
 filingStatus: MARRIEDJOINT
-rate:
+rates:
   - lowerBound: 0
     upperBound: 20000
     rate: 2
