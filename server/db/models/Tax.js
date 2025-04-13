@@ -14,6 +14,7 @@ const TaxBracketSchema = new mongoose.Schema({
 const TaxSchema = new mongoose.Schema({
     taxType: { type: String, enum: TAX_TYPE, required: true },
     filingStatus: { type: String, enum: FILING_STATUS, required: true },
+    year: { type: Number, required: true },
     dateCreated: {
         type: String,
         default: () => {

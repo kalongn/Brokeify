@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { Tax, FederalIncomeTax, StateIncomeTax, FederalStandardDeduction, StateStandardDeduction, CapitalGainTax } from "../models/Tax.js";
 
 /**
- * @typedef { 'FEDERAL_INCOME' | 'CAPITAL_GAIN' | 'FEDERAL_STANDARD_REDUCTION'| 'EARLY_WITHDRAWAL'| 'STATE_INCOME'| 'STATE_FEDERAL_STANDARD_REDUCTION' } TAX_TYPE 
+ * @typedef { 'FEDERAL_INCOME' | 'CAPITAL_GAIN' | 'FEDERAL_STANDARD_REDUCTION'| 'EARLY_WITHDRAWAL'| 'STATE_INCOME'| } TAX_TYPE 
  */
 
 /**
