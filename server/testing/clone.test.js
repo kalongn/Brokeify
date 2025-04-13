@@ -79,7 +79,6 @@ test('event clone test', async () => {
         assetAllocationType: "GLIDE",
         percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
         allocatedInvestments: [],
-        maximumCash: 1000,
         taxStatus: "NON_RETIREMENT"
     });
     
@@ -95,7 +94,6 @@ test('event clone test', async () => {
     expect(event.assetAllocationType).toEqual(clonedEvent.assetAllocationType);
     expect(event.percentageAllocations).toEqual(clonedEvent.percentageAllocations);
     expect(event.allocatedInvestments).toEqual(clonedEvent.allocatedInvestments);
-    expect(event.maximumCash).toEqual(clonedEvent.maximumCash);
     expect(event.taxStatus).toEqual(clonedEvent.taxStatus);
 });
 test('scenario clone test', async () => {
