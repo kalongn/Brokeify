@@ -66,3 +66,20 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+
+::-webkit-scrollbar {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-primary-muted);
+  border-radius: 0.5rem;
+}
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--color-silver);
+  border-radius: 0.5rem;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}

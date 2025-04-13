@@ -1,9 +1,9 @@
 import Modal from 'react-modal';
 import PropTypes from 'prop-types';
-import { FaTimes } from 'react-icons/fa';
+//import { FaTimes } from 'react-icons/fa';
 import styles from './Modal.module.css';
 import buttonStyles from '../pages/scenarioSections/Form.module.css';
-
+import { VscChromeClose } from "react-icons/vsc";
 // Prevent user or screen readers from accessing page content if modal is open
 Modal.setAppElement('#root');
 
@@ -24,7 +24,7 @@ const ModalBase = ({ isOpen, onClose, children }) => {
         className={buttonStyles.tableButton}
         onClick={onClose}
       >
-        <FaTimes />
+        <VscChromeClose  />
       </button>
       {children}
     </Modal>
