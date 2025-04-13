@@ -19,6 +19,8 @@ import sharingRoutes from './sharingRoutes.js';
 import scenarioYamlRoutes from './scenarioYamlRoutes.js';
 import taxYamlRoutes from './taxYamlRoutes.js';
 
+import runSimulationRoutes from './runSimulationRoutes.js';
+
 const router = express.Router();
 router.use(authRoutes);
 router.use(homeRoutes);
@@ -38,6 +40,8 @@ router.use(sharingRoutes);
 
 router.use(scenarioYamlRoutes);
 router.use(taxYamlRoutes);
+
+router.use(runSimulationRoutes);
 
 router.get("/", async (req, res) => {
     console.log(req.session); // can be used to debug session data
