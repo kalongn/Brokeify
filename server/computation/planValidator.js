@@ -224,19 +224,21 @@ export async function scrape() {
     }
 
     if (federalDeductionSingle === null || federalDeductionMarried === null) {
-        const returnDeductionsScrape = await scrapeStandardDeductions();
+        const { year, standardDeductions } = await scrapeStandardDeductions();
 
 
         if (federalDeductionSingle === null) {
             federalDeductionSingle = await taxFactory.create("FEDERAL_STANDARD", {
                 filingStatus: "SINGLE",
-                standardDeduction: returnDeductionsScrape[0].amount
+                standardDeduction: standardDeductions[0].amount,
+                year: year
             });
         }
         if (federalDeductionMarried === null) {
             federalDeductionMarried = await taxFactory.create("FEDERAL_STANDARD", {
                 filingStatus: "MARRIEDJOINT",
-                standardDeduction: returnDeductionsScrape[1].amount
+                standardDeduction: standardDeductions[1].amount,
+                year: year
             });
         }
     }

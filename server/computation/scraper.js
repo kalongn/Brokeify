@@ -93,6 +93,24 @@ export async function scrapeStandardDeductions() {
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
 
+
+        let year = null;
+        $('h1').each((i, element) => {
+            const text = $(element).text();
+            const match = text.match(/Publication 17 \((\d{4})\), Your Federal Income Tax/i);
+            if (match) {
+                year = match[1];
+                return false; // Stop loop once found
+            }
+        });
+
+        if (!year) {
+            console.log('Tax Year not found, default to current Year');
+            year = new Date().getFullYear(); // Default to current year if not found
+        } else {
+            year = Number(year); // Convert to number
+        }
+
         let standardDeductions = [];
 
         //hardcode the id (hope the irs doesnt update the website)
@@ -121,7 +139,7 @@ export async function scrapeStandardDeductions() {
             }
         });
 
-        return standardDeductions;
+        return {year: year, standardDeductions: standardDeductions};
     }
     catch (error) {
         console.error('Error fetching standard deductions:', error);

@@ -36,19 +36,24 @@ test('scrape federal income tax brackets', async () => {
     }
 
     //check that the year is correct
-    const expectYear = 2024;
+    const expectYear = 2024; // This can be outdated, but we can check the year in the test
     expect(year).toBe(expectYear);
 });
 
 test('scrape standard deductions', async () => {
-    const res = await scrapeStandardDeductions();
+    const {year, standardDeductions} = await scrapeStandardDeductions();
     
-    expect(res.length).toBe(3);
-    for(const i in res.length){
-        expect(res[i]).toHaveProperty("filingStatus");
-        expect(res[i]).toHaveProperty("amount");
+    expect(standardDeductions.length).toBe(3);
+    for(const i in standardDeductions.length){
+        expect(standardDeductions[i]).toHaveProperty("filingStatus");
+        expect(standardDeductions[i]).toHaveProperty("amount");
     }
+
+    //check that the year is correct
+    const expectYear = 2024; // This can be outdated, but we can check the year in the test
+    expect(year).toBe(expectYear);
 });
+
 test('scrape federal capital gains', async () => {
     const res = await fetchCapitalGainsData();
     //check that there are 4 tables
@@ -73,6 +78,7 @@ test('scrape federal capital gains', async () => {
         }
     }
 });
+
 test('scrape rmd table', async () => {
     const res = await fetchRMDTable();
     expect(res).toHaveProperty("ages");
