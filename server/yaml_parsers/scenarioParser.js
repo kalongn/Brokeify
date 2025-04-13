@@ -215,11 +215,10 @@ async function fillInvestEvent(eventID, eventData, idMap) {
     }
 
     const allocatedInvestments = [];
-    for (const i in eventData.assetAllocation) {
-        const toPush = idMap.get(i.toString());
+    for (const i of eventData.assetAllocation) {
+        const toPush = idMap.get(Object.keys(i)[0].toString());
         allocatedInvestments.push(toPush);
     }
-
 
     if (eventData.start.type === "startWith") {
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
@@ -262,7 +261,7 @@ async function fillInvestEvent(eventID, eventData, idMap) {
         return toReturn;
     }
 }
-async function fillRebalanceEvent(eventID, eventData, idMap) {
+async function fillRebalanceEvent(eventID, eventData, idMap, taxStatusMap) {
     const durationDistribution = await createDistribution(eventData.duration, "amount", idMap);
     const description = "";
     const glidePath = eventData.glidePath === "true" || eventData.glidePath == true;
@@ -281,10 +280,14 @@ async function fillRebalanceEvent(eventID, eventData, idMap) {
         }
     }
 
-    const allocatedInvestments = [];
-    for (const i in eventData.assetAllocation) {
-        const toPush = idMap.get(i.toString());
 
+    const allocatedInvestments = [];
+    let taxStatus = ""; // Infer from the first asset allocation and its type, might run into trouble if user modifies the yaml file into invalid state
+    for (const i of eventData.assetAllocation) {
+        const toPush = idMap.get(Object.keys(i)[0].toString());
+        if (taxStatus === "") {
+            taxStatus = taxStatusMap.get(Object.keys(i)[0].toString().split(" ").at(-1));
+        }
         allocatedInvestments.push(toPush);
     }
 
@@ -297,6 +300,7 @@ async function fillRebalanceEvent(eventID, eventData, idMap) {
             assetAllocationType: glidePath ? "GLIDE" : "FIXED",
             percentageAllocations: percentageAllocations,
             allocatedInvestments: allocatedInvestments,
+            taxStatus: taxStatus,
         });
 
         return toReturn;
@@ -309,6 +313,7 @@ async function fillRebalanceEvent(eventID, eventData, idMap) {
             assetAllocationType: glidePath ? "GLIDE" : "FIXED",
             percentageAllocations: percentageAllocations,
             allocatedInvestments: allocatedInvestments,
+            taxStatus: taxStatus,
         });
 
         return toReturn;
@@ -321,6 +326,7 @@ async function fillRebalanceEvent(eventID, eventData, idMap) {
             assetAllocationType: glidePath ? "GLIDE" : "FIXED",
             percentageAllocations: percentageAllocations,
             allocatedInvestments: allocatedInvestments,
+            taxStatus: taxStatus,
         });
 
         return toReturn;
@@ -414,7 +420,7 @@ export async function parseAndSaveYAML(yamlStr, userId) {
                 await fillInvestEvent(createdEvent._id, data.eventSeries[i], idMap);
             }
             else if (createdEvent.eventType === "REBALANCE") {
-                await fillRebalanceEvent(createdEvent._id, data.eventSeries[i], idMap);
+                await fillRebalanceEvent(createdEvent._id, data.eventSeries[i], idMap, taxStatusMap);
             }
             else {
                 //Error
