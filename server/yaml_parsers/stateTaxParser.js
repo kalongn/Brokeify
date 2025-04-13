@@ -1,6 +1,4 @@
-//Parse state tax files in designated format, save to DB
 import yaml from 'js-yaml';
-import fs from 'fs';
 
 import TaxController from "../db/controllers/TaxController.js";
 const taxController = new TaxController()
@@ -18,12 +16,9 @@ And use controllwers from:
 {Tax controller file}
 */
 
-export async function parseStateTaxYAML(filePath) {
+export async function parseStateTaxYAML(yamlStr, userId) {
     try {
-        const fileContents = fs.readFileSync(filePath, 'utf8');
-        const parsed = yaml.load(fileContents);
-
-        const { state, single, married } = parsed;
+        const { year, state, filingStatus, rates } = yamlStr;
 
         const parseBrackets = (brackets) => {
             return brackets.map(({ lowerBound, upperBound, rate }) => ({
@@ -33,25 +28,43 @@ export async function parseStateTaxYAML(filePath) {
             }));
         };
 
-        const singleEntry = {
+        const taxId = await taxController.create("STATE_INCOME", {
+            year: Number(year),
             state: state,
-            filingStatus: "SINGLE",
-            taxBrackets: parseBrackets(single)
-        };
-
-        const marriedEntry = {
-            state: state,
-            filingStatus: "MARRIEDJOINT",
-            taxBrackets: parseBrackets(married)
-        };
-
-        const sing = await taxController.create("STATE_INCOME", singleEntry);
-        const mar = await taxController.create("STATE_INCOME", marriedEntry);
-        //console.log(`State income tax for ${state} successfully imported.`);
-        return [sing._id, mar._id];
+            filingStatus: filingStatus,
+            brackets: parseBrackets(rates)
+        });
 
     } catch (err) {
         throw (err);
     }
+}
 
+export async function exportStateTaxToYAML(taxId) {
+    try {
+        const tax = await taxController.read(taxId);
+
+        const { year, state, filingStatus, taxBrackets } = tax;
+        const formatBrackets = (brackets) => {
+            return brackets.map(({ lowerBound, upperBound, rate }) => ({
+                lowerBound: lowerBound,
+                upperBound: upperBound === Infinity ? 'Infinity' : upperBound,
+                rate: rate
+            }));
+        };
+
+        const taxObject = {
+            year: year,
+            state: state,
+            filingStatus: filingStatus,
+            rates: formatBrackets(taxBrackets)
+        }
+
+        const yamlStr = yaml.dump(taxObject)
+        const fileName = `state-tax_${state}_${filingStatus}_${year}`;
+
+        return { yamlStr, fileName };
+    } catch (err) {
+        throw (err);
+    }
 }
