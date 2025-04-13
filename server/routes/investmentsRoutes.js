@@ -28,7 +28,8 @@ router.get("/investments/:scenarioId", async (req, res) => {
             return type.investments.map(investment => {
                 return {
                     id: investment._id,
-                    type: type.name,
+                    typeName: type.name,
+                    typeId: type._id,
                     dollarValue: investment.value,
                     taxStatus: taxStatusToFrontend(investment.taxStatus),
                 }
@@ -64,14 +65,9 @@ router.post("/investments/:scenarioId", async (req, res) => {
                     taxStatus: taxStatusToBackend(investment.taxStatus)
                 });
 
-                for (let type of scenario.investmentTypes) {
-                    if (type.name === investment.type) {
-                        await investmentTypeController.update(type._id, {
-                            $push: { investments: investmentDB._id }
-                        });
-                        break;
-                    }
-                }
+                await investmentTypeController.update(investment.typeId, {
+                    $push: { investments: investmentDB._id }
+                });
 
                 await scenarioController.update(id, {
                     $push: { orderedExpenseWithdrawalStrategy: investmentDB._id }
@@ -88,11 +84,11 @@ router.post("/investments/:scenarioId", async (req, res) => {
             } else {
                 // Modification to pre existing investment
                 // Check if the investment type has changed
-                let currentInvestmentType = null;
+                let currentInvestmentTypeId = null;
                 for (let type of scenario.investmentTypes) {
                     for (let inv of type.investments) {
                         if (inv._id.toString() === investment.id) {
-                            currentInvestmentType = type.name;
+                            currentInvestmentTypeId = type._id.toString();
                             break;
                         }
                     }
@@ -101,13 +97,11 @@ router.post("/investments/:scenarioId", async (req, res) => {
                 // If the investment type has changed, update the investment type
                 // and remove the investment from the old type
                 // and add it to the new type
-                if (currentInvestmentType !== investment.type) {
-                    const currentType = scenario.investmentTypes.find(type => type.name === currentInvestmentType);
-                    const newType = scenario.investmentTypes.find(type => type.name === investment.type);
-                    await investmentTypeController.update(currentType._id, {
+                if (currentInvestmentTypeId !== investment.typeId) {
+                    await investmentTypeController.update(currentInvestmentTypeId, {
                         $pull: { investments: investment.id }
                     });
-                    await investmentTypeController.update(newType._id, {
+                    await investmentTypeController.update(investment.typeId, {
                         $push: { investments: investment.id }
                     });
                 }
@@ -144,6 +138,58 @@ router.post("/investments/:scenarioId", async (req, res) => {
     } catch (error) {
         console.error("Error in investments route:", error);
         return res.status(500).send("Error updating investments.");
+    }
+});
+
+router.delete("/investments/:scenarioId", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+        if (!await canEdit(userId, id)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
+        }
+
+        const { investmentId, typeId } = req.body;
+        const deleteInvestment = await investmentController.read(investmentId);
+
+        const scenario = await scenarioController.readWithPopulate(id);
+        const events = scenario.events;
+
+        for (let event of events) {
+            if (event.eventType === "INVEST" || event.eventType === "REBALANCE") {
+                for (let investment of event.allocatedInvestments) {
+                    if (investment.toString() === investmentId) {
+                        return res.status(409).send("Investment cannot be deleted because it is used in a distribution.");
+                    }
+                }
+            }
+        }
+
+        await investmentTypeController.update(typeId, {
+            $pull: { investments: investmentId }
+        });
+
+        await scenarioController.update(id, {
+            $pull: { orderedExpenseWithdrawalStrategy: investmentId }
+        });
+
+        if (deleteInvestment.taxStatus === "PRE_TAX_RETIREMENT") {
+            await scenarioController.update(id, {
+                $pull: {
+                    orderedRMDStrategy: investmentId,
+                    orderedRothStrategy: investmentId
+                }
+            });
+        }
+
+        await investmentController.delete(investmentId);
+        return res.status(200).send("Investment deleted.");
+    } catch (error) {
+        console.error("Error in investments route:", error);
+        return res.status(500).send("Error deleting investments.");
     }
 });
 

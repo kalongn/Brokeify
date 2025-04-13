@@ -10,20 +10,21 @@ const SharedScenarios = () => {
 
   const [scenarios, setScenarios] = useState([]);
   const [isGuest, setGuest] = useState(true);
-  
-  //TODO: Get user logged In/isGuest 
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
-    //TODO: Update with route to get shared Scenarios only 
-    Axios.get("/home")
+    Axios.get("/sharedScenarios")
       .then((response) => {
-        console.log("User Scenarios:", response.data);
+        const responseIsGuest = response.data.isGuest;
+        if (responseIsGuest) {
+          setGuest(true);
+          return;
+        }
+        setGuest(false);
         setScenarios(response.data);
       })
       .catch((error) => {
-        setGuest(true); //TODO: REMOVE HERE. temporarily kept it for ESLint
         console.error('Error fetching user scenarios:', error);
       });
   }, []);
@@ -31,7 +32,7 @@ const SharedScenarios = () => {
   return (
     <Layout>
       <div className={style.background}>
-      {isGuest ? (
+        {isGuest ? (
           <p>Whoops...you don&apos;t have access as a guest. Please consider making an account to share scenarios. </p>
         ) : (
           scenarios.length === 0 ? (
@@ -42,7 +43,7 @@ const SharedScenarios = () => {
                 key={index}
                 id={scenario.id}
                 title={scenario.name}
-                maritalStatus={scenario.ownerEmail}
+                maritalStatus={scenario.ownerName}
                 targetAmount={scenario.financialGoal}
                 investments={scenario.investmentsLength}
                 events={scenario.eventsLength}

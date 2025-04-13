@@ -9,8 +9,7 @@ import styles from "./Form.module.css";
 
 // This page does not submit any data, so childRef is not used
 const InvestmentTypes = () => {
-
-  const { scenarioId } = useParams(); // TODO: update page to include childRef once investment type deletion is implemented
+  const { scenarioId } = useParams();
   const [investmentTypes, setInvestmentTypes] = useState([]);
   useEffect(() => {
 
@@ -27,13 +26,36 @@ const InvestmentTypes = () => {
 
   const navigate = useNavigate();
   const newInvestmentType = () => {
-    navigate(`/ScenarioForm/${scenarioId}/investment-types/new`);
+    // Pass the list of investmentTypes to avoid fetching list again later
+    const investmentTypeNames = investmentTypes.map((investmentType) => investmentType.name);
+    navigate(`/ScenarioForm/${scenarioId}/investment-types/new`, {
+      state: investmentTypeNames
+    });
   }
   //New route to update scenario
   const editInvestmentType = (id) => {
     navigate(`/ScenarioForm/${scenarioId}/investment-types/edit/${id}`);
   };
 
+  const removeInvestmentType = async (id) => {
+    if (!confirm("Are you sure you want to delete this investment type?")) {
+      return;
+    }
+    try {
+      const response = await Axios.delete(`/investmentType/${scenarioId}/${id}`);
+      console.log(response.data);
+      const updatedInvestmentTypes = investmentTypes.filter((invType) => invType.id !== id);
+      setInvestmentTypes(updatedInvestmentTypes);
+    } catch (error) {
+      //TODO: show error to the user in a nicer way @04mHuang
+      if (error.response.status === 409) {
+        alert("This investment type is being used in an investment. Please remove it from the investment before deleting.");
+      } else {
+        alert("Unknown Error deleting investment type. Please try again.");
+      }
+      console.error('Error deleting investment type:', error);
+    }
+  }
 
   return (
     <div>
@@ -41,7 +63,6 @@ const InvestmentTypes = () => {
       <p>
         Create investment types or view the default ones.
       </p>
-      {/* TODO: fix global table styling */}
       <table id={styles.inputTable}>
         <thead>
           <tr>
@@ -52,7 +73,7 @@ const InvestmentTypes = () => {
         </thead>
         <tbody>
           {investmentTypes.map((investmentType, index) => (
-            <tr key={index}>
+            <tr key={investmentType.id}>
               <td>
                 {investmentType.name}
               </td>
@@ -83,7 +104,7 @@ const InvestmentTypes = () => {
                       : styles.tableButton}
                     onClick={() => {
                       if (index === 0) return;
-                      alert("NOT IMPLEMENTED YET")
+                      removeInvestmentType(investmentType.id);
                     }
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
