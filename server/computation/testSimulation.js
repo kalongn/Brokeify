@@ -287,13 +287,7 @@ const testTax = async (i) => {
             return federalStandardDeduction;
         }
         else if (i == 4) {
-            const stateStandardDeduction = await factory.create("STATE_STANDARD", {
-                filingStatus: "SINGLE",
-                state: "CA",
-                standardDeduction: 4601
-            });
-            ///console.log(stateStandardDeduction);
-            return stateStandardDeduction;
+            return null;
         }
 
         else if (i == 5) {
