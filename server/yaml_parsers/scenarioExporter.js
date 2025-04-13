@@ -290,10 +290,31 @@ export async function exportScenarioAsYAML(scenarioID) {
         scenarioObject.eventSeries = eventsArray;
 
         const spendingStrategy = [];
-        for(const i in scenario.orderedSpendingStrategy){
+        for (const i in scenario.orderedSpendingStrategy) {
             spendingStrategy.push(idMap.get(scenario.orderedSpendingStrategy[i].toString()));
         }
         scenarioObject.spendingStrategy = spendingStrategy;
+
+        const expenseWithdrawalStrategy = [];
+        for (const i in scenario.orderedExpenseWithdrawalStrategy) {
+            expenseWithdrawalStrategy.push(idMap.get(scenario.orderedExpenseWithdrawalStrategy[i].toString()));
+        }
+        scenarioObject.expenseWithdrawalStrategy = expenseWithdrawalStrategy;
+
+        const rmdStrategy = [];
+        for (const i in scenario.orderedRMDStrategy) {
+            rmdStrategy.push(idMap.get(scenario.orderedRMDStrategy[i].toString()));
+        }
+        scenarioObject.rmdStrategy = rmdStrategy;
+
+        if (scenario.startYearRothOptimizer !== undefined) {
+            const rothStrategy = [];
+            for (const i in scenario.orderedRothStrategy) {
+                rothStrategy.push(idMap.get(scenario.orderedRothStrategy[i].toString()));
+            }
+            scenarioObject.rothStrategy = rothStrategy;
+        }
+
         const yamlStr = yaml.dump(scenarioObject);
         return { filename, yamlStr };
     }
