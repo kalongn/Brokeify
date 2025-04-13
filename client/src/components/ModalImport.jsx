@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import Axios from "axios";
 
 import ModalBase from "./ModalBase";
 import styles from "./ModalImport.module.css";
@@ -9,6 +10,7 @@ import buttonStyles from "../pages/ScenarioForm.module.css";
 const ModalImport = ({ isOpen, onClose }) => {
   // Modal reused between scenario import and profile state tax upload
   const location = useLocation();
+  const navigate = useNavigate();
   const title = location.pathname === "/Home" ? "Import Scenario" : "Upload YAML file";
   const description = location.pathname === "/Home" ? "Import a scenario from a YAML file." : "Upload state taxes from a YAML file.";
 
@@ -17,25 +19,39 @@ const ModalImport = ({ isOpen, onClose }) => {
 
   const handleFileChange = (e) => {
     if (e.target.files) {
-      setFile( e.target.files[0]);
+      setFile(e.target.files[0]);
     }
   };
 
   const handleUpload = async () => {
     if (file) {
       try {
-        // TODO: replace upload route with actual route
-        const res = await fetch("/api/scenarios/import", {
-          method: "POST",
-          body: file,
-        });
-        const data = await res.json();
-        console.log(data);
-        setStatus("File upload successful");
-      }
-      catch(error) {
+        Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+        Axios.defaults.withCredentials = true;
+        const formData = new FormData();
+        formData.append("file", file);
+        const response = await Axios.post(
+          location.pathname === "/Home" ? `/scenario/import` : `/stateTax/import`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        console.log(response.data.message);
+        if (location.pathname === "/Home") {
+          // Redirect to the scenario simulation page
+          const scenarioId = response.data.scenarioId;
+          navigate(`/Scenario/${scenarioId}`);
+        } else if (location.pathname === "/Profile") {
+          handleClose();
+        } else {
+          throw new Error("Unknown path");
+        }
+      } catch (error) {
+        if (location.pathname === "/Profile" && error.response?.status === 409) {
+          setStatus("A tax of the same state, same year, same filing status already exists.");
+        } else {
+          setStatus("File upload failed");
+        }
         console.error("Error uploading file:", error);
-        setStatus("File upload failed");
       }
     }
   };

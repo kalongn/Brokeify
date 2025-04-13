@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import { Tax, FederalIncomeTax, StateIncomeTax, FederalStandardDeduction, StateStandardDeduction, CapitalGainTax } from "../models/Tax.js";
+import { Tax, FederalIncomeTax, StateIncomeTax, FederalStandardDeduction, CapitalGainTax } from "../models/Tax.js";
 
 /**
- * @typedef { 'FEDERAL_INCOME' | 'CAPITAL_GAIN' | 'FEDERAL_STANDARD_REDUCTION'| 'EARLY_WITHDRAWAL'| 'STATE_INCOME'| 'STATE_FEDERAL_STANDARD_REDUCTION' } TAX_TYPE 
+ * @typedef { 'FEDERAL_INCOME' | 'CAPITAL_GAIN' | 'FEDERAL_STANDARD_REDUCTION'| 'EARLY_WITHDRAWAL'| 'STATE_INCOME' } TAX_TYPE 
  */
 
 /**
@@ -40,10 +40,6 @@ export default class TaxController {
 
                 case "FEDERAL_STANDARD":
                     tax = new FederalStandardDeduction({ taxType, ...data });
-                    break;
-
-                case "STATE_STANDARD":
-                    tax = new StateStandardDeduction({ taxType, ...data });
                     break;
 
                 case "CAPITAL_GAIN":
@@ -120,11 +116,6 @@ export default class TaxController {
                         });
                 case "FEDERAL_STANDARD":
                     return await FederalStandardDeduction.findByIdAndUpdate
-                        (id, data, {
-                            new: true
-                        });
-                case "STATE_STANDARD":
-                    return await StateStandardDeduction.findByIdAndUpdate
                         (id, data, {
                             new: true
                         });
