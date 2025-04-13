@@ -87,7 +87,6 @@ const testScenario = async () => {
             assetAllocationType: "GLIDE",
             percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
             allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
-            maximumCash: 1000,
             taxStatus: "NON_RETIREMENT"
         });
 

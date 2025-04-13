@@ -125,7 +125,6 @@ const eventToBackend = async (body) => {
                 assetAllocationType: allocateMethodToBackend(data.allocationMethod),
                 percentageAllocations: percentageAllocations,
                 allocatedInvestments: allocatedInvestments,
-                maximumCash: data.maximumCash,
                 taxStatus: taxStatusToBackend(data.taxStatus),
             }
             break;
@@ -306,7 +305,6 @@ router.get("/event/:scenarioId/:eventId", async (req, res) => {
                         }
                     }
                 });
-                data.maximumCash = event.maximumCash;
                 data.taxStatus = taxStatusToFrontend(event.taxStatus);
                 break;
             default:
