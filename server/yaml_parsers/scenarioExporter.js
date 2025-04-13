@@ -220,20 +220,20 @@ export async function exportScenarioAsYAML(scenarioID) {
                 let assetAllocation, assetAllocation2, glidePath;
                 if (event.assetAllocationType === "FIXED") {
                     glidePath = false;
-                    assetAllocation = [];
+                    assetAllocation = {};
                     for (const i in event.allocatedInvestments) {
                         const inv = idMap.get(event.allocatedInvestments[i].toString());
-                        assetAllocation.push({ [inv]: event.percentageAllocations[i][0] });
+                        assetAllocation[inv] = event.percentageAllocations[i][0];
                     }
                 }
                 else {
                     glidePath = true;
-                    assetAllocation = [];
-                    assetAllocation2 = [];
+                    assetAllocation = {};
+                    assetAllocation2 = {};
                     for (const i in event.allocatedInvestments) {
                         const inv = idMap.get(event.allocatedInvestments[i].toString());
-                        assetAllocation.push({ [inv]: event.percentageAllocations[i][0] });
-                        assetAllocation2.push({ [inv]: event.percentageAllocations[i][1] });
+                        assetAllocation[inv] = event.percentageAllocations[i][0];
+                        assetAllocation2[inv] = event.percentageAllocations[i][1];
                     }
                 }
                 const eToPush = {
@@ -253,22 +253,22 @@ export async function exportScenarioAsYAML(scenarioID) {
                 let assetAllocation, assetAllocation2, glidePath;
                 if (event.assetAllocationType === "FIXED") {
                     glidePath = false;
-                    assetAllocation = [];
+                    assetAllocation = {};
 
                     for (const i in event.allocatedInvestments) {
 
                         const inv = idMap.get(event.allocatedInvestments[i].toString());
-                        assetAllocation.push({ [inv]: event.percentageAllocations[i][0] });
+                        assetAllocation[inv] = event.percentageAllocations[i][0];
                     }
                 }
                 else {
                     glidePath = true;
-                    assetAllocation = [];
-                    assetAllocation2 = [];
+                    assetAllocation = {};
+                    assetAllocation2 = {};
                     for (const i in event.allocatedInvestments) {
                         const inv = idMap.get(event.allocatedInvestments[i].toString());
-                        assetAllocation.push({ [inv]: event.percentageAllocations[i][0] });
-                        assetAllocation2.push({ [inv]: event.percentageAllocations[i][1] });
+                        assetAllocation[inv] = event.percentageAllocations[i][0];
+                        assetAllocation2[inv] = event.percentageAllocations[i][1];
                     }
                 }
                 const eToPush = {

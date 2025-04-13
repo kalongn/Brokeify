@@ -215,7 +215,7 @@ async function fillInvestEvent(eventID, eventData, idMap) {
     }
 
     const allocatedInvestments = [];
-    for (const i of eventData.assetAllocation) {
+    for (const i in eventData.assetAllocation) {
         const toPush = idMap.get(Object.keys(i)[0].toString());
         allocatedInvestments.push(toPush);
     }
@@ -283,7 +283,7 @@ async function fillRebalanceEvent(eventID, eventData, idMap, taxStatusMap) {
 
     const allocatedInvestments = [];
     let taxStatus = ""; // Infer from the first asset allocation and its type, might run into trouble if user modifies the yaml file into invalid state
-    for (const i of eventData.assetAllocation) {
+    for (const i in eventData.assetAllocation) {
         const toPush = idMap.get(Object.keys(i)[0].toString());
         if (taxStatus === "") {
             taxStatus = taxStatusMap.get(Object.keys(i)[0].toString().split(" ").at(-1));
