@@ -11,6 +11,15 @@ export default class ResultController {
      */
     constructor() { }
 
+    
+    async read(id) {
+        try {
+            return await Result.findById(id);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
     /**
      * This function creates a new Result with the given data
      * @param {Result} data 

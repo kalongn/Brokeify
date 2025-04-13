@@ -46,8 +46,8 @@ export async function parseStateTaxYAML(filePath){
         const parseBrackets = (brackets) => {
             return brackets.map(({ lowerBound, upperBound, rate }) => ({
                 lowerBound: Number(lowerBound),
-                upperBound: upperBound === 'Infinity' ? Infinity : Number(upperBound),
-                rate: Number(rate)
+                upperBound: upperBound === 0 ? Infinity : Number(upperBound),
+                rate: Number(rate)/100
             }));
         };
 

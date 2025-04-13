@@ -182,6 +182,7 @@ export async function simulate(
       capitalGainTax = capitalGainTaxArray[1];
       federalStandardDeduction = federalStandardDeductionObjectArray[0];
     }
+    
 
     await updateContributionLimitsForInflation(scenario, inflationRate);
 
@@ -235,7 +236,7 @@ export async function simulate(
         curYearSS += income;
       }
     }
-    const reportedIncome = curYearIncome;
+    
 
     //await processRMDs(rmdTable, currentYear, scenario.userBirthYear, scenario);
     const shouldPerformRMDs = await shouldPerformRMD(
@@ -265,8 +266,8 @@ export async function simulate(
       scenario.orderedRothStrategy,
       investmentTypes
     );
-
-    curYearIncome += rothConversion.curYearIncome;
+    
+    curYearIncome = rothConversion.curYearIncome;
 
     let earlyWithdrawalTaxPaid = 0;
     const calcTaxReturn = calculateTaxes(
@@ -283,8 +284,9 @@ export async function simulate(
     thisYearTaxes = calcTaxReturn.t;
     earlyWithdrawalTaxPaid = calcTaxReturn.e;
     let nonDiscretionaryExpenses = 0;
-    const expensesReturn = await processExpenses(scenario, lastYearTaxes);
+    const expensesReturn = await processExpenses(scenario, lastYearTaxes, currentYear);
     nonDiscretionaryExpenses = expensesReturn.t;
+    
     thisYearGains += expensesReturn.c; //if you sell investments
 
     lastYearTaxes = thisYearTaxes;
@@ -340,7 +342,7 @@ export async function simulate(
         (discretionaryAmountPaid + 0.0) /
         (discretionaryAmountIgnored + discretionaryAmountPaid);
     }
-
+    const reportedIncome = curYearIncome;
     const yearlyRes = {
       year: currentYear + realYear,
       inflationRate: inflationRate,

@@ -6,7 +6,10 @@ import * as fs from 'fs';
 import { join } from 'path';
 import { format } from 'date-fns';
 import { Worker } from 'worker_threads';
+import { fileURLToPath } from 'url';
 import path from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
@@ -280,6 +283,7 @@ async function scrape() {
 
 export async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, rmdTable, csvFile, logFile) {
     //deep clone then run simulation then re-splice original scenario in simulation output
+    
     const unmodifiedScenario = await scenarioFactory.read(scenarioID);
     let copiedScenario = await scenarioFactory.clone(unmodifiedScenario._id);
     let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, capitalGains, rmdTable, csvFile, logFile);
@@ -289,7 +293,7 @@ export async function run(scenarioID, fedIncome, capitalGains, fedDeduction, sta
 
 function runInWorker(data) {
     return new Promise((resolve, reject) => {
-        const worker = new Worker(path.resolve('./runWorker.js'), { workerData: data });
+        const worker = new Worker(path.resolve(__dirname, './runWorker.js'), { workerData: data });
         worker.on('message', resolve);
         worker.on('error', reject);
         worker.on('exit', code => {

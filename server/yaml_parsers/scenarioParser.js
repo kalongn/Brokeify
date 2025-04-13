@@ -442,6 +442,7 @@ export async function parseAndSaveYAML(filePath) {
         }
         const inflationAssumptionDistribution = await createDistribution(data.inflationAssumption, "percent", idMap);
         // Save Scenario
+        
         const scenario = await scenarioFactory.create({
             name: data.name,
             filingStatus: data.maritalStatus === 'couple' ? 'MARRIEDJOINT' : 'SINGLE',

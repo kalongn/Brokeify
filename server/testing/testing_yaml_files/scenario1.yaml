@@ -1,8 +1,8 @@
 
 name: "Fixed Testing Scenario"
 maritalStatus: individual 
-birthYears: [1985] 
-lifeExpectancy: [ {type: fixed, value: 80}] 
+birthYears: [2000] 
+lifeExpectancy: [ {type: fixed, value: 34}] #10 years of simulation 
 
 investmentTypes:
   - name: Cash
@@ -16,21 +16,21 @@ investmentTypes:
 
   - name: tax-exempt bonds
     description: NY tax-exempt bonds
-    returnAmtOrPct: amount # whether expected annual return is specified as a dollar "amount" or a "percent"
-    returnDistribution: {type: fixed, value: 0}
-    expenseRatio: 0.004
+    returnAmtOrPct: percent # whether expected annual return is specified as a dollar "amount" or a "percent"
+    returnDistribution: {type: fixed, value: 0.05}
+    expenseRatio: 0
     incomeAmtOrPct: percent
-    incomeDistribution: {type: normal, mean: 0.03, stdev: 0.01}
+    incomeDistribution: {type: fixed, value: 0}
     taxability: false
 
 # investment id is a unique identifier.  without it, we would need to use a pair (investment type, tax status) to identify an investment.
 investments:
   - investmentType: Cash
-    value: 100
+    value: 0
     taxStatus: non-retirement # "non-retirement", "pre-tax", or "after-tax"
     id: Cash
   - investmentType: tax-exempt bonds
-    value: 2000
+    value: 10000
     taxStatus: non-retirement
     id: tax-exempt bonds
 
@@ -40,9 +40,9 @@ eventSeries:
     start: {type: fixed, value: 2025} # a fixed, normal, or uniform distribution (as above) or a map with the form {type: startWith, eventSeries: <name>} or {type: startAfter, eventSeries: <name>}
     duration: {type: fixed, value: 70}
     type: income # "income", "expense", "invest", or "rebalance"
-    initialAmount: 75000
+    initialAmount: 7500
     changeAmtOrPct: amount
-    changeDistribution: {type: fixed, value: 1000}
+    changeDistribution: {type: fixed, value: -100}
     inflationAdjusted: false # boolean
     userFraction: 1 # fraction of the amount associated with the user.  the rest is associated with the spouse.
     socialSecurity: false  # boolean
@@ -62,17 +62,17 @@ eventSeries:
     start: {type: startWith, eventSeries: salary}  # starts in same year as salary
     duration: {type: fixed, value: 40}
     type: expense
-    initialAmount: 1200
+    initialAmount: 2000
     changeAmtOrPct: amount
     changeDistribution: {type: fixed, value: 0}
-    inflationAdjusted: true
+    inflationAdjusted: false
     userFraction: 1
     discretionary: true
 
 inflationAssumption: {type: fixed, value: 0.03}
 afterTaxContributionLimit: 7000 # annual limit on contributions to after-tax retirement accounts
 spendingStrategy: ["vacation"]  # list of discretionary expenses, identified by name
-expenseWithdrawalStrategy: [S&P 500 non-retirement, tax-exempt bonds, S&P 500 after-tax] # list of investments, identified by id
+expenseWithdrawalStrategy: [tax-exempt bonds] # list of investments, identified by id
 RMDStrategy: [] # list of pre-tax investments, identified by id
 RothConversionOpt: false   # boolean indicating whether the Roth Conversion optimizer is enabled
 RothConversionStrategy: []  # list of pre-tax investments, identified by id

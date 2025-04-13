@@ -222,7 +222,7 @@ export default class ScenarioController {
             clonedInvestmentTypes.push(clonedTypeID)
             //return clonedTypeID;
         }
-        //console.log("here2");
+        //console.log("finished investment types");
         // Clone Events
         //console.log(originalScenario.events);
         const clonedEvents = []
@@ -251,6 +251,7 @@ export default class ScenarioController {
             clonedEvents.push(clonedEventID)
             //return clonedEventID;    
         }
+        
         //update startswith/startsafter
         for(const i in clonedEvents){
             const eventId = clonedEvents[i];
@@ -263,10 +264,11 @@ export default class ScenarioController {
                 await eventFactory.update(eventId, {startsAfter: idMap.get(clonedEvent.startsAfter.toString())});
             }
         }
-
+        // console.log("finished events");
 
         // Clone Scenario
         //console.log(`CLONING: ${originalScenario.inflationAssumptionDistribution}`);
+        
         const clonedScenario = await scenarioFactory.create({
             name: `${originalScenario.name} CLONE`,
             filingStatus: originalScenario.filingStatus,
@@ -280,7 +282,6 @@ export default class ScenarioController {
             events: clonedEvents.filter(Boolean),
             inflationAssumption: originalScenario.inflationAssumption,
             inflationAssumptionDistribution: originalScenario.inflationAssumptionDistribution,
-            annualPreTaxContributionLimit: originalScenario.annualPreTaxContributionLimit,
             annualPostTaxContributionLimit: originalScenario.annualPostTaxContributionLimit,
             financialGoal: originalScenario.financialGoal,
             orderedSpendingStrategy: originalScenario.orderedSpendingStrategy.map(id => idMap.get(id.toString())),
@@ -292,7 +293,7 @@ export default class ScenarioController {
             ownerFirstName: originalScenario.ownerFirstName,
             ownerLastName: originalScenario.ownerLastName,
         });
-
+        //console.log(clonedScenario)
         //console.log("CLONED:");
         //console.log(await clonedScenario.populate('investmentTypes events orderedSpendingStrategy orderedExpenseWithdrawalStrategy orderedRMDStrategy orderedRothStrategy'));
         return clonedScenario;

@@ -34,9 +34,9 @@ test('investment clone test', async () => {
         value: 10000,
         taxStatus: "NON_RETIREMENT"
     });
-    const clonedID = await investmentFactory.clone(testInvestment1.id);
+    const clonedID = await investmentFactory.clone(testInvestment1._id);
     const clonedInv = await investmentFactory.read(clonedID);
-    expect(testInvestment1.id).not.toEqual(clonedInv.id);
+    expect(testInvestment1._id).not.toEqual(clonedInv._id);
     expect(testInvestment1.value).toEqual(clonedInv.value);
     expect(testInvestment1.taxStatus).toEqual(clonedInv.taxStatus);
 });
@@ -53,16 +53,16 @@ test('investment type clone test', async () => {
         taxability: true,
         investments: []
     });
-    const clonedID = await investmentTypeFactory.clone(testInvestmentType.id);
+    const clonedID = await investmentTypeFactory.clone(testInvestmentType._id);
     const clonedInv = await investmentTypeFactory.read(clonedID);
-    expect(testInvestmentType.id).not.toEqual(clonedInv.id);
+    expect(testInvestmentType._id).not.toEqual(clonedInv._id);
     expect(testInvestmentType.name).toEqual(clonedInv.name);
     expect(testInvestmentType.description).toEqual(clonedInv.description);
     expect(testInvestmentType.expectedAnnualReturn).toEqual(clonedInv.expectedAnnualReturn);
-    expect(testInvestmentType.expectedAnnualReturnDistribution.id.toString()).toEqual(clonedInv.expectedAnnualReturnDistribution.toString());
+    expect(testInvestmentType.expectedAnnualReturnDistribution._id.toString()).toEqual(clonedInv.expectedAnnualReturnDistribution.toString());
     expect(testInvestmentType.expenseRatio).toEqual(clonedInv.expenseRatio);
     expect(testInvestmentType.expectedAnnualIncome).toEqual(clonedInv.expectedAnnualIncome);
-    expect(testInvestmentType.expectedAnnualIncomeDistribution.id.toString()).toEqual(clonedInv.expectedAnnualIncomeDistribution.toString());
+    expect(testInvestmentType.expectedAnnualIncomeDistribution._id.toString()).toEqual(clonedInv.expectedAnnualIncomeDistribution.toString());
     expect(testInvestmentType.taxability).toEqual(clonedInv.taxability);
     expect(testInvestmentType.investments).toEqual(clonedInv.investments);
 
@@ -82,15 +82,15 @@ test('event clone test', async () => {
         taxStatus: "NON_RETIREMENT"
     });
     
-    const clonedID = await eventFactory.clone(event.id);
+    const clonedID = await eventFactory.clone(event._id);
     const clonedEvent = await eventFactory.read(clonedID);
-    expect(event.id).not.toEqual(clonedEvent.id);
+    expect(event._id).not.toEqual(clonedEvent._id);
     expect(event.name).toEqual(clonedEvent.name);
     expect(event.description).toEqual(clonedEvent.description);
     expect(event.startYear).toEqual(clonedEvent.startYear);
-    expect(event.startYearTypeDistribution.id.toString()).toEqual(clonedEvent.startYearTypeDistribution.toString());
+    expect(event.startYearTypeDistribution._id.toString()).toEqual(clonedEvent.startYearTypeDistribution.toString());
     expect(event.duration).toEqual(clonedEvent.duration);
-    expect(event.durationTypeDistribution.id.toString()).toEqual(clonedEvent.durationTypeDistribution.toString());
+    expect(event.durationTypeDistribution._id.toString()).toEqual(clonedEvent.durationTypeDistribution.toString());
     expect(event.assetAllocationType).toEqual(clonedEvent.assetAllocationType);
     expect(event.percentageAllocations).toEqual(clonedEvent.percentageAllocations);
     expect(event.allocatedInvestments).toEqual(clonedEvent.allocatedInvestments);
@@ -149,21 +149,21 @@ test('scenario clone test', async () => {
         startYearRothOptimizer: 2021,
         endYearRothOptimizer: 2070
     });
-    const clonedID = await scenarioFactory.clone(testScenario.id);
+    const clonedID = await scenarioFactory.clone(testScenario._id);
     const clonedScenario = await scenarioFactory.read(clonedID);
 
 
     //need to check all values are equal, but investment IDs are different
 
     //first: check all values are right:
-    expect(testScenario.id).not.toEqual(clonedScenario.id);
+    expect(testScenario._id).not.toEqual(clonedScenario._id);
     expect(`${testScenario.name.toString()} CLONE`).toEqual(`${clonedScenario.name}`);
     expect(testScenario.filingStatus).toEqual(clonedScenario.filingStatus);
     expect(testScenario.userBirthYear).toEqual(clonedScenario.userBirthYear);
     expect(testScenario.spouseBirthYear).toEqual(clonedScenario.spouseBirthYear);
     expect(testScenario.userLifeExpectancy).toEqual(clonedScenario.userLifeExpectancy);
     expect(testScenario.inflationAssumption).toEqual(clonedScenario.inflationAssumption);
-    expect(testScenario.inflationAssumptionDistribution.id.toString()).toEqual(clonedScenario.inflationAssumptionDistribution.toString());
+    expect(testScenario.inflationAssumptionDistribution._id.toString()).toEqual(clonedScenario.inflationAssumptionDistribution.toString());
     expect(testScenario.annualPreTaxContributionLimit).toEqual(clonedScenario.annualPreTaxContributionLimit);
     expect(testScenario.annualPostTaxContributionLimit).toEqual(clonedScenario.annualPostTaxContributionLimit);
     expect(testScenario.financialGoal).toEqual(clonedScenario.financialGoal);
@@ -175,12 +175,11 @@ test('scenario clone test', async () => {
 
     //check events and investments in events:
     for(const i in clonedScenario.events){
-        expect(testScenario.events[i].id.toString()).not.toEqual(clonedScenario.events[i].toString());
+        expect(testScenario.events[i]._id.toString()).not.toEqual(clonedScenario.events[i].toString());
         //check each investment if event is rebalance or invest
         
-        const originalEvent = await eventFactory.read(testScenario.events[i].id);
+        const originalEvent = await eventFactory.read(testScenario.events[i]._id);
         const clonedEvent = await eventFactory.read(clonedScenario.events[i]);
-        //console.log(originalEvent)
 
         if(originalEvent.eventType=="INVEST"||originalEvent.eventType=="REBALANCE"){
             for(const i in originalEvent.allocatedInvestments){
@@ -190,10 +189,10 @@ test('scenario clone test', async () => {
     }
     //check similar for investment types
     for(const i in clonedScenario.investmentTypes){
-        expect(testScenario.investmentTypes[i].id.toString()).not.toEqual(clonedScenario.investmentTypes[i].toString());
+        expect(testScenario.investmentTypes[i]._id.toString()).not.toEqual(clonedScenario.investmentTypes[i].toString());
         //check each investment if event is rebalance or invest
         
-        const original = await investmentTypeFactory.read(testScenario.investmentTypes[i].id);
+        const original = await investmentTypeFactory.read(testScenario.investmentTypes[i]._id);
         const cloned = await investmentTypeFactory.read(clonedScenario.investmentTypes[i]);
         for(const i in original.investments){
             expect(original.investments[i]).not.toEqual(cloned.investments[i]);
@@ -202,10 +201,10 @@ test('scenario clone test', async () => {
     }
     //check orderedSpendingStrategy:
     for(const i in clonedScenario.orderedSpendingStrategy){
-        expect(testScenario.orderedSpendingStrategy[i].id.toString()).not.toEqual(clonedScenario.orderedSpendingStrategy[i].toString());
+        expect(testScenario.orderedSpendingStrategy[i]._id.toString()).not.toEqual(clonedScenario.orderedSpendingStrategy[i].toString());
         //check each investment if event is rebalance or invest
         
-        const originalEvent = await eventFactory.read(testScenario.orderedSpendingStrategy[i].id);
+        const originalEvent = await eventFactory.read(testScenario.orderedSpendingStrategy[i]._id);
         const clonedEvent = await eventFactory.read(clonedScenario.orderedSpendingStrategy[i]);
         
         if(originalEvent.eventType=="INVEST"||originalEvent.eventType=="REBALANCE"){
@@ -216,15 +215,15 @@ test('scenario clone test', async () => {
     }
     //check orderedExpenseWithdrawalStrategy
     for(const i in clonedScenario.orderedExpenseWithdrawalStrategy){
-        expect(testScenario.orderedExpenseWithdrawalStrategy[i].id.toString()).not.toEqual(clonedScenario.orderedExpenseWithdrawalStrategy[i].toString());
+        expect(testScenario.orderedExpenseWithdrawalStrategy[i]._id.toString()).not.toEqual(clonedScenario.orderedExpenseWithdrawalStrategy[i].toString());
     }
     //check orderedRMDStrategy
     for(const i in clonedScenario.orderedRMDStrategy){
-        expect(testScenario.orderedRMDStrategy[i].id.toString()).not.toEqual(clonedScenario.orderedRMDStrategy[i].toString());
+        expect(testScenario.orderedRMDStrategy[i]._id.toString()).not.toEqual(clonedScenario.orderedRMDStrategy[i].toString());
     }
     //check orderedRothStrategy
     for(const i in clonedScenario.orderedRothStrategy){
-        expect(testScenario.orderedRothStrategy[i].id.toString()).not.toEqual(clonedScenario.orderedRothStrategy[i].toString());
+        expect(testScenario.orderedRothStrategy[i]._id.toString()).not.toEqual(clonedScenario.orderedRothStrategy[i].toString());
     }
     
 
