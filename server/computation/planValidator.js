@@ -254,6 +254,7 @@ export async function scrape() {
         const rmdScrapeReturn = await fetchRMDTable();
         //console.log(rmdScrapeReturn);
         rmdTable = await rmdFactory.create({
+            year: rmdScrapeReturn.year,
             ages: rmdScrapeReturn.ages,
             distributionPeriods: rmdScrapeReturn.distributions
         });

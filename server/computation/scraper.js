@@ -344,9 +344,24 @@ export async function fetchRMDTable() {
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
 
+        let year = null;
+        $('h1').each((i, element) => {
+            const text = $(element).text();
+            const match = text.match(/Publication 590-B \((\d{4})\), Distributions from Individual Retirement Arrangements \(IRAs\)/i);
+            if (match) {
+                year = match[1];
+                return false; // Stop loop once found
+            }
+        });
+
+        if (!year) {
+            console.log('Tax Year not found, default to current Year');
+            year = new Date().getFullYear(); // Default to current year if not found
+        } else {
+            year = Number(year); // Convert to number
+        }
+
         let rawtableData = [];
-
-
 
         const table = $('table[summary="Appendix B. Uniform Lifetime Table"]');
 
@@ -416,7 +431,7 @@ export async function fetchRMDTable() {
 
 
 
-        return { ages, distributions };
+        return { year, ages, distributions };
     } catch (error) {
         console.error('Error fetching Uniform Lifetime Table:', error);
         return [];

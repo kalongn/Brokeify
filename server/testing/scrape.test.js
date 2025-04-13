@@ -85,6 +85,7 @@ test('scrape federal capital gains', async () => {
 
 test('scrape rmd table', async () => {
     const res = await fetchRMDTable();
+    expect(res).toHaveProperty("year");
     expect(res).toHaveProperty("ages");
     expect(res).toHaveProperty("distributions");
     expect(res.ages.length).toEqual(res.distributions.length);
