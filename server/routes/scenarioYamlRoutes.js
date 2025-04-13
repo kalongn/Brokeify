@@ -39,9 +39,6 @@ router.post(('/scenario/import'), upload.single('file'), async (req, res) => {
         const fileContent = fs.readFileSync(filePath, 'utf8'); // Read the file content
         const yamlStr = yaml.load(fileContent);
         fs.unlinkSync(filePath);
-
-        console.log("YAML content:", yamlStr); // For debugging purposes
-
         const scenarioId = await parseAndSaveYAML(yamlStr, req.session.user);
         res.status(200).send({
             message: "Scenario imported successfully.",
