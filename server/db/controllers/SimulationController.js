@@ -48,6 +48,9 @@ export default class SimulationController {
         const resultController = new ResultController();
         try {
             const simulation = await Simulation.findById(id);
+            if (!simulation) {
+                return;
+            }
             for (const result of simulation.results) {
                 await resultController.delete(result);
             }
