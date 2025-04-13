@@ -101,7 +101,7 @@ async function validate(scenarioID) {
     }
 }
 
-
+//TODO: add checking for the year value
 async function scrape() {
     //check to see if federalIncomeTax, federalStandardDeduction, capitalGains exist
     //scrape, parse, and save to DB if not
