@@ -377,13 +377,9 @@ export async function parseAndSaveYAML(filePath) {
         // Save Investments
         for(const i in data.investments){
             const inv = data.investments[i];
-            let taxStatus = taxStatusMap.get(inv.taxStatus.toString());
-            if(inv.investmentType==="Cash"){
-                taxStatus = "CASH"
-            }
             const createdInvestment = await investmentFactory.create({
                 value: inv.value,
-                taxStatus: taxStatus,
+                taxStatus: taxStatusMap.get(inv.taxStatus.toString()),
             });
             //update investment type:
             const investmentTypeID = idMap.get(`${inv.investmentType} TYPE`);
