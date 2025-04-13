@@ -1,5 +1,6 @@
 import axios from "axios";
 import * as cheerio from 'cheerio';
+import 'dotenv/config'
 
 //This scaper is not flexible: it may only be re-used in the case of a change of values
 //Any change in the structure of the relevant tables/fields will result in a fatal error
@@ -15,6 +16,23 @@ export async function scrapeFederalIncomeTaxBrackets() {
         const marriedJoint = [];
         const marriedSeperate = [];
         const headOfHousehold = [];
+
+        let year = null;
+        $('h2').each((i, element) => {
+            const text = $(element).text();
+            const match = text.match(/(\d{4}) tax rates for a single taxpayer/i) || text.match(/(\d{4}) tax rates for other filers/i);
+            if (match) {
+                year = match[1];
+                return false; // Stop loop once found
+            }
+        });
+
+        if (!year) {
+            console.log('Tax Year not found, default to current Year');
+            year = new Date().getFullYear(); // Default to current year if not found
+        } else {
+            year = Number(year); // Convert to number
+        }
 
         //This page has 4 tables:
         //Single
@@ -58,7 +76,9 @@ export async function scrapeFederalIncomeTaxBrackets() {
         taxBrackets.push(marriedJoint);
         taxBrackets.push(marriedSeperate);
         taxBrackets.push(headOfHousehold);
-        return taxBrackets;
+
+
+        return {year: year, taxBrackets: taxBrackets};
     } catch (error) {
         console.error('Error fetching tax brackets:', error);
         return [];
