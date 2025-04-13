@@ -203,13 +203,13 @@ async function fillInvestEvent(eventID, eventData, idMap) {
 
     if (glidePath) {
         for (const i in eventData.assetAllocation) {
-            const toPush = [eventData.assetAllocation[i], eventData.assetAllocation2[i]];
+            const toPush = [Object.values(eventData.assetAllocation[i])[0], Object.values(eventData.assetAllocation2[i])[0]];
             percentageAllocations.push(toPush);
         }
     }
     else {
         for (const i in eventData.assetAllocation) {
-            const toPush = [eventData.assetAllocation[i]];
+            const toPush = [Object.values(eventData.assetAllocation[i])[0]];
             percentageAllocations.push(toPush);
         }
     }
@@ -270,13 +270,13 @@ async function fillRebalanceEvent(eventID, eventData, idMap) {
     const percentageAllocations = [];
     if (glidePath) {
         for (const i in eventData.assetAllocation) {
-            const toPush = [eventData.assetAllocation[i], eventData.assetAllocation2[i]];
+            const toPush = [Object.values(eventData.assetAllocation[i])[0], Object.values(eventData.assetAllocation2[i])[0]];
             percentageAllocations.push(toPush);
         }
     }
     else {
         for (const i in eventData.assetAllocation) {
-            const toPush = [eventData.assetAllocation[i]];
+            const toPush = [Object.values(eventData.assetAllocation[i])[0]];
             percentageAllocations.push(toPush);
         }
     }
