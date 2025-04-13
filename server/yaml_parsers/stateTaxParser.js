@@ -21,7 +21,6 @@ And use controllwers from:
 export async function parseStateTaxYAML(yamlStr, userId) {
     try {
         const { year, state, filingStatus, rates } = yamlStr;
-
         const parseBrackets = (brackets) => {
             return brackets.map(({ lowerBound, upperBound, rate }) => ({
                 lowerBound: Number(lowerBound),
@@ -33,7 +32,7 @@ export async function parseStateTaxYAML(yamlStr, userId) {
         if (!user.userSpecificTaxes) {
             user.userSpecificTaxes = [];
         }
-        
+
         if (user.userSpecificTaxes.some(t => t.state === state && t.filingStatus === filingStatus && t.year === year)) {
             return 1; // Tax already exists
         }
@@ -42,7 +41,7 @@ export async function parseStateTaxYAML(yamlStr, userId) {
             year: Number(year),
             state: state,
             filingStatus: filingStatus,
-            brackets: parseBrackets(rates)
+            taxBrackets: parseBrackets(rates)
         });
 
         user.userSpecificTaxes.push(taxId);
