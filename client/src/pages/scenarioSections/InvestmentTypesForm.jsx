@@ -5,6 +5,7 @@ import Axios from "axios";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
+import ErrorMessage from "../../components/ErrorMessage";
 
 const InvestmentTypesForm = () => {
   const navigate = useNavigate();
@@ -121,11 +122,13 @@ const InvestmentTypesForm = () => {
     }
 
     // Check for duplicate names
-    const hasDuplicateName = investmentTypeNames.find(name =>
-      name === formData.investmentType.trim()
-    );
-    if(hasDuplicateName) {
-      newErrors.investmentType = "Investment type name already exists";
+    if(formData.investmentType !== null) {
+      const hasDuplicateName = investmentTypeNames.find(name =>
+        name === formData.investmentType.trim()
+      );
+      if(hasDuplicateName) {
+        newErrors.investmentType = "Investment type name already exists";
+      }
     }
     
     // Set all errors at once
@@ -171,6 +174,7 @@ const InvestmentTypesForm = () => {
         :
         <>
           <h2>New Investment Type</h2>
+          <ErrorMessage errors={errors} />
           <form>
             <label>
               Investment Type Name
