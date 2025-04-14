@@ -249,6 +249,7 @@ export async function adjustEventAmount(event, inflationRate, scenario, currentY
     if (event.eventType === "INVEST" || event.eventType === "REBALANCE") {
         return;
     }
+
     if (event.isinflationAdjusted&&currentYear!==0) {
         event.amount = event.amount * (1 + inflationRate);
     }
@@ -256,6 +257,7 @@ export async function adjustEventAmount(event, inflationRate, scenario, currentY
     
     if(event.startYear<realYear+currentYear&&event.startYear+event.duration>=realYear+currentYear){
         
+
         let amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
         let distribution = await distributionFactory.read(event.expectedAnnualChangeDistribution);
         if(scenario.filingStatus==="SINGLE"){
@@ -526,10 +528,10 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
     updateLog(eventDetails);
     const curYearFedTaxableIncome = curYearIncome - 0.15 * curYearSS - federalStandardDeduction;
     const curYearStateTaxableIncome = curYearIncome - curYearSS; //41 states do not tax SS income
-    
+
     //calculate fed income taxes
     let fedIncomeTax = 0;
-    
+
     for (const bracketIndex in federalIncomeTax.taxBrackets) {
         const bracket = federalIncomeTax.taxBrackets[bracketIndex];
         
@@ -538,7 +540,9 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
             break;
         }
         else {
+
             if (bracket.upperBound < curYearFedTaxableIncome&& bracket.upperBound!=Infinity&& bracket.upperBound!=0) {
+
 
                 fedIncomeTax += (bracket.upperBound - bracket.lowerBound) * bracket.rate;
                 
@@ -555,16 +559,17 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
     eventDetails = `Year: ${currentYear} - TAX - Paying $${Math.ceil(fedIncomeTax * 100) / 100} in federal income tax.\n`;
     updateLog(eventDetails);
     totalTax += fedIncomeTax;
-    
+
     let sIncomeTax = 0;
     //calculate state income taxes:
     for (const bracketIndex in stateIncomeTax.taxBrackets) {
         const bracket = stateIncomeTax.taxBrackets[bracketIndex];
-        
+
         if (bracket.lowerBound > curYearStateTaxableIncome) {
             break;
         }
         else {
+
             if (bracket.upperBound < curYearStateTaxableIncome && bracket.upperBound!=Infinity && bracket.upperBound!=0) {
                 
                 sIncomeTax += (bracket.upperBound - bracket.lowerBound) * bracket.rate;
@@ -576,7 +581,7 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
             }
         }
     }
-    
+
     totalTax += sIncomeTax;
     eventDetails = `Year: ${currentYear} - TAX - Paying $${Math.ceil(sIncomeTax * 100) / 100} in state income tax.\n`;
     updateLog(eventDetails);
@@ -588,7 +593,9 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
             break;
         }
         else {
+
             if (bracket.upperBound < lastYearGains&& bracket.upperBound!=Infinity&& bracket.upperBound!=0) {
+
 
                 capitalTax += (bracket.upperBound - bracket.lowerBound) * bracket.rate;
             }
@@ -616,11 +623,13 @@ export async function processExpenses(scenario, previousYearTaxes, currentYear) 
         const event = await eventFactory.read(eventID);
         //check if event is in range:
         const realYear = new Date().getFullYear();
+
         
         if (!(event.startYear <= realYear + currentYear && event.duration + event.startYear >= realYear + currentYear)) {
             continue;
         }
         if (event.eventType === "EXPENSE" && event.isDiscretionary === false) {
+
 
             totalExpenses += event.amount;
             let eventDetails = `Year: ${currentYear} - EXPENSE - Paying $${Math.ceil(event.amount * 100) / 100} due to event ${event.name}: ${event.description}.\n`;
@@ -717,7 +726,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
 
     }
     totalValue = Math.round((totalValue)*100)/100;
-    
+
     let totalInStrategy = 0;
     for (const investmentIDIndex in scenario.orderedExpenseWithdrawalStrategy) {
 
@@ -729,7 +738,9 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
     }
     totalInStrategy = Math.round((totalInStrategy)*100)/100;
 
+
     let amountICanPay = Math.min(totalValue - scenario.financialGoal, totalInStrategy);
+
     if (amountICanPay <= 0) {
         
         return { np: totalExpenses, p: 0, c:0 };
@@ -740,7 +751,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
         toReturn = { np: totalExpenses - amountICanPay, p: amountICanPay, c: 0 };
         leftToPay = amountICanPay;
     }
-    
+
     
     //determine the expenses you are 'going to pay' in order to log them
     let logToPay = amountICanPay;

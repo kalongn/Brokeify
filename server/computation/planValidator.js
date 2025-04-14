@@ -6,21 +6,18 @@ import * as fs from 'fs';
 import { join } from 'path';
 import { format } from 'date-fns';
 import { Worker } from 'worker_threads';
+
 import { fileURLToPath } from 'url';
 import path from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-import DistributionController from "../db/controllers/DistributionController.js";
-import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
-import InvestmentController from "../db/controllers/InvestmentController.js";
+
 import EventController from "../db/controllers/EventController.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
-import UserController from "../db/controllers/UserController.js";
 
 import RMDTableController from "../db/controllers/RMDTableController.js";
 import TaxController from "../db/controllers/TaxController.js";
-import ResultController from "../db/controllers/ResultController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
 
 import { scrapeFederalIncomeTaxBrackets, scrapeStandardDeductions, fetchCapitalGainsData, fetchRMDTable } from "./scraper.js";
@@ -31,7 +28,6 @@ const eventFactory = new EventController();
 const taxFactory = new TaxController();
 const rmdFactory = new RMDTableController();
 const simulationFactory = new SimulationController();
-const resultFactory = new ResultController();
 
 async function createSimulationCSV(user, datetime, folder) {
     const timestamp = format(datetime, 'yyyyMMdd_HHmmss');
@@ -64,61 +60,61 @@ async function createEventLog(user, datetime, folder) {
 
 async function validate(scenarioID) {
     const scenario = await scenarioFactory.read(scenarioID);
-    
-    
+
+
+
     //ensures no circly dependancies for events
-    for(const i in scenario.events){
+    for (const i in scenario.events) {
         let event = await eventFactory.read(scenario.events[i]);
         let dependancyID = null;
-        
-        if(event.startsWith&&event.startsAfter){
-            throw("Event Cannot Start Both With And After");
+
+        if (event.startsWith && event.startsAfter) {
+            throw ("Event Cannot Start Both With And After");
         }
-        if(event.startsWith!==undefined&&event.startsWith!==null){
+        if (event.startsWith !== undefined && event.startsWith !== null) {
             dependancyID = event.startsWith;
-            
+
         }
-        else if(event.startsAfter!==undefined&&event.startsAfter!==null){
+        else if (event.startsAfter !== undefined && event.startsAfter !== null) {
             dependancyID = event.startsAfter;
-            
+
+
         }
-        while(dependancyID!=null){  //itarate through dependancies
-            
-            if(dependancyID.toString()===event._id.toString()){
-                
-                
-                throw("Circular Event Dependancies");
+        while (dependancyID != null) {  //itarate through dependancies
+
+            if (dependancyID.toString() === event._id.toString()) {
+
+
+                throw ("Circular Event Dependancies");
             }
             const newEvent = await eventFactory.read(dependancyID.toString());
-            if(!newEvent){
-                throw("Referenced Event Does Not Exist");
+            if (!newEvent) {
+                throw ("Referenced Event Does Not Exist");
             }
-            if(newEvent.startsWith&&newEvent.startsAfter){
-                throw("Event Cannot Start Both With And After");
+            if (newEvent.startsWith && newEvent.startsAfter) {
+                throw ("Event Cannot Start Both With And After");
             }
-            if(newEvent.startsWith!==undefined&&newEvent.startsWith!==null){
+            if (newEvent.startsWith !== undefined && newEvent.startsWith !== null) {
                 dependancyID = newEvent.startsWith;
             }
-            else if(newEvent.startsAfter!==undefined&&newEvent.startsAfter!==null){
+            else if (newEvent.startsAfter !== undefined && newEvent.startsAfter !== null) {
                 dependancyID = newEvent.startsAfter;
             }
-            else{
+            else {
                 dependancyID = null;
             }
             event = newEvent;
         }
     }
-
-    
-
-
 }
+
+//TODO: add checking for the year value
 async function scrape() {
     //check to see if federalIncomeTax, federalStandardDeduction, capitalGains exist
     //scrape, parse, and save to DB if not
 
     const a = await taxFactory.readAll();
-    
+
     //check if any of the returned taxes have FEDERAL_INCOME, scrape if not
     let federalIncomeSingle = null;
     let federalIncomeMarried = null;
@@ -163,36 +159,38 @@ async function scrape() {
 
     if (federalIncomeSingle === null || federalIncomeMarried === null) {
         //scrape:
-        const returnFederalIncomeScrape = await scrapeFederalIncomeTaxBrackets();
-        
+        const { year, taxBrackets } = await scrapeFederalIncomeTaxBrackets();
+
         //only care about single & married joint
 
         //first, parse single:
         if (federalIncomeSingle === null) {
             let singleFedTax = { filingStatus: "SINGLE", taxType: "FEDERAL_INCOME", taxBrackets: [] };
-            for (const i in returnFederalIncomeScrape[0]) {
-                const bracket = { lowerBound: returnFederalIncomeScrape[0][i].lowBound, upperBound: returnFederalIncomeScrape[0][i].highBound, rate: returnFederalIncomeScrape[0][i].rate/100 };
+            for (const i in taxBrackets[0]) {
+                const bracket = { lowerBound: taxBrackets[0][i].lowBound, upperBound: taxBrackets[0][i].highBound, rate: taxBrackets[0][i].rate / 100 };
                 singleFedTax.taxBrackets.push(bracket);
             }
             //save to db
-            
+
             await taxFactory.create("FEDERAL_INCOME", {
                 filingStatus: singleFedTax.filingStatus,
-                taxBrackets: singleFedTax.taxBrackets
+                taxBrackets: singleFedTax.taxBrackets,
+                year: year
             });
             federalIncomeSingle = singleFedTax;
         }
         if (federalIncomeMarried === null) {
             let marriedFedTax = { filingStatus: "MARRIEDJOINT", taxType: "FEDERAL_INCOME", taxBrackets: [] };
-            for (const i in returnFederalIncomeScrape[0]) {
-                const bracket = { lowerBound: returnFederalIncomeScrape[1][i].lowBound, upperBound: returnFederalIncomeScrape[1][i].highBound, rate: returnFederalIncomeScrape[1][i].rate/100 };
+            for (const i in taxBrackets[0]) {
+                const bracket = { lowerBound: taxBrackets[1][i].lowBound, upperBound: taxBrackets[1][i].highBound, rate: taxBrackets[1][i].rate / 100 };
                 marriedFedTax.taxBrackets.push(bracket);
             }
             //save to db
-            
+
             await taxFactory.create("FEDERAL_INCOME", {
                 filingStatus: marriedFedTax.filingStatus,
-                taxBrackets: marriedFedTax.taxBrackets
+                taxBrackets: marriedFedTax.taxBrackets,
+                year: year
             });
             federalIncomeMarried = marriedFedTax;
         }
@@ -200,56 +198,60 @@ async function scrape() {
     }
 
     if (capitalGainsSingle === null || capitalGainsMarried === null) {
-        const returnCapitalGainsScrape = await fetchCapitalGainsData();
+        const { year, taxBrackets } = await fetchCapitalGainsData();
 
-       
+
         if (capitalGainsSingle === null) {
             let singleCapitalTax = { filingStatus: "SINGLE", taxType: "CAPITAL_GAIN", taxBrackets: [] };
-            for (const i in returnCapitalGainsScrape[0]) {
-                const bracket = { lowerBound: returnCapitalGainsScrape[0][i].lowBound, upperBound: returnCapitalGainsScrape[0][i].highBound, rate: returnCapitalGainsScrape[0][i].rate/100 };
+            for (const i in taxBrackets[0]) {
+                const bracket = { lowerBound: taxBrackets[0][i].lowBound, upperBound: taxBrackets[0][i].highBound, rate: taxBrackets[0][i].rate / 100 };
                 singleCapitalTax.taxBrackets.push(bracket);
             }
             //save to db
-            
+
             await taxFactory.create("CAPITAL_GAIN", {
                 filingStatus: singleCapitalTax.filingStatus,
-                taxBrackets: singleCapitalTax.taxBrackets
+                taxBrackets: singleCapitalTax.taxBrackets,
+                year: year
             });
             capitalGainsSingle = singleCapitalTax;
         }
         if (capitalGainsMarried === null) {
             let marriedCapitalTax = { filingStatus: "MARRIEDJOINT", taxType: "CAPITAL_GAIN", taxBrackets: [] };
-            for (const i in returnCapitalGainsScrape[0]) {
-                const bracket = { lowerBound: returnCapitalGainsScrape[1][i].lowBound, upperBound: returnCapitalGainsScrape[1][i].highBound, rate: returnCapitalGainsScrape[1][i].rate/100 };
+            for (const i in taxBrackets[0]) {
+                const bracket = { lowerBound: taxBrackets[1][i].lowBound, upperBound: taxBrackets[1][i].highBound, rate: taxBrackets[1][i].rate / 100 };
                 marriedCapitalTax.taxBrackets.push(bracket);
             }
             //save to db
             await taxFactory.create("CAPITAL_GAIN", {
                 filingStatus: marriedCapitalTax.filingStatus,
-                taxBrackets: marriedCapitalTax.taxBrackets
+                taxBrackets: marriedCapitalTax.taxBrackets,
+                year: year
             });
             capitalGainsMarried = marriedCapitalTax;
         }
     }
 
     if (federalDeductionSingle === null || federalDeductionMarried === null) {
-        const returnDeductionsScrape = await scrapeStandardDeductions();
+        const { year, standardDeductions } = await scrapeStandardDeductions();
 
-        
+
         if (federalDeductionSingle === null) {
             federalDeductionSingle = await taxFactory.create("FEDERAL_STANDARD", {
                 filingStatus: "SINGLE",
-                standardDeduction: returnDeductionsScrape[0].amount
+                standardDeduction: standardDeductions[0].amount,
+                year: year
             });
         }
         if (federalDeductionMarried === null) {
             federalDeductionMarried = await taxFactory.create("FEDERAL_STANDARD", {
                 filingStatus: "MARRIEDJOINT",
-                standardDeduction: returnDeductionsScrape[1].amount
+                standardDeduction: standardDeductions[1].amount,
+                year: year
             });
         }
     }
-    
+
 
     //check for RMD table:
     let rmdTable = null;
@@ -259,6 +261,7 @@ async function scrape() {
         const rmdScrapeReturn = await fetchRMDTable();
         //console.log(rmdScrapeReturn);
         rmdTable = await rmdFactory.create({
+            year: rmdScrapeReturn.year,
             ages: rmdScrapeReturn.ages,
             distributionPeriods: rmdScrapeReturn.distributions
         });
@@ -298,6 +301,7 @@ function runInWorker(data) {
             env: { ...process.env }
         });
 
+
         worker.on('message', resolve);
         worker.on('error', reject);
         worker.on('exit', code => {
@@ -311,62 +315,63 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
     await validate(scenarioID);
     const scrapeReturn = await scrape();
     const scenario = await scenarioFactory.read(scenarioID);
-  
-    
+
     const fedIncome = [
         JSON.parse(JSON.stringify(scrapeReturn.federalIncomeSingle)),
         JSON.parse(JSON.stringify(scrapeReturn.federalIncomeMarried))
     ];
-    
+
     const capitalGains = [
         JSON.parse(JSON.stringify(scrapeReturn.capitalGainsSingle)),
         JSON.parse(JSON.stringify(scrapeReturn.capitalGainsMarried))
     ];
-    
+
     const fedDeduction = [
         JSON.parse(JSON.stringify(scrapeReturn.federalDeductionSingle)),
         JSON.parse(JSON.stringify(scrapeReturn.federalDeductionMarried))
     ];
-    
+
     const rmdTable = JSON.parse(JSON.stringify(scrapeReturn.rmdTable));
-  
+
     const stateTax = [
         JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[0]))),
         JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[1]))),
     ];
-  
+
     const compiledResults = await simulationFactory.create({
         scenario: scenario,
         results: []
     });
-  
+
     const datetime = new Date();
     const csvFile = (await createSimulationCSV(username, datetime, "../logs")).toString();
     const logFile = await createEventLog(username, datetime, "../logs");
     scenarioID = scenarioID.toString();
-    
+
+
     const promises = [];
     for (let i = 0; i < numTimes; i++) {
-      promises.push(
-        runInWorker({
-            scenarioID,
-            fedIncome,
-            capitalGains,
-            fedDeduction,
-            stateTax,
-            rmdTable,
-            csvFile: i === 0 ? csvFile : null,
-            logFile: i === 0 ? logFile : null
-        })
-      );
+        promises.push(
+            runInWorker({
+                scenarioID,
+                fedIncome,
+                capitalGains,
+                fedDeduction,
+                stateTax,
+                rmdTable,
+                csvFile: i === 0 ? csvFile : null,
+                logFile: i === 0 ? logFile : null
+            })
+        );
     }
-  
+
     const results = await Promise.all(promises);
     for (const res of results) {
         if (res.error) throw new Error(res.error);
         compiledResults.results.push(res);
     }
-  
+
+
     await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
     return compiledResults;
   }

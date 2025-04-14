@@ -10,28 +10,27 @@ and saves the investments, investmenttypes, events, and ulamately the scenario t
 
 import yaml from 'js-yaml';
 import fs from 'fs';
+
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
 import InvestmentController from "../db/controllers/InvestmentController.js";
 import EventController from "../db/controllers/EventController.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
-import UserController from "../db/controllers/UserController.js";
+import UserController from '../db/controllers/UserController.js';
 
-import RMDTableController from "../db/controllers/RMDTableController.js";
-import TaxController from "../db/controllers/TaxController.js";
-import ResultController from "../db/controllers/ResultController.js";
-import SimulationController from "../db/controllers/SimulationController.js";
 const distributionFactory = new DistributionController();
 const investmentTypeFactory = new InvestmentTypeController();
 const investmentFactory = new InvestmentController();
 const eventFactory = new EventController();
 const scenarioFactory = new ScenarioController();
-async function createDistribution(dist, returnAmtOrPct, idMap){
-    if(dist.type==="startWith"||dist.type==="startAfter"){
+const userController = new UserController();
+
+async function createDistribution(dist, returnAmtOrPct, idMap) {
+    if (dist.type === "startWith" || dist.type === "startAfter") {
         return null;
     }
-    if(returnAmtOrPct){
-        dist.type+=returnAmtOrPct+"";
+    if (returnAmtOrPct) {
+        dist.type += returnAmtOrPct + "";
     }
     const distributionMap = new Map([
         ["fixed", "FIXED_AMOUNT"],
@@ -45,11 +44,11 @@ async function createDistribution(dist, returnAmtOrPct, idMap){
         ["normalpercent", "NORMAL_PERCENTAGE"],
     ]);
 
-    
+
     dist.type = distributionMap.get(dist.type.toString());
     //console.log(dist);
     let distribution;
-    
+
     switch (dist.type) {
         case "FIXED_AMOUNT":
         case "FIXED_PERCENTAGE":
@@ -79,20 +78,20 @@ async function createDistribution(dist, returnAmtOrPct, idMap){
 
 
 
-async function fillIncomeEvent(eventID, eventData, idMap){
+async function fillIncomeEvent(eventID, eventData, idMap) {
     const event = await eventFactory.read(eventID);
     const durationDistribution = await createDistribution(eventData.duration, "amount", idMap);
     const description = "";
     const amount = eventData.initialAmount;
     const expectedAnnualChangeDistribution = await createDistribution(eventData.changeDistribution, eventData.changeAmtOrPct, idMap);
-    const isinflationAdjusted = eventData.inflationAdjusted === "true" || eventData.inflationAdjusted==true;
+    const isinflationAdjusted = eventData.inflationAdjusted === "true" || eventData.inflationAdjusted == true;
     const userContributions = Number(eventData.userFraction);
-    const isSocialSecurity = eventData.socialSecurity === "true" || eventData.socialSecurity==true;
+    const isSocialSecurity = eventData.socialSecurity === "true" || eventData.socialSecurity == true;
 
     //Two cases:
     //1) Starts independantly of other events
     //2) Starts with/after another event
-    if(eventData.start.type==="startWith"){
+    if (eventData.start.type === "startWith") {
         //get event ID that it starts with
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
@@ -105,10 +104,10 @@ async function fillIncomeEvent(eventID, eventData, idMap){
             userContributions: userContributions,
             isSocialSecurity: isSocialSecurity,
         });
-        
+
         return toReturn;
     }
-    else if(eventData.start.type==="startAfter"){
+    else if (eventData.start.type === "startAfter") {
         const startAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -120,10 +119,10 @@ async function fillIncomeEvent(eventID, eventData, idMap){
             userContributions: userContributions,
             isSocialSecurity: isSocialSecurity,
         });
-        
+
         return toReturn;
     }
-    else{ //independant event
+    else { //independant event
         const startYearTypeDistribution = await createDistribution(eventData.start, "amount", idMap);
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -135,7 +134,7 @@ async function fillIncomeEvent(eventID, eventData, idMap){
             userContributions: userContributions,
             isSocialSecurity: isSocialSecurity,
         });
-        
+
         return toReturn;
     }
 
@@ -146,9 +145,9 @@ async function fillExpenseEvent(eventID, eventData, idMap) {
     const description = "";
     const amount = eventData.initialAmount;
     const expectedAnnualChangeDistribution = await createDistribution(eventData.changeDistribution, eventData.changeAmtOrPct, idMap);
-    const isinflationAdjusted = eventData.inflationAdjusted === "true" || eventData.inflationAdjusted ==true;
+    const isinflationAdjusted = eventData.inflationAdjusted === "true" || eventData.inflationAdjusted == true;
     const userContributions = Number(eventData.userFraction);
-    const isDiscretionary = eventData.discretionary === "true" || eventData.discretionary==true;
+    const isDiscretionary = eventData.discretionary === "true" || eventData.discretionary == true;
     if (eventData.start.type === "startWith") {
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
@@ -161,9 +160,9 @@ async function fillExpenseEvent(eventID, eventData, idMap) {
             userContributions: userContributions,
             isDiscretionary: isDiscretionary,
         });
-        
+
         return toReturn;
-    } 
+    }
     else if (eventData.start.type === "startAfter") {
         const startsAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
@@ -176,9 +175,9 @@ async function fillExpenseEvent(eventID, eventData, idMap) {
             userContributions: userContributions,
             isDiscretionary: isDiscretionary,
         });
-        
+
         return toReturn;
-    } 
+    }
     else {
         const startYearTypeDistribution = await createDistribution(eventData.start, "amount", idMap);
         const toReturn = await eventFactory.update(eventID, {
@@ -191,7 +190,7 @@ async function fillExpenseEvent(eventID, eventData, idMap) {
             userContributions: userContributions,
             isDiscretionary: isDiscretionary,
         });
-        
+
         return toReturn;
     }
 }
@@ -201,10 +200,11 @@ async function fillInvestEvent(eventID, eventData, idMap) {
     const durationDistribution = await createDistribution(eventData.duration, "amount", idMap);
     const description = "";
     const maxCash = Number(eventData.maxCash) || 0;
-    const glidePath = eventData.glidePath === "true" || eventData.glidePath==true;
+    const glidePath = eventData.glidePath === "true" || eventData.glidePath == true;
 
 
     const percentageAllocations = [];
+
     
     if(glidePath){
         for(const i in eventData.assetAllocation){
@@ -215,82 +215,14 @@ async function fillInvestEvent(eventID, eventData, idMap) {
     else{
         for(const i in eventData.assetAllocation){
             const toPush = [Object.values(eventData.assetAllocation[i])[0]];
+
             percentageAllocations.push(toPush);
         }
     }
-
-    const allocatedInvestments = [];
-    for(const i in eventData.assetAllocation){
-        const toPush = idMap.get(i.toString());
-        allocatedInvestments.push(toPush);
-    }
-    
-
-    if (eventData.start.type === "startWith") {
-        const startsWith = idMap.get(eventData.start.eventSeries.toString());
-        const toReturn = await eventFactory.update(eventID, {
-            durationTypeDistribution: durationDistribution,
-            startsWith: startsWith,
-            description: description,
-            assetAllocationType: glidePath ? "GLIDE" : "FIXED",
-            percentageAllocations: percentageAllocations,
-            allocatedInvestments: allocatedInvestments,
-            maximumCash: maxCash,
-        });
-        
-        return toReturn;
-    } else if (eventData.start.type === "startAfter") {
-        const startAfter = idMap.get(eventData.start.eventSeries.toString());
-        const toReturn = await eventFactory.update(eventID, {
-            durationTypeDistribution: durationDistribution,
-            startAfter: startAfter,
-            description: description,
-            assetAllocationType: glidePath ? "GLIDE" : "FIXED",
-            percentageAllocations: percentageAllocations,
-            allocatedInvestments: allocatedInvestments,
-            maximumCash: maxCash,
-        });
-        
-        return toReturn;
-    } else {
-        const startYearTypeDistribution = await createDistribution(eventData.start, "amount", idMap);
-        const toReturn = await eventFactory.update(eventID, {
-            durationTypeDistribution: durationDistribution,
-            startYearTypeDistribution: startYearTypeDistribution,
-            description: description,
-            assetAllocationType: glidePath ? "GLIDE" : "FIXED",
-            percentageAllocations: percentageAllocations,
-            allocatedInvestments: allocatedInvestments,
-            maximumCash: maxCash,
-        });
-        
-        return toReturn;
-    }
-}
-async function fillRebalanceEvent(eventID, eventData, idMap) {
-    const durationDistribution = await createDistribution(eventData.duration, "amount", idMap);
-    const description = "";
-    const glidePath = eventData.glidePath === "true" || eventData.glidePath==true;
-
-    const percentageAllocations = [];
-    if(glidePath){
-        for(const i in eventData.assetAllocation){
-            const toPush = [Object.values(eventData.assetAllocation[i])[0], Object.values(eventData.assetAllocation2[i])[0]];
-            percentageAllocations.push(toPush);
-        }
-    }
-    else{
-        for(const i in eventData.assetAllocation){
-            const toPush = [Object.values(eventData.assetAllocation[i])[0]];
-            percentageAllocations.push(toPush);
-        }
-    }
-    
 
     const allocatedInvestments = [];
     for (const i in eventData.assetAllocation) {
         const toPush = idMap.get(i.toString());
-        
         allocatedInvestments.push(toPush);
     }
 
@@ -303,8 +235,9 @@ async function fillRebalanceEvent(eventID, eventData, idMap) {
             assetAllocationType: glidePath ? "GLIDE" : "FIXED",
             percentageAllocations: percentageAllocations,
             allocatedInvestments: allocatedInvestments,
+            maximumCash: maxCash,
         });
-        
+
         return toReturn;
     } else if (eventData.start.type === "startAfter") {
         const startAfter = idMap.get(eventData.start.eventSeries.toString());
@@ -315,8 +248,9 @@ async function fillRebalanceEvent(eventID, eventData, idMap) {
             assetAllocationType: glidePath ? "GLIDE" : "FIXED",
             percentageAllocations: percentageAllocations,
             allocatedInvestments: allocatedInvestments,
+            maximumCash: maxCash,
         });
-        
+
         return toReturn;
     } else {
         const startYearTypeDistribution = await createDistribution(eventData.start, "amount", idMap);
@@ -327,25 +261,97 @@ async function fillRebalanceEvent(eventID, eventData, idMap) {
             assetAllocationType: glidePath ? "GLIDE" : "FIXED",
             percentageAllocations: percentageAllocations,
             allocatedInvestments: allocatedInvestments,
+            maximumCash: maxCash,
         });
-        
+
+        return toReturn;
+    }
+}
+async function fillRebalanceEvent(eventID, eventData, idMap, taxStatusMap) {
+    const durationDistribution = await createDistribution(eventData.duration, "amount", idMap);
+    const description = "";
+    const glidePath = eventData.glidePath === "true" || eventData.glidePath == true;
+
+    const percentageAllocations = [];
+    if(glidePath){
+        for(const i in eventData.assetAllocation){
+            const toPush = [Object.values(eventData.assetAllocation[i])[0], Object.values(eventData.assetAllocation2[i])[0]];
+            percentageAllocations.push(toPush);
+        }
+    }
+    else{
+        for(const i in eventData.assetAllocation){
+            const toPush = [Object.values(eventData.assetAllocation[i])[0]];
+
+            percentageAllocations.push(toPush);
+        }
+    }
+    
+
+
+    const allocatedInvestments = [];
+    let taxStatus = ""; // Infer from the first asset allocation and its type, might run into trouble if user modifies the yaml file into invalid state
+    for (const i in eventData.assetAllocation) {
+        const toPush = idMap.get(i.toString());
+        if (taxStatus === "") {
+            taxStatus = taxStatusMap.get(i.toString().split(" ").at(-1));
+        }
+        allocatedInvestments.push(toPush);
+    }
+
+    if (eventData.start.type === "startWith") {
+        const startsWith = idMap.get(eventData.start.eventSeries.toString());
+        const toReturn = await eventFactory.update(eventID, {
+            durationTypeDistribution: durationDistribution,
+            startsWith: startsWith,
+            description: description,
+            assetAllocationType: glidePath ? "GLIDE" : "FIXED",
+            percentageAllocations: percentageAllocations,
+            allocatedInvestments: allocatedInvestments,
+            taxStatus: taxStatus,
+        });
+
+        return toReturn;
+    } else if (eventData.start.type === "startAfter") {
+        const startAfter = idMap.get(eventData.start.eventSeries.toString());
+        const toReturn = await eventFactory.update(eventID, {
+            durationTypeDistribution: durationDistribution,
+            startAfter: startAfter,
+            description: description,
+            assetAllocationType: glidePath ? "GLIDE" : "FIXED",
+            percentageAllocations: percentageAllocations,
+            allocatedInvestments: allocatedInvestments,
+            taxStatus: taxStatus,
+        });
+
+        return toReturn;
+    } else {
+        const startYearTypeDistribution = await createDistribution(eventData.start, "amount", idMap);
+        const toReturn = await eventFactory.update(eventID, {
+            durationTypeDistribution: durationDistribution,
+            startYearTypeDistribution: startYearTypeDistribution,
+            description: description,
+            assetAllocationType: glidePath ? "GLIDE" : "FIXED",
+            percentageAllocations: percentageAllocations,
+            allocatedInvestments: allocatedInvestments,
+            taxStatus: taxStatus,
+        });
+
         return toReturn;
     }
 }
 
-
-
-export async function parseAndSaveYAML(filePath) {
+export async function parseAndSaveYAML(yamlStr, userId) {
     try {
-        const fileContents = fs.readFileSync(filePath, 'utf8');
-        const data = yaml.load(fileContents);
+        const data = yamlStr;
 
         const idMap = new Map();
-        
+
         const taxStatusMap = new Map([
             ["non-retirement", "NON_RETIREMENT"],
             ["pre-tax", "PRE_TAX_RETIREMENT"],
             ["after-tax", "AFTER_TAX_RETIREMENT"],
+            ["cash", "CASH"],
         ]);
         const eventTypeMap = new Map([
             ["income", "INCOME"],
@@ -368,15 +374,15 @@ export async function parseAndSaveYAML(filePath) {
                 expectedAnnualReturnDistribution: expectedAnnualReturnDistribution._id,
                 expenseRatio: type.expenseRatio,
                 expectedAnnualIncomeDistribution: expectedAnnualIncomeDistribution._id,
-                taxability: type.taxability==="true",
+                taxability: type.taxability === "true",
             });
-            
+
             idMap.set(`${type.name} TYPE`, createdType._id);
         });
         await Promise.all(investmentTypePromises);
-        
+
         // Save Investments
-        for(const i in data.investments){
+        for (const i in data.investments) {
             const inv = data.investments[i];
             let taxStatus = taxStatusMap.get(inv.taxStatus.toString());
             if(inv.investmentType==="Cash"){
@@ -391,7 +397,7 @@ export async function parseAndSaveYAML(filePath) {
             const investmentType = await investmentTypeFactory.read(investmentTypeID);
 
             investmentType.investments.push(createdInvestment._id.toString());
-            
+
             await investmentTypeFactory.update(investmentTypeID, {
                 investments: investmentType.investments
             });
@@ -403,44 +409,51 @@ export async function parseAndSaveYAML(filePath) {
 
 
         //create all events, add to the name -> id map
-        for(const i in data.eventSeries){
+        for (const i in data.eventSeries) {
             const createdEvent = await eventFactory.create(eventTypeMap.get(data.eventSeries[i].type.toString()), {
                 name: data.eventSeries[i].name.toString(),
             });
             idMap.set(data.eventSeries[i].name.toString(), createdEvent._id);
-            
+
         }
 
 
         //fill in the fields for all events
 
-        for(const i in data.eventSeries){
+        for (const i in data.eventSeries) {
             const createdEvent = await eventFactory.read(idMap.get(data.eventSeries[i].name.toString()));
-            if(createdEvent.eventType==="INCOME"){
+            if (createdEvent.eventType === "INCOME") {
                 await fillIncomeEvent(createdEvent._id, data.eventSeries[i], idMap);
             }
-            else if(createdEvent.eventType==="EXPENSE"){
+            else if (createdEvent.eventType === "EXPENSE") {
                 await fillExpenseEvent(createdEvent._id, data.eventSeries[i], idMap);
             }
-            else if(createdEvent.eventType==="INVEST"){
+            else if (createdEvent.eventType === "INVEST") {
                 await fillInvestEvent(createdEvent._id, data.eventSeries[i], idMap);
             }
-            else if(createdEvent.eventType==="REBALANCE"){
-                await fillRebalanceEvent(createdEvent._id, data.eventSeries[i], idMap);
+            else if (createdEvent.eventType === "REBALANCE") {
+                await fillRebalanceEvent(createdEvent._id, data.eventSeries[i], idMap, taxStatusMap);
             }
-            else{
+            else {
                 //Error
-                throw("Invalid Event Type");
+                throw ("Invalid Event Type");
             }
-            
+
         }
 
         const userLifeExpectancyDistribution = await createDistribution(data.lifeExpectancy[0], "amount", idMap);
         let spouseLifeExpectancyDistribution;
-        if(data.maritalStatus === 'couple'){
+        if (data.maritalStatus === 'couple') {
             spouseLifeExpectancyDistribution = await createDistribution(data.lifeExpectancy[1], "amount", idMap);
         }
         const inflationAssumptionDistribution = await createDistribution(data.inflationAssumption, "percent", idMap);
+
+        const user = await userController.read(userId);
+
+        const firstName = user.firstName;
+        const lastName = user.lastName;
+        const email = user.email;
+
         // Save Scenario
         
         const scenario = await scenarioFactory.create({
@@ -448,8 +461,8 @@ export async function parseAndSaveYAML(filePath) {
             filingStatus: data.maritalStatus === 'couple' ? 'MARRIEDJOINT' : 'SINGLE',
             userBirthYear: data.birthYears[0],
             spouseBirthYear: data.maritalStatus === 'couple' ? data.birthYears[1] : null,
-            userLifeExpectancyDistribution : userLifeExpectancyDistribution,
-            spouseLifeExpectancyDistribution : spouseLifeExpectancyDistribution,
+            userLifeExpectancyDistribution: userLifeExpectancyDistribution,
+            spouseLifeExpectancyDistribution: spouseLifeExpectancyDistribution,
             stateOfResidence: data.residenceState,
             investmentTypes: data.investmentTypes.map(type => idMap.get(`${type.name} TYPE`)),
             events: data.eventSeries.map(evt => idMap.get(evt.name)),
@@ -462,11 +475,17 @@ export async function parseAndSaveYAML(filePath) {
             startYearRothOptimizer: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionStart : undefined),
             endYearRothOptimizer: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionEnd : undefined),
             orderedRothStrategy: data.RothConversionStrategy.map(inv => idMap.get(inv)),
+            ownerFirstName: firstName,
+            ownerLastName: lastName,
+            ownerEmail: email,
         });
 
-        
+        await userController.update(userId, {
+            $push: { ownerScenarios: scenario._id }
+        });
+
         return scenario._id;
     } catch (error) {
-        throw(error);
+        throw (error);
     }
 }

@@ -1,15 +1,14 @@
 import axios from "axios";
 import * as cheerio from 'cheerio';
+import 'dotenv/config'
 
 //This scaper is not flexible: it may only be re-used in the case of a change of values
 //Any change in the structure of the relevant tables/fields will result in a fatal error
 
 export async function scrapeFederalIncomeTaxBrackets() {
     try {
-        let url = `${process.env.FED_INCOME}`;
-        if(url==="undefined"){
-            url = 'https://www.irs.gov/filing/federal-income-tax-rates-and-brackets'
-        }
+
+        const url = `${process.env.FED_INCOME}`;
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
 
@@ -18,6 +17,23 @@ export async function scrapeFederalIncomeTaxBrackets() {
         const marriedJoint = [];
         const marriedSeperate = [];
         const headOfHousehold = [];
+
+        let year = null;
+        $('h2').each((i, element) => {
+            const text = $(element).text();
+            const match = text.match(/(\d{4}) tax rates for a single taxpayer/i) || text.match(/(\d{4}) tax rates for other filers/i);
+            if (match) {
+                year = match[1];
+                return false; // Stop loop once found
+            }
+        });
+
+        if (!year) {
+            console.log('Tax Year not found, default to current Year');
+            year = new Date().getFullYear(); // Default to current year if not found
+        } else {
+            year = Number(year); // Convert to number
+        }
 
         //This page has 4 tables:
         //Single
@@ -61,7 +77,9 @@ export async function scrapeFederalIncomeTaxBrackets() {
         taxBrackets.push(marriedJoint);
         taxBrackets.push(marriedSeperate);
         taxBrackets.push(headOfHousehold);
-        return taxBrackets;
+
+
+        return { year: year, taxBrackets: taxBrackets };
     } catch (error) {
         console.error('Error fetching tax brackets:', error);
         return [];
@@ -72,12 +90,28 @@ export async function scrapeFederalIncomeTaxBrackets() {
 
 export async function scrapeStandardDeductions() {
     try {
-        let url = `${process.env.FED_STANDARD_DEDUCTIONS}`;
-        if(url==="undefined"){
-            url = 'https://www.irs.gov/publications/p17'
-        }
+
+        const url = `${process.env.FED_STANDARD_DEDUCTIONS}`;
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
+
+
+        let year = null;
+        $('h1').each((i, element) => {
+            const text = $(element).text();
+            const match = text.match(/Publication 17 \((\d{4})\), Your Federal Income Tax/i);
+            if (match) {
+                year = match[1];
+                return false; // Stop loop once found
+            }
+        });
+
+        if (!year) {
+            console.log('Tax Year not found, default to current Year');
+            year = new Date().getFullYear(); // Default to current year if not found
+        } else {
+            year = Number(year); // Convert to number
+        }
 
         let standardDeductions = [];
 
@@ -107,7 +141,7 @@ export async function scrapeStandardDeductions() {
             }
         });
 
-        return standardDeductions;
+        return { year: year, standardDeductions: standardDeductions };
     }
     catch (error) {
         console.error('Error fetching standard deductions:', error);
@@ -120,12 +154,26 @@ export async function scrapeStandardDeductions() {
 
 export async function fetchCapitalGainsData() {
     try {
-        let url = `${process.env.FED_CAPITAL_GAINS}`;
-        if(url==="undefined"){
-            url = 'https://www.irs.gov/taxtopics/tc409'
-        }
+
+        const url = `${process.env.FED_CAPITAL_GAINS}`;
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
+
+        let year = null;
+        $('p').each((i, element) => {
+            const text = $(element).text();
+            const match = text.match(/For taxable years beginning in (\d{4})/i);
+            if (match) {
+                year = match[1];
+                return false; // Stop loop once found
+            }
+        });
+        if (!year) {
+            console.log('Tax Year not found, default to current Year');
+            year = new Date().getFullYear(); // Default to current year if not found
+        } else {
+            year = Number(year); // Convert to number
+        }
 
         let unparsedBullets1 = [];
         let unparsedBullets2 = [];
@@ -282,7 +330,7 @@ export async function fetchCapitalGainsData() {
         taxBrackets.push(headOfHousehold);
 
 
-        return taxBrackets;
+        return { year: year, taxBrackets: taxBrackets };
     }
     catch (error) {
         console.error('Error fetching capital gains tax rates:', error);
@@ -295,16 +343,29 @@ export async function fetchCapitalGainsData() {
 //scrape RMD tables
 export async function fetchRMDTable() {
     try {
-        let url = `${process.env.FED_RMD}`;
-        if(url==="undefined"){
-            url = 'https://www.irs.gov/publications/p590b#en_US_2023_publink100090310'
-        }
+
+        const url = `${process.env.FED_RMD}`;
         const { data } = await axios.get(url);
         const $ = cheerio.load(data);
 
+        let year = null;
+        $('h1').each((i, element) => {
+            const text = $(element).text();
+            const match = text.match(/Publication 590-B \((\d{4})\), Distributions from Individual Retirement Arrangements \(IRAs\)/i);
+            if (match) {
+                year = match[1];
+                return false; // Stop loop once found
+            }
+        });
+
+        if (!year) {
+            console.log('Tax Year not found, default to current Year');
+            year = new Date().getFullYear(); // Default to current year if not found
+        } else {
+            year = Number(year); // Convert to number
+        }
+
         let rawtableData = [];
-
-
 
         const table = $('table[summary="Appendix B. Uniform Lifetime Table"]');
 
@@ -374,7 +435,7 @@ export async function fetchRMDTable() {
 
 
 
-        return { ages, distributions };
+        return { year, ages, distributions };
     } catch (error) {
         console.error('Error fetching Uniform Lifetime Table:', error);
         return [];

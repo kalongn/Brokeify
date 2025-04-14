@@ -87,7 +87,6 @@ const testScenario = async () => {
             assetAllocationType: "GLIDE",
             percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
             allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
-            maximumCash: 1000,
             taxStatus: "NON_RETIREMENT"
         });
 
@@ -223,6 +222,7 @@ const testRMDTable = async () => {
 
     try {
         const rmd = await factory.create({
+            year: 2024,
             ages: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79],
             distributionPeriods: [27.4, 26.5, 25.6, 24.7, 23.8, 22.9, 22.0, 21.2, 20.3, 19.5]
         });
@@ -288,13 +288,7 @@ const testTax = async (i) => {
             return federalStandardDeduction;
         }
         else if (i == 4) {
-            const stateStandardDeduction = await factory.create("STATE_STANDARD", {
-                filingStatus: "SINGLE",
-                state: "CA",
-                standardDeduction: 4601
-            });
-            ///console.log(stateStandardDeduction);
-            return stateStandardDeduction;
+            return null;
         }
 
         else if (i == 5) {
@@ -327,12 +321,14 @@ const populateDB = async () => {
     const s = await taxfactory.read(stateTax[0]);
     
     
+
     const scenarioID = await parseAndSaveYAML("../yaml_files/scenarios/testScenario2.yaml");
     const scenario = await factory.read(scenarioID);
     console.log(scenario);
     
     
     //const RMDTable = await testRMDTable();
+
 
 
     //const federalIncomeTax = await testTax(1);
@@ -345,8 +341,10 @@ const populateDB = async () => {
     console.log('====================== Simulation Test =====================');
     //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
+
         //const r = await validateRun(scenario._id, 1, stateTax, "GUEST", 1);
         //console.log(r);
+
     }
     catch (err) {
         const res = await connection.dropDatabase();

@@ -33,6 +33,7 @@ if (process.env.NODE_V8_COVERAGE) {
 
 import mongoose from "mongoose";
 const {run} = await import('./planValidator.js');
+
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
 async function main() {
     try {
@@ -55,4 +56,6 @@ async function main() {
     }
 }
   
+
 await main();
+

@@ -77,6 +77,7 @@ export async function simulate(
 
   csvFile = csvFileL;
   logFile = logFileL;
+
   const eventTimeframeBool = await chooseEventTimeframe(scenario);
   const chooseLifeExpectanciesBool = await chooseLifeExpectancies(scenario);
   if (eventTimeframeBool === false) {
@@ -142,6 +143,7 @@ export async function simulate(
       scenario.investmentTypes.map(
         async (id) => await investmentTypeFactory.read(id)
       )
+
     );
     investmentIds = investmentTypes.flatMap((type) => type.investments);
 
@@ -314,6 +316,7 @@ export async function simulate(
     investments = await Promise.all(
       investmentIds.map(async (id) => await investmentFactory.read(id))
     );
+
     let totalValue = 0;
     for (const investmentIndex in investments) {
       totalValue += investments[investmentIndex].value;
@@ -329,6 +332,7 @@ export async function simulate(
       const touple = {
         name: investments[investmentIndex]._id.toString(),
         values: investments[investmentIndex].value,
+
       };
       investmentValuesArray.push(touple);
     }
@@ -339,7 +343,9 @@ export async function simulate(
         (discretionaryAmountPaid + 0.0) /
         (discretionaryAmountIgnored + discretionaryAmountPaid);
     }
+
     const reportedIncome = curYearIncome;
+
     const yearlyRes = {
       year: currentYear + realYear,
       inflationRate: inflationRate,
