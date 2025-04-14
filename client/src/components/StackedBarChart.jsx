@@ -42,6 +42,7 @@ const StackedBarChart = ({ data }) => {
                 barmode: 'stack',
                 xaxis: { title: 'Time' },
                 yaxis: { title: 'Amount' },
+                showlegend: true,
             }}
         />
     );
