@@ -93,7 +93,7 @@ const InvestmentTypes = () => {
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
                     disabled={index === 0}
-
+                    data-testid={`edit-${investmentType.name}`}
                   >
                     <FaEdit />
                   </button>
@@ -109,6 +109,7 @@ const InvestmentTypes = () => {
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
                     disabled={index === 0}
+                    data-testid={`delete-${investmentType.name}`}
                   >
                     <FaTimes />
                   </button>
