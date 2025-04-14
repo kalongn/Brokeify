@@ -2,6 +2,8 @@ import yaml from 'js-yaml';
 import TaxController from "../db/controllers/TaxController.js";
 import UserController from "../db/controllers/UserController.js";
 
+import { stateMap } from '../routes/helper.js';
+
 const taxController = new TaxController()
 const userController = new UserController();
 
@@ -36,10 +38,13 @@ export async function parseStateTaxYAML(yamlStr, userId) {
             return -1; // Invalid YAML format
         }
         if (verifyRates(rates) === false) {
-            return -1;
+            return -1; // Invalid rates format
         }
-        if (year > new Date().getFullYear()) {
-            return -1;
+        if (year > new Date().getFullYear() || filingStatus !== "SINGLE" || filingStatus !== "MARRIEDJOINT") {
+            return -1; // Invalid year or filing status
+        }
+        if(stateMap[state] === undefined) {
+            return -1; // Invalid state
         }
 
 

@@ -2,7 +2,7 @@ import UserController from '../db/controllers/UserController.js';
 
 const userController = new UserController();
 
-const stateMap = {
+export const stateMap = {
     "AL": "Alabama",
     "AK": "Alaska",
     "AZ": "Arizona",
