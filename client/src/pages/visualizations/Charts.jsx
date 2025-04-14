@@ -111,9 +111,9 @@ const Charts = () => {
             <div key={chart.id} className={styles.chart}>
               <h3>{chart.type}</h3>
               {/* Charts will show depending on type */}
-              {chart.type === "Shaded Line Chart" && <ShadedLineChart data={chart.data} />}
-              {chart.type === "Line Chart" && <LineChart data={chart.data} />}
-              {chart.type === "Stacked Bar Chart" && <StackedBarChart data={chart.data} />}
+              {chart.type === "Shaded Line Chart" && chart.data && <ShadedLineChart data={chart.data} />}
+              {chart.type === "Line Chart" && chart.data && <LineChart data={chart.data} />}
+              {chart.type === "Stacked Bar Chart" && chart.data && <StackedBarChart data={chart.data} />}
             </div>
           ))}
         </div>
