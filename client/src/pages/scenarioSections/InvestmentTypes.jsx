@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { FaEdit } from "react-icons/fa";
+import ErrorMessage from "../../components/ErrorMessage";
 
 import Axios from 'axios';
 
@@ -11,6 +12,8 @@ import styles from "./Form.module.css";
 const InvestmentTypes = () => {
   const { scenarioId } = useParams();
   const [investmentTypes, setInvestmentTypes] = useState([]);
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
 
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -26,11 +29,7 @@ const InvestmentTypes = () => {
 
   const navigate = useNavigate();
   const newInvestmentType = () => {
-    // Pass the list of investmentTypes to avoid fetching list again later
-    const investmentTypeNames = investmentTypes.map((investmentType) => investmentType.name);
-    navigate(`/ScenarioForm/${scenarioId}/investment-types/new`, {
-      state: investmentTypeNames
-    });
+    navigate(`/ScenarioForm/${scenarioId}/investment-types/new`);
   }
   //New route to update scenario
   const editInvestmentType = (id) => {
@@ -46,12 +45,12 @@ const InvestmentTypes = () => {
       console.log(response.data);
       const updatedInvestmentTypes = investmentTypes.filter((invType) => invType.id !== id);
       setInvestmentTypes(updatedInvestmentTypes);
+      setErrors({});
     } catch (error) {
-      //TODO: show error to the user in a nicer way @04mHuang
       if (error.response.status === 409) {
-        alert("This investment type is being used in an investment. Please remove it from the investment before deleting.");
+        setErrors({ investmentType: "The selected investment type is being used in an investment. Remove it from the investment before deleting." });
       } else {
-        alert("Unknown Error deleting investment type. Please try again.");
+        setErrors({ investmentType: "There was an error deleting the investment type. Please try again." });
       }
       console.error('Error deleting investment type:', error);
     }
@@ -63,6 +62,7 @@ const InvestmentTypes = () => {
       <p>
         Create investment types or view the default ones.
       </p>
+      <ErrorMessage errors={errors} />
       <table id={styles.inputTable}>
         <thead>
           <tr>
@@ -71,7 +71,7 @@ const InvestmentTypes = () => {
             <th></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="investmentType">
           {investmentTypes.map((investmentType, index) => (
             <tr key={investmentType.id}>
               <td>

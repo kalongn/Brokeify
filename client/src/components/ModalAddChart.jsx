@@ -87,47 +87,55 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
       return;
     }
 
-    {/* Note: I used chatGPT to get the consts in this specific function. Used that output to create cContent for each chart.*/}
+    {/* Note: I used chatGPT to get the consts in this specific function. Used that output to create cContent for each chart.*/ }
     let cType = {};
     let cContent = {};
     if (selectedChart === 'line') {
       cType = 'Line Chart';
-      cContent = { label: "Probability of Success over Time"};
+      cContent = { label: "Probability of Success over Time" };
     }
     if (selectedChart === 'shaded') {
       cType = 'Shaded Line Chart';
       const dollarRadios = document.getElementsByName('shadedDollar');
       const dollarValue = [...dollarRadios].find(r => r.checked)?.value;
-      
+
       cContent = {
         quantity: selectedShadedQuantity,
         dollarValue: isShadedQuantityNumeric ? dollarValue : null,
-        label: `Quantity: ${selectedShadedQuantity}` +  (dollarValue ? `, Dollar Value: ${dollarValue}` : '')
+        label: `Quantity: ${selectedShadedQuantity}` + (dollarValue ? `, Dollar Value: ${dollarValue}` : '')
       };
       console.log(cContent);
     }
-  
+
     if (selectedChart === 'stacked') {
       cType = 'Stacked Bar Chart';
       const barRadios = document.getElementsByName('barValueType');
       const valueType = [...barRadios].find(r => r.checked)?.nextSibling?.nodeValue.trim();
-  
+
       const thresholdInput = document.querySelector('input[type="number"]');
       const dollarRadios = document.getElementsByName('stackedDollar');
       const dollarValue = [...dollarRadios].find(r => r.checked)?.nextSibling?.nodeValue.trim();
-  
+
       cContent = {
         quantity: selectedBarQuantity,
         valueType: valueType,
         threshold: parseFloat(thresholdInput.value),
         dollarValue: dollarValue,
         label: `Quantity: ${selectedBarQuantity}, Value Type: ${valueType}, Threshold: ${thresholdInput.value}`
-      + (dollarValue ? `, Dollar Value: ${dollarValue}` : '')
+          + (dollarValue ? `, Dollar Value: ${dollarValue}` : '')
       };
     }
 
-    {/*Middleware/Backend TODO: Get appropriate data from database*/}
-    setCharts((prevCharts) => [...prevCharts, { type: cType, content: cContent, label: cContent.label, data: {} }]);
+    setCharts((prevCharts) => {
+      const newChart = {
+        id: prevCharts.length + 1,
+        type: cType,
+        content: cContent,
+        label: cContent.label,
+        data: {}
+      };
+      return [...prevCharts, newChart];
+    });
     setIsOpen(false);
   }
 
@@ -182,7 +190,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
                 <div className={styles.numericSettings}>
                   <p>Dollar Value</p>
                   <div className={styles.radioGroup}>
-                    <label><input type="radio" name="shadedDollar" value ="Today" /> Today</label>
+                    <label><input type="radio" name="shadedDollar" value="Today" /> Today</label>
                     <label><input type="radio" name="shadedDollar" value="Future" /> Future</label>
                   </div>
                   {validationErrors.dollarValue && (
@@ -208,7 +216,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
             <div className={styles.chartSettings}>
               <div className={styles.radioGroup}>
                 <label><input type="radio" name="barValueType" value="Median" /> Median</label>
-                <label><input type="radio" name="barValueType" value="Average"/> Average</label>
+                <label><input type="radio" name="barValueType" value="Average" /> Average</label>
               </div>
               {validationErrors.barType && (
                 <p className={styles.error}>{validationErrors.barType}</p>
@@ -241,8 +249,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
               <div className={styles.numericSettings}>
                 <p>Dollar Value</p>
                 <div className={styles.radioGroup}>
-                  <p><input type="radio" name="stackedDollar" value = "Today"/> Today</p>
-                  <p><input type="radio" name="stackedDollar" value = "Future"/> Future</p>
+                  <p><input type="radio" name="stackedDollar" value="Today" /> Today</p>
+                  <p><input type="radio" name="stackedDollar" value="Future" /> Future</p>
                 </div>
                 {validationErrors.dollarValue && (
                   <p className={styles.error}>{validationErrors.dollarValue}</p>

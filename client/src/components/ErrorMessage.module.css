@@ -1,0 +1,54 @@
+.errorBox {
+  background-color: var(--color-white);
+  border: 1px solid rgb(199, 0, 0);
+  border-left-width: 0.5rem;
+  border-radius: 3px;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}
+.errorMessage {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+.errorMessage svg {
+  margin-right: 0.5rem;
+}
+.errorList {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+.errorList li a {
+  text-decoration: underline;
+  color: rgb(199, 0, 0);
+}
+.errorList li a:hover {
+  color: var(--color-primary);
+}
+.errorInput {
+  border: 1.5px solid rgb(199, 0, 0);
+  border-radius: 5px;
+}
+.highlight {
+  background-color: rgb(239, 208, 208);
+  border-radius: 3px;
+}
+
+:target {
+  animation: fadeHighlight 2s ease-in-out;
+}
+@keyframes fadeHighlight {
+  0%, 40%, 100% {
+    font-weight: medium;
+    color: var(--color-black);
+  }
+  0%, 60%, 80% {
+    font-weight: bold;
+    color: rgb(199, 0, 0);
+  }
+}
+/* .radioGroup input[type="radio"] {
+  outline: 1px solid rgb(199, 0, 0);
+  outline-offset: 1px;
+} */

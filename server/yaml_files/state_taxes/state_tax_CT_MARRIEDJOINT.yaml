@@ -1,0 +1,25 @@
+year: 2024
+state: CT
+filingStatus: MARRIEDJOINT
+rates:
+  - lowerBound: 0
+    upperBound: 20000
+    rate: 0.02
+  - lowerBound: 20001
+    upperBound: 100000
+    rate: 0.045
+  - lowerBound: 100001
+    upperBound: 200000
+    rate: 0.055
+  - lowerBound: 200001
+    upperBound: 400000
+    rate: 0.06
+  - lowerBound: 400001
+    upperBound: 500000
+    rate: 0.065
+  - lowerBound: 500001
+    upperBound: 1000000
+    rate: 0.069
+  - lowerBound: 1000001
+    upperBound: Infinity
+    rate: 0.0699

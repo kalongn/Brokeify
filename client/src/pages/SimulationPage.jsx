@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import Axios from 'axios';
 
 import 'ladda/dist/ladda.min.css';
 import * as Ladda from 'ladda/js/ladda'; // or import from submodule path
@@ -8,29 +9,30 @@ import * as Ladda from 'ladda/js/ladda'; // or import from submodule path
 import styles from './SimulationPage.module.css';
 
 const ScenarioSimulation = () => {
+
+    const [scenarios, setScenarios] = useState([]);
     const [selectedScenario, setSelectedScenario] = useState('');
-    const [numSimulations, setNumSimulations] = useState(50);
+    const [numSimulations, setNumSimulations] = useState(10);
     const [errorMessage, setErrorMessage] = useState('');
     const [isRunning, setIsRunning] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [previousRun, setPreviousRun] = useState(null);
-    
-    //For the sake of ESLint Errors
-    console.log(loading);
 
-    // Sample scenarios array for testing purposes (Note: get name so that it displays as such in dropdown.  Need id to navigate 
-    //for results button 
-    const scenarios = [
-        {
-            _id: "67f6e777015c679cd03c4638",
-            name: "My Own Scenario"
-        },
-        {
-            _id: "67f6e55262ecee008d00cf1e",
-            name: "Test Scenario 2"
-        }
-    ];
-      
+    useEffect(() => {
+        Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+        Axios.defaults.withCredentials = true;
+        Axios.get('/runSimulation').then((response) => {
+            const data = response.data;
+            const scenarios = data.scenarios;
+            const previousRun = data.previousRun;
+            console.log('Scenarios data:', data);
+            setPreviousRun(previousRun);
+            setScenarios(scenarios);
+        }).catch((error) => {
+            console.error('Error fetching scenarios:', error);
+        });
+    }, []);
+
+
     const handleRunSimulation = async (e) => {
         const num = numSimulations;
         if (!selectedScenario) {
@@ -43,29 +45,27 @@ const ScenarioSimulation = () => {
         }
 
         setErrorMessage(''); // Clear previous error message
+        setPreviousRun(null); // Clear previous run
         setIsRunning(true); // Set simulation as running
 
         const laddaBtn = Ladda.create(e.currentTarget);
         laddaBtn.start();  // Start the Ladda button spinner
 
-        let progress = 0;
-        const interval = setInterval(() => {
-            if (progress < 1) {
-                progress += 0.1; // Increase progress by 10%
-                laddaBtn.setProgress(progress);
-            }
-        }, 1000);
-
         try {
-            await new Promise((resolve) => setTimeout(resolve, 12000)); // Simulating a 12-second delay for testing
-            setIsRunning(false); // Simulation done
-            setLoading(false); // Loading icons gone
-            setPreviousRun(true); //TODO: Update this with the current run! 
+            const response = await Axios.post('/runSimulation', {},
+                {
+                    params: {
+                        scenarioId: selectedScenario,
+                        numTimes: num
+                    }
+                }
+            );
+            setPreviousRun(response.data);
+            setIsRunning(false); // Set simulation as not running
         } catch (error) {
             setErrorMessage('An error occurred during the simulation.');
             console.error('Simulation error:', error);
         } finally {
-            clearInterval(interval); // Clear the progress interval when done
             laddaBtn.stop(); // Stop the Ladda spinner
         }
     };
@@ -78,16 +78,17 @@ const ScenarioSimulation = () => {
                 <div className={styles.section}>
                     <div className={styles.group}>
                         <p>Select a Scenario:</p>
+                        {/* TODO: modify to react-select here */}
                         <select className={styles.dropdown} value={selectedScenario} onChange={(e) => setSelectedScenario(e.target.value)}>
                             <option value="" hidden disabled>-- Select a Scenario --</option>
                             {scenarios.map((scenario, index) => (
-                                <option key={index} value={scenario._id}>
+                                <option key={index} value={scenario.id}>
                                     {scenario.name}
                                 </option>
                             ))}
                         </select>
                     </div>
-                
+
                     <div>
                         <p>Enter number of simulation runs: </p>
                         <input
@@ -133,8 +134,8 @@ const ScenarioSimulation = () => {
                     ) : (
                         previousRun !== null && (
                             <div>
-                                <p>Your scenario has run successfully!</p>
-                                <Link className={styles.seeResults} to={`/visualizations/charts/${selectedScenario}`}>
+                                <p>Previous Run Result:</p>
+                                <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
                                     See Results
                                 </Link>
                             </div>
