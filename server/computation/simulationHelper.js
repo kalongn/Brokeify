@@ -249,7 +249,7 @@ export async function adjustEventAmount(event, inflationRate, scenario, currentY
     if (event.eventType === "INVEST" || event.eventType === "REBALANCE") {
         return;
     }
-    if (event.isinflationAdjusted) {
+    if (event.isinflationAdjusted&&currentYear!==0) {
         event.amount = event.amount * (1 + inflationRate);
     }
     const realYear = new Date().getFullYear();
@@ -717,7 +717,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
 
     }
     totalValue = Math.round((totalValue)*100)/100;
-
+    
     let totalInStrategy = 0;
     for (const investmentIDIndex in scenario.orderedExpenseWithdrawalStrategy) {
 
@@ -729,7 +729,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
     }
     totalInStrategy = Math.round((totalInStrategy)*100)/100;
 
-    let amountICanPay = Math.max(totalValue - scenario.financialGoal, totalInStrategy);
+    let amountICanPay = Math.min(totalValue - scenario.financialGoal, totalInStrategy);
     if (amountICanPay <= 0) {
         
         return { np: totalExpenses, p: 0, c:0 };
@@ -740,7 +740,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
         toReturn = { np: totalExpenses - amountICanPay, p: amountICanPay, c: 0 };
         leftToPay = amountICanPay;
     }
-
+    
     
     //determine the expenses you are 'going to pay' in order to log them
     let logToPay = amountICanPay;

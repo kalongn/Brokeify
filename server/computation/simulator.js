@@ -77,7 +77,6 @@ export async function simulate(
 
   csvFile = csvFileL;
   logFile = logFileL;
-
   const eventTimeframeBool = await chooseEventTimeframe(scenario);
   const chooseLifeExpectanciesBool = await chooseLifeExpectancies(scenario);
   if (eventTimeframeBool === false) {
@@ -190,7 +189,6 @@ export async function simulate(
     //update events
     for (const i of events) {
       const event = await eventFactory.read(i);
-
       if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
         await adjustEventAmount(event, inflationRate, scenario, currentYear);
       }
@@ -281,7 +279,7 @@ export async function simulate(
       lastYearGains,
       currentYear
     );
-    thisYearTaxes = calcTaxReturn.t;
+    lastYearTaxes = calcTaxReturn.t;
     earlyWithdrawalTaxPaid = calcTaxReturn.e;
     let nonDiscretionaryExpenses = 0;
     const expensesReturn = await processExpenses(scenario, lastYearTaxes, currentYear);
@@ -289,7 +287,7 @@ export async function simulate(
     
     thisYearGains += expensesReturn.c; //if you sell investments
 
-    lastYearTaxes = thisYearTaxes;
+    //lastYearTaxes = thisYearTaxes;
     //returns amount not paid, paid, and capital gains
     let discretionaryAmountIgnored, discretionaryAmountPaid;
     const processDiscretionaryResult = await processDiscretionaryExpenses(
@@ -300,7 +298,6 @@ export async function simulate(
     discretionaryAmountPaid = processDiscretionaryResult.p;
     thisYearGains += processDiscretionaryResult.c;
     let totalExpenses = nonDiscretionaryExpenses + discretionaryAmountPaid;
-
     await processInvestmentEvents(scenario, currentYear);
 
     thisYearGains += await rebalanceInvestments(scenario, currentYear);
@@ -330,8 +327,8 @@ export async function simulate(
     const investmentValuesArray = [];
     for (const investmentIndex in investments) {
       const touple = {
-        id: investments[investmentIndex]._id,
-        value: investments[investmentIndex].value,
+        name: investments[investmentIndex]._id.toString(),
+        values: investments[investmentIndex].value,
       };
       investmentValuesArray.push(touple);
     }

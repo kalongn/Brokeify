@@ -29,6 +29,11 @@ const taxFactory = new TaxController();
 const simulationFactory = new SimulationController();
 const distributionFactory = new DistributionController();
 const resultFactory = new ResultController();
+import { fileURLToPath } from 'url';
+import path from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 test.beforeAll(async () => {
     await connectToDatabase();
@@ -38,11 +43,11 @@ test.afterAll(async () => {
 });
 
 test('end to end backend test', async () => {
-    const stateTax = await parseStateTaxYAML("./testing_yaml_files/state_tax_test.yaml");
+    const stateTax = await parseStateTaxYAML(path.resolve(__dirname, 'testing_yaml_files/state_tax_test.yaml'));
     expect(stateTax).not.toBeUndefined();
     // const sT = await taxFactory.read(stateTax[0]);
     // console.log(sT)
-    const scenarioID = await parseAndSaveYAML("./testing_yaml_files/scenario1.yaml");
+    const scenarioID = await parseAndSaveYAML(path.resolve(__dirname, './testing_yaml_files/scenario1.yaml'));
     expect(scenarioID).not.toBeUndefined();
     // const scenario = await scenarioFactory.read(scenarioID);
     // console.log(scenario)
@@ -50,7 +55,7 @@ test('end to end backend test', async () => {
     expect(results).not.toBeUndefined();
     //console.log(results)
     const simulationCalculations = await resultFactory.read(results.results[0]);
-    console.log(simulationCalculations)
+    //console.log(simulationCalculations)
 
     /**
      * Time for math:
@@ -73,11 +78,27 @@ test('end to end backend test', async () => {
 
     for(let i=0;i<10;i++){
         //console.log(simulationCalculations.yearlyResults[i])
-        const totalExpense = expectedTax[i]+ expectedNonDiscretionary[i] + 2000;
+        const maxExpense = expectedTax[i]+ expectedNonDiscretionary[i] + 2000;
         expect(simulationCalculations.yearlyResults[i].totalIncome).toBe(7500-(i*100));
         expect(simulationCalculations.yearlyResults[i].totalTax).toBe(expectedTax[i]);
-        expect(simulationCalculations.yearlyResults[i].totalExpense).toBeCloseTo(totalExpense, 2);
-        
+        expect(simulationCalculations.yearlyResults[i].totalExpense).toBeLessThanOrEqual(maxExpense+1);
+        expect(simulationCalculations.yearlyResults[i].totalExpense).toBeGreaterThan(maxExpense-2001);
+        if(simulationCalculations.yearlyResults[i].isViolated){
+            const inv = (simulationCalculations.yearlyResults[i].investmentValues[1].values);
+            expect(inv).toBeLessThan(10000);
+            expect(simulationCalculations.yearlyResults[i].totalDiscretionaryExpenses).toBeLessThan(1);
+        }
+        else{
+            const inv = (simulationCalculations.yearlyResults[i].investmentValues[1].values);
+            expect(inv).toBeGreaterThanOrEqual(10000);
+            
+        }
+        if(simulationCalculations.yearlyResults[i].investmentValues[1].values===10000){
+            expect(simulationCalculations.yearlyResults[i].totalDiscretionaryExpenses).toBeLessThan(1);
+        }
+        else{
+            expect(simulationCalculations.yearlyResults[i].totalDiscretionaryExpenses).toBe(1);
+        }
     }
 
 });

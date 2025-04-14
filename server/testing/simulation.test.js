@@ -267,7 +267,7 @@ test('test update event amount', async () => {
   });
 
 
-  await adjustEventAmount(event, inflationRate, testScenario, 0);
+  await adjustEventAmount(event, inflationRate, testScenario, 1);
   const res = await eventFactory.read(event._id);
   const expected = initialAmount * (1+event.expectedAnnualChange) *(1+inflationRate);
   expect(res.amount).toBeGreaterThanOrEqual(expected-1);
