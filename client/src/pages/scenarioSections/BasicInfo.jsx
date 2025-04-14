@@ -1,10 +1,13 @@
 import { useState, useImperativeHandle, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import { stateMap, validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
+import Axios from "axios";
+
 import Select from "react-select";
 import Distributions from "../../components/Distributions";
+import ModalImport from "../../components/ModalImport";
+
 import styles from "./Form.module.css";
-import Axios from "axios";
 
 const BasicInfo = () => {
   // Prompt to AI (Amazon Q): I want field validation in the children and the submit button is in the parent
@@ -13,6 +16,7 @@ const BasicInfo = () => {
   // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
 
+  const [showImportModal, setShowImportModal] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   // Determine if what distribution fields are shown and contain values for backend
@@ -140,7 +144,6 @@ const BasicInfo = () => {
       validateDistribution(newErrors, "spouseLifeExpectancy", distributions.spouseLifeExpectancy);
     }
 
-
     // Validate birth year
     if (formData.birthYear !== undefined) {
       if (formData.birthYear < 1900 || formData.birthYear > currentYear) {
@@ -180,6 +183,17 @@ const BasicInfo = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Check if state tax data is in database
+  const validateStateFile = () => {
+    const stateFile = `${formData.state}_${formData.maritalStatus}_`;
+    // TODO: fix this arbitrary if statement
+    if (stateFile !== "NY_MARRIEDJOINT") {
+      setShowImportModal(true);
+      return false;
+    }
+    return true;
+  }
+
   const uploadToBackend = async () => {
     const data = {
       name: formData.name,
@@ -203,7 +217,7 @@ const BasicInfo = () => {
   }
 
   const handleSubmit = async () => {
-    if (!validateFields()) {
+    if (!validateFields() || !validateStateFile()) {
       return false;
     }
     return await uploadToBackend();
@@ -212,6 +226,7 @@ const BasicInfo = () => {
   return (
     <div id={styles.formSection}>
       <h2 id={styles.heading}>Basic Information</h2>
+      <ModalImport isOpen={showImportModal} onClose={setShowImportModal} />
       {loading ? <div> Loading...</div> :
         <form>
           <label>
