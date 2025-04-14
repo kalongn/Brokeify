@@ -80,7 +80,7 @@ const eventToBackend = async (body) => {
     switch (eventType) {
         case "INCOME":
             resultEvent = {
-                name: name,
+                name: name.trim(),
                 description: description,
                 durationTypeDistribution: requestDurationDistribution,
                 ...resultEvent,
@@ -93,7 +93,7 @@ const eventToBackend = async (body) => {
             break;
         case "EXPENSE":
             resultEvent = {
-                name: name,
+                name: name.trim(),
                 description: description,
                 durationTypeDistribution: requestDurationDistribution,
                 ...resultEvent,
@@ -106,7 +106,7 @@ const eventToBackend = async (body) => {
             break;
         case "INVEST":
             resultEvent = {
-                name: name,
+                name: name.trim(),
                 description: description,
                 durationTypeDistribution: requestDurationDistribution,
                 ...resultEvent,
@@ -118,7 +118,7 @@ const eventToBackend = async (body) => {
             break;
         case "REBALANCE":
             resultEvent = {
-                name: name,
+                name: name.trim(),
                 description: description,
                 durationTypeDistribution: requestDurationDistribution,
                 ...resultEvent,
@@ -386,7 +386,7 @@ router.put("/event/:scenarioId/:eventId", async (req, res) => {
                 }
             }
         }
-        
+
         const resultEvent = await eventToBackend(req.body);
         if (!resultEvent) {
             return res.status(400).send("Error creating event.");
