@@ -3,8 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 test('should collect frontend coverage', async ({ page }) => {
-  // Start Playwright test and run your app
-  await page.goto('http://localhost:3000');
+  await page.goto('http://localhost:5173');
 
   // Extract coverage after tests
   const coverage = await page.evaluate(() => window.__coverage__);
