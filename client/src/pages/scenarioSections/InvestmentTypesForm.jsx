@@ -135,7 +135,7 @@ const InvestmentTypesForm = () => {
     Axios.defaults.withCredentials = true;
 
     const data = {
-      name: formData.investmentType,
+      name: formData.investmentType.trim(),
       description: formData.description,
       expectedAnnualReturn: distributions.expectedAnnualReturn,
       expenseRatio: formData.expenseRatio,
