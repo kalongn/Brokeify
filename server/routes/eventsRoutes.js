@@ -131,7 +131,6 @@ const eventToBackend = async (body) => {
         default:
             return null;
     }
-    resultEvent.name = name.trim();
     return resultEvent;
 }
 

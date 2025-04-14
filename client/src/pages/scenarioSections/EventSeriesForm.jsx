@@ -496,7 +496,7 @@ const EventSeriesForm = () => {
         // Should not happen
         break;
     }
-
+    event.name = event.name.trim();
     try {
       const response = id ? await Axios.put(`/event/${scenarioId}/${id}`, event) : await Axios.post(`/event/${scenarioId}`, event);
       console.log(response.data);
