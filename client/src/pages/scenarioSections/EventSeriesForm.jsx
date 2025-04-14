@@ -505,7 +505,7 @@ const EventSeriesForm = () => {
       if (error.response?.status === 409) {
         setErrors({ name: "Event series name already exists" });
       } else {
-        alert("An unknown error occurred while creating the event series");
+        setErrors({ name: "An unknown error occurred" });
       }
       console.error("Error creating event series:", error);
     }
