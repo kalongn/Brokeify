@@ -2,6 +2,7 @@ import express from 'express';
 import yaml from 'js-yaml';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from "url";
 
 import { canEdit } from "./helper.js";
 import { validateRun } from "../computation/planValidator.js";
@@ -17,7 +18,8 @@ const simulationController = new SimulationController();
 const scenarioController = new ScenarioController();
 const taxController = new TaxController();
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const basePath = decodeURIComponent(path.resolve(__dirname, "../yaml_files/state_taxes/"))
 const ny_single_yaml = yaml.load(fs.readFileSync(path.join(basePath, "state_tax_NY_SINGLE.yaml"), 'utf8'));
 const ny_married_yaml = yaml.load(fs.readFileSync(path.join(basePath, "state_tax_NY_MARRIEDJOINT.yaml"), 'utf8'));
