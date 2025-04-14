@@ -88,7 +88,7 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
         const currentInvestmentType = scenario.investmentTypes;
         for (let type of currentInvestmentType) {
             if (type.name === name) {
-                return res.status(400).send("Investment type already exists.");
+                return res.status(409).send("Investment type already exists.");
             }
         }
 
@@ -123,7 +123,6 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
     }
 });
 
-//TODO: remember to check dup name in update as well
 router.put("/investmentType/:scenarioId/:investmentTypeId", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
@@ -137,6 +136,14 @@ router.put("/investmentType/:scenarioId/:investmentTypeId", async (req, res) => 
         const investmentTypeId = req.params.investmentTypeId;
 
         const { name, description, expectedAnnualReturn, expenseRatio, expectedDividendsInterest, taxability } = req.body;
+
+        const scenario = await scenarioController.readWithPopulate(id);
+        const currentInvestmentType = scenario.investmentTypes;
+        for (let type of currentInvestmentType) {
+            if (type.name === name) {
+                return res.status(409).send("Investment type already exists.");
+            }
+        }
 
         const investmentType = await investmentTypeController.read(investmentTypeId);
 
