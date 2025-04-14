@@ -7,6 +7,7 @@ import { join } from 'path';
 import { format } from 'date-fns';
 import { Worker } from 'worker_threads';
 import path from 'path';
+import { fileURLToPath } from "url";
 
 import EventController from "../db/controllers/EventController.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
@@ -24,7 +25,8 @@ const taxFactory = new TaxController();
 const rmdFactory = new RMDTableController();
 const simulationFactory = new SimulationController();
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const execPath = decodeURIComponent(path.resolve(__dirname, "./runWorker.js"));
 
 async function createSimulationCSV(user, datetime, folder) {
