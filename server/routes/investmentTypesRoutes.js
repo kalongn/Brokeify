@@ -123,6 +123,7 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
     }
 });
 
+//TODO: remember to check dup name in update as well
 router.put("/investmentType/:scenarioId/:investmentTypeId", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
