@@ -4,7 +4,10 @@ import Axios from "axios";
 
 import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Distributions from "../../components/Distributions";
+import ErrorMessage from "../../components/ErrorMessage";
+
 import styles from "./Form.module.css";
+import errorStyles from "../../components/ErrorMessage.module.css";
 
 const Limits = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
@@ -74,8 +77,6 @@ const Limits = () => {
       }
       return updatedDistributions;
     });
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
@@ -83,8 +84,6 @@ const Limits = () => {
     const { name, value } = e.target;
     const processedValue = name === "initialLimit" ? Number(value) : value;
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
   const validateFields = () => {
@@ -127,8 +126,9 @@ const Limits = () => {
   return (
     <div>
       <h2 id={styles.heading}>Inflation & Contribution Limits</h2>
+      <ErrorMessage errors={errors} />
       <form>
-        <label>Inflation Assumption Percentage</label>
+        <label id="inflationAssumption">Inflation Assumption Percentage</label>
         <Distributions
           options={["fixed", "uniform", "normal"]}
           name="inflationAssumption"
@@ -136,10 +136,10 @@ const Limits = () => {
           onChange={handleDistributionsChange}
           defaultValue={distributions.inflationAssumption}
           showCheckbox={false}
+          className={errors.inflationAssumption ? errorStyles.highlight : ""}
         />
-        {errors.inflationAssumption && <span className={styles.error}>{errors.inflationAssumption}</span>}
         <hr />
-        <label>
+        <label id="initialLimit">
           After-Tax Retirement Accounts Initial Limit on Annual Contributions
           <br />
           <input
@@ -147,8 +147,8 @@ const Limits = () => {
             name="initialLimit"
             onChange={handleChange}
             defaultValue={formData.initialLimit}
+            className={errors.initialLimit ? errorStyles.errorInput : ""}
           />
-          {errors.initialLimit && <span className={styles.error}>{errors.initialLimit}</span>}
         </label>
       </form>
     </div>
