@@ -33,6 +33,16 @@ export default class SimulationController {
         }
     }
 
+    async read(id) {
+        try {
+            const simulation = await Simulation.findById(id).populate("results");
+            return simulation;
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
     /**
      * This function delete the Simulation with the given id
      * @note
@@ -60,7 +70,7 @@ export default class SimulationController {
             throw new Error(error);
         }
     }
-    
+
     /**
      * This function deletes a Simulation with the given id
      * @param {mongoose.Types.ObjectId} id 

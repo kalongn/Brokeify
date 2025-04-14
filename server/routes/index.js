@@ -20,6 +20,7 @@ import scenarioYamlRoutes from './scenarioYamlRoutes.js';
 import taxYamlRoutes from './taxYamlRoutes.js';
 
 import runSimulationRoutes from './runSimulationRoutes.js';
+import viewResultRoutes from './viewResultRoutes.js';
 
 const router = express.Router();
 router.use(authRoutes);
@@ -42,6 +43,7 @@ router.use(scenarioYamlRoutes);
 router.use(taxYamlRoutes);
 
 router.use(runSimulationRoutes);
+router.use(viewResultRoutes);
 
 router.get("/", async (req, res) => {
     console.log(req.session); // can be used to debug session data

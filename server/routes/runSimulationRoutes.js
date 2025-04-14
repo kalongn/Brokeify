@@ -82,11 +82,12 @@ router.post("/runSimulation", async (req, res) => {
         console.log("Num Times:", numTimes);
 
         // Running the simulation
+        // TODO: tax id array can both be null but not handle
         const simulationId = await validateRun(scenarioId, numTimes, taxIdArray, username)
 
         await simulationController.delete(user.previousSimulation);
         await userController.update(userId, { previousSimulation: simulationId });
-        return res.status(200).send(simulationId);
+        return res.status(200).send(simulationId._id);
     } catch (error) {
         console.error("Error fetching simulation:", error);
         return res.status(500).send("Internal Server Error");

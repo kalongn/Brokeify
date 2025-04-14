@@ -1,6 +1,9 @@
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import Axios from "axios";
+
 import Layout from "../../components/Layout";
 import styles from "./Charts.module.css";
-import { useState } from "react";
 import Accordion from "../../components/Accordion";
 import ShadedLineChart from "../../components/ShadedLineChart";
 import StackedBarChart from "../../components/StackedBarChart";
@@ -9,8 +12,16 @@ import LineChart from "../../components/LineChart";
 import ModalAddChart from "../../components/ModalAddChart";
 
 const Charts = () => {
+
+  const { simulationId } = useParams();
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
+
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+  }, []);
 
   const ShadedLineData = {
     labels: ['2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019'],
@@ -26,26 +37,34 @@ const Charts = () => {
   };
 
   const [charts, setCharts] = useState([
-    {
-      id: 1, type: "Line Chart", label: "Probability of Success over Time", data: {
-        labels: ['January', 'February', 'March', 'April', 'May'],
-        values: [0.2, 0.3, 0.5, 0.6, 0.7],
-      },
-    },
-    {
-      id: 2, type: "Stacked Bar Chart", label: "Total Investments (Median)", data: {
-        labels: ['January', 'February', 'March', 'April', 'May'],
-        investments1: [100, 200, 300, 400, 500],
-        investments2: [50, 100, 150, 200, 250],
-        investments3: [150, 200, 250, 300, 350],
-        investments4: [200, 250, 300, 350],
-      },
-    },
-    { id: 3, type: "Shaded Line Data", label: "Investments", data: ShadedLineData },
+    // {
+    //   id: 1, type: "Line Chart", label: "Probability of Success over Time", data: {
+    //     labels: ['January', 'February', 'March', 'April', 'May'],
+    //     values: [0.2, 0.3, 0.5, 0.6, 0.7],
+    //   },
+    // },
+    // {
+    //   id: 2, type: "Stacked Bar Chart", label: "Total Investments (Median)", data: {
+    //     labels: ['January', 'February', 'March', 'April', 'May'],
+    //     investments1: [100, 200, 300, 400, 500],
+    //     investments2: [50, 100, 150, 200, 250],
+    //     investments3: [150, 200, 250, 300, 350],
+    //     investments4: [200, 250, 300, 350],
+    //   },
+    // },
+    // { id: 3, type: "Shaded Line Data", label: "Investments", data: ShadedLineData },
   ]);
 
 
-  const handleGenerateCharts = () => {
+  const handleGenerateCharts = async () => {
+    try {
+      const response = await Axios.post(`/charts/${simulationId}`, charts);
+      const generatedCharts = response.data;
+      setCharts(generatedCharts);
+    } catch (error) {
+      console.error('Error generating charts:', error);
+      alert("Error generating charts. Please try again.");
+    }
     setShowCharts(true); 
   };
 
