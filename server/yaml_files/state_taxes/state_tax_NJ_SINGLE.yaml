@@ -4,22 +4,22 @@ filingStatus: SINGLE
 rates:
   - lowerBound: 0
     upperBound: 20000
-    rate: 1.4
+    rate: 0.014
   - lowerBound: 20001
     upperBound: 35000
-    rate: 1.75
+    rate: 0.0175
   - lowerBound: 35001
     upperBound: 40000
-    rate: 3.5
+    rate: 0.035
   - lowerBound: 40001
     upperBound: 75000
-    rate: 5.525
+    rate: 0.05525
   - lowerBound: 75001
     upperBound: 500000
-    rate: 6.37
+    rate: 0.0637
   - lowerBound: 500001
     upperBound: 1000000
-    rate: 8.97
+    rate: 0.0897
   - lowerBound: 1000001
     upperBound: Infinity
-    rate: 10.75
+    rate: 0.1075
