@@ -30,6 +30,8 @@ import ViewScenario from './pages/ViewScenario.jsx';
 import Sharing from './pages/Sharing.jsx';
 import SimulationPage from './pages/SimulationPage.jsx';
 const App = () => {
+  console.log('COVERAGE OBJECT:', window.__coverage__);
+
   const [verified, setVerified] = useState(false);
   const navigate = useNavigate();
 
