@@ -164,9 +164,7 @@ export async function simulate(
     updateTaxBracketsForInflation(federalIncomeTaxArray[0], inflationRate);
     updateTaxBracketsForInflation(federalIncomeTaxArray[1], inflationRate);
     updateTaxBracketsForInflation(stateIncomeTaxArray[0], inflationRate);
-    if(stateIncomeTaxArray[1]) {
-      updateTaxBracketsForInflation(stateIncomeTaxArray[1], inflationRate);
-    }
+    updateTaxBracketsForInflation(stateIncomeTaxArray[1], inflationRate);
     updateTaxBracketsForInflation(capitalGainTaxArray[0], inflationRate);
     updateTaxBracketsForInflation(capitalGainTaxArray[1], inflationRate);
     federalStandardDeductionObjectArray[0].standardDeduction *=
