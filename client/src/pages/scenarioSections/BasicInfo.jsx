@@ -146,7 +146,7 @@ const BasicInfo = () => {
 
 
     // Validate birth year
-    if (formData.birthYear !== undefined && errors.birthYear === undefined) {
+    if (formData.birthYear !== undefined && newErrors.birthYear === undefined) {
       if (formData.birthYear < 1900 || formData.birthYear > currentYear) {
         newErrors.birthYear = `Birth Year must be between 1900 and ${currentYear}`;
       }
