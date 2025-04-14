@@ -42,11 +42,11 @@ const Charts = () => {
       const response = await Axios.post(`/charts/${simulationId}`, charts);
       const generatedCharts = response.data;
       setCharts(generatedCharts);
+      setShowCharts(true); 
     } catch (error) {
       console.error('Error generating charts:', error);
       alert("Error generating charts. Please try again.");
     }
-    setShowCharts(true); 
   };
 
   return (
