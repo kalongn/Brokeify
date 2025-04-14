@@ -220,7 +220,7 @@ export async function simulate(
       event.amount = income;
 
       incomeByEvent.push({
-        name: event._id,
+        name: event.name,
         value: income,
       });
 
@@ -283,9 +283,10 @@ export async function simulate(
     thisYearTaxes = calcTaxReturn.t;
     earlyWithdrawalTaxPaid = calcTaxReturn.e;
     let nonDiscretionaryExpenses = 0;
-    const expensesReturn = await processExpenses(scenario, lastYearTaxes);
+    const expensesReturn = await processExpenses(scenario, lastYearTaxes, currentYear);
     nonDiscretionaryExpenses = expensesReturn.t;
     thisYearGains += expensesReturn.c; //if you sell investments
+    const expenseBreakdown = expensesReturn.expenseBreakdown;
 
     lastYearTaxes = thisYearTaxes;
     //returns amount not paid, paid, and capital gains
@@ -297,6 +298,7 @@ export async function simulate(
     discretionaryAmountIgnored = processDiscretionaryResult.np;
     discretionaryAmountPaid = processDiscretionaryResult.p;
     thisYearGains += processDiscretionaryResult.c;
+    const totalExpenseBreakdown = [...expenseBreakdown, ...processDiscretionaryResult.expenseBreakdown];
     let totalExpenses = nonDiscretionaryExpenses + discretionaryAmountPaid;
 
     await processInvestmentEvents(scenario, currentYear);
@@ -326,12 +328,15 @@ export async function simulate(
     }
     //create array of touples of investment._id, investment.value
     const investmentValuesArray = [];
-    for (const investmentIndex in investments) {
-      const touple = {
-        name: investments[investmentIndex]._id,
-        value: investments[investmentIndex].value,
-      };
-      investmentValuesArray.push(touple);
+    for(const i in scenario.investmentTypes){ 
+      for (const investmentIndex in investmentTypes[i].investments) {
+        const inv = await investmentFactory.read(investmentTypes[i].investments[investmentIndex]);
+        const touple = {
+          name: `${investmentTypes[i].name} ${inv.taxStatus}`,
+          value: inv.value,
+        };
+        investmentValuesArray.push(touple);
+      }
     }
     //create yearly results
     let discretionaryExpensesPercentage = discretionaryAmountPaid;
@@ -347,6 +352,7 @@ export async function simulate(
       cumulativeInflation: cumulativeInflation,
       investmentValues: investmentValuesArray,
       incomeByEvent: incomeByEvent,
+      expenseByEvent: totalExpenseBreakdown,
       totalIncome: reportedIncome,
       totalExpense: totalExpenses,
       totalTax: lastYearTaxes, //actually is this year's taxes, but got updated
