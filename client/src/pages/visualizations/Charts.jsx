@@ -27,8 +27,12 @@ const Charts = () => {
       const data = response.data;
       setScenarioName(data.scenarioName);
     }).catch((error) => {
-      alert("Error fetching scenario name. Please try again.");
-      setScenarioName("");
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        alert("You do not have permission to view this scenario.");
+      } else {
+        alert("Error fetching scenario name. Please try again.");
+      }
+      setScenarioName("Unknown Scenario");
       console.error('Error fetching scenario name:', error);
     });
 
@@ -53,10 +57,14 @@ const Charts = () => {
       const response = await Axios.post(`/charts/${simulationId}`, charts);
       const generatedCharts = response.data;
       setCharts(generatedCharts);
-      setShowCharts(true); 
+      setShowCharts(true);
     } catch (error) {
-      console.error('Error generating charts:', error);
-      alert("Error generating charts. Please try again.");
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        alert("You do not have permission to view this scenario.");
+        setScenarioName("Unknown Scenario");
+      } else {
+        alert("Error fetching Graph Result. Please try again.");
+      }
       setShowCharts(false);
     }
   };

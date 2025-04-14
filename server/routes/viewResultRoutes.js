@@ -7,7 +7,6 @@ import SimulationController from "../db/controllers/SimulationController.js";
 import { canView } from "./helper.js";
 
 const router = express.Router();
-const userController = new UserController();
 const simulationController = new SimulationController();
 const scenarioController = new ScenarioController();
 
@@ -110,64 +109,88 @@ const generateShadedLineData = (chart, yearToResults) => {
 };
 
 router.get("/charts/:simulationId", async (req, res) => {
-    const simulationId = req.params.simulationId;
-    console.log("Simulation ID:", simulationId);
-    const simulation = await simulationController.read(simulationId);
-    const scenarioId = simulation.scenario.toString();
-
-    if (!await canView(req.session.user, scenarioId)) {
-        return res.status(403).send("You do not have permission to access this scenario.");
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
     }
 
-    const scenario = await scenarioController.read(scenarioId);
-    const scenarioName = scenario.name;
-    return res.status(200).send({
-        scenarioName: scenarioName,
-    });
+    try {
+        const simulationId = req.params.simulationId;
+        console.log("Simulation ID:", simulationId);
+        const simulation = await simulationController.read(simulationId);
+        const scenarioId = simulation.scenario.toString();
+
+        if (!await canView(req.session.user, scenarioId)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
+        }
+
+        const scenario = await scenarioController.read(scenarioId);
+        const scenarioName = scenario.name;
+        return res.status(200).send({
+            scenarioName: scenarioName,
+        });
+    } catch (error) {
+        console.error("Error in charts route:", error);
+        return res.status(500).send("Error retrieving charts.");
+    }
 })
 
 
 
 router.post("/charts/:simulationId", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+
     const simulationId = req.params.simulationId;
     const charts = req.body;
 
-    const simulation = await simulationController.read(simulationId);
+    try {
+        const simulation = await simulationController.read(simulationId);
+        const scenarioId = simulation.scenario.toString();
 
-    const yearToResults = {}
-
-    simulation.results.forEach((result) => {
-        result.yearlyResults.forEach((yearlyResult) => {
-            if (!yearToResults[yearlyResult.year]) {
-                yearToResults[yearlyResult.year] = [];
-            }
-            yearToResults[yearlyResult.year].push(yearlyResult);
-        });
-    });
-
-
-
-    charts.forEach((chart) => {
-        switch (chart.type) {
-            case "Line Chart":
-                chart.data = generateLineChartData(yearToResults);
-                break;
-            case "Shaded Line Chart":
-                chart.data = generateShadedLineData(chart, yearToResults);
-                break;
-            case "Stacked Bar Chart":
-                chart.data = {
-                    type: "stackedBar",
-                    data: chart.data,
-                    label: chart.label,
-                };
-                break;
-            default:
-                break;
+        if (!await canView(req.session.user, scenarioId)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
         }
-    });
 
-    return res.status(200).send(charts);
+        const yearToResults = {}
+
+        simulation.results.forEach((result) => {
+            result.yearlyResults.forEach((yearlyResult) => {
+                if (!yearToResults[yearlyResult.year]) {
+                    yearToResults[yearlyResult.year] = [];
+                }
+                yearToResults[yearlyResult.year].push(yearlyResult);
+            });
+        });
+
+
+
+        charts.forEach((chart) => {
+            switch (chart.type) {
+                case "Line Chart":
+                    chart.data = generateLineChartData(yearToResults);
+                    break;
+                case "Shaded Line Chart":
+                    chart.data = generateShadedLineData(chart, yearToResults);
+                    break;
+                case "Stacked Bar Chart":
+                    chart.data = {
+                        type: "stackedBar",
+                        data: chart.data,
+                        label: chart.label,
+                    };
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        return res.status(200).send(charts);
+    } catch {
+        console.error("Error in charts route:", error);
+        return res.status(500).send("Error retrieving charts.");
+    }
+
 });
 
 export default router;  
