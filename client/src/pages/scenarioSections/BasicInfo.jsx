@@ -1,6 +1,7 @@
 import { useState, useImperativeHandle, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
-import { stateMap, validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
+import { stateMap, validateRequired, validateDistribution, clearErrors } from "../../utils/ScenarioHelper";
+
 import Select from "react-select";
 import Distributions from "../../components/Distributions";
 import ErrorMessage from "../../components/ErrorMessage";
@@ -102,12 +103,7 @@ const BasicInfo = () => {
       return updatedDistributions;
     });
     // Clear errors when user makes changes
-    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
-    setErrors(prev => {
-      // eslint-disable-next-line no-unused-vars
-      const { [name]: _, ...rest } = prev;
-      return rest;
-    });
+    clearErrors(setErrors, name);
   };
 
   // Prompt to AI (Amazon Q): How do I get the form fields for the fields to be saved? Number fields should be parsed to numbers
@@ -121,23 +117,13 @@ const BasicInfo = () => {
     }
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
-    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
-    setErrors(prev => {
-      // eslint-disable-next-line no-unused-vars
-      const { [name]: _, ...rest } = prev;
-      return rest;
-    });
+    clearErrors(setErrors, name);
   };
 
   const handleSelectChange = (selectedOption) => {
     setFormData((prev) => ({ ...prev, state: selectedOption.value }));
     // Clear errors when user makes changes
-    // Prompted AI (Amazon Q) then adapted from RothStrategy.jsx
-    setErrors(prev => {
-      // eslint-disable-next-line no-unused-vars
-      const { state: _, ...rest } = prev;
-      return rest;
-    });
+    clearErrors(setErrors, "selectInput");
   };
 
   const validateFields = () => {
@@ -288,7 +274,7 @@ const BasicInfo = () => {
                 <input
                   type="radio"
                   checked={formData.maritalStatus === "SINGLE"}
-                  onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "SINGLE" }))}
+                  onChange={() => {setFormData((prev) => ({ ...prev, maritalStatus: "SINGLE" })); clearErrors(setErrors, "maritalStatus"); }}
                 />
                 Single
               </label>
@@ -296,7 +282,7 @@ const BasicInfo = () => {
                 <input
                   type="radio"
                   checked={formData.maritalStatus === "MARRIEDJOINT"}
-                  onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "MARRIEDJOINT" }))}
+                  onChange={() => {setFormData((prev) => ({ ...prev, maritalStatus: "MARRIEDJOINT" })); clearErrors(setErrors, "maritalStatus"); }}
                 />
                 Married
               </label>

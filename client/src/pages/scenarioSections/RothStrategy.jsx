@@ -2,6 +2,7 @@ import { useState, useEffect, useImperativeHandle } from "react";
 import { useParams, useOutletContext } from "react-router-dom";
 import Axios from "axios";
 
+import { clearErrors } from "../../utils/ScenarioHelper";
 import SortableList from "../../components/SortableList";
 import ErrorMessage from "../../components/ErrorMessage";
 
@@ -80,13 +81,7 @@ const RothStrategy = () => {
     }
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
-    // Prompt to AI (Amazon Q): in highlighted code, instead of making it "", can i just delete the field name refers to?
-    // Works as needed, only needing to re-prompt to disable  eslint error
-    setErrors(prev => {
-        // eslint-disable-next-line no-unused-vars
-        const { [name]: _, ...rest } = prev;
-        return rest;
-    });
+    clearErrors(setErrors, name);
   };
 
   const validateFields = () => {

@@ -5,7 +5,7 @@ import Select from "react-select";
 import ErrorMessage from "../../components/ErrorMessage";
 import Axios from "axios";
 
-import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
+import { validateRequired, validateDistribution, clearErrors } from "../../utils/ScenarioHelper";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
@@ -195,12 +195,7 @@ const EventSeriesForm = () => {
       return updatedDistributions;
     });
     // Clear errors when user makes changes
-    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
-    setErrors(prev => {
-      // eslint-disable-next-line no-unused-vars
-      const { [name]: _, ...rest } = prev;
-      return rest;
-    });
+    clearErrors(setErrors, name);
   };
 
   // Prompt for AI (Amazon Q): I have a table with 3 or 4 input fields when 
@@ -291,12 +286,7 @@ const EventSeriesForm = () => {
         setTypeFormData((prev) => ({ ...prev, [name]: value }))
       }
       // Clear errors when user makes changes
-      // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
-      setErrors(prev => {
-        // eslint-disable-next-line no-unused-vars
-        const { [name]: _, ...rest } = prev;
-        return rest;
-      });
+      clearErrors(setErrors, name);
     }
   };
   const handleSelectChange = (selectedOption, field) => {

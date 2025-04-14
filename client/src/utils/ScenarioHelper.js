@@ -107,3 +107,21 @@ export const validateDistribution = (newErrors, field, dist) => {
   }
   return newErrors;
 };
+
+export const clearErrors = (setErrors, name) => {
+  // Prompt to AI (Amazon Q): in highlighted code, instead of making it "", can i just delete the field name refers to?
+  // Works as needed, only needing to re-prompt to disable eslint error and edit for "selectInput"
+  if(name !== "selectInput") {
+    setErrors(prev => {
+      // eslint-disable-next-line no-unused-vars
+      const { [name]: _, ...rest } = prev;
+      return rest;
+    });
+  } else {
+    setErrors(prev => {
+      // eslint-disable-next-line no-unused-vars
+      const { state: _, ...rest } = prev;
+      return rest;
+    });
+  }
+}

@@ -1,7 +1,8 @@
 import { useState, useImperativeHandle, useEffect } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
-import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
+import { validateRequired, validateDistribution, clearErrors } from "../../utils/ScenarioHelper";
 import Axios from "axios";
+
 import Distributions from "../../components/Distributions";
 import ErrorMessage from "../../components/ErrorMessage";
 
@@ -98,12 +99,7 @@ const InvestmentTypesForm = () => {
       return updatedDistributions;
     })
     // Clear errors when user makes changes
-    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
-    setErrors(prev => {
-      // eslint-disable-next-line no-unused-vars
-      const { [name]: _, ...rest } = prev;
-      return rest;
-    });
+    clearErrors(setErrors, name);
   };
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
@@ -113,12 +109,7 @@ const InvestmentTypesForm = () => {
     const processedValue = name === "expenseRatio" ? Number(value) : value;
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
-    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
-    setErrors(prev => {
-      // eslint-disable-next-line no-unused-vars
-      const { [name]: _, ...rest } = prev;
-      return rest;
-    });
+    clearErrors(setErrors, name);
   };
 
   const handleNavigate = () => {

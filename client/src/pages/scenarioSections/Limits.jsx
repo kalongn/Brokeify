@@ -2,7 +2,7 @@ import { useState, useEffect, useImperativeHandle } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
 import Axios from "axios";
 
-import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
+import { validateRequired, validateDistribution, clearErrors } from "../../utils/ScenarioHelper";
 import Distributions from "../../components/Distributions";
 import ErrorMessage from "../../components/ErrorMessage";
 
@@ -78,12 +78,7 @@ const Limits = () => {
       return updatedDistributions;
     });
     // Clear errors when user makes changes
-    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
-    setErrors(prev => {
-      // eslint-disable-next-line no-unused-vars
-      const { [name]: _, ...rest } = prev;
-      return rest;
-    });
+    clearErrors(setErrors, name);
   };
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
@@ -92,12 +87,7 @@ const Limits = () => {
     const processedValue = name === "initialLimit" ? Number(value) : value;
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
-    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
-    setErrors(prev => {
-      // eslint-disable-next-line no-unused-vars
-      const { [name]: _, ...rest } = prev;
-      return rest;
-    });
+    clearErrors(setErrors, name);
   };
 
   const validateFields = () => {
