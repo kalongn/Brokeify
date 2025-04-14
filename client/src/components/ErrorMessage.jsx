@@ -7,7 +7,6 @@ const ErrorMessage = ({ errors }) => {
   if(Object.keys(errors).length === 0) {
     return;
   }
-  window.scrollTo(0, 0);
   
   return (
     <div className={styles.errorBox}>

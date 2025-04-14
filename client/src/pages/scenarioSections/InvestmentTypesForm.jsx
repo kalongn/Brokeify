@@ -16,7 +16,6 @@ const InvestmentTypesForm = () => {
   const { childRef } = useOutletContext();
   const { scenarioId, id } = useParams();
 
-  const [investmentTypes, setInvestmentTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   // expectedAnnualReturn and expectedDividendsInterest can have fixedValue, mean, or stdDev fields
   const [distributions, setDistributions] = useState({
@@ -59,14 +58,6 @@ const InvestmentTypesForm = () => {
     } else {
       setLoading(false);
     }
-
-    // Fetch investment types to check for duplicate names
-    Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
-      setInvestmentTypes(response.data);
-    }
-    ).catch((error) => {
-      console.error('Error fetching investment types:', error);
-    });
   }, [id, scenarioId]);
 
 
@@ -133,16 +124,6 @@ const InvestmentTypesForm = () => {
       newErrors.expenseRatio = "Expense ratio must be between 0 and 100";
     }
 
-    // Check for duplicate names
-    if (formData.investmentType !== null) {
-      const hasDuplicateName = investmentTypes.find(inv =>
-        inv.name === formData.investmentType.trim()
-      );
-      if (hasDuplicateName) {
-        newErrors.investmentType = "Investment type name already exists";
-      }
-    }
-
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
@@ -154,7 +135,7 @@ const InvestmentTypesForm = () => {
     Axios.defaults.withCredentials = true;
 
     const data = {
-      name: formData.investmentType,
+      name: formData.investmentType.trim(),
       description: formData.description,
       expectedAnnualReturn: distributions.expectedAnnualReturn,
       expenseRatio: formData.expenseRatio,
@@ -167,6 +148,13 @@ const InvestmentTypesForm = () => {
       console.log(response.data);
       handleNavigate();
     } catch (error) {
+      if (error.response?.status === 409) {
+        setErrors((prev) => ({ ...prev, investmentType: "Investment type name already exists" }));
+      } else if (error.response?.status === 403) {
+        setErrors((prev) => ({ ...prev, investmentType: "You do not have permission to edit this scenario" }));
+      } else {
+        setErrors((prev) => ({ ...prev, investmentType: "An error occurred while creating the investment type" }));
+      }
       console.error('Error creating investment type:', error);
       return false;
     }
@@ -174,6 +162,8 @@ const InvestmentTypesForm = () => {
 
   const handleSubmit = async () => {
     if (!validateFields()) {
+      // Scroll to the top to show the error message
+      window.scrollTo(0, 0);
       return;
     }
     await uploadToBackEnd();

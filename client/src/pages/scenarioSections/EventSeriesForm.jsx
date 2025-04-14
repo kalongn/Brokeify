@@ -496,12 +496,17 @@ const EventSeriesForm = () => {
         // Should not happen
         break;
     }
-
+    event.name = event.name.trim();
     try {
       const response = id ? await Axios.put(`/event/${scenarioId}/${id}`, event) : await Axios.post(`/event/${scenarioId}`, event);
       console.log(response.data);
       handleNavigate();
     } catch (error) {
+      if (error.response?.status === 409) {
+        setErrors({ name: "Event series name already exists" });
+      } else {
+        setErrors({ name: "An unknown error occurred" });
+      }
       console.error("Error creating event series:", error);
     }
   }
@@ -509,6 +514,8 @@ const EventSeriesForm = () => {
 
   const handleSubmit = async () => {
     if (!validateFields()) {
+      // Scroll to the top to show the error message
+      window.scrollTo(0, 0);
       return;
     }
     await uploadToBackend();

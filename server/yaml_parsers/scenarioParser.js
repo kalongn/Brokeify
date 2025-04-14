@@ -366,7 +366,7 @@ export async function parseAndSaveYAML(yamlStr, userId) {
                 expectedAnnualReturnDistribution: expectedAnnualReturnDistribution._id,
                 expenseRatio: type.expenseRatio,
                 expectedAnnualIncomeDistribution: expectedAnnualIncomeDistribution._id,
-                taxability: type.taxability === "true",
+                taxability: type.taxability === "true" || type.taxability == true,
             });
 
             idMap.set(`${type.name} TYPE`, createdType._id);
