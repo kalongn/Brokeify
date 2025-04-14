@@ -149,6 +149,10 @@ const generateStackedBarData = (chart, yearToResults) => {
                         }
                         nameToListOfValues[expense.name].push(chart.content.dollarValue === "Today" ? expense.value / (1 + result.cumulativeInflation) : expense.value);
                     });
+                    if (!nameToListOfValues["Total Taxes"]) {
+                        nameToListOfValues["Total Taxes"] = [];
+                    }
+                    nameToListOfValues["Total Taxes"].push(chart.content.dollarValue === "Today" ? result.totalTax / (1 + result.cumulativeInflation) : result.totalTax);
                     break;
                 default:
                     // Should not happen
@@ -178,9 +182,6 @@ const generateStackedBarData = (chart, yearToResults) => {
         }
 
         nameToListOfValues["Other"] = otherValue;
-
-        console.log("Name to List of Values:", nameToListOfValues);
-
         for (const name in nameToListOfValues) {
             if (!finalNameToValues[name]) {
                 finalNameToValues[name] = [];
