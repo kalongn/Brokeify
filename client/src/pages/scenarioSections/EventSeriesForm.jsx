@@ -194,6 +194,13 @@ const EventSeriesForm = () => {
       }
       return updatedDistributions;
     });
+    // Clear errors when user makes changes
+    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
+    setErrors(prev => {
+      // eslint-disable-next-line no-unused-vars
+      const { [name]: _, ...rest } = prev;
+      return rest;
+    });
   };
 
   // Prompt for AI (Amazon Q): I have a table with 3 or 4 input fields when 
@@ -261,9 +268,9 @@ const EventSeriesForm = () => {
           // Should not happen
           break;
       }
+      // Clear event-specific errors when switching event types
       // Prompt to AI (Amazon Q): I want to keep errors on name, startYear, and duration and clear the rest
       // The code snippet did not need any change to work
-      // Clear only event-specific input errors
       setErrors(prev => {
         const { name, startYear, duration, startYearEvent } = prev;
         return {
@@ -283,6 +290,13 @@ const EventSeriesForm = () => {
       } else {
         setTypeFormData((prev) => ({ ...prev, [name]: value }))
       }
+      // Clear errors when user makes changes
+      // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
+      setErrors(prev => {
+        // eslint-disable-next-line no-unused-vars
+        const { [name]: _, ...rest } = prev;
+        return rest;
+      });
     }
   };
   const handleSelectChange = (selectedOption, field) => {
@@ -834,13 +848,13 @@ const EventSeriesForm = () => {
                 {eventType === "invest" && (
                   <label className={styles.newline}>
                     Maximum Cash (in pre-defined cash investment)
-                    <input 
-                    type="number" 
-                    name="maximumCash" 
-                    defaultValue={typeFormData.maximumCash} 
-                    onChange={handleChange} 
-                    id="maximumCash"
-                    className={`${styles.newline} ${errors.maximumCash ? errorStyles.errorInput : ""}`} 
+                    <input
+                      type="number"
+                      name="maximumCash"
+                      defaultValue={typeFormData.maximumCash}
+                      onChange={handleChange}
+                      id="maximumCash"
+                      className={`${styles.newline} ${errors.maximumCash ? errorStyles.errorInput : ""}`}
                     />
                   </label>
                 )}
