@@ -23,6 +23,9 @@
   text-decoration: underline;
   color: rgb(199, 0, 0);
 }
+.errorList li a:hover {
+  color: var(--color-primary);
+}
 .errorInput {
   border: 1.5px solid rgb(199, 0, 0);
   border-radius: 5px;
@@ -30,6 +33,20 @@
 .highlight {
   background-color: rgb(239, 208, 208);
   border-radius: 3px;
+}
+
+:target {
+  animation: fadeHighlight 2s ease-in-out;
+}
+@keyframes fadeHighlight {
+  0%, 40%, 100% {
+    font-weight: medium;
+    color: var(--color-black);
+  }
+  0%, 60%, 80% {
+    font-weight: bold;
+    color: rgb(199, 0, 0);
+  }
 }
 /* .radioGroup input[type="radio"] {
   outline: 1px solid rgb(199, 0, 0);
