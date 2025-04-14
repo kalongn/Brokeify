@@ -40,10 +40,10 @@ export async function parseStateTaxYAML(yamlStr, userId) {
         if (verifyRates(rates) === false) {
             return -1; // Invalid rates format
         }
-        if (year > new Date().getFullYear() || filingStatus !== "SINGLE" || filingStatus !== "MARRIEDJOINT") {
+        if (year > new Date().getFullYear() || (filingStatus !== 'SINGLE' && filingStatus !== 'MARRIEDJOINT')) {
             return -1; // Invalid year or filing status
         }
-        if(stateMap[state] === undefined) {
+        if (stateMap[state] === undefined) {
             return -1; // Invalid state
         }
 
