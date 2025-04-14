@@ -63,9 +63,25 @@ const StackedBarChart = ({ data }) => {
                 yaxis: { title: 'Amount' },
                 showlegend: true,
                 margin: { t: 50 },
+                annotations: [
+                    {
+                        text: 'Disclaimer: Label "Other" might include other legend values',
+                        xref: 'paper',
+                        yref: 'paper',
+                        x: 0,
+                        y: -0.25,
+                        showarrow: false,
+                        font: {
+                            size: 12,
+                            color: 'gray'
+                        },
+                        align: 'left'
+                    }
+                ]
             }}
             config={{ responsive: true }}
         />
+        // (AI) Annotation above is inspired by ChatGPT response on how to add annotation to plotly.js
     );
 };
 
