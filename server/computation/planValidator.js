@@ -24,6 +24,9 @@ const taxFactory = new TaxController();
 const rmdFactory = new RMDTableController();
 const simulationFactory = new SimulationController();
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const execPath = decodeURIComponent(path.resolve(__dirname, "./runWorker.js"));
+
 async function createSimulationCSV(user, datetime, folder) {
     const timestamp = format(datetime, 'yyyyMMdd_HHmmss');
     const filename = `${user}_${timestamp}.csv`;
@@ -288,7 +291,7 @@ export async function run(scenarioID, fedIncome, capitalGains, fedDeduction, sta
 
 function runInWorker(data) {
     return new Promise((resolve, reject) => {
-        const worker = new Worker(path.resolve('./runWorker.js'), { workerData: data });
+        const worker = new Worker(execPath, { workerData: data });
         worker.on('message', resolve);
         worker.on('error', reject);
         worker.on('exit', code => {
