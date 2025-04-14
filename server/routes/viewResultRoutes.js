@@ -186,7 +186,7 @@ router.post("/charts/:simulationId", async (req, res) => {
         });
 
         return res.status(200).send(charts);
-    } catch {
+    } catch (error) {
         console.error("Error in charts route:", error);
         return res.status(500).send("Error retrieving charts.");
     }
