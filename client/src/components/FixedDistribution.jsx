@@ -10,6 +10,7 @@ const FixedDistribution = ({ handleChange, defaultValue }) => {
         Input Value
         <input
           type="number"
+          data-testid="fixedInput"
           className={styles.newline}
           defaultValue={defaultValue.value}
           onChange={(e) => handleChange("value", e.target.value)}

@@ -64,7 +64,7 @@ const Distributions = ({
   };
 
   return (
-    <div className={className}>
+    <div data-testid={`distributions-${name}`} className={className}>
       {options.includes("fixed") && (
         <>
           <label>
