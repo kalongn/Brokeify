@@ -2,12 +2,14 @@ import { useState, useEffect, useImperativeHandle } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import Select from "react-select";
+import ErrorMessage from "../../components/ErrorMessage";
 import Axios from "axios";
 
 import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
 import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
+import errorStyles from "../../components/ErrorMessage.module.css";
 
 const EventSeriesForm = () => {
   const navigate = useNavigate();
@@ -36,6 +38,7 @@ const EventSeriesForm = () => {
   });
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
+  const [erroneousInvRows, setErroneousInvRows] = useState([]);
 
   const taxStatuses = [
     { value: "Non-Retirement", label: "Non-Retirement" },
@@ -60,8 +63,6 @@ const EventSeriesForm = () => {
         const eventOptions = eventsData.map((event) => {
           return { value: event.id, label: event.name };
         });
-
-        console.log("Event options:", eventOptions);
 
         setEvents(eventOptions);
         setAllInvestments(investmentsData);
@@ -193,8 +194,6 @@ const EventSeriesForm = () => {
       }
       return updatedDistributions;
     });
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
   // Prompt for AI (Amazon Q): I have a table with 3 or 4 input fields when 
@@ -284,8 +283,6 @@ const EventSeriesForm = () => {
       } else {
         setTypeFormData((prev) => ({ ...prev, [name]: value }))
       }
-      // Clear errors when user makes changes
-      setErrors(prev => ({ ...prev, [name]: "" }));
     }
   };
   const handleSelectChange = (selectedOption, field) => {
@@ -296,8 +293,6 @@ const EventSeriesForm = () => {
     else {
       setTypeFormData((prev) => ({ ...prev, [field]: selectedOption.value }));
     }
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, state: "" }));
   };
 
   const handleNavigate = () => {
@@ -319,7 +314,12 @@ const EventSeriesForm = () => {
     }
 
     // Validate start year and duration are within lifetime
-    const deathYear = birthYear + lifeExpectancy.value; //TODO: @04mHuang fix this as life expectancy is not a number
+    let deathYear = birthYear + lifeExpectancy.value;
+    // Account for normal distribution life expectancy
+    if (lifeExpectancy.value === undefined) {
+      deathYear = birthYear + lifeExpectancy.mean;
+    }
+
     const start = distributions.startYear;
     const duration = distributions.duration;
     switch (start.type) {
@@ -376,52 +376,57 @@ const EventSeriesForm = () => {
         // Percentage increase validation
         const pInc = typeFormData.percentageIncrease;
         if (!pInc) {
-          newErrors.percentageIncrease = "This field is required";
+          newErrors.percentageIncrease = "Specific Percentage Increase field is required";
         } else if (pInc < 0 || pInc > 100) {
-          newErrors.percentageIncrease = "Percentage must be between 0 and 100";
+          newErrors.percentageIncrease = "Specific Percentage Increase field must be between 0 and 100";
         }
       }
       validateRequired(newErrors, field, value);
     }
     if (distributions.startYear.type.includes("event") && distributions.startYear.event === null) {
-      newErrors.startYearEvent = "This field is required";
+      newErrors.startYearEvent = "Event field is required";
     }
 
     // Validate investment/rebalance specific fields
-    if (eventType === "invest" || eventType === "rebalance") {
+    const allocMethod = typeFormData.allocationMethod;
+    if (allocMethod && (eventType === "invest" || eventType === "rebalance")) {
       // Validate investment rows
       const invRows = typeFormData.investmentRows;
-      const allocMethod = typeFormData.allocationMethod;
       let totalPercentage = 0;
       let totalInitialPercentage = 0;
       let totalFinalPercentage = 0;
+      setErroneousInvRows([]);
 
       invRows?.forEach((row) => {
         const fixedMethod = row.percentage === "";
         const glideMethod = row.initialPercentage === "" || row.finalPercentage === "";
         // Check if investment is set and if all fields are filled depending on allocationMethod
         if (!row.investment || (fixedMethod && allocMethod === "fixed") || (glideMethod && allocMethod === "glidePath")) {
-          newErrors.investmentRow = "All row fields are required";
+          newErrors.investmentRow = "Investment Allocation's row fields are all required";
+          setErroneousInvRows(prev => [...prev, row]);
         } else if (allocMethod === "fixed") {
           if (row.percentage < 0 || row.percentage > 100) {
-            newErrors.investmentRow = "All percentages must be between 0 and 100";
+            newErrors.investmentRow = "Investment Allocation's percentages must be between 0 and 100";
           }
           totalPercentage += row.percentage;
         } else if (allocMethod === "glidePath") {
           if ((row.initialPercentage < 0 || row.initialPercentage > 100) || (row.finalPercentage < 0 || row.finalPercentage > 100)) {
-            newErrors.investmentRow = "All percentages must be between 0 and 100";
+            newErrors.investmentRow = "Investment Allocation's percentages must be between 0 and 100";
           }
           totalInitialPercentage += row.initialPercentage;
           totalFinalPercentage += row.finalPercentage;
         }
       });
-      // Total the percentages
-      if (allocMethod === "fixed" && totalPercentage !== 100) {
-        newErrors.investmentRow = "Total percentage must be 100";
-      } else if (allocMethod === "glidePath" && (totalInitialPercentage !== 100 || totalFinalPercentage !== 100)) {
-        newErrors.investmentRow = "Total initial percentage and total final percentage must be 100 each";
+      // Total the percentages only if all row fields are filled
+      if (newErrors.investmentRow === undefined) {
+        if (allocMethod === "fixed" && totalPercentage !== 100) {
+          newErrors.investmentRow = "Investment Allocation's total percentage must be 100";
+        } else if (allocMethod === "glidePath" && (totalInitialPercentage !== 100 || totalFinalPercentage !== 100)) {
+          newErrors.investmentRow = "Investment Allocation's initial and final percentage must sum to 100 each";
+        }
       }
     }
+
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
@@ -512,25 +517,32 @@ const EventSeriesForm = () => {
         :
         <>
           <h2>New Event Series</h2>
+          <ErrorMessage errors={errors} />
           <form>
             <label>
               Event Series Name
-              <input type="text" name="name" defaultValue={formData.name} className={styles.newline} onChange={handleChange} />
-              {errors.name && <span className={styles.error}>{errors.name}</span>}
+              <input
+                type="text"
+                name="name"
+                defaultValue={formData.name}
+                id="name"
+                className={`${styles.newline} ${errors.name ? errorStyles.errorInput : ""}`}
+                onChange={handleChange}
+              />
             </label>
             <label>
               Description
               <textarea name="description" defaultValue={formData.description} onChange={handleChange} />
             </label>
-            <label>Start Year</label>
-            <div className={styles.columns}>
+            <label id="startYear">Start Year</label>
+            <div className={`${styles.columns} ${errors.startYear ? errorStyles.highlight : ""}`}>
               <Distributions
                 options={["fixed", "uniform", "normal"]}
                 name="startYear"
                 defaultValue={distributions.startYear}
                 onChange={handleDistributionsChange}
               />
-              <div>
+              <div id="startYearEvent" className={errors.startYearEvent ? errorStyles.highlight : ""}>
                 <label>
                   <input
                     type="radio"
@@ -558,42 +570,40 @@ const EventSeriesForm = () => {
                   onChange={(option) => handleSelectChange(option, "event")}
                   value={events.find(opt => opt.value === distributions.startYear.event)}
                 />}
-                {errors.startYearEvent && <span className={styles.error}>{errors.startYearEvent}</span>}
               </div>
             </div>
-            {errors.startYear && <span className={styles.error}>{errors.startYear}</span>}
-            <label>Duration (in years)</label>
+
+            <label id="duration">Duration (in years)</label>
             <Distributions
               options={["fixed", "uniform", "normal"]}
               name="duration"
               defaultValue={distributions.duration}
               onChange={handleDistributionsChange}
+              className={errors.duration ? errorStyles.highlight : ""}
             />
-            {errors.duration && <span className={styles.error}>{errors.duration}</span>}
-            <label className={styles.newline}>
+            <label id="eventType" className={styles.newline}>
               Type
             </label>
             <div>
-              <label className={styles.radioButton}>
+              <label className={`${styles.radioButton} ${errors.eventType ? errorStyles.highlight : ""}`}>
                 <input type="radio" name="eventType" value="income" defaultChecked={eventType === "income"} onChange={handleChange} />
                 Income
               </label>
-              <label className={styles.radioButton}>
+              <label className={`${styles.radioButton} ${errors.eventType ? errorStyles.highlight : ""}`}>
                 <input type="radio" name="eventType" value="expense" defaultChecked={eventType === "expense"} onChange={handleChange} />
                 Expense
               </label>
             </div>
             <div>
-              <label className={styles.radioButton}>
+              <label className={`${styles.radioButton} ${errors.eventType ? errorStyles.highlight : ""}`}>
                 <input type="radio" name="eventType" value="invest" defaultChecked={eventType === "invest"} onChange={handleChange} />
                 Invest
               </label>
-              <label className={styles.radioButton}>
+              <label className={`${styles.radioButton} ${errors.eventType ? errorStyles.highlight : ""}`}>
                 <input type="radio" name="eventType" value="rebalance" defaultChecked={eventType === "rebalance"} onChange={handleChange} />
                 Rebalance
               </label>
             </div>
-            {errors.eventType && <span className={styles.error}>{errors.eventType}</span>}
             <hr />
 
             {(eventType === "income" || eventType === "expense") && (
@@ -616,32 +626,32 @@ const EventSeriesForm = () => {
                   <input
                     type="number"
                     name="initialValue"
-                    className={styles.newline}
+                    id="initialValue"
+                    className={`${styles.newline} ${errors.initialValue ? errorStyles.errorInput : ""}`}
                     onChange={handleChange}
                     value={typeFormData.initialValue}
                   />
-                  {errors.initialValue && <span className={styles.error}>{errors.initialValue}</span>}
                 </label>
-                <label>Expected Annual Change</label>
+                <label id="expectedAnnualChange">Expected Annual Change</label>
                 <Distributions
                   options={["fixed", "uniform", "normal"]}
                   name="expectedAnnualChange"
                   requirePercentage={true}
                   onChange={handleDistributionsChange}
                   defaultValue={distributions.expectedAnnualChange}
+                  className={errors.expectedAnnualChange ? errorStyles.highlight : ""}
                 />
-                {errors.expectedAnnualChange && <span className={styles.error}>{errors.expectedAnnualChange}</span>}
                 {maritalStatus === "MARRIEDJOINT" && <label>
                   Specific Percentage Increase
                   <input
                     type="number"
                     name="percentageIncrease"
-                    className={styles.newline}
+                    id="percentageIncrease"
+                    className={`${styles.newline} ${errors.percentageIncrease ? errorStyles.errorInput : ""}`}
                     onChange={handleChange}
                     value={typeFormData.percentageIncrease}
                   />
                 </label>}
-                {errors.percentageIncrease && <span className={styles.error}>{errors.percentageIncrease}</span>}
                 <label>
                   <input type="checkbox" name="isAdjustInflation" defaultChecked={typeFormData.isAdjustInflation} onChange={handleChange} />
                   Adjust for Inflation
@@ -650,20 +660,21 @@ const EventSeriesForm = () => {
             )}
             {(eventType === "invest" || eventType === "rebalance") && (
               <div>
-                <label className={styles.newline}>
+                <label id="allocationMethod" className={styles.newline}>
                   Investment Allocation Method
                 </label>
-                <label className={styles.radioButton}>
+                <label className={`${styles.radioButton} ${errors.allocationMethod ? errorStyles.highlight : ""}`}>
                   <input
                     type="radio"
                     name="allocationMethod"
                     value="fixed"
                     checked={typeFormData.allocationMethod === "fixed"}
                     onChange={handleChange}
+                    className={errors.allocationMethod ? errorStyles.highlight : ""}
                   />
                   Fixed Percentages
                 </label>
-                <label className={styles.radioButton}>
+                <label className={`${styles.radioButton} ${errors.allocationMethod ? errorStyles.highlight : ""}`}>
                   <input
                     type="radio"
                     name="allocationMethod"
@@ -673,18 +684,17 @@ const EventSeriesForm = () => {
                   />
                   Glide Path
                 </label>
-                {errors.allocationMethod && <span className={styles.error}>{errors.allocationMethod}</span>}
 
                 {eventType === "rebalance" && (
                   <label className={styles.newline}>
                     Tax Status
                     <Select
                       options={taxStatuses}
-                      className={styles.select}
+                      id="taxStatus"
+                      className={`${styles.select} ${errors.taxStatus ? errorStyles.errorInput : ""}`}
                       onChange={(option) => handleSelectChange(option, "taxStatus")}
                       value={taxStatuses.find(opt => opt.value === typeFormData.taxStatus)}
                     />
-                    {errors.taxStatus && <span className={styles.error}>{errors.taxStatus}</span>}
                   </label>
                 )}
 
@@ -692,7 +702,7 @@ const EventSeriesForm = () => {
                 {typeFormData.allocationMethod === "fixed" && (
                   <div id={styles.inputTable}>
                     <table id={styles.inputTable}>
-                      <thead>
+                      <thead id="investmentRow">
                         <tr>
                           <th>Investment</th>
                           <th>Percentage</th>
@@ -702,7 +712,10 @@ const EventSeriesForm = () => {
                       </thead>
                       <tbody>
                         {typeFormData.investmentRows?.map((row, index) => (
-                          <tr key={index}>
+                          <tr
+                            key={index}
+                            className={erroneousInvRows.includes(row) ? errorStyles.highlight : ""}
+                          >
                             <td>
                               <Select
                                 options={investments}
@@ -723,7 +736,6 @@ const EventSeriesForm = () => {
                                 }
                                 placeholder="%"
                               />
-                              {errors.investmentRows?.[index]?.percentage && (<span className={styles.error}>{errors.investmentRows[index].percentage}</span>)}
                             </td>
                             <td>
                               <button
@@ -738,7 +750,6 @@ const EventSeriesForm = () => {
                         ))}
                       </tbody>
                     </table>
-                    {errors.investmentRow && (<span className={styles.error}>{errors.investmentRow}</span>)}
                     <button id={styles.addButton}
                       type="button"
                       onClick={addInvestmentRow}
@@ -752,17 +763,20 @@ const EventSeriesForm = () => {
                 {typeFormData.allocationMethod === "glidePath" && (
                   <div>
                     <table id={styles.inputTable}>
-                      <thead>
+                      <thead id="investmentRow">
                         <tr>
                           <th>Investment</th>
-                          <th>Initial Percentage (must sum to 100)</th>
-                          <th>Final Percentages (must sum to 100)</th>
+                          <th>Initial Percentage</th>
+                          <th>Final Percentage</th>
                           <th></th>
                         </tr>
                       </thead>
                       <tbody>
                         {typeFormData.investmentRows?.map((row, index) => (
-                          <tr key={index}>
+                          <tr
+                            key={index}
+                            className={erroneousInvRows.includes(row) ? errorStyles.highlight : ""}
+                          >
                             <td>
                               <Select
                                 options={investments}
@@ -773,7 +787,6 @@ const EventSeriesForm = () => {
                                 placeholder="Select Investment"
                                 className={styles.select}
                               />
-
                             </td>
                             <td>
                               <input
@@ -808,7 +821,6 @@ const EventSeriesForm = () => {
                         ))}
                       </tbody>
                     </table>
-                    {errors.investmentRow && (<span className={styles.error}>{errors.investmentRow}</span>)}
                     <button
                       id={styles.addButton}
                       type="button"
@@ -822,8 +834,14 @@ const EventSeriesForm = () => {
                 {eventType === "invest" && (
                   <label className={styles.newline}>
                     Maximum Cash (in pre-defined cash investment)
-                    <input type="number" name="maximumCash" defaultValue={typeFormData.maximumCash} className={styles.newline} onChange={handleChange} />
-                    {errors.maximumCash && <span className={styles.error}>{errors.maximumCash}</span>}
+                    <input 
+                    type="number" 
+                    name="maximumCash" 
+                    defaultValue={typeFormData.maximumCash} 
+                    onChange={handleChange} 
+                    id="maximumCash"
+                    className={`${styles.newline} ${errors.maximumCash ? errorStyles.errorInput : ""}`} 
+                    />
                   </label>
                 )}
               </div>
