@@ -101,6 +101,13 @@ const BasicInfo = () => {
       }
       return updatedDistributions;
     });
+    // Clear errors when user makes changes
+    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
+    setErrors(prev => {
+      // eslint-disable-next-line no-unused-vars
+      const { [name]: _, ...rest } = prev;
+      return rest;
+    });
   };
 
   // Prompt to AI (Amazon Q): How do I get the form fields for the fields to be saved? Number fields should be parsed to numbers
@@ -113,10 +120,24 @@ const BasicInfo = () => {
       processedValue = Number(value);
     }
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
+    // Clear errors when user makes changes
+    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
+    setErrors(prev => {
+      // eslint-disable-next-line no-unused-vars
+      const { [name]: _, ...rest } = prev;
+      return rest;
+    });
   };
 
   const handleSelectChange = (selectedOption) => {
     setFormData((prev) => ({ ...prev, state: selectedOption.value }));
+    // Clear errors when user makes changes
+    // Prompted AI (Amazon Q) then adapted from RothStrategy.jsx
+    setErrors(prev => {
+      // eslint-disable-next-line no-unused-vars
+      const { state: _, ...rest } = prev;
+      return rest;
+    });
   };
 
   const validateFields = () => {
@@ -139,34 +160,41 @@ const BasicInfo = () => {
 
 
     // Validate birth year
-    if (formData.birthYear !== undefined && errors.birthYear !== undefined) {
+    if (formData.birthYear !== undefined && errors.birthYear === undefined) {
       if (formData.birthYear < 1900 || formData.birthYear > currentYear) {
         newErrors.birthYear = `Birth Year must be between 1900 and ${currentYear}`;
       }
       // Validate life expectancy distribution
-      if (distributions.lifeExpectancy.value !== undefined && distributions.lifeExpectancy.value !== null) {
-        if (formData.birthYear + distributions.lifeExpectancy.value < currentYear) {
-          newErrors.lifeExpectancy = "Spouse Life Expectancy cannot result in a death year in the past";
+      // Account for fixed and normal distribution
+      const lifeExpectancyNum = distributions.lifeExpectancy.value !== undefined && distributions.lifeExpectancy.value !== null ?
+        distributions.lifeExpectancy.value : distributions.lifeExpectancy.mean;
+
+      if (lifeExpectancyNum !== undefined && lifeExpectancyNum !== null) {
+        if (formData.birthYear + lifeExpectancyNum < currentYear) {
+          newErrors.lifeExpectancy = "Life Expectancy cannot result in a death year in the past";
         }
-        else if (distributions.lifeExpectancy.value > 122) {
-          newErrors.lifeExpectancy = "Spouse Life Expectancy cannot reasonably exceed 122";
+        else if (lifeExpectancyNum > 122) {
+          newErrors.lifeExpectancy = "Life Expectancy cannot reasonably exceed 122";
         }
       }
     }
 
     // Validate spouse birth year
-    if (formData.spouseBirthYear !== undefined && errors.spouseBirthYear !== undefined && formData.maritalStatus === "MARRIEDJOINT") {
+    if (formData.spouseBirthYear !== undefined && errors.spouseBirthYear === undefined && formData.maritalStatus === "MARRIEDJOINT") {
       if ((formData.spouseBirthYear < 1900 || formData.spouseBirthYear > currentYear)) {
-        newErrors.spouseBirthYear = `Birth year must be between 1900 and ${currentYear}`;
+        newErrors.spouseBirthYear = `Spouse Birth Year must be between 1900 and ${currentYear}`;
       }
       // Validate spouse life expectancy distribution
-      if (distributions.spouseLifeExpectancy.value !== undefined && distributions.spouseLifeExpectancy.value !== null) {
+      // Account for fixed and normal distribution
+      const spouseLifeExpectancyNum = distributions.spouseLifeExpectancy.value !== undefined && distributions.spouseLifeExpectancy.value !== null ?
+        distributions.spouseLifeExpectancy.value : distributions.spouseLifeExpectancy.mean;
 
-        if (formData.spouseBirthYear + distributions.spouseLifeExpectancy.value < currentYear) {
-          newErrors.spouseLifeExpectancy = "Life expectancy cannot result in death in the past";
+      if (spouseLifeExpectancyNum !== undefined && spouseLifeExpectancyNum !== null) {
+        if (formData.spouseBirthYear + spouseLifeExpectancyNum < currentYear) {
+          newErrors.spouseLifeExpectancy = "Spouse Life Expectancy cannot result in death in the past";
         }
-        else if (distributions.spouseLifeExpectancy.value > 122) {
-          newErrors.spouseLifeExpectancy = "Life expectancy cannot reasonably exceed 122";
+        else if (spouseLifeExpectancyNum > 122) {
+          newErrors.spouseLifeExpectancy = "Spouse Life Expectancy cannot reasonably exceed 122";
         }
       }
     }
