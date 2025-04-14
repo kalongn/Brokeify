@@ -502,6 +502,11 @@ const EventSeriesForm = () => {
       console.log(response.data);
       handleNavigate();
     } catch (error) {
+      if (error.response?.status === 409) {
+        setErrors({ name: "Event series name already exists" });
+      } else {
+        alert("An unknown error occurred while creating the event series");
+      }
       console.error("Error creating event series:", error);
     }
   }
