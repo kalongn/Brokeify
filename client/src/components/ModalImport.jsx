@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Axios from "axios";
+import { FaUpload } from "react-icons/fa";
 
 import ModalBase from "./ModalBase";
 import styles from "./ModalImport.module.css";
@@ -89,7 +90,7 @@ const ModalImport = ({ isOpen, onClose }) => {
           :
           <button onClick={handleClose} className={buttonStyles.deemphasizedButton}>Cancel</button>
         }
-        <button onClick={handleUpload} className={buttonStyles.emphasizedButton}>Upload File</button>
+        <button onClick={handleUpload} className={`${buttonStyles.emphasizedButton} ${styles.uploadButton}`}><FaUpload /> Upload File</button>
       </div>
     </ModalBase>
   );
