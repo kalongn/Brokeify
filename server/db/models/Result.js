@@ -6,6 +6,7 @@ const YearlyResultSchema = new mongoose.Schema({
     cumulativeInflation: { type: Number, required: true },
     investmentValues: [{ name: { type: mongoose.Schema.Types.ObjectId, ref: 'Investment', required: true }, value: { type: Number, required: true } }],
     incomeByEvent: [{ name: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true }, value: { type: Number, required: true } }],
+    expenseByEvent: [{ name: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true }, value: { type: Number, required: true } }],
     totalIncome: { type: Number, required: true },
     totalExpense: { type: Number, required: true },
     totalTax: { type: Number, required: true },
