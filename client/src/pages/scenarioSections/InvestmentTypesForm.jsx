@@ -162,6 +162,8 @@ const InvestmentTypesForm = () => {
 
   const handleSubmit = async () => {
     if (!validateFields()) {
+      // Scroll to the top to show the error message
+      window.scrollTo(0, 0);
       return;
     }
     await uploadToBackEnd();
