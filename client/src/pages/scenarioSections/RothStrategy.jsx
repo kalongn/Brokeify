@@ -80,12 +80,13 @@ const RothStrategy = () => {
     }
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
+    // Prompt to AI (Amazon Q): in highlighted code, instead of making it "", can i just delete the field name refers to?
+    // Works as needed, only needing to re-prompt to disable  eslint error
     setErrors(prev => {
         // eslint-disable-next-line no-unused-vars
         const { [name]: _, ...rest } = prev;
         return rest;
     });
-    
   };
 
   const validateFields = () => {
