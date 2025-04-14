@@ -10,7 +10,7 @@ const ErrorMessage = ({ errors }) => {
   window.scrollTo(0, 0);
   
   return (
-    <div className={styles.errorBox}>
+    <div data-testid="errorMessage" className={styles.errorBox}>
       <div className={styles.errorMessage}>
         <MdError size={24} />
         <span>Try again after fixing these problems.</span>
