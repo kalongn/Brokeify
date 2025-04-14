@@ -144,7 +144,6 @@ const BasicInfo = () => {
       validateDistribution(newErrors, "spouseLifeExpectancy", distributions.spouseLifeExpectancy);
     }
 
-
     // Validate birth year
     if (formData.birthYear !== undefined && newErrors.birthYear === undefined) {
       if (formData.birthYear < 1900 || formData.birthYear > currentYear) {
@@ -166,7 +165,7 @@ const BasicInfo = () => {
     }
 
     // Validate spouse birth year
-    if (formData.spouseBirthYear !== undefined && errors.spouseBirthYear === undefined && formData.maritalStatus === "MARRIEDJOINT") {
+    if (formData.spouseBirthYear !== undefined && newErrors.spouseBirthYear === undefined && formData.maritalStatus === "MARRIEDJOINT") {
       if ((formData.spouseBirthYear < 1900 || formData.spouseBirthYear > currentYear)) {
         newErrors.spouseBirthYear = `Spouse Birth Year must be between 1900 and ${currentYear}`;
       }
