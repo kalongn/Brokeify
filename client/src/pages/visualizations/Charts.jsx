@@ -15,13 +15,24 @@ const Charts = () => {
 
   const { simulationId } = useParams();
 
+  const [scenarioName, setScenarioName] = useState("Unknown Scenario");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
-  }, []);
+
+    Axios.get(`/charts/${simulationId}`).then((response) => {
+      const data = response.data;
+      setScenarioName(data.scenarioName);
+    }).catch((error) => {
+      alert("Error fetching scenario name. Please try again.");
+      setScenarioName("");
+      console.error('Error fetching scenario name:', error);
+    });
+
+  }, [simulationId]);
 
 
   const [charts, setCharts] = useState([
@@ -54,7 +65,7 @@ const Charts = () => {
     <Layout>
       <div className={styles.content}>
         <div className={styles.leftSide}>
-          <h2>Ideal Plan!!</h2>
+          <h2>{scenarioName} Result</h2>
           <div className={styles.buttonGroup}>
             <button className={styles.addCharts} onClick={() => setShowAddModal(true)}>
               Add Charts

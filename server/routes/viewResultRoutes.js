@@ -4,6 +4,8 @@ import UserController from "../db/controllers/UserController.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
 
+import { canView } from "./helper.js";
+
 const router = express.Router();
 const userController = new UserController();
 const simulationController = new SimulationController();
@@ -107,11 +109,27 @@ const generateShadedLineData = (chart, yearToResults) => {
     }
 };
 
+router.get("/charts/:simulationId", async (req, res) => {
+    const simulationId = req.params.simulationId;
+    console.log("Simulation ID:", simulationId);
+    const simulation = await simulationController.read(simulationId);
+    const scenarioId = simulation.scenario.toString();
+
+    if (!await canView(req.session.user, scenarioId)) {
+        return res.status(403).send("You do not have permission to access this scenario.");
+    }
+
+    const scenario = await scenarioController.read(scenarioId);
+    const scenarioName = scenario.name;
+    return res.status(200).send({
+        scenarioName: scenarioName,
+    });
+})
+
 
 
 router.post("/charts/:simulationId", async (req, res) => {
     const simulationId = req.params.simulationId;
-    console.log("Simulation ID:", simulationId);
     const charts = req.body;
 
     const simulation = await simulationController.read(simulationId);
