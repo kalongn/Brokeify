@@ -80,7 +80,7 @@ const eventToBackend = async (body) => {
     switch (eventType) {
         case "INCOME":
             resultEvent = {
-                name: name.trim(),
+                name: name,
                 description: description,
                 durationTypeDistribution: requestDurationDistribution,
                 ...resultEvent,
@@ -93,7 +93,7 @@ const eventToBackend = async (body) => {
             break;
         case "EXPENSE":
             resultEvent = {
-                name: name.trim(),
+                name: name,
                 description: description,
                 durationTypeDistribution: requestDurationDistribution,
                 ...resultEvent,
@@ -106,7 +106,7 @@ const eventToBackend = async (body) => {
             break;
         case "INVEST":
             resultEvent = {
-                name: name.trim(),
+                name: name,
                 description: description,
                 durationTypeDistribution: requestDurationDistribution,
                 ...resultEvent,
@@ -118,7 +118,7 @@ const eventToBackend = async (body) => {
             break;
         case "REBALANCE":
             resultEvent = {
-                name: name.trim(),
+                name: name,
                 description: description,
                 durationTypeDistribution: requestDurationDistribution,
                 ...resultEvent,
@@ -131,6 +131,7 @@ const eventToBackend = async (body) => {
         default:
             return null;
     }
+    resultEvent.name = name.trim();
     return resultEvent;
 }
 
