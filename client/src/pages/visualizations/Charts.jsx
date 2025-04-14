@@ -46,6 +46,7 @@ const Charts = () => {
     } catch (error) {
       console.error('Error generating charts:', error);
       alert("Error generating charts. Please try again.");
+      setShowCharts(false);
     }
   };
 
