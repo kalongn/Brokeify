@@ -8,8 +8,19 @@ test('logInAsGuest', async ({ page }) => {
 
 });
 
+test('logout test', async ({ page }) => {
+  await page.goto('http://localhost:5173/');
+  await page.getByRole('link', { name: 'Continue as Guest' }).click();
+  await page.getByRole('link', { name: 'My Profile' }).click();
+  await expect(page.getByRole('main')).toContainText('Guest Guest');
+  await expect(page.getByRole('main')).toContainText('N/A');
+  await page.getByRole('link', { name: 'Logout' }).click();
+  await expect(page.locator('#root')).toContainText('Your Future,');
+  await expect(page.locator('#root')).toContainText('Your Plan,');
+  await expect(page.locator('#root')).toContainText('Our Guidance');
+});
 
-test("Create Scenario", async ({page}) =>{
+test("Navigate to Create Scenario", async ({page}) =>{
     await page.goto('http://localhost:5173/');
 
     await page.getByRole('link', { name: 'Continue as Guest' }).click();
