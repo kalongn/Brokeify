@@ -1,0 +1,32 @@
+#Pre-made NY yaml file
+year: 2024
+state: NY
+filingStatus: SINGLE
+rates:
+  - lowerBound: 0
+    upperBound: 8500
+    rate: 4
+  - lowerBound: 8500
+    upperBound: 11700
+    rate: 4.5
+  - lowerBound: 11700
+    upperBound: 13900
+    rate: 5.25
+  - lowerBound: 13900
+    upperBound: 80650
+    rate: 5.5
+  - lowerBound: 80650
+    upperBound: 215400
+    rate: 6
+  - lowerBound: 215400
+    upperBound: 1077550
+    rate: 6.85
+  - lowerBound: 1077550
+    upperBound: 5000000	
+    rate: 9.65
+  - lowerBound: 5000000
+    upperBound: 25000000	
+    rate: 10.3
+  - lowerBound: 25000000
+    upperBound: Infinity	
+    rate: 10.9

@@ -2,10 +2,12 @@ import { useState, useEffect, useImperativeHandle } from "react";
 import { useOutletContext } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { v4 as uuidv4 } from "uuid";
-import Axios from 'axios';
 import Select from "react-select";
+import ErrorMessage from "../../components/ErrorMessage";
+import Axios from 'axios';
 
 import styles from "./Form.module.css";
+import errorStyles from "../../components/ErrorMessage.module.css";
 
 const Investments = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
@@ -15,6 +17,7 @@ const Investments = () => {
   const [investmentTypes, setInvestmentTypes] = useState([]);
   const [formData, setFormData] = useState([]);
   const [errors, setErrors] = useState([]);
+  const [duplicates, setDuplicates] = useState([]);
 
   const taxStatuses = [
     { value: "Non-Retirement", label: "Non-Retirement" },
@@ -58,7 +61,6 @@ const Investments = () => {
   }, [scenarioId]);
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
-  // removeInvestment function did not work and has not been fixed yet since this feature's priority is low
   const handleInputChange = (index, field, value) => {
     const updatedInvestments = [...formData];
     // Check if name is a number field and parse if so
@@ -73,9 +75,7 @@ const Investments = () => {
 
   const addNewInvestment = () => {
     // uuid needed to provide unique keys when mapping the formData to the table
-    setFormData([...formData, { id: undefined, typeId: null, dollarValue: null, taxStatus: null, uuid: uuidv4() }]);
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, investments: "" }));
+    setFormData([...formData, { id: undefined, typeId: null, dollarValue: undefined, taxStatus: null, uuid: uuidv4() }]);
   };
 
   const removeInvestment = async (uuid) => {
@@ -106,27 +106,27 @@ const Investments = () => {
 
   const validateFields = () => {
     const newErrors = {};
-    const dupCheck = new Set();
-    // Check if there are any investments
-    if (!formData[0]) {
-      newErrors.investmentRow = "At least one investment must be added";
-    }
-    else {
-      formData.forEach((row) => {
-        // Check if investment is set and if all fields are filled
-        if (!row.typeId || row.dollarValue === null || row.dollarValue === undefined || !row.taxStatus) {
-          newErrors.investmentRow = "All row fields are required";
-        }
-        else if (row.dollarValue < 0) {
-          newErrors.investmentRow = "Dollar values must be non-negative";
-        }
-        else {
-          dupCheck.add(`${row.typeId}-${row.taxStatus}`)
-        }
-      });
-      if (newErrors.investmentRow === undefined && dupCheck.size !== formData.length) {
-        newErrors.investmentRow = "Investments with the same type and tax status are not allowed";
+    const duplicatesCheck = new Set();
+
+    // Investments will always have a cash row
+    formData.forEach((row) => {
+      // Check if investment is set and if all fields are filled
+      if (!row.typeId || row.dollarValue === undefined || !row.taxStatus) {
+        newErrors.investmentRow = "All row fields are required";
       }
+      else if (row.dollarValue < 0) {
+        newErrors.investmentRow = "Dollar values must be non-negative";
+      }
+      else if (duplicatesCheck.has(`${row.typeId}-${row.taxStatus}`)) {
+        // List of duplicate rows
+        setDuplicates(prev => [...prev, `${row.typeId}-${row.taxStatus}`]);
+      }
+      else {
+        duplicatesCheck.add(`${row.typeId}-${row.taxStatus}`);
+      }
+    });
+    if (newErrors.investmentRow === undefined && duplicatesCheck.size !== formData.length) {
+      newErrors.investmentRow = "Investments with the same type and tax status are not allowed";
     }
     // Set all errors at once
     setErrors(newErrors);
@@ -159,6 +159,7 @@ const Investments = () => {
       <p>
         If married, investments will automatically be assumed as jointly owned.
       </p>
+      <ErrorMessage errors={errors} />
 
       <table id={styles.inputTable}>
         <thead>
@@ -177,7 +178,16 @@ const Investments = () => {
            */}
           {/* Dynamically render rows of investments */}
           {formData.map((investment, index) => (
-            <tr key={investment.uuid}>
+            // Apply highlight CSS on row if there's an error
+            <tr
+              key={investment.uuid}
+              className={
+                ( errors.investmentRow !== undefined &&
+                ((!investment.typeId || investment.dollarValue === undefined || investment.dollarValue < 0 || !investment.taxStatus))) ||
+                (duplicates.includes(`${investment.typeId}-${investment.taxStatus}`))
+                ? errorStyles.highlight : ""
+              }
+            >
               <td>
                 <Select
                   className={`${styles.selectTable} ${styles.select}`}
@@ -233,7 +243,6 @@ const Investments = () => {
           ))}
         </tbody>
       </table>
-      {errors.investmentRow && <span className={styles.error}>{errors.investmentRow}</span>}
       <button id={styles.addButton} type="button" onClick={addNewInvestment}>
         Add New Investment
       </button>

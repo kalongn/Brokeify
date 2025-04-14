@@ -22,9 +22,15 @@ SERVER_PORT=8000
 SECRET=<INSERT anything here>
 CLIENT_URL=http://localhost:5173
 
+FED_INCOME='https://www.irs.gov/filing/federal-income-tax-rates-and-brackets'
+FED_STANDARD_DEDUCTIONS='https://www.irs.gov/publications/p17'
+FED_CAPITAL_GAINS='https://www.irs.gov/taxtopics/tc409'
+FED_RMD='https://www.irs.gov/publications/p590b#en_US_2023_publink100090310'
+
 GOOGLE_CLIENT_ID=<INSERT GOOGLE CLIENT ID>
 GOOGLE_CLIENT_SECRET=<INSERT GOOGLE CLIENT SECRET>
 GOOGLE_REDIRECT_URI="http://localhost:#/auth/google/callback"
+
 
 the last one use # since it replaces the # with whatever port number you decided within the code.
 ```

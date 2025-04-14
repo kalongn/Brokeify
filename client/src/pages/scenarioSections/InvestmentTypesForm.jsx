@@ -1,19 +1,22 @@
 import { useState, useImperativeHandle, useEffect } from "react";
-import { useNavigate, useOutletContext, useParams, useLocation } from "react-router-dom";
-import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { validateRequired, validateDistribution, clearErrors } from "../../utils/ScenarioHelper";
 import Axios from "axios";
+
 import Distributions from "../../components/Distributions";
+import ErrorMessage from "../../components/ErrorMessage";
+
 import styles from "./Form.module.css";
+import errorStyles from "../../components/ErrorMessage.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
 
 const InvestmentTypesForm = () => {
   const navigate = useNavigate();
-  // Access the list of investmentTypesNames passed from InvestmentTypes section page
-  const investmentTypeNames = useLocation().state;
 
   const { childRef } = useOutletContext();
   const { scenarioId, id } = useParams();
 
+  const [investmentTypes, setInvestmentTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   // expectedAnnualReturn and expectedDividendsInterest can have fixedValue, mean, or stdDev fields
   const [distributions, setDistributions] = useState({
@@ -56,6 +59,14 @@ const InvestmentTypesForm = () => {
     } else {
       setLoading(false);
     }
+
+    // Fetch investment types to check for duplicate names
+    Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
+      setInvestmentTypes(response.data);
+    }
+    ).catch((error) => {
+      console.error('Error fetching investment types:', error);
+    });
   }, [id, scenarioId]);
 
 
@@ -87,6 +98,8 @@ const InvestmentTypesForm = () => {
       }
       return updatedDistributions;
     })
+    // Clear errors when user makes changes
+    clearErrors(setErrors, name);
   };
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
@@ -96,7 +109,7 @@ const InvestmentTypesForm = () => {
     const processedValue = name === "expenseRatio" ? Number(value) : value;
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
+    clearErrors(setErrors, name);
   };
 
   const handleNavigate = () => {
@@ -121,13 +134,15 @@ const InvestmentTypesForm = () => {
     }
 
     // Check for duplicate names
-    const hasDuplicateName = investmentTypeNames.find(name =>
-      name === formData.investmentType.trim()
-    );
-    if(hasDuplicateName) {
-      newErrors.investmentType = "Investment type name already exists";
+    if (formData.investmentType !== null) {
+      const hasDuplicateName = investmentTypes.find(inv =>
+        inv.name === formData.investmentType.trim()
+      );
+      if (hasDuplicateName) {
+        newErrors.investmentType = "Investment type name already exists";
+      }
     }
-    
+
     // Set all errors at once
     setErrors(newErrors);
     // Everything is valid if there are no error messages
@@ -171,51 +186,63 @@ const InvestmentTypesForm = () => {
         :
         <>
           <h2>New Investment Type</h2>
+          <ErrorMessage errors={errors} />
           <form>
             <label>
               Investment Type Name
-              <input type="text" name="investmentType" defaultValue={formData.investmentType} className={styles.newline} onChange={handleChange} />
-              {errors.investmentType && <div className={styles.error}>{errors.investmentType}</div>}
+              <input
+                type="text"
+                name="investmentType"
+                defaultValue={formData.investmentType}
+                id="investmentType"
+                className={`${styles.newline} ${errors.investmentType ? errorStyles.errorInput : ""}`}
+                onChange={handleChange}
+              />
             </label>
             <label>
               Description
               <textarea name="description" defaultValue={formData.description} onChange={handleChange} />
             </label>
-            <label>Expected Annual Return</label>
+            <label id="expectedAnnualReturn">Expected Annual Return</label>
             <Distributions
               name="expectedAnnualReturn"
               options={["fixed", "normal"]}
               requirePercentage={true}
               onChange={handleDistributionsChange}
               defaultValue={distributions.expectedAnnualReturn}
+              className={errors.expectedAnnualReturn ? errorStyles.highlight : ""}
             />
-            {errors.expectedAnnualReturn && <div className={styles.error}>{errors.expectedAnnualReturn}</div>}
             <label className={styles.newline}>
               Expense Ratio
-              <input type="number" name="expenseRatio" defaultValue={formData.expenseRatio} className={styles.newline} onChange={handleChange} />
-              {errors.expenseRatio && <div className={styles.error}>{errors.expenseRatio}</div>}
+              <input
+                type="number"
+                name="expenseRatio"
+                defaultValue={formData.expenseRatio}
+                id="expenseRatio"
+                className={`${styles.newline} ${errors.expenseRatio ? errorStyles.errorInput : ""}`}
+                onChange={handleChange}
+              />
             </label>
-            <label>Expected Annual Income from Dividends or Interests</label>
+            <label id="expectedDividendsInterest">Expected Annual Income from Dividends or Interests</label>
             <Distributions
               name="expectedDividendsInterest"
               options={["fixed", "normal"]}
               requirePercentage={true}
               onChange={handleDistributionsChange}
               defaultValue={distributions.expectedDividendsInterest}
+              className={errors.expectedDividendsInterest ? errorStyles.highlight : ""}
             />
-            {errors.expectedDividendsInterest && <div className={styles.error}>{errors.expectedDividendsInterest}</div>}
-            <label className={styles.newline}>
+            <label id="taxability" className={styles.newline}>
               Taxability
             </label>
-            <label className={styles.radioButton}>
+            <label className={`${styles.radioButton} ${errors.taxability ? errorStyles.highlight : ""}`}>
               <input type="radio" name="taxability" value="taxExempt" checked={formData.taxability === "taxExempt"} onChange={handleChange} />
               Tax-exempt
             </label>
-            <label className={styles.radioButton}>
+            <label className={`${styles.radioButton} ${errors.taxability ? errorStyles.highlight : ""}`}>
               <input type="radio" name="taxability" value="taxable" checked={formData.taxability === "taxable"} onChange={handleChange} />
               Taxable
             </label>
-            {errors.taxability && <div className={styles.error}>{errors.taxability}</div>}
           </form>
 
           <div id={buttonStyles.navButtons} style={{ margin: "1rem 0" }}>

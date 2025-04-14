@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { FaEdit } from "react-icons/fa";
+import ErrorMessage from "../../components/ErrorMessage";
 import Axios from 'axios';
 
 import styles from "./Form.module.css";
-
 
 // This page does not submit any data, so childRef is not used
 const EventSeries = () => {
@@ -13,6 +13,7 @@ const EventSeries = () => {
   const { scenarioId } = useParams();
 
   const [events, setEvents] = useState([]);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -42,9 +43,9 @@ const EventSeries = () => {
       setEvents(updatedInvestmentTypes);
     } catch (error) {
       if (error.response?.status === 409) {
-        alert("Cannot delete event series. It is being referenced in other event (starts with / starts after).");
+        setErrors({deleteEventSeries : "Cannot delete event series. Another event series's start year depends on it."});
       } else {
-        alert("Unknown Error deleting event series. Please try again.");
+        setErrors({deleteEventSeries : "There was an error deleting the event series. Please try again."});
       }
       console.error("Error deleting event series:", error);
     }
@@ -58,8 +59,9 @@ const EventSeries = () => {
         (income, expense, investment, or rebalancing) over a defined period.
         Only one asset allocation can be rebalanced in a scenario.
       </p>
+      <ErrorMessage errors={errors} />
       <table id={styles.inputTable}>
-        <thead>
+        <thead id="deleteEventSeries">
           <tr>
             <th>Event Series Name</th>
             <th>Type</th>
