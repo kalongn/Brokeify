@@ -77,6 +77,13 @@ const Limits = () => {
       }
       return updatedDistributions;
     });
+    // Clear errors when user makes changes
+    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
+    setErrors(prev => {
+      // eslint-disable-next-line no-unused-vars
+      const { [name]: _, ...rest } = prev;
+      return rest;
+    });
   };
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
@@ -84,6 +91,13 @@ const Limits = () => {
     const { name, value } = e.target;
     const processedValue = name === "initialLimit" ? Number(value) : value;
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
+    // Clear errors when user makes changes
+    // Prompted AI (Amazon Q) then copied from RothStrategy.jsx
+    setErrors(prev => {
+      // eslint-disable-next-line no-unused-vars
+      const { [name]: _, ...rest } = prev;
+      return rest;
+    });
   };
 
   const validateFields = () => {
