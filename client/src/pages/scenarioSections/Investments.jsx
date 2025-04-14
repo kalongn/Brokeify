@@ -61,7 +61,6 @@ const Investments = () => {
   }, [scenarioId]);
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
-  // removeInvestment function did not work and has not been fixed yet since this feature's priority is low
   const handleInputChange = (index, field, value) => {
     const updatedInvestments = [...formData];
     // Check if name is a number field and parse if so
