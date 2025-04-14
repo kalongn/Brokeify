@@ -329,6 +329,15 @@ router.post("/event/:scenarioId", async (req, res) => {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
         const eventType = req.body.eventType;
+        const name = req.body.name;
+
+        const scenario = await scenarioController.readWithPopulate(id);
+        for (let event of scenario.events) {
+            if (event.name === name) {
+                return res.status(409).send("Event name already exists.");
+            }
+        }
+
         const resultEvent = await eventToBackend(req.body);
         if (!resultEvent) {
             return res.status(400).send("Error creating event.");
@@ -365,17 +374,25 @@ router.put("/event/:scenarioId/:eventId", async (req, res) => {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
         const eventId = req.params.eventId;
-        const oldEvent = await eventController.readWithPopulate(eventId);
-
+        const name = req.body.name;
         const eventType = req.body.eventType;
+
+        const oldEvent = await eventController.readWithPopulate(eventId);
+        if (oldEvent.name !== name) {
+            const scenario = await scenarioController.readWithPopulate(id);
+            for (let event of scenario.events) {
+                if (event.name === name) {
+                    return res.status(409).send("Event name already exists.");
+                }
+            }
+        }
+        
         const resultEvent = await eventToBackend(req.body);
         if (!resultEvent) {
             return res.status(400).send("Error creating event.");
         }
 
-
         const scenario = await scenarioController.readWithPopulate(id);
-
         // Creating the updated event
         const event = await eventController.create(eventType, resultEvent);
 
