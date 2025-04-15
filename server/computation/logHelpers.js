@@ -44,13 +44,13 @@ export async function updateCSV(currentYear, investments, scenario) {
         const investmentType = await investmentTypeFactory.read(investmentTypeID);
         for (const j in investmentType.investments) {
             const inv = await investmentFactory.read(investmentType.investments[j])
-            nameMap.set(inv._id, investmentType.name+":"+inv.taxStatus);
+            nameMap.set(inv._id.toString(), investmentType.name+":"+inv.taxStatus);
             invIds.push(inv._id)
         }
 
     }
     let headers = csvContent.length ? csvContent[0] : ['Year']; // First row is the header
-    let investmentNames = investments.map(investment => nameMap.get(investment._id));
+    let investmentNames = investments.map(investment => nameMap.get(investment._id.toString()));
 
     //check for missing investment IDs and add them to the headers
     let missingIDs = investmentNames.filter(id => !headers.includes(id));
