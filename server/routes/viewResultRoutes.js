@@ -32,7 +32,18 @@ const generateLineChartData = (yearToResults) => {
     }
 };
 
+const getAverage = (arr) => {
+    if (arr.length === 0) {
+        return 0;
+    }
+    const sum = arr.reduce((acc, value) => acc + value, 0);
+    return sum / arr.length;
+}
+
 const getPercentile = (arr, percentile) => {
+    if (arr.length === 0) {
+        return 0;
+    }
     const index = Math.floor(percentile * arr.length);
     return arr[index];
 }
@@ -108,6 +119,91 @@ const generateShadedLineData = (chart, yearToResults) => {
     }
 };
 
+const generateStackedBarData = (chart, yearToResults) => {
+    const labels = [];
+
+    const finalNameToValues = {}
+
+    for (const year in yearToResults) {
+        labels.push(year);
+        const yearlyResults = yearToResults[year];
+
+        const nameToListOfValues = {}
+
+        for (const result of yearlyResults) {
+            switch (chart.content.quantity) {
+                case "Investments Breakdown":
+                    result.investmentValues.forEach((investment) => {
+                        if (!nameToListOfValues[investment.name]) {
+                            nameToListOfValues[investment.name] = [];
+                        }
+                        nameToListOfValues[investment.name].push(chart.content.dollarValue === "Today" ? investment.value / (1 + result.cumulativeInflation) : investment.value);
+                    });
+                    break;
+                case "Incomes Breakdown":
+                    result.incomeByEvent.forEach((income) => {
+                        if (!nameToListOfValues[income.name]) {
+                            nameToListOfValues[income.name] = [];
+                        }
+                        nameToListOfValues[income.name].push(chart.content.dollarValue === "Today" ? income.value / (1 + result.cumulativeInflation) : income.value);
+                    });
+                    break;
+                case "Expenses Breakdown":
+                    result.expenseByEvent.forEach((expense) => {
+                        if (!nameToListOfValues[expense.name]) {
+                            nameToListOfValues[expense.name] = [];
+                        }
+                        nameToListOfValues[expense.name].push(chart.content.dollarValue === "Today" ? expense.value / (1 + result.cumulativeInflation) : expense.value);
+                    });
+                    if (!nameToListOfValues["Total Taxes"]) {
+                        nameToListOfValues["Total Taxes"] = [];
+                    }
+                    nameToListOfValues["Total Taxes"].push(chart.content.dollarValue === "Today" ? result.totalTax / (1 + result.cumulativeInflation) : result.totalTax);
+                    break;
+                default:
+                    // Should not happen
+                    break;
+            }
+        }
+        switch (chart.content.valueType) {
+            case "Average":
+                for (const name in nameToListOfValues) {
+                    nameToListOfValues[name] = getAverage(nameToListOfValues[name]);
+                }
+                break;
+            case "Median":
+                for (const name in nameToListOfValues) {
+                    nameToListOfValues[name] = getPercentile(nameToListOfValues[name], 0.5);
+                }
+                break;
+        }
+
+        let otherValue = 0;
+
+        for (const name in nameToListOfValues) {
+            if (chart.content.threshold && nameToListOfValues[name] < chart.content.threshold) {
+                otherValue += nameToListOfValues[name];
+                nameToListOfValues[name] = 0;
+            }
+        }
+
+        nameToListOfValues["Other"] = otherValue;
+        for (const name in nameToListOfValues) {
+            if (!finalNameToValues[name]) {
+                finalNameToValues[name] = [];
+            }
+            finalNameToValues[name].push(nameToListOfValues[name]);
+        }
+    }
+
+    const data = {
+        labels: labels,
+        ...finalNameToValues,
+    }
+
+    return data;
+}
+
 router.get("/charts/:simulationId", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Not logged in.");
@@ -174,11 +270,7 @@ router.post("/charts/:simulationId", async (req, res) => {
                     chart.data = generateShadedLineData(chart, yearToResults);
                     break;
                 case "Stacked Bar Chart":
-                    chart.data = {
-                        type: "stackedBar",
-                        data: chart.data,
-                        label: chart.label,
-                    };
+                    chart.data = generateStackedBarData(chart, yearToResults);
                     break;
                 default:
                     break;

@@ -12,9 +12,9 @@ const shadedLineQuantities = [
 ];
 
 const stackedBarQuantities = [
-  "Total Investments by Investments",
-  "Income",
-  "Expenses"
+  "Investments Breakdown",
+  "Incomes Breakdown",
+  "Expenses Breakdown",
 ];
 
 const numericQuantities = [
