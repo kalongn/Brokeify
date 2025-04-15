@@ -534,7 +534,7 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
             break;
         }
         else {
-            if (bracket.upperBound < curYearFedTaxableIncome) {
+            if (bracket.upperBound < curYearFedTaxableIncome&& bracket.upperBound!==0) {
 
                 fedIncomeTax += (bracket.upperBound - bracket.lowerBound) * bracket.rate;
                 
@@ -560,7 +560,8 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
             break;
         }
         else {
-            if (bracket.upperBound < curYearStateTaxableIncome) {
+            console.log(bracket.upperBound)
+            if (bracket.upperBound < curYearStateTaxableIncome && bracket.upperBound!==0) {
 
                 sIncomeTax += (bracket.upperBound - bracket.lowerBound) * bracket.rate;
             }
@@ -581,7 +582,7 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
             break;
         }
         else {
-            if (bracket.upperBound < lastYearGains) {
+            if (bracket.upperBound < lastYearGains&& bracket.upperBound!==0) {
 
                 capitalTax += (bracket.upperBound - bracket.lowerBound) * bracket.rate;
             }
