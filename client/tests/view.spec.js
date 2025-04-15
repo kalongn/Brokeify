@@ -40,7 +40,11 @@ test('View Scenario', async ({ page }) => {
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.locator('[id="_heading_nmd6n_1"]')).toContainText('Roth Conversion Strategy & Optimizer');
   await page.waitForTimeout(10000);
-  await page.locator('button:has-text("Save")').click(); // partial match
+  await page.getByRole('button', { name: 'Save & Close' }).click({ force: true });
+  await expect(page).toHaveURL("http://localhost:5173/Home");
+  await page.getByText('My Profile').click();
+  await page.getByText('My Scenarios').click();
+  await expect(page).toHaveURL("http://localhost:5173/Home");
   await page.getByRole('link', { name: 'Scenario 1 Scenario 1 SINGLE' }).click();
   await page.waitForTimeout(30000);
   await expect(page).toHaveURL("http://localhost:5173/Home");
