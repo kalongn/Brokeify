@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from "url";
 
-import { canEdit } from "./helper.js";
+import { canView } from "./helper.js";
 import { validateRun } from "../computation/planValidator.js";
 
 import UserController from "../db/controllers/UserController.js";
@@ -79,7 +79,7 @@ router.post("/runSimulation", async (req, res) => {
     const scenarioId = req.query.scenarioId;
     const numTimes = req.query.numTimes;
     try {
-        if (!await canEdit(userId, scenarioId)) {
+        if (!await canView(userId, scenarioId)) {
             return res.status(403).send("Forbidden");
         }
 
