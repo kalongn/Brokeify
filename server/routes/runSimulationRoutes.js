@@ -1,0 +1,180 @@
+import express from 'express';
+import yaml from 'js-yaml';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from "url";
+
+import { canEdit } from "./helper.js";
+import { validateRun } from "../computation/planValidator.js";
+
+import UserController from "../db/controllers/UserController.js";
+import ScenarioController from "../db/controllers/ScenarioController.js";
+import TaxController from "../db/controllers/TaxController.js";
+import SimulationController from "../db/controllers/SimulationController.js";
+
+const router = express.Router();
+const userController = new UserController();
+const simulationController = new SimulationController();
+const scenarioController = new ScenarioController();
+const taxController = new TaxController();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const basePath = decodeURIComponent(path.resolve(__dirname, "../yaml_files/state_taxes/"))
+const ny_single_yaml = yaml.load(fs.readFileSync(path.join(basePath, "state_tax_NY_SINGLE.yaml"), 'utf8'));
+const ny_married_yaml = yaml.load(fs.readFileSync(path.join(basePath, "state_tax_NY_MARRIEDJOINT.yaml"), 'utf8'));
+const nj_single_yaml = yaml.load(fs.readFileSync(path.join(basePath, "state_tax_NJ_SINGLE.yaml"), 'utf8'));
+const nj_married_yaml = yaml.load(fs.readFileSync(path.join(basePath, "state_tax_NJ_MARRIEDJOINT.yaml"), 'utf8'));
+const ct_single_yaml = yaml.load(fs.readFileSync(path.join(basePath, "state_tax_CT_SINGLE.yaml"), 'utf8'));
+const ct_married_yaml = yaml.load(fs.readFileSync(path.join(basePath, "state_tax_CT_MARRIEDJOINT.yaml"), 'utf8'));
+const wa_single_yaml = yaml.load(fs.readFileSync(path.join(basePath, "state_tax_WA_SINGLE.yaml"), 'utf8'));
+const wa_married_yaml = yaml.load(fs.readFileSync(path.join(basePath, "state_tax_WA_MARRIEDJOINT.yaml"), 'utf8'));
+
+const yamlToTax = (ymlStr) => {
+    const { year, state, filingStatus, rates } = ymlStr;
+    const parseBrackets = (brackets) => {
+        return brackets.map(({ lowerBound, upperBound, rate }) => ({
+            lowerBound: Number(lowerBound),
+            upperBound: upperBound === 'Infinity' ? Infinity : Number(upperBound),
+            rate: Number(rate)
+        }));
+    };
+    return {
+        year: Number(year),
+        state: state,
+        filingStatus: filingStatus,
+        taxBrackets: parseBrackets(rates)
+    };
+}
+
+router.get("/runSimulation", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Unauthorized");
+    }
+    try {
+        const user = await userController.readWithScenarios(req.session.user);
+        const allScenarios = user.ownerScenarios.concat(user.editorScenarios, user.viewerScenarios);
+
+        const data = {
+            previousRun: user.previousSimulation,
+            scenarios: allScenarios.map((scenario) => {
+                return {
+                    id: scenario._id,
+                    name: scenario.name,
+                }
+            }),
+        }
+        return res.status(200).send(data);
+    } catch (error) {
+        console.error("Error fetching scenarios:", error);
+        return res.status(500).send("Internal Server Error");
+    }
+});
+
+router.post("/runSimulation", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Unauthorized");
+    }
+    const userId = req.session.user;
+    const scenarioId = req.query.scenarioId;
+    const numTimes = req.query.numTimes;
+    try {
+        if (!await canEdit(userId, scenarioId)) {
+            return res.status(403).send("Forbidden");
+        }
+
+        const scenario = await scenarioController.read(scenarioId);
+        const user = await userController.readWithTaxes(userId);
+
+        // Tax stuff
+        const state = scenario.stateOfResidence;
+        const filingStatus = scenario.filingStatus;
+        const username = user.firstName + " " + user.lastName;
+
+        let singleTax = { year: -Infinity };
+        let marriedTax = { year: -Infinity };
+
+
+        let needDeleteSingleTaxAfter = false;
+        let needDeleteMarriedTaxAfter = false;
+        if (state === "NY") {
+            singleTax = await taxController.create("STATE_INCOME", yamlToTax(ny_single_yaml));
+            marriedTax = await taxController.create("STATE_INCOME", yamlToTax(ny_married_yaml));
+        } else if (state === "NJ") {
+            singleTax = await taxController.create("STATE_INCOME", yamlToTax(nj_single_yaml));
+            marriedTax = await taxController.create("STATE_INCOME", yamlToTax(nj_married_yaml));
+        } else if (state === "CT") {
+            singleTax = await taxController.create("STATE_INCOME", yamlToTax(ct_single_yaml));
+            marriedTax = await taxController.create("STATE_INCOME", yamlToTax(ct_married_yaml));
+        }
+        if (state === "NY" || state === "NJ" || state === "CT") {
+            needDeleteSingleTaxAfter = true;
+            needDeleteMarriedTaxAfter = true;
+        }
+
+        singleTax = user.userSpecificTaxes.reduce((closest, tax) => {
+            if (tax.state === state && tax.filingStatus === "SINGLE") {
+                if (Math.abs(tax.year - new Date().getFullYear()) < Math.abs(closest.year - new Date().getFullYear())) {
+                    if (needDeleteSingleTaxAfter) {
+                        taxController.delete(singleTax);
+                    }
+                    needDeleteSingleTaxAfter = false;
+                    return tax;
+                } else {
+                    return closest;
+                }
+            }
+            return closest;
+        }, singleTax);
+
+        marriedTax = user.userSpecificTaxes.reduce((closest, tax) => {
+            if (tax.state === state && tax.filingStatus === "MARRIEDJOINT") {
+                if (Math.abs(tax.year - new Date().getFullYear()) < Math.abs(closest.year - new Date().getFullYear())) {
+                    if (needDeleteMarriedTaxAfter) {
+                        taxController.delete(marriedTax);
+                    }
+                    needDeleteMarriedTaxAfter = false;
+                    return tax;
+                } else {
+                    return closest;
+                }
+            }
+            return closest;
+        }, marriedTax);
+
+        if (singleTax.year === -Infinity) {
+            singleTax = await taxController.create("STATE_INCOME", yamlToTax(wa_single_yaml));
+            needDeleteSingleTaxAfter = true;
+        }
+        if (marriedTax.year === -Infinity) {
+            marriedTax = await taxController.create("STATE_INCOME", yamlToTax(wa_married_yaml));
+            needDeleteMarriedTaxAfter = true;
+        }
+
+        const taxIdArray = [singleTax._id, marriedTax._id];
+
+        console.log("Tax IDs:", taxIdArray);
+        console.log("Username:", username);
+        console.log("Scenario ID:", scenarioId);
+        console.log("Num Times:", numTimes);
+
+        // Running the simulation
+        const simulationId = await validateRun(scenarioId, numTimes, taxIdArray, username)
+
+        if (needDeleteSingleTaxAfter) {
+            await taxController.delete(singleTax);
+        }
+        if (needDeleteMarriedTaxAfter) {
+            await taxController.delete(marriedTax);
+        }
+
+        await simulationController.delete(user.previousSimulation);
+        await userController.update(userId, { previousSimulation: simulationId });
+        return res.status(200).send(simulationId._id);
+    } catch (error) {
+        console.error("Error fetching simulation:", error);
+        return res.status(500).send("Internal Server Error");
+    }
+});
+
+export default router;

@@ -45,74 +45,10 @@ const ShadedLineChart = ({ data }) => {
     return (
         <Plot
             data={[
-                // Shaded region 40%-60%
-                {
-                    x: data.labels,
-                    y: data.upper40,
-                    fill: 'tonexty', // Fills the area between the upper and lower lines
-                    fillcolor: 'rgba(255, 0, 0, 0.2)', // Transparent red
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: '40%-60%',
-                    line: { color: 'transparent' }, // Hide the line itself
-                },
-                {
-                    x: data.labels,
-                    y: data.lower40,
-                    fill: 'tonexty',
-                    fillcolor: 'rgba(255, 0, 0, 0.2)',
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: '40%-60%',
-                    line: { color: 'transparent' },
-                },
-                // Shaded region 30%-70%
-                {
-                    x: data.labels,
-                    y: data.upper30,
-                    fill: 'tonexty',
-                    fillcolor: 'rgba(0, 255, 0, 0.2)', // Transparent green
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: '30%-70%',
-                    line: { color: 'transparent' },
-                },
-                {
-                    x: data.labels,
-                    y: data.lower30,
-                    fill: 'tonexty',
-                    fillcolor: 'rgba(0, 255, 0, 0.2)',
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: '30%-70%',
-                    line: { color: 'transparent' },
-                },
-                // Shaded region 20%-80%
-                {
-                    x: data.labels,
-                    y: data.upper20,
-                    fill: 'tonexty',
-                    fillcolor: 'rgba(0, 0, 255, 0.2)', // Transparent blue
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: '20%-80%',
-                    line: { color: 'transparent' },
-                },
-                {
-                    x: data.labels,
-                    y: data.lower20,
-                    fill: 'tonexty',
-                    fillcolor: 'rgba(0, 0, 255, 0.2)',
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: '20%-80%',
-                    line: { color: 'transparent' },
-                },
                 // Shaded region 10%-90%
                 {
                     x: data.labels,
                     y: data.upper10,
-                    fill: 'tonexty',
                     fillcolor: 'rgba(255, 255, 0, 0.2)', // Transparent yellow
                     type: 'scatter',
                     mode: 'lines',
@@ -127,6 +63,66 @@ const ShadedLineChart = ({ data }) => {
                     type: 'scatter',
                     mode: 'lines',
                     name: '10%-90%',
+                    line: { color: 'transparent' },
+                },
+                // Shaded region 20%-80%
+                {
+                    x: data.labels,
+                    y: data.upper20,
+                    fillcolor: 'rgba(0, 0, 255, 0.4)', // Transparent blue
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: '20%-80%',
+                    line: { color: 'transparent' },
+                },
+                {
+                    x: data.labels,
+                    y: data.lower20,
+                    fill: 'tonexty',
+                    fillcolor: 'rgba(0, 0, 255, 0.4)',
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: '20%-80%',
+                    line: { color: 'transparent' },
+                },
+                // Shaded region 30%-70%
+                {
+                    x: data.labels,
+                    y: data.upper30,
+                    fillcolor: 'rgba(0, 255, 0, 0.6)', // Transparent green
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: '30%-70%',
+                    line: { color: 'transparent' },
+                },
+                {
+                    x: data.labels,
+                    y: data.lower30,
+                    fill: 'tonexty',
+                    fillcolor: 'rgba(0, 255, 0, 0.6)',
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: '30%-70%',
+                    line: { color: 'transparent' },
+                },
+                // Shaded region 40%-60%
+                {
+                    x: data.labels,
+                    y: data.upper40,
+                    fillcolor: 'rgba(255, 0, 0, 0.8)', // Transparent red
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: '40%-60%',
+                    line: { color: 'transparent' }, // Hide the line itself
+                },
+                {
+                    x: data.labels,
+                    y: data.lower40,
+                    fill: 'tonexty',
+                    fillcolor: 'rgba(255, 0, 0, 0.8)',
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: '40%-60%',
                     line: { color: 'transparent' },
                 },
                 // Median line

@@ -67,6 +67,9 @@ router.post('/stateTax/import', upload.single('file'), async (req, res) => {
         if (status === 1) {
             return res.status(409).send("Tax already exists.");
         }
+        if(status === -1) {
+            return res.status(400).send("Invalid tax data.");
+        }
         return res.status(200).send("Tax imported successfully.");
     } catch (error) {
         console.error("Error importing state tax from YAML:", error);

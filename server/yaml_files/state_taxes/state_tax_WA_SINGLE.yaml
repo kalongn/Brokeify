@@ -1,0 +1,7 @@
+year: 2024
+state: WA
+filingStatus: SINGLE
+rates:
+  - lowerBound: 0
+    upperBound: Infinity
+    rate: 0

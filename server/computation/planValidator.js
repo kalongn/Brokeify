@@ -7,6 +7,7 @@ import { join } from 'path';
 import { format } from 'date-fns';
 import { Worker } from 'worker_threads';
 import path from 'path';
+import { fileURLToPath } from "url";
 
 import EventController from "../db/controllers/EventController.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
@@ -23,6 +24,10 @@ const eventFactory = new EventController();
 const taxFactory = new TaxController();
 const rmdFactory = new RMDTableController();
 const simulationFactory = new SimulationController();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const execPath = decodeURIComponent(path.resolve(__dirname, "./runWorker.js"));
 
 async function createSimulationCSV(user, datetime, folder) {
     const timestamp = format(datetime, 'yyyyMMdd_HHmmss');
@@ -288,7 +293,7 @@ export async function run(scenarioID, fedIncome, capitalGains, fedDeduction, sta
 
 function runInWorker(data) {
     return new Promise((resolve, reject) => {
-        const worker = new Worker(path.resolve('./runWorker.js'), { workerData: data });
+        const worker = new Worker(execPath, { workerData: data });
         worker.on('message', resolve);
         worker.on('error', reject);
         worker.on('exit', code => {
