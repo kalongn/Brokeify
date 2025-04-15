@@ -228,16 +228,18 @@ const addInvestmentsValid = async (page) => {
   await investmentRow5.locator('[name="dollarValue"]').fill('800');
   await investmentRow5.locator('#selectTaxStatus').click()
   await page.getByRole('option', { name: 'After-Tax Retirement' }).click();
-  
-  // Persistence check
+
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.getByText('Add New Event Series')).toBeVisible();
-  await page.getByRole('button', { name: 'Back' }).click();
-  await expect(tableRows).toHaveCount(7);
 }
 
 test('Add Investments Valid & Persistent',  async ({ page }) => {
   await navigateToForm(page);
   await basicInfoValid(page);
   await addInvestmentsValid(page);
+  // Persistence check
+  await page.getByRole('button', { name: 'Back' }).click();
+  const tableRows = page.locator('tr');
+  await expect(tableRows).toHaveCount(7);
 });
+
