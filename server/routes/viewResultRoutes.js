@@ -173,6 +173,7 @@ const generateStackedBarData = (chart, yearToResults) => {
                 break;
             case "Median":
                 for (const name in nameToListOfValues) {
+                    nameToListOfValues[name].sort((a, b) => a - b);
                     nameToListOfValues[name] = getPercentile(nameToListOfValues[name], 0.5);
                 }
                 break;
