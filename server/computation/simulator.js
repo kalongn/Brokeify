@@ -253,21 +253,27 @@ export async function simulate(
 
       curYearIncome += rmd;
     }
-
+    
     curYearIncome += await updateInvestments(investmentTypes);
 
-    const rothConversion = await performRothConversion(
-      curYearIncome,
-      curYearSS,
-      federalIncomeTax,
-      currentYear,
-      scenario.userBirthYear,
-      scenario.orderedRothStrategy,
-      investmentTypes
-    );
+    let rothConversion = {curYearIncome: 0, curYearEarlyWithdrawals: 0}
+    if(scenario.startYearRothOptimizer!==undefined 
+      && scenario.startYearRothOptimizer<=realYear+currentYear
+      && scenario.endYearRothOptimizer!==undefined
+      && scenario.endYearRothOptimizer>=realYear+currentYear
+    ){
+      rothConversion = await performRothConversion(
+        curYearIncome,
+        curYearSS,
+        federalIncomeTax,
+        currentYear,
+        scenario.userBirthYear,
+        scenario.orderedRothStrategy,
+        investmentTypes
+      );
+    }
 
     curYearIncome += rothConversion.curYearIncome;
-
     let earlyWithdrawalTaxPaid = 0;
     const calcTaxReturn = calculateTaxes(
       federalIncomeTax,

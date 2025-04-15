@@ -560,7 +560,6 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
             break;
         }
         else {
-            console.log(bracket.upperBound)
             if (bracket.upperBound < curYearStateTaxableIncome && bracket.upperBound!==0) {
 
                 sIncomeTax += (bracket.upperBound - bracket.lowerBound) * bracket.rate;
