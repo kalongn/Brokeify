@@ -188,6 +188,10 @@ export default class UserController {
             for (const simulation of user.userSimulations) {
                 simulationController.delete(simulation._id);
             }
+            // REMOVE AFTER HW7
+            if(user.previousSimulation) {
+                await simulationController.delete(user.previousSimulation);
+            }
             return await User.findByIdAndDelete(id);
         }
         catch (error) {
