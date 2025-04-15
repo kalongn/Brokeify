@@ -200,6 +200,7 @@ const Investments = () => {
                   onChange={(e) =>
                     handleInputChange(index, "typeId", e.value)
                   }
+                  id="selectInvestment"
                 />
               </td>
               <td>
@@ -226,6 +227,7 @@ const Investments = () => {
                   onChange={(e) =>
                     handleInputChange(index, "taxStatus", e.value)
                   }
+                  id="selectTaxStatus"
                 />
               </td>
               <td>
@@ -235,6 +237,7 @@ const Investments = () => {
                   className={investment.typeId === cashId
                     ? `${styles.tableButton} ${styles.disabledButton}`
                     : styles.tableButton}
+                  data-testid="deleteButton"
                 >
                   <FaTimes />
                 </button>

@@ -30,3 +30,8 @@ dist-ssr
 # Ka Long Defined local file
 init.js
 verifyGuest.js
+
+# testing
+*.nyc_output
+*.coverage
+*.playwright-report
