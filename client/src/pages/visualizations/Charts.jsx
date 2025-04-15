@@ -39,17 +39,7 @@ const Charts = () => {
   }, [simulationId]);
 
 
-  const [charts, setCharts] = useState([
-    // {
-    //   id: 2, type: "Stacked Bar Chart", label: "Total Investments (Median)", data: {
-    //     labels: ['January', 'February', 'March', 'April', 'May'],
-    //     investments1: [100, 200, 300, 400, 500],
-    //     investments2: [50, 100, 150, 200, 250],
-    //     investments3: [150, 200, 250, 300, 350],
-    //     investments4: [200, 250, 300, 350],
-    //   },
-    // }
-  ]);
+  const [charts, setCharts] = useState([]);
 
 
   const handleGenerateCharts = async () => {
