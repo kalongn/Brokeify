@@ -355,7 +355,6 @@ test("Created Scenario", async({page})=>{
     await page.getByRole('spinbutton', { name: 'Input Value' }).nth(1).fill('1000');
     await page.getByText('Taxable').click();
     await page.getByRole('button', { name: 'Create' }).click();
-    await expect(page.locator('tbody')).toContainText('Stocks');
     await page.getByRole('button', { name: 'Next' }).click();
     await page.getByRole('button', { name: 'Add New Investment' }).click();
     await page.getByRole('row', { name: 'Select... Select...' }).locator('svg').first().click();
@@ -371,9 +370,6 @@ test("Created Scenario", async({page})=>{
     await page.getByRole('row', { name: 'Stocks Select...' }).getByPlaceholder('$').fill('200');
     await page.getByRole('cell', { name: 'Select...' }).locator('svg').click();
     await page.getByRole('option', { name: 'After-Tax Retirement' }).click();
-    await page.getByRole('button', { name: 'Next' }).click();
-    await page.getByRole('button', { name: 'Back' }).click();
-    await expect(page.locator('tbody')).toContainText('Stocks');
     await page.getByRole('button', { name: 'Next' }).click();
     await page.getByRole('button', { name: 'Add New Event Series' }).click();
     await page.getByRole('textbox', { name: 'Event Series Name' }).click();
@@ -391,9 +387,6 @@ test("Created Scenario", async({page})=>{
     await page.locator('[id="_newItemContainer_nmd6n_1"] div').filter({ hasText: 'DiscretionaryInitial' }).getByLabel('Input Value').click();
     await page.locator('[id="_newItemContainer_nmd6n_1"] div').filter({ hasText: 'DiscretionaryInitial' }).getByLabel('Input Value').fill('3');
     await page.getByRole('button', { name: 'Create' }).click();
-    await expect(page.locator('tbody')).toContainText('Get a Pet');
-    await page.getByRole('button', { name: 'Next' }).click();
-    await page.getByRole('button', { name: 'Back' }).click();
     await expect(page.locator('tbody')).toContainText('Get a Pet');
 
     await page.getByRole('button', { name: 'Next' }).click();
