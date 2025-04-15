@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 // Reusable constants
 const baseURL = 'http://localhost:5173';
-const scenarioId = '67fd9ae64a43b21f5a26b936';
+// const scenarioId = '67fd9ae64a43b21f5a26b936';
 
 test.beforeEach(async ({ page }) => {
   
