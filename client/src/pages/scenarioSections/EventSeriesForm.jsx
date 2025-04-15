@@ -790,6 +790,7 @@ const EventSeriesForm = () => {
                                 }
                                 placeholder="Select Investment"
                                 className={styles.select}
+                                id="selectInvestment"
                               />
                             </td>
                             <td>
