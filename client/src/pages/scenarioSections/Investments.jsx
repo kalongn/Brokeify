@@ -237,7 +237,7 @@ const Investments = () => {
                   className={investment.typeId === cashId
                     ? `${styles.tableButton} ${styles.disabledButton}`
                     : styles.tableButton}
-                  data-testid={`deleteButton`}
+                  data-testid="deleteButton"
                 >
                   <FaTimes />
                 </button>
