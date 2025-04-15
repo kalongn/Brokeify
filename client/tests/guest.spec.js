@@ -31,6 +31,14 @@ test("Navigate to Create Scenario", async ({page}) =>{
     await expect(page.locator('[id="_heading_nmd6n_1"]')).toContainText('Basic Information');
 });
 
+test('Go to Shared Scenarios', async ({ page }) => {
+    await page.goto('http://localhost:5173/');
+    await page.getByRole('link', { name: 'Continue as Guest' }).click();
+    await page.getByRole('link', { name: 'Shared Scenarios' }).click();
+    await expect(page.getByRole('paragraph')).toContainText('Whoops...you don\'t have access as a guest. Please consider making an account to share scenarios.');
+  });
+
+
 
 test("Check Persistence between Basic Info and Investment Page", async ({page}) =>{
     await page.goto('http://localhost:5173/');
