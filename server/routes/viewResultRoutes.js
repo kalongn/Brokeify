@@ -33,11 +33,17 @@ const generateLineChartData = (yearToResults) => {
 };
 
 const getAverage = (arr) => {
+    if (arr.length === 0) {
+        return 0;
+    }
     const sum = arr.reduce((acc, value) => acc + value, 0);
     return sum / arr.length;
 }
 
 const getPercentile = (arr, percentile) => {
+    if (arr.length === 0) {
+        return 0;
+    }
     const index = Math.floor(percentile * arr.length);
     return arr[index];
 }
