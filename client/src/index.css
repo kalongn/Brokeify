@@ -10,11 +10,8 @@
   --color-black: #2E2D2D;
   --color-silver: #A3A2A2;
   --color-primary: #77E1B8;
-  --color-primary-muted: #D0DED9;
-  --color-primary-light: #BCF0DC;
+  --color-primary-muted: #bdd6cd;
   --color-background: #E9EFED;
-
-
 
   color: var(--color-black);
   background-color: var(--color-background);

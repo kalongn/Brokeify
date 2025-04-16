@@ -1,5 +1,5 @@
 #formBackground {
-  background-color: #E9EFED;
+  background-color: var(--color-background);
 }
 
 #formSection {
