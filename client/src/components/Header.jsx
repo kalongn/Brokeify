@@ -18,7 +18,7 @@ const Header = ({ setVerified }) => {
     }
 
     if (path.startsWith('/Scenario')) {
-      return 'Scenario Simulation';
+      return 'Scenario Overview';
     }
 
     if (path.startsWith('/ViewScenario')) {
