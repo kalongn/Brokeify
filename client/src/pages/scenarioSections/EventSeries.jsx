@@ -2,18 +2,18 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { FaEdit } from "react-icons/fa";
+import ErrorMessage from "../../components/ErrorMessage";
 import Axios from 'axios';
 
 import styles from "./Form.module.css";
 
-
 // This page does not submit any data, so childRef is not used
-// TODO: update page to include childRef once event series deletion is implemented
 const EventSeries = () => {
   const navigate = useNavigate();
   const { scenarioId } = useParams();
 
   const [events, setEvents] = useState([]);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -35,6 +35,25 @@ const EventSeries = () => {
     navigate(`/ScenarioForm/${scenarioId}/event-series/edit/${id}`);
   };
 
+  const removeEventSeries = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this event series?")) {
+      return;
+    }
+    try {
+      const response = await Axios.delete(`/event/${scenarioId}/${id}`);
+      console.log(response.data);
+      const updatedInvestmentTypes = events.filter((event) => event.id !== id);
+      setEvents(updatedInvestmentTypes);
+    } catch (error) {
+      if (error.response?.status === 409) {
+        setErrors({ deleteEventSeries: "Cannot delete event series. Another event series's start year depends on it." });
+      } else {
+        setErrors({ deleteEventSeries: "There was an error deleting the event series. Please try again." });
+      }
+      console.error("Error deleting event series:", error);
+    }
+  }
+
   return (
     <div>
       <h2 id={styles.heading}>Event Series</h2>
@@ -43,8 +62,9 @@ const EventSeries = () => {
         (income, expense, investment, or rebalancing) over a defined period.
         Only one asset allocation can be rebalanced in a scenario.
       </p>
+      <ErrorMessage errors={errors} />
       <table id={styles.inputTable}>
-        <thead>
+        <thead id="deleteEventSeries">
           <tr>
             <th>Event Series Name</th>
             <th>Type</th>
@@ -52,8 +72,8 @@ const EventSeries = () => {
           </tr>
         </thead>
         <tbody>
-          {events.map((event, index) => (
-            <tr key={index}>
+          {events.map((event) => (
+            <tr key={event.id}>
               <td>
                 {event.name}
               </td>
@@ -64,23 +84,14 @@ const EventSeries = () => {
                 <div className={styles.groupButtons}>
                   <button
                     className={styles.tableButton}
-                    onClick={() => {
-                      
-                      editEventSeries(event.id);
-                      alert(event.id);
-                    }
-                    }
-                     >
+                    onClick={() => { editEventSeries(event.id); }}
+                  >
                     <FaEdit />
                   </button>
 
                   <button
                     className={styles.tableButton}
-                    onClick={() => {
-                      alert("NOT IMPLEMENTED YET")
-                    }
-                    }
-                    //style={{ opacity: index === 0 ? 0.2 : 1 }}
+                    onClick={() => { removeEventSeries(event.id); }}
                   >
                     <FaTimes />
                   </button>

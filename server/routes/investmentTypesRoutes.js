@@ -88,7 +88,7 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
         const currentInvestmentType = scenario.investmentTypes;
         for (let type of currentInvestmentType) {
             if (type.name === name) {
-                return res.status(400).send("Investment type already exists.");
+                return res.status(409).send("Investment type already exists.");
             }
         }
 
@@ -136,8 +136,17 @@ router.put("/investmentType/:scenarioId/:investmentTypeId", async (req, res) => 
         const investmentTypeId = req.params.investmentTypeId;
 
         const { name, description, expectedAnnualReturn, expenseRatio, expectedDividendsInterest, taxability } = req.body;
-
         const investmentType = await investmentTypeController.read(investmentTypeId);
+
+        if (investmentType.name !== name) {
+            const scenario = await scenarioController.readWithPopulate(id);
+            const currentInvestmentType = scenario.investmentTypes;
+            for (let type of currentInvestmentType) {
+                if (type.name === name) {
+                    return res.status(409).send("Investment type already exists.");
+                }
+            }
+        }
 
         const requestExpectedAnnualReturn = distributionToBackend(expectedAnnualReturn);
         const requestExpectedDividendsInterest = distributionToBackend(expectedDividendsInterest);
@@ -160,6 +169,35 @@ router.put("/investmentType/:scenarioId/:investmentTypeId", async (req, res) => 
     } catch (error) {
         console.error("Error in investment type route:", error);
         return res.status(500).send("Error updating investment type.");
+    }
+});
+
+router.delete("/investmentType/:scenarioId/:investmentTypeId", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const id = req.params.scenarioId;
+        if (!await canEdit(userId, id)) {
+            return res.status(403).send("You do not have permission to access this scenario.");
+        }
+        const investmentTypeId = req.params.investmentTypeId;
+
+        const investmentType = await investmentTypeController.read(investmentTypeId);
+        if (investmentType.investments.length > 0) {
+            return res.status(409).send("Cannot delete investment type with investments.");
+        }
+
+        await scenarioController.update(id, {
+            $pull: { investmentTypes: investmentTypeId }
+        });
+
+        await investmentTypeController.delete(investmentTypeId);
+        return res.status(200).send("Investment type deleted.");
+    } catch (error) {
+        console.error("Error in investment type route:", error);
+        return res.status(500).send("Error deleting investment type.");
     }
 });
 

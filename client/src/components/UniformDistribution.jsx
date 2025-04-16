@@ -10,6 +10,7 @@ const UniformDistribution = ({ handleChange, defaultValue }) => {
         <br />
         <input
           type="number"
+          data-testid="uniformLower"
           defaultValue={defaultValue.lowerBound}
           onChange={(e) => handleChange("lowerBound", e.target.value)}
         />
@@ -19,6 +20,7 @@ const UniformDistribution = ({ handleChange, defaultValue }) => {
         <br />
         <input
           type="number"
+          data-testid="uniformUpper"
           defaultValue={defaultValue.upperBound}
           onChange={(e) => handleChange("upperBound", e.target.value)}
         />

@@ -28,7 +28,10 @@ import RouteTesting from './pages/RouteTesting.jsx';
 import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
 import ViewScenario from './pages/ViewScenario.jsx';
 import Sharing from './pages/Sharing.jsx';
+import SimulationPage from './pages/SimulationPage.jsx';
 const App = () => {
+  console.log('COVERAGE OBJECT:', window.__coverage__);
+
   const [verified, setVerified] = useState(false);
   const navigate = useNavigate();
 
@@ -87,8 +90,10 @@ const App = () => {
         <Route path="/Scenario/:scenarioId" element={<ScenarioSimulation />} />
         <Route path="/ViewScenario/:scenarioId" element={<ViewScenario />} ></Route>
         <Route path ="/Sharing/:scenarioId" element={<Sharing />} ></Route>
+        <Route path="/Simulation" element={<SimulationPage />} />
+        
         <Route path="/RouteTesting" element={<RouteTesting />} />
-        <Route path="/Visualizations/Charts/:scenarioId" element={<Charts />} />        
+        <Route path="/Visualizations/Charts/:simulationId" element={<Charts />} />        
       </Routes>
     </>
   )

@@ -1,28 +1,25 @@
 #formBackground {
-  background-color: #E9EFED;
-  height: 100%;
-  width: 100%;
+  background-color: var(--color-background);
 }
 
 #formSection {
   width: 75%;
-  margin: 4rem auto auto auto;
+  margin: 4rem auto 4rem auto;
 }
 
 #navButtons {
   display: flex;
   justify-content: space-between;
   margin-top: 3rem;
-  margin-bottom: 3rem;
 }
 
 .deemphasizedButton,
 .emphasizedButton {
-  padding-left: 3rem;
-  padding-right: 3rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
 }
 
-.deemphasizedButton:disabled {
+.deemphasizedButton {
   background-color: var(--color-white);
 }
 

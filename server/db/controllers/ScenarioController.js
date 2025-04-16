@@ -273,7 +273,9 @@ export default class ScenarioController {
             userBirthYear: originalScenario.userBirthYear,
             spouseBirthYear: originalScenario.spouseBirthYear,
             userLifeExpectancy: originalScenario.userLifeExpectancy,
+            userLifeExpectancyDistribution: originalScenario.userLifeExpectancyDistribution,
             spouseLifeExpectancy: originalScenario.spouseLifeExpectancy,
+            spouseLifeExpectancyDistribution: originalScenario.spouseLifeExpectancyDistribution,
             investmentTypes: clonedInvestmentTypes.filter(Boolean),
             events: clonedEvents.filter(Boolean),
             inflationAssumption: originalScenario.inflationAssumption,
@@ -287,7 +289,8 @@ export default class ScenarioController {
             orderedRothStrategy: originalScenario.orderedRothStrategy.map(id => idMap.get(id.toString())),
             startYearRothOptimizer: originalScenario.startYearRothOptimizer,
             endYearRothOptimizer: originalScenario.endYearRothOptimizer,
-
+            ownerFirstName: originalScenario.ownerFirstName,
+            ownerLastName: originalScenario.ownerLastName,
         });
 
         //console.log("CLONED:");

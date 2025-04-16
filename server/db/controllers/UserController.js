@@ -106,7 +106,7 @@ export default class UserController {
     async readWithScenarios(id) {
         try {
             return await User.findById(id).populate({
-                path: 'ownerScenarios',
+                path: 'ownerScenarios editorScenarios viewerScenarios',
                 populate: { path: 'investmentTypes' }
             });
         }
@@ -187,6 +187,10 @@ export default class UserController {
             }
             for (const simulation of user.userSimulations) {
                 simulationController.delete(simulation._id);
+            }
+            // REMOVE AFTER HW7
+            if(user.previousSimulation) {
+                await simulationController.delete(user.previousSimulation);
             }
             return await User.findByIdAndDelete(id);
         }

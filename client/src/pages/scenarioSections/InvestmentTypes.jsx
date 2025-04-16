@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { FaEdit } from "react-icons/fa";
+import ErrorMessage from "../../components/ErrorMessage";
 
 import Axios from 'axios';
 
@@ -9,9 +10,10 @@ import styles from "./Form.module.css";
 
 // This page does not submit any data, so childRef is not used
 const InvestmentTypes = () => {
-
-  const { scenarioId } = useParams(); // TODO: update page to include childRef once investment type deletion is implemented
+  const { scenarioId } = useParams();
   const [investmentTypes, setInvestmentTypes] = useState([]);
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
 
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -34,6 +36,25 @@ const InvestmentTypes = () => {
     navigate(`/ScenarioForm/${scenarioId}/investment-types/edit/${id}`);
   };
 
+  const removeInvestmentType = async (id) => {
+    if (!confirm("Are you sure you want to delete this investment type?")) {
+      return;
+    }
+    try {
+      const response = await Axios.delete(`/investmentType/${scenarioId}/${id}`);
+      console.log(response.data);
+      const updatedInvestmentTypes = investmentTypes.filter((invType) => invType.id !== id);
+      setInvestmentTypes(updatedInvestmentTypes);
+      setErrors({});
+    } catch (error) {
+      if (error.response.status === 409) {
+        setErrors({ investmentType: "The selected investment type is being used in an investment. Remove it from the investment before deleting." });
+      } else {
+        setErrors({ investmentType: "There was an error deleting the investment type. Please try again." });
+      }
+      console.error('Error deleting investment type:', error);
+    }
+  }
 
   return (
     <div>
@@ -41,7 +62,7 @@ const InvestmentTypes = () => {
       <p>
         Create investment types or view the default ones.
       </p>
-      {/* TODO: fix global table styling */}
+      <ErrorMessage errors={errors} />
       <table id={styles.inputTable}>
         <thead>
           <tr>
@@ -50,9 +71,9 @@ const InvestmentTypes = () => {
             <th></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="investmentType">
           {investmentTypes.map((investmentType, index) => (
-            <tr key={index}>
+            <tr key={investmentType.id}>
               <td>
                 {investmentType.name}
               </td>
@@ -72,7 +93,7 @@ const InvestmentTypes = () => {
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
                     disabled={index === 0}
-
+                    data-testid={`edit-${investmentType.name}`}
                   >
                     <FaEdit />
                   </button>
@@ -83,11 +104,12 @@ const InvestmentTypes = () => {
                       : styles.tableButton}
                     onClick={() => {
                       if (index === 0) return;
-                      alert("NOT IMPLEMENTED YET")
+                      removeInvestmentType(investmentType.id);
                     }
                     }
                     style={{ opacity: index === 0 ? 0.2 : 1 }}
                     disabled={index === 0}
+                    data-testid={`delete-${investmentType.name}`}
                   >
                     <FaTimes />
                   </button>

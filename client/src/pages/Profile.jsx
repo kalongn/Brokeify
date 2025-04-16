@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import Axios from "axios";
 import PropTypes from 'prop-types';
 
@@ -7,37 +8,98 @@ import { FaDownload } from "react-icons/fa";
 import { FaUpload } from "react-icons/fa";
 
 import Layout from "../components/Layout";
+import ModalImport from "../components/ModalImport";
 import style from './Profile.module.css';
 
-//TODO: Tax YAML upload button, and file table buttons as well including the tax upload Date.
 const Profile = ({ setVerified }) => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+
+  const updateUser = useCallback(async () => {
+    try {
+      const response = await Axios.get("/profile");
+      console.log("User Profile Data:", response.data);
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error fetching user session:', error);
+      if (error.response?.status === 401) {
+        alert("You are not authorized to view this page.");
+        navigate("/");
+      }
+      else if (error.response?.status === 403) {
+        alert("You do not have permission to view this page.");
+        navigate("/");
+      }
+    }
+  }, [navigate]);
+
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
+    updateUser();
+  }, [updateUser]);
 
-    Axios.get("/profile")
-      .then((response) => {
-        console.log("User Profile Data:", response.data);
-        setUser(response.data);
-      })
-      .catch((error) => {
-        console.error('Error fetching user session:', error);
-      });
-
-  }, []);
+  useEffect(() => {
+    updateUser();
+  }, [showImportModal, updateUser]);
 
   const uploadTax = () => {
-    alert("TODO: Feature not IMPLEMENT YET.");
+    setShowImportModal(true);
   };
 
+  const downloadTax = async (taxId) => {
+    try {
+      const response = await Axios.get(`/stateTax/${taxId}/export`, {
+        responseType: 'blob',
+      });
+      const blob = new Blob([response.data], { type: 'application/yaml' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
 
-  const downloadTax = (taxId) => {
-    alert(`TDOO: export the YAML file of ${taxId} to the client.`);
+      // AI Co-pilot, obtain the filename from the response headers
+      const disposition = response.headers['content-disposition'];
+      let filename = `${taxId}.yaml`; // fallback
+      if (disposition && disposition.includes('filename=')) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match?.[1]) {
+          filename = match[1];
+        }
+      }
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (error) {
+      if (error.reponse?.status === 401) {
+        alert("You are not authorized to download this file.");
+      } else if (error.response?.status === 403) {
+        alert("You cannot download someone else tax file.");
+      } else {
+        alert("Unknown error downloading the tax file.");
+      }
+    }
   }
 
-  const deleteTax = (taxId) => {
-    alert(`TODO: delete the tax file with id ${taxId} from the database.`);
+  const deleteTax = async (taxId) => {
+    if (!confirm("Are you sure you want to delete this file?")) {
+      return;
+    }
+    try {
+      const response = await Axios.delete(`/stateTax/${taxId}/delete`);
+      console.log(response.data);
+      updateUser();
+    } catch (error) {
+      if (error.response?.status === 401) {
+        alert("You are not authorized to download this file.");
+      } else if (error.response?.status === 403) {
+        alert("You cannot download someone else tax file.");
+      } else {
+        alert("Unknown error downloading the tax file.");
+      }
+      console.error('Error deleting tax file:', error);
+    }
   }
 
   return (
@@ -63,6 +125,7 @@ const Profile = ({ setVerified }) => {
           <h2>File Upload</h2>
           <div>Here you can upload a YAML file containing information about state income taxes and brackets. Note that without this data, the financial projection will ignore state income taxes not in the database.</div>
           <button className={style.uploadButton} onClick={() => uploadTax()}> <FaUpload />  Upload YAML</button>
+          <ModalImport isOpen={showImportModal} onClose={setShowImportModal} />
           <table>
             <thead>
               <tr>
@@ -75,9 +138,9 @@ const Profile = ({ setVerified }) => {
               user.userSpecificTaxes.map((tax, index) => (
                 <tbody key={index}>
                   <tr>
-                    <td>{tax.state + "_" + tax.filingStatus}</td>
+                    <td>{tax.state + "_" + tax.filingStatus + "_" + tax.year}</td>
                     <td>{tax.dateCreated}</td>
-                    <td className={style.fileActions}><button onClick={() => downloadTax(tax._id)}><FaDownload /></button><button onClick={() => deleteTax(tax._id)}><FaTrashAlt /></button></td>
+                    <td className={style.fileActions}><button onClick={() => downloadTax(tax.id)}><FaDownload /></button><button onClick={() => deleteTax(tax.id)}><FaTrashAlt /></button></td>
                   </tr>
                 </tbody>
               )) : user && user.userSpecificTaxes && user.userSpecificTaxes.length === 0 ?

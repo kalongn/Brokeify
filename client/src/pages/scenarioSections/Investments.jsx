@@ -1,20 +1,23 @@
 import { useState, useEffect, useImperativeHandle } from "react";
 import { useOutletContext } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
-import Axios from 'axios';
+import { v4 as uuidv4 } from "uuid";
 import Select from "react-select";
+import ErrorMessage from "../../components/ErrorMessage";
+import Axios from 'axios';
 
 import styles from "./Form.module.css";
-
-//TODO: @04mHuang make cash row InvestmentType and TaxStatus unmodifiable and not deletable
+import errorStyles from "../../components/ErrorMessage.module.css";
 
 const Investments = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
+  const [cashId, setCashId] = useState(null);
   const [investmentTypes, setInvestmentTypes] = useState([]);
   const [formData, setFormData] = useState([]);
   const [errors, setErrors] = useState([]);
+  const [duplicates, setDuplicates] = useState([]);
 
   const taxStatuses = [
     { value: "Non-Retirement", label: "Non-Retirement" },
@@ -32,16 +35,25 @@ const Investments = () => {
     Axios.defaults.withCredentials = true;
 
     Axios.get(`/investmentTypes/${scenarioId}`).then((response) => {
-      const investmentTypeOptions = response.data.map((investmentType) => {
-        return { value: investmentType.name, label: investmentType.name };
-      });
+      const investmentTypeOptions = response.data
+        .filter((investmentType) => {
+          if (investmentType.name === "Cash") {
+            setCashId(investmentType.id);
+          }
+          return investmentType.name !== "Cash"
+        }).map((investmentType) => {
+          return { value: investmentType.id, label: investmentType.name };
+        });
       setInvestmentTypes(investmentTypeOptions);
     }).catch((error) => {
       console.error('Error fetching investment types:', error);
     });
 
     Axios.get(`/investments/${scenarioId}`).then((response) => {
-      const investments = response.data;
+      const investments = response.data?.map(investment => {
+        if (investment.uuid) return investment;
+        return { ...investment, uuid: uuidv4() }
+      });
       setFormData(investments);
     }).catch((error) => {
       console.error('Error fetching investments:', error);
@@ -49,7 +61,6 @@ const Investments = () => {
   }, [scenarioId]);
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
-  // removeInvestment function did not work and has not been fixed yet since this feature's priority is low
   const handleInputChange = (index, field, value) => {
     const updatedInvestments = [...formData];
     // Check if name is a number field and parse if so
@@ -60,39 +71,62 @@ const Investments = () => {
 
     updatedInvestments[index][field] = processedValue;
     setFormData(updatedInvestments);
-    console.log(updatedInvestments);
   };
 
   const addNewInvestment = () => {
-    setFormData([...formData, { id: undefined, type: null, dollarValue: null, taxStatus: null }]);
-    // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, investments: "" }));
+    // uuid needed to provide unique keys when mapping the formData to the table
+    setFormData([...formData, { id: undefined, typeId: null, dollarValue: undefined, taxStatus: null, uuid: uuidv4() }]);
   };
 
-  // TODO: fix bug where deleting a row above actually removes the one below
-  const removeInvestment = (index) => {
-    alert("NOT IMPLEMENTED YET + index clicked: " + index);
-    // const updatedInvestments = formData.filter((_, i) => i !== index);
-    // setFormData(updatedInvestments);
-  };
-  // console.log(investments);
+  const removeInvestment = async (uuid) => {
+    if (!confirm("Are you sure you want to delete this investment?")) {
+      return;
+    }
+    const deleteRow = formData.find((investment) => investment.uuid === uuid);
+    if (!deleteRow.id) {
+      setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
+      return;
+    }
+
+    try {
+      const response = await Axios.delete(`/investments/${scenarioId}`, {
+        data: { investmentId: deleteRow.id, typeId: deleteRow.typeId },
+      });
+      console.log(response.data);
+      setFormData((prev) => prev.filter((investment) => investment.uuid !== uuid));
+    } catch (error) {
+      if (error.response?.status === 409) {
+        setErrors((prev) => ({ ...prev, investmentRow: "Investment cannot be deleted because it is used in an invest / rebalance event." }));
+      } else {
+        setErrors((prev) => ({ ...prev, investmentRow: "An unknown error occurred while deleting the investment." }));
+      }
+      console.error('Error deleting investment:', error);
+    }
+  }
 
   const validateFields = () => {
     const newErrors = {};
-    // Check if there are any investments
-    if (!formData[0]) {
-      newErrors.investmentRow = "At least one investment must be added";
-    }
-    else {
-      formData.forEach((row) => {
-        // Check if investment is set and if all fields are filled
-        if (!row.type || row.dollarValue === null || row.dollarValue === undefined || !row.taxStatus) {
-          newErrors.investmentRow = "All row fields are required";
-        }
-        else if (row.dollarValue < 0) {
-          newErrors.investmentRow = "Dollar values must be non-negative";
-        }
-      });
+    const duplicatesCheck = new Set();
+
+    // Investments will always have a cash row
+    formData.forEach((row) => {
+      // Check if investment is set and if all fields are filled
+      if (!row.typeId || row.dollarValue === undefined || !row.taxStatus) {
+        newErrors.investmentRow = "All row fields are required";
+      }
+      else if (row.dollarValue < 0) {
+        newErrors.investmentRow = "Dollar values must be non-negative";
+      }
+      else if (duplicatesCheck.has(`${row.typeId}-${row.taxStatus}`)) {
+        // List of duplicate rows
+        setDuplicates(prev => [...prev, `${row.typeId}-${row.taxStatus}`]);
+      }
+      else {
+        duplicatesCheck.add(`${row.typeId}-${row.taxStatus}`);
+      }
+    });
+    if (newErrors.investmentRow === undefined && duplicatesCheck.size !== formData.length) {
+      newErrors.investmentRow = "Investments with the same type and tax status are not allowed";
     }
     // Set all errors at once
     setErrors(newErrors);
@@ -118,10 +152,6 @@ const Investments = () => {
     }
     return await uploadToBackend();
   };
-  // formData.map((investment, index) => {
-  //   console.log(investment);
-  //   console.log(index);
-  // });
 
   return (
     <div>
@@ -129,6 +159,7 @@ const Investments = () => {
       <p>
         If married, investments will automatically be assumed as jointly owned.
       </p>
+      <ErrorMessage errors={errors} />
 
       <table id={styles.inputTable}>
         <thead>
@@ -147,18 +178,29 @@ const Investments = () => {
            */}
           {/* Dynamically render rows of investments */}
           {formData.map((investment, index) => (
-            <tr key={index}>
+            // Apply highlight CSS on row if there's an error
+            <tr
+              key={investment.uuid}
+              className={
+                ( errors.investmentRow !== undefined &&
+                ((!investment.typeId || investment.dollarValue === undefined || investment.dollarValue < 0 || !investment.taxStatus))) ||
+                (duplicates.includes(`${investment.typeId}-${investment.taxStatus}`))
+                ? errorStyles.highlight : ""
+              }
+            >
               <td>
                 <Select
-                  className={`${styles.selectTable} ${styles.select}`}
+                  className={`${styles.selectTable} select`}
                   options={investmentTypes}
-                  defaultValue={investment.type ?
-                    { value: investment.type, label: investment.type }
+                  defaultValue={investment.typeName && investment.typeId ?
+                    { value: investment.typeId, label: investment.typeName }
                     : null
                   }
+                  isDisabled={investment.typeId === cashId}
                   onChange={(e) =>
-                    handleInputChange(index, "type", e.value)
+                    handleInputChange(index, "typeId", e.value)
                   }
+                  id="selectInvestment"
                 />
               </td>
               <td>
@@ -175,21 +217,28 @@ const Investments = () => {
               </td>
               <td>
                 <Select
-                  className={`${styles.selectTable} ${styles.select}`}
+                  className={`${styles.selectTable} select`}
                   options={taxStatuses}
                   defaultValue={investment.taxStatus ?
                     { value: investment.taxStatus, label: investment.taxStatus }
                     : null
                   }
+                  isDisabled={investment.typeId === cashId}
                   onChange={(e) =>
                     handleInputChange(index, "taxStatus", e.value)
                   }
+                  id="selectTaxStatus"
                 />
               </td>
               <td>
                 <button
-                  onClick={() => removeInvestment(index)}
-                  className={styles.tableButton}>
+                  disabled={investment.typeId === cashId}
+                  onClick={() => removeInvestment(investment.uuid)}
+                  className={investment.typeId === cashId
+                    ? `${styles.tableButton} ${styles.disabledButton}`
+                    : styles.tableButton}
+                  data-testid="deleteButton"
+                >
                   <FaTimes />
                 </button>
               </td>
@@ -197,7 +246,6 @@ const Investments = () => {
           ))}
         </tbody>
       </table>
-      {errors.investmentRow && <span className={styles.error}>{errors.investmentRow}</span>}
       <button id={styles.addButton} type="button" onClick={addNewInvestment}>
         Add New Investment
       </button>
