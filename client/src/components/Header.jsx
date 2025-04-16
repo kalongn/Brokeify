@@ -29,7 +29,7 @@ const Header = ({ setVerified }) => {
       return 'Sharing Settings';
     }
 
-    if (path.startsWith('/Visualizations/Charts')) {
+    if (path.startsWith('/visualizations/charts')) {
       return 'Visualization: Charts';
     }
 
@@ -96,7 +96,7 @@ const Header = ({ setVerified }) => {
       );
     }
     // Charts page
-    if (path.startsWith('/Visualizations/Charts')) {
+    if (path.startsWith('/visualizations/charts')) {
       const pathParts = path.split('/');
       const id = pathParts[pathParts.length - 1];
       return (
