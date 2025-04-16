@@ -58,7 +58,8 @@ button {
 }
 
 button:hover {
-  border-color: var(--color-primary);
+  border-color: var(--color-black);
+  filter: brightness(0.9);
 }
 
 button:focus,
@@ -66,6 +67,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 0.7rem;
   height: 0.7rem;
@@ -83,11 +85,9 @@ button:focus-visible {
   background: var(--color-primary);
 }
 
-#selectPermissions {
-  width: 15rem;  /* Increase this value */
-}
-
-/* If you need to adjust the dropdown menu width as well */
-#selectPermissions > div {
-  width: 15rem;
+/* Select component */
+.select>div {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-black);
+  border-radius: 0.2rem;
 }

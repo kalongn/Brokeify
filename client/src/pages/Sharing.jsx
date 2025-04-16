@@ -8,6 +8,7 @@ import { clearErrors } from "../utils/ScenarioHelper";
 import Layout from "../components/Layout";
 import ErrorMessage from "../components/ErrorMessage";
 import styles from "./Sharing.module.css";
+import buttonStyles from './scenarioSections/Form.module.css';
 
 const Sharing = () => {
 
@@ -166,7 +167,8 @@ const Sharing = () => {
             <form id={styles.addEmailSection}>
               <input
                 type="email"
-                id={styles.email}
+                id="email"
+                className={styles.email}
                 placeholder="Enter email address"
                 onChange={handleEmailChange}
               />
@@ -182,7 +184,7 @@ const Sharing = () => {
               </button>
             </form>
             <h3>People with access</h3>
-            <div id={styles.newItemContainer} style={{ backgroundColor: 'var(--color-white)' }} >
+            <div className={styles.usersList} >
               <table>
                 <tbody>
                   <tr>
@@ -201,14 +203,13 @@ const Sharing = () => {
                           onChange={(selectedOption) => handlePermissionsChange(user.email, selectedOption.value)}
                           defaultValue={permissionOptions.find((option) => option.value === user.permissions)}
                           className="select"
-                          id={styles.selectPermissions}
                         />
                       </td>
                       <td style={{ padding: 0, width: 1 }}>
                         <button
                           type="button"
                           onClick={() => removeUser(user.email)}
-                          className={styles.tableButton}
+                          className={buttonStyles.tableButton}
                           style={{ margin: 0 }}
                         >
                           <FaTimes />
