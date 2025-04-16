@@ -65,7 +65,7 @@ const Charts = () => {
         <div className={styles.leftSide}>
           <h2>{scenarioName} Result</h2>
           <div className={styles.buttonGroup}>
-            <button className={styles.addCharts} onClick={() => setShowAddModal(true)}>
+            <button className={styles.addChart} onClick={() => setShowAddModal(true)}>
               Add Charts
             </button>
             <button onClick={handleGenerateCharts}>Generate Charts</button>
