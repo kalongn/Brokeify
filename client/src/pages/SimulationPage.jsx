@@ -134,7 +134,7 @@ const ScenarioSimulation = () => {
                     ) : (
                         previousRun !== null && (
                             <div>
-                                <p>Previous Run Result:</p>
+                                <p>Most Recent Run Result:</p>
                                 <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
                                     See Results
                                 </Link>
