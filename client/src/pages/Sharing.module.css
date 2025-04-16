@@ -1,0 +1,39 @@
+.sharingSettings{
+  margin: 2rem;
+}
+
+#addEmailSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 1rem;
+  background-color: var(--color-primary-muted);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.email, #selectPermissions>div, #addButton {
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.email {
+  margin: 0;
+  flex: 2;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+#selectPermissions>div {
+  width: 12rem;
+}
+#addButton {
+  width: 10%;
+  background-color: var(--color-primary);
+  color: var(--color-black)
+}
+
+.usersList {
+  background-color: var(--color-primary-muted);
+  padding: 2rem;
+  border-radius: 1rem;
+}
