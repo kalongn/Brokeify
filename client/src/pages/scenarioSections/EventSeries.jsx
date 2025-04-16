@@ -36,6 +36,9 @@ const EventSeries = () => {
   };
 
   const removeEventSeries = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this event series?")) {
+      return;
+    }
     try {
       const response = await Axios.delete(`/event/${scenarioId}/${id}`);
       console.log(response.data);
@@ -43,9 +46,9 @@ const EventSeries = () => {
       setEvents(updatedInvestmentTypes);
     } catch (error) {
       if (error.response?.status === 409) {
-        setErrors({deleteEventSeries : "Cannot delete event series. Another event series's start year depends on it."});
+        setErrors({ deleteEventSeries: "Cannot delete event series. Another event series's start year depends on it." });
       } else {
-        setErrors({deleteEventSeries : "There was an error deleting the event series. Please try again."});
+        setErrors({ deleteEventSeries: "There was an error deleting the event series. Please try again." });
       }
       console.error("Error deleting event series:", error);
     }
