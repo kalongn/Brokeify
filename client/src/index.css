@@ -82,3 +82,12 @@ button:focus-visible {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
 }
+
+#selectPermissions {
+  width: 15rem;  /* Increase this value */
+}
+
+/* If you need to adjust the dropdown menu width as well */
+#selectPermissions > div {
+  width: 15rem;
+}

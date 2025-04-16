@@ -164,21 +164,20 @@ const Sharing = () => {
             </p>
             <ErrorMessage errors={errors} />
             <form id={styles.addEmailSection}>
-              <label>
-                <input
-                  type="email"
-                  id="email"
-                  placeholder="Enter email address"
-                  onChange={handleEmailChange}
-                />
-              </label>
+              <input
+                type="email"
+                id={styles.email}
+                placeholder="Enter email address"
+                onChange={handleEmailChange}
+              />
               <Select
                 options={permissionOptions}
                 defaultValue={permissionOptions[0]}
                 onChange={(selectedOption) => setPermissions(selectedOption.value)}
-                className={styles.select}
+                className="select"
+                id={styles.selectPermissions}
               />
-              <button id={styles.addButton} style={{ width: "10%" }} onClick={addUser}>
+              <button id={styles.addButton} onClick={addUser}>
                 Add
               </button>
             </form>
@@ -201,7 +200,8 @@ const Sharing = () => {
                           options={permissionOptions}
                           onChange={(selectedOption) => handlePermissionsChange(user.email, selectedOption.value)}
                           defaultValue={permissionOptions.find((option) => option.value === user.permissions)}
-                          className={styles.select}
+                          className="select"
+                          id={styles.selectPermissions}
                         />
                       </td>
                       <td style={{ padding: 0, width: 1 }}>

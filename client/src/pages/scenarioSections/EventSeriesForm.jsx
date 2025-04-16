@@ -577,7 +577,7 @@ const EventSeriesForm = () => {
                 </label>
                 {distributions.startYear.type.includes("event") && <Select
                   options={events}
-                  className={styles.select}
+                  className="select"
                   onChange={(option) => handleSelectChange(option, "event")}
                   value={events.find(opt => opt.value === distributions.startYear.event)}
                 />}
@@ -702,7 +702,7 @@ const EventSeriesForm = () => {
                     <Select
                       options={taxStatuses}
                       id="taxStatus"
-                      className={`${styles.select} ${errors.taxStatus ? errorStyles.errorInput : ""}`}
+                      className={`select ${errors.taxStatus ? errorStyles.errorInput : ""}`}
                       onChange={(option) => handleSelectChange(option, "taxStatus")}
                       value={taxStatuses.find(opt => opt.value === typeFormData.taxStatus)}
                     />
@@ -735,7 +735,7 @@ const EventSeriesForm = () => {
                                   handleInvestmentRowChange(index, "investment", selectedOption.value)
                                 }
                                 placeholder="Select Investment"
-                                className={styles.select}
+                                className="select"
                               />
                             </td>
                             <td>
@@ -796,7 +796,7 @@ const EventSeriesForm = () => {
                                   handleInvestmentRowChange(index, "investment", selectedOption.value)
                                 }
                                 placeholder="Select Investment"
-                                className={styles.select}
+                                className="select"
                                 id="selectInvestment"
                               />
                             </td>

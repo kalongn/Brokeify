@@ -260,7 +260,7 @@ const BasicInfo = () => {
               <Select
                 options={Object.entries(stateMap).map(([value, label]) => ({ value, label }))}
                 id="state"
-                className={`${styles.shortInput} ${styles.select} ${errors.state ? errorStyles.errorInput : ""}`}
+                className={`${styles.shortInput} select ${errors.state ? errorStyles.errorInput : ""}`}
                 onChange={handleSelectChange}
                 value={formData.state ? { value: formData.state, label: stateMap[formData.state] } : undefined}
               />

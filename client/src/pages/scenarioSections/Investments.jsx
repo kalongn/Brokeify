@@ -190,7 +190,7 @@ const Investments = () => {
             >
               <td>
                 <Select
-                  className={`${styles.selectTable} ${styles.select}`}
+                  className={`${styles.selectTable} select`}
                   options={investmentTypes}
                   defaultValue={investment.typeName && investment.typeId ?
                     { value: investment.typeId, label: investment.typeName }
@@ -217,7 +217,7 @@ const Investments = () => {
               </td>
               <td>
                 <Select
-                  className={`${styles.selectTable} ${styles.select}`}
+                  className={`${styles.selectTable} select`}
                   options={taxStatuses}
                   defaultValue={investment.taxStatus ?
                     { value: investment.taxStatus, label: investment.taxStatus }
