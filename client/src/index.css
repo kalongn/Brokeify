@@ -55,7 +55,6 @@ button {
   font-weight: 500;
   cursor: pointer;
   transition: border-color 0.25s;
-  box-shadow: 0 2px 4px var(--color-silver);
 }
 
 button:hover {

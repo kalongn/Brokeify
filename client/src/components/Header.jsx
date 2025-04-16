@@ -49,7 +49,7 @@ const Header = ({ setVerified }) => {
     // Scenario simulation page
     if (path.startsWith('/Scenario/')) {
       return (
-        <button className={styles.buttonGroupSimulation} onClick={async () => {
+        <button className={styles.headerButton} onClick={async () => {
           const pathParts = path.split('/');
           const id = pathParts[pathParts.length - 1];
           try {
@@ -76,7 +76,7 @@ const Header = ({ setVerified }) => {
             console.error('Error downloading file:', error);
             alert('Error downloading file. Please try again.');
           }
-        }}>Export</button>
+        }}>Export Scenario</button>
       );
     }
     // View scenario page
@@ -108,13 +108,13 @@ const Header = ({ setVerified }) => {
       case '/Home':
         return (
           <>
-            <button onClick={() => setShowImportModal(true)}>Import Scenario</button>
+            <button className={styles.headerButton} onClick={() => setShowImportModal(true)}>Import Scenario</button>
             <ModalImport isOpen={showImportModal} onClose={setShowImportModal} />
           </>
         );
       case '/Profile':
         return (
-          <Link onClick={() => setVerified(false)} className={styles.linkButton} to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Logout</Link>
+          <Link onClick={() => setVerified(false)} className={styles.logout} to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Logout</Link>
         );
       default:
         return null;
