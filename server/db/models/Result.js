@@ -13,6 +13,8 @@ const YearlyResultSchema = new mongoose.Schema({
     earlyWithdrawalTax: { type: Number, required: true },
     totalDiscretionaryExpenses: { type: Number, required: true }, // acutal / desired
     isViolated: { type: Boolean, required: true },
+    step1: {type: Number, requires: false}, //for 1/2d exploration
+    step2: {type: Number, requires: false}, //for 2d exploration
 });
 
 const ResultSchema = new mongoose.Schema({
