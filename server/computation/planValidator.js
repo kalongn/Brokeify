@@ -371,6 +371,7 @@ export async function run(
     //depending on step1, step2, do exploration
     let newDists = [];
     let steps = [step1, step2];
+    let trueValues = [];
     /**
      * We have created a clone scnario, and we have potentially been given an array
      * of exploration objects, as well as this specific run's given step.
@@ -388,6 +389,7 @@ export async function run(
 
         if(explorationArray[0].type==="ROTH_BOOLEAN"){
             //0 = off, 1 = on
+            trueValues.push(step)
             if(step===0){
                 copiedScenario.startYearRothOptimizer=undefined;
                 await scenarioFactory.update(copiedScenario._id, {startYearRothOptimizer: undefined});
@@ -404,6 +406,7 @@ export async function run(
             }
         }
         else if(explorationArray[0].type==="START_EVENT"){
+            trueValues.push(step+explorationArray[j].lowerBound)
             const diff = step;  //distance from lowerBound
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
             for(const i in copiedScenario.events){
@@ -417,6 +420,7 @@ export async function run(
 
         }
         else if(explorationArray[0].type==="DURATION_EVENT"){
+            trueValues.push(step+explorationArray[j].lowerBound)
             const diff = step;  //distance from lowerBound
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
             for(const i in copiedScenario.events){
@@ -429,6 +433,7 @@ export async function run(
             }
         }
         else if(explorationArray[0].type==="EVENT_AMOUNT"){
+            trueValues.push(step+explorationArray[j].lowerBound)
             const diff = step;  //distance from lowerBound
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
             for(const i in copiedScenario.events){
@@ -440,6 +445,7 @@ export async function run(
         }
         else if(explorationArray[0].type==="INVEST_PERCENTAGE"){
             const firstInitial = ((step)+explorationArray[j].lowerBound)/100;  //distance from lowerBound
+            trueValues.push(firstInitial)
             const secondInitial = 1-diff;
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
             for(const i in copiedScenario.events){
@@ -464,8 +470,8 @@ export async function run(
         rmdTable, 
         csvFile, 
         logFile,
-        step1,
-        step2
+        trueValues[0],
+        trueValues[1]
     );
     await scenarioFactory.deleteNotDistributions(copiedScenario._id);
     for(const i in newDists){
