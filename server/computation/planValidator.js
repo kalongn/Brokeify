@@ -371,12 +371,21 @@ export async function run(
     //depending on step1, step2, do exploration
     let newDists = [];
     let steps = [step1, step2];
+    /**
+     * We have created a clone scnario, and we have potentially been given an array
+     * of exploration objects, as well as this specific run's given step.
+     * 
+     * Here, we modify the cloned scenario to be the values represented in the exploration
+     * object and given steps.
+     */
+
     for(const j in steps){
         const step = steps[j]
         if(step===undefined){
             continue;
         }
         //modify the scenario according to the step
+
         if(explorationArray[0].type==="ROTH_BOOLEAN"){
             //0 = off, 1 = on
             if(step===0){
@@ -459,6 +468,11 @@ export async function run(
         step2
     );
     await scenarioFactory.deleteNotDistributions(copiedScenario._id);
+    for(const i in newDists){
+        if(newDists[i]!==undefined){
+            await distributionFactory.delete(newDists[i]._id);
+        }
+    }
     return simulationResult;
 }
 
@@ -531,6 +545,11 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
     scenarioID = scenarioID.toString();
 
     const promises = [];
+    /**
+     * This is not the finished, but as it stands we run in 'batches'
+     * Right now we run numTimes * number of times it takes to complete an analysis
+     * This will be fixed in the optimization-bugfix branch
+     */
     for (let i = 0; i < numTimes; i++) {
         //if explorationArray is in play, create and run each combo
         if(explorationArray==null||explorationArray==undefined){
