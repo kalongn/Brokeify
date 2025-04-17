@@ -414,7 +414,7 @@ export async function run(
                 if(copiedEvent.name.toString()===originalEvent.name.toString()){
                     const newDist1 = await distributionFactory.create(FIXED_AMOUNT, {value: diff+explorationArray[j].lowerBound});
                     newDists.push(newDist1);
-                    await eventFactory.update(copiedEvent._id, {startYearTypeDistribution: newDist1._id});
+                    await eventFactory.update(copiedEvent._id, {startYearTypeDistribution: newDist1._id, startsWith: undefined, startsAfter: undefined});
                 }
             }
 
