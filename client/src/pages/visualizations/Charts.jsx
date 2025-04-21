@@ -58,7 +58,7 @@ const Charts = () => {
       setShowCharts(false);
     }
   };
-
+ 
   return (
     <Layout>
       <div className={styles.content}>
