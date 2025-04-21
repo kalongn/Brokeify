@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import { join } from 'path';
 import { format } from 'date-fns';
 import { Worker } from 'worker_threads';
+import * as os from 'os';
 import path from 'path';
 import { fileURLToPath } from "url";
 
@@ -363,7 +364,8 @@ export async function run(
     logFile,
     explorationArray,
     step1,
-    step2
+    step2,
+    seed,
 ) {
     //deep clone then run simulation then re-splice original scenario in simulation output
     const unmodifiedScenario = await scenarioFactory.read(scenarioID);
@@ -471,7 +473,8 @@ export async function run(
         csvFile, 
         logFile,
         trueValues[0],
-        trueValues[1]
+        trueValues[1],
+        seed,
     );
     await scenarioFactory.deleteNotDistributions(copiedScenario._id);
     for(const i in newDists){
@@ -550,17 +553,18 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
     const logFile = await createEventLog(username, datetime, "../logs");
     scenarioID = scenarioID.toString();
 
-    const promises = [];
+    const promiseParameters = [];
     /**
-     * This is not the finished, but as it stands we run in 'batches'
-     * Right now we run numTimes * number of times it takes to complete an analysis
-     * This will be fixed in the optimization-bugfix branch
+     * First, create an array of parameters that will be ran
+     * 
+     * For 1/2D explorations, numTimes serves as the floor
      */
-    for (let i = 0; i < numTimes; i++) {
+    let randomString = (Math.random() + 1).toString(36).substring(7);  //generate seed
+    for (let i = 0; i < numTimes; ) {
         //if explorationArray is in play, create and run each combo
         if(explorationArray==null||explorationArray==undefined){
-            promises.push(
-                runInWorker({
+            promiseParameters.push(
+                {
                     scenarioID,
                     fedIncome,
                     capitalGains,
@@ -569,8 +573,9 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
                     rmdTable,
                     csvFile: i === 0 ? csvFile : null,
                     logFile: i === 0 ? logFile : null,
-                })
+                }
             );
+            i++;
         }
         else if(explorationArray.length===1){
             let numSteps1;
@@ -581,8 +586,8 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
                 numSteps1 = Math.floor((explorationArray[0].upperBound-explorationArray[0].lowerBound)/explorationArray[0].step) + 1;
             }
             for(let s = 0; s<numSteps1;s++){
-                promises.push(
-                    runInWorker({
+                promiseParameters.push(
+                    {
                         scenarioID,
                         fedIncome,
                         capitalGains,
@@ -593,8 +598,10 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
                         logFile: s+i === 0 ? logFile : null,
                         explorationArray: explorationArray,
                         step1: explorationArray[0].step !== undefined ? s*explorationArray[0].step: s,
-                    })
+                        seed: randomString,
+                    }
                 );
+                i++;
             }
             
         }
@@ -615,8 +622,8 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
                     numSteps2 = Math.floor((explorationArray[1].upperBound-explorationArray[1].lowerBound)/explorationArray[1].step) + 1;
                 }
                 for(let s2 = 0; s2<numSteps2;s2++){
-                    promises.push(
-                        runInWorker({
+                    promiseParameters.push(
+                        {
                             scenarioID,
                             fedIncome,
                             capitalGains,
@@ -628,8 +635,10 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
                             explorationArray: explorationArray,
                             step1: explorationArray[0].step !== undefined ? s*explorationArray[0].step : s,
                             step2: explorationArray[1].step !== undefined ? s2*explorationArray[1].step : s2,
-                        })
+                            seed: randomString,
+                        }
                     );
+                    i++;
                 }
                 
             }
@@ -639,11 +648,46 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
         }
     }
 
-    const results = await Promise.all(promises);
-    for (const res of results) {
-        if (res.error) throw new Error(res.error);
-        compiledResults.results.push(res);
+
+
+    //Figure out how many worker threads to run at once:
+    const cpuCount = os.cpus().length;
+    let parallel = cpuCount-5;
+    if(1>parallel){
+        parallel=2; //have a minimum of 2
     }
+    let promises = [];
+    for(const i in promiseParameters){
+        if(promises.length<parallel){
+            //add promiseParameters[i] runworker
+            let data = promiseParameters[i]
+            promises.push(
+                runInWorker({
+                    scenarioID: data.scenarioID,
+                    fedIncome: data.fedIncome,
+                    capitalGains: data.capitalGains,
+                    fedDeduction: data.fedDeduction,
+                    stateTax: data.stateTax,
+                    rmdTable: data.rmdTable,
+                    csvFile: data.csvFile,
+                    logFile: data.logFile,
+                    explorationArray: data.explorationArray,
+                    step1: data.step1,
+                    step2: data.step2,
+                    seed: data.seed,
+                })
+            );
+            continue;
+        }
+        const results = await Promise.all(promises);
+        for (const res of results) {
+            if (res.error) throw new Error(res.error);
+            compiledResults.results.push(res);
+        }
+        promises = [];
+        
+    }
+    
 
     await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
     return compiledResults;
