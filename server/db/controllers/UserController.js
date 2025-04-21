@@ -178,7 +178,7 @@ export default class UserController {
         const taxController = new TaxController();
         const simulationController = new SimulationController();
         try {
-            const user = await User.findById(id).populate('ownerScenarios userSpecificTaxes userSimulations');
+            const user = await User.findById(id);
             for (const scenario of user.ownerScenarios) {
                 await scenarioController.delete(scenario._id);
             }
