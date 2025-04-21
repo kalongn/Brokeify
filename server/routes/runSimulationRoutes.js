@@ -56,6 +56,7 @@ router.get("/runSimulation", async (req, res) => {
         const allScenarios = user.ownerScenarios.concat(user.editorScenarios, user.viewerScenarios);
 
         const data = {
+            isRunning: user.isRunningSimulation,
             previousRun: user.previousSimulation,
             scenarios: allScenarios.map((scenario) => {
                 return {
@@ -71,7 +72,20 @@ router.get("/runSimulation", async (req, res) => {
     }
 });
 
-router.post("/runSimulation", async (req, res) => {
+router.get("/runSimulation/isRunningSimulation", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Unauthorized");
+    }
+    try {
+        const user = await userController.read(req.session.user);
+        return res.status(200).send(user.isRunningSimulation);
+    } catch (error) {
+        console.error("Error fetching isRunningSimulation:", error);
+        return res.status(500).send("Internal Server Error");
+    }
+})
+
+router.post("/runSimulation/", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Unauthorized");
     }
@@ -83,12 +97,13 @@ router.post("/runSimulation", async (req, res) => {
             return res.status(403).send("Forbidden");
         }
 
+        await userController.update(userId, { isRunningSimulation: true });
+
         const scenario = await scenarioController.read(scenarioId);
         const user = await userController.readWithTaxes(userId);
 
         // Tax stuff
         const state = scenario.stateOfResidence;
-        const filingStatus = scenario.filingStatus;
         const username = user.firstName + " " + user.lastName;
 
         let singleTax = { year: -Infinity };
@@ -169,7 +184,7 @@ router.post("/runSimulation", async (req, res) => {
         }
 
         await simulationController.delete(user.previousSimulation);
-        await userController.update(userId, { previousSimulation: simulationId });
+        await userController.update(userId, { previousSimulation: simulationId, isRunningSimulation: false });
         return res.status(200).send(simulationId._id);
     } catch (error) {
         console.error("Error fetching simulation:", error);

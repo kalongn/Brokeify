@@ -16,9 +16,8 @@ const UserSchema = new mongoose.Schema({
     editorScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     viewerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     userSpecificTaxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tax' }],
-    isRunningSimulation: { type: Boolean, default: false }, // TODO: this won't be use for HW7
+    isRunningSimulation: { type: Boolean, default: false },
     previousSimulation: { type: mongoose.Schema.Types.ObjectId, ref: 'Simulation', default: null },
-    userSimulations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Simulation' }], // TODO: this won't be use for HW7
 });
 
 export default mongoose.model('User', UserSchema);
