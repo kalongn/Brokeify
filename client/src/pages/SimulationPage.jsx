@@ -203,7 +203,7 @@ const ScenarioSimulation = () => {
           )}
 
           {isRunning ? (
-            <p>Simulation is running... Please wait.</p>
+            <p>A simulation is running... Please wait.</p>
           ) : (
             previousRun !== null && (
               <div>
