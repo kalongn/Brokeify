@@ -59,7 +59,8 @@ export async function simulate(
   csvFileL,
   logFileL,
   step1,
-  step2
+  step2,
+  seed,
 ) {
   let federalIncomeTax,
     stateIncomeTax,
@@ -79,7 +80,9 @@ export async function simulate(
 
   csvFile = csvFileL;
   logFile = logFileL;
-
+  if(seed){
+    sample(undefined, undefined, seed); //this sets up the static variable
+  }
   const eventTimeframeBool = await chooseEventTimeframe(scenario);
   const chooseLifeExpectanciesBool = await chooseLifeExpectancies(scenario);
   if (eventTimeframeBool === false) {

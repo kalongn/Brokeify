@@ -16,7 +16,8 @@ async function main() {
             workerData.logFile,
             workerData.explorationArray,
             workerData.step1,
-            workerData.step2
+            workerData.step2,
+            workerData.seed,
         );
         
         parentPort.postMessage(JSON.parse(JSON.stringify(result)));

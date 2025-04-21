@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync, existsSync, appendFileSync, fstat } from 'fs';
+import seedrandom from 'seedrandom';
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
 import InvestmentController from "../db/controllers/InvestmentController.js";
@@ -22,7 +23,15 @@ const resultFactory = new ResultController();
 
 import { updateCSV, updateLog } from './logHelpers.js';
 import { logFile, csvFile } from './simulator.js';
-export async function sample(expectedValue, distributionID) {
+let prng = Math.random;
+
+export async function sample(expectedValue, distributionID, seed) {
+
+    if (seed !== undefined && seed !== null) {
+        //reseed if a new seed is explicitly provided
+        prng = seedrandom(seed.toString());
+        return;
+    }
 
     //sample from distribution
 
@@ -37,13 +46,12 @@ export async function sample(expectedValue, distributionID) {
         return distribution.value;
     }
     else if (distribution.distributionType === 'UNIFORM_AMOUNT' || distribution.distributionType === 'UNIFORM_PERCENTAGE') {
-        //console.log((Math.random() * (distribution.upperBound - distribution.lowerBound) + distribution.lowerBound));
-        return (Math.random() * (distribution.upperBound - distribution.lowerBound) + distribution.lowerBound)
+        return (prng() * (distribution.upperBound - distribution.lowerBound) + distribution.lowerBound)
     }
     else if (distribution.distributionType === 'NORMAL_AMOUNT' || distribution.distributionType === 'NORMAL_PERCENTAGE') {
         let u = 0, v = 0;
-        while (u === 0) u = Math.random();
-        while (v === 0) v = Math.random();
+        while (u === 0) u = prng();
+        while (v === 0) v = prng();
         //use Box-Muller transform
         const num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
         let toReturn = (num * distribution.standardDeviation) + distribution.mean;

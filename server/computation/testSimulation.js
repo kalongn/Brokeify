@@ -23,6 +23,7 @@ import { validateRun } from "./planValidator.js";
 import { parseAndSaveYAML } from "../yaml_parsers/scenarioParser.js";
 import { parseStateTaxYAML } from "../yaml_parsers/stateTaxParser.js";
 import { exportScenarioAsYAML } from "../yaml_parsers/scenarioExporter.js";
+
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
 
@@ -122,6 +123,7 @@ const testTax = async (i) => {
 const populateDB = async () => {
     const factory = new ScenarioController();
     const taxfactory = new TaxController();
+    const eventFactory = new EventController();
     //const stateTax = await parseStateTaxYAML("../yaml_files/state_taxes/state_tax_NY.yaml")
     //console.log(stateTax)
     //const s = await taxfactory.read(stateTax[0]);
@@ -142,11 +144,25 @@ const populateDB = async () => {
     //const capitalGainTax = await testTax(5);
     // const scenario = await testScenario();
     //const scenario = await testScenario();
-
+    //const s = await eventFactory.create("INCOME", {name: "t"});
+    const explorationArray = [
+        {
+            type: "ROTH_BOOLEAN",
+            lowerBound: 11,
+            upperBound: 100,
+        },
+        {
+            type: "START_EVENT",
+            eventID: scenario.events[0],
+            lowerBound: 15,
+            upperBound: 100,
+            step: 10,
+        }
+    ]
     console.log('====================== Simulation Test =====================');
     //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
-        const r = await validateRun(scenario._id, 1, [stateIncomeTax._id, stateIncomeTax._id], "GUEST");
+        const r = await validateRun(scenario._id, 1, [stateIncomeTax._id, stateIncomeTax._id], "GUEST",explorationArray);
         console.log(r);
     }
     catch (err) {
