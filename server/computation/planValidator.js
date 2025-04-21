@@ -657,7 +657,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
         parallel=2; //have a minimum of 2
     }
     let promises = [];
-    for(const i in promiseParameters){
+    for(let i=0;i<promiseParameters.length;i++){
         if(promises.length<parallel){
             //add promiseParameters[i] runworker
             let data = promiseParameters[i]
@@ -685,7 +685,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
             compiledResults.results.push(res);
         }
         promises = [];
-        
+        i--;
     }
     const results = await Promise.all(promises);
     for (const res of results) {
