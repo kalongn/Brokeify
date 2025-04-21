@@ -418,7 +418,6 @@ const testUser = async () => {
             editorScenarios: [],
             viewerScenarios: [],
             userSpecificTaxes: [],
-            userSimulations: []
         });
     } catch (error) {
         console.error(error);

@@ -23,7 +23,6 @@ passport.use(new Strategy({
             editorScenarios: [],
             viewerScenarios: [],
             userSpecificTaxes: [],
-            userSimulations: []
         });
     } else {
         user.firstName = profile.name.givenName;

@@ -18,7 +18,6 @@ const UserSchema = new mongoose.Schema({
     userSpecificTaxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tax' }],
     isRunningSimulation: { type: Boolean, default: false }, // TODO: this won't be use for HW7
     previousSimulation: { type: mongoose.Schema.Types.ObjectId, ref: 'Simulation', default: null },
-    userSimulations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Simulation' }], // TODO: this won't be use for HW7
 });
 
 export default mongoose.model('User', UserSchema);

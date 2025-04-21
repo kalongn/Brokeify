@@ -185,11 +185,7 @@ export default class UserController {
             for (const tax of user.userSpecificTaxes) {
                 await taxController.delete(tax._id);
             }
-            for (const simulation of user.userSimulations) {
-                simulationController.delete(simulation._id);
-            }
-            // REMOVE AFTER HW7
-            if(user.previousSimulation) {
+            if (user.previousSimulation) {
                 await simulationController.delete(user.previousSimulation);
             }
             return await User.findByIdAndDelete(id);
