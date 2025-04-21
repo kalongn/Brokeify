@@ -132,11 +132,11 @@ const ScenarioSimulation = () => {
     } catch (error) {
       setErrors({ simulation: 'An error occurred during the simulation' });
       console.error('Simulation error:', error);
-      setIsRunning(false);
     } finally {
       if (laddaInstanceRef.current && !isRunning) {
         laddaInstanceRef.current.stop();
         laddaInstanceRef.current = null;
+        setIsRunning(false);
       }
     }
   };
