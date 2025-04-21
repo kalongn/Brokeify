@@ -138,10 +138,6 @@ const ScenarioSimulation = () => {
         laddaInstanceRef.current.stop();
         laddaInstanceRef.current = null;
       }
-      if (!isRunning && laddaInstanceRef.current) {
-        laddaInstanceRef.current.stop();
-        laddaInstanceRef.current = null;
-      }
     }
   };
 
