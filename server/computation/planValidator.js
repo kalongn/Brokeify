@@ -687,6 +687,11 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
         promises = [];
         
     }
+    const results = await Promise.all(promises);
+    for (const res of results) {
+        if (res.error) throw new Error(res.error);
+        compiledResults.results.push(res);
+    }
     
 
     await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
