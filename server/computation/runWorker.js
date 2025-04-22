@@ -13,7 +13,11 @@ async function main() {
             workerData.stateTax,
             workerData.rmdTable,
             workerData.csvFile,
-            workerData.logFile
+            workerData.logFile,
+            workerData.explorationArray,
+            workerData.step1,
+            workerData.step2,
+            workerData.seed,
         );
         
         parentPort.postMessage(JSON.parse(JSON.stringify(result)));
@@ -23,4 +27,4 @@ async function main() {
     }
 }
   
-main();
+await main();

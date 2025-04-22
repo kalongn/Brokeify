@@ -57,7 +57,10 @@ export async function simulate(
   capitalGainTaxArray,
   rmdTable,
   csvFileL,
-  logFileL
+  logFileL,
+  step1,
+  step2,
+  seed,
 ) {
   let federalIncomeTax,
     stateIncomeTax,
@@ -77,7 +80,9 @@ export async function simulate(
 
   csvFile = csvFileL;
   logFile = logFileL;
-
+  if(seed){
+    sample(undefined, undefined, seed); //this sets up the static variable
+  }
   const eventTimeframeBool = await chooseEventTimeframe(scenario);
   const chooseLifeExpectanciesBool = await chooseLifeExpectancies(scenario);
   if (eventTimeframeBool === false) {
@@ -365,6 +370,8 @@ export async function simulate(
       earlyWithdrawalTax: earlyWithdrawalTaxPaid,
       totalDiscretionaryExpenses: discretionaryExpensesPercentage,
       isViolated: boolIsViolated,
+      step1: step1, //for 1/2d exploration
+      step2: step2, //for 2d exploration
     };
 
     results.yearlyResults.push(yearlyRes);

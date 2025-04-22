@@ -6,12 +6,13 @@ import * as fs from 'fs';
 import { join } from 'path';
 import { format } from 'date-fns';
 import { Worker } from 'worker_threads';
+import * as os from 'os';
 import path from 'path';
 import { fileURLToPath } from "url";
 
 import EventController from "../db/controllers/EventController.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
-
+import DistributionController from '../db/controllers/DistributionController.js';
 import RMDTableController from "../db/controllers/RMDTableController.js";
 import TaxController from "../db/controllers/TaxController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
@@ -24,7 +25,7 @@ const eventFactory = new EventController();
 const taxFactory = new TaxController();
 const rmdFactory = new RMDTableController();
 const simulationFactory = new SimulationController();
-
+const distributionFactory = new DistributionController()
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const execPath = decodeURIComponent(path.resolve(__dirname, "./runWorker.js"));
@@ -58,7 +59,7 @@ async function createEventLog(user, datetime, folder) {
     return filepath;
 }
 
-async function validate(scenarioID) {
+async function validate(scenarioID, explorationArray) {
     const scenario = await scenarioFactory.read(scenarioID);
 
 
@@ -102,6 +103,76 @@ async function validate(scenarioID) {
                 dependancyID = null;
             }
             event = newEvent;
+        }
+    }
+
+    if(explorationArray !== null && explorationArray !== undefined){
+        /*
+        Make sure that values of explorationArray are coherent:
+        enum is one of the valid types
+        eventID refers to evnt in scenario
+        has lowerBound/upperBound (and lower is amaller than upper)
+        if not ROTH_BOOLEAN, has postitive interger type
+
+        [{
+        type: Enum, one of ["ROTH_BOOLEAN", "START_EVENT", "DURATION_EVENT", "EVENT_AMOUNT", "INVEST_PERCENTAGE"]
+        eventID: ObjectID
+        lowerBound: Number
+        upperBound: Number
+        step: Number
+        If the type is "ROTH_BOOLEAN", no step/eventID is required, and lower/upper bounds represnt the optimization years
+        }]
+        */
+
+        for(const i in explorationArray){
+            const explorationValue = explorationArray[i];
+            if(explorationValue.type === "ROTH_BOOLEAN"){
+
+            }
+            else if(explorationValue.type === "START_EVENT"
+                ||  explorationValue.type === "DURATION_EVENT"
+                ||  explorationValue.type === "EVENT_AMOUNT"
+                ||  explorationValue.type === "INVEST_PERCENTAGE"
+            ){
+                let found = false;
+                for(const j in scenario.events){
+                    if(scenario.events[j].toString()===explorationValue.eventID.toString()){
+                        found=true;
+                        break;
+                    }
+                }
+                if(!found){
+                    throw(`Event ID ${explorationValue.eventID} was not found in scenario`);
+                }
+                if(!Number.isInteger(explorationValue.upperBound)){
+                    throw("Upper Bound of scenario exploration must be Integer");
+                }
+                if(!Number.isInteger(explorationValue.lowerBound)){
+                    throw("Lower Bound of scenario exploration must be Integer");
+                }
+                if(!Number.isInteger(explorationValue.step)){
+                    throw("Step of scenario exploration must be Integer");
+                }
+                if(explorationValue.upperBound<=explorationValue.lowerBound){
+                    throw("Upper bound of scenario exploration must be strictly larger than lower bound");
+                }
+                if(explorationValue.step>=explorationValue.upperBound-explorationValue.lowerBound){
+                    throw("Step size of scenario exploration is too large given bounds");
+                }
+                if(explorationValue.type === "INVEST_PERCENTAGE"){
+                    if(explorationValue.upperBound>100||explorationValue.lowerBound<0){
+                        throw("Bounds of invest percentage must be between 0-100");
+                    }
+                    //make sure event is only among 2 investments
+                    const originalEvent = await eventFactory.read(explorationArray[0].eventID);
+                    if(originalEvent.allocatedInvestments.length!==2){
+                        throw("Number of investments in invest scenario exploration must be 2");
+                    }
+                }
+            }
+            else{
+                throw(`Index ${i} of exploration array has an invalid type: ${explorationValue.type}`);
+            }
         }
     }
 }
@@ -282,12 +353,135 @@ async function scrape() {
 
 
 
-export async function run(scenarioID, fedIncome, capitalGains, fedDeduction, stateIncome, rmdTable, csvFile, logFile) {
+export async function run(
+    scenarioID, 
+    fedIncome, 
+    capitalGains, 
+    fedDeduction, 
+    stateIncome, 
+    rmdTable, 
+    csvFile, 
+    logFile,
+    explorationArray,
+    step1,
+    step2,
+    seed,
+) {
     //deep clone then run simulation then re-splice original scenario in simulation output
     const unmodifiedScenario = await scenarioFactory.read(scenarioID);
     let copiedScenario = await scenarioFactory.clone(unmodifiedScenario._id);
-    let simulationResult = await simulate(copiedScenario, fedIncome, stateIncome, fedDeduction, capitalGains, rmdTable, csvFile, logFile);
+    //depending on step1, step2, do exploration
+    let newDists = [];
+    let steps = [step1, step2];
+    let trueValues = [];
+    /**
+     * We have created a clone scnario, and we have potentially been given an array
+     * of exploration objects, as well as this specific run's given step.
+     * 
+     * Here, we modify the cloned scenario to be the values represented in the exploration
+     * object and given steps.
+     */
+
+    for(const j in steps){
+        const step = steps[j]
+        if(step===undefined){
+            continue;
+        }
+        //modify the scenario according to the step
+
+        if(explorationArray[0].type==="ROTH_BOOLEAN"){
+            //0 = off, 1 = on
+            trueValues.push(step)
+            if(step===0){
+                copiedScenario.startYearRothOptimizer=undefined;
+                await scenarioFactory.update(copiedScenario._id, {startYearRothOptimizer: undefined});
+
+            }
+            else{
+                copiedScenario.startYearRothOptimizer=explorationArray[j].lowerBound;
+                copiedScenario.endYearRothOptimizer=explorationArray[j].upperBound;
+                await scenarioFactory.update(copiedScenario._id, {
+                        startYearRothOptimizer: explorationArray[j].lowerBound, 
+                        endYearRothOptimizer: explorationArray[j].upperBound
+                    });
+                
+            }
+        }
+        else if(explorationArray[0].type==="START_EVENT"){
+            trueValues.push(step+explorationArray[j].lowerBound)
+            const diff = step;  //distance from lowerBound
+            const originalEvent = await eventFactory.read(explorationArray[j].eventID);
+            for(const i in copiedScenario.events){
+                const copiedEvent = await eventFactory.read(copiedScenario.events[i]);
+                if(copiedEvent.name.toString()===originalEvent.name.toString()){
+                    const newDist1 = await distributionFactory.create(FIXED_AMOUNT, {value: diff+explorationArray[j].lowerBound});
+                    newDists.push(newDist1);
+                    await eventFactory.update(copiedEvent._id, {startYearTypeDistribution: newDist1._id, startsWith: undefined, startsAfter: undefined});
+                }
+            }
+
+        }
+        else if(explorationArray[0].type==="DURATION_EVENT"){
+            trueValues.push(step+explorationArray[j].lowerBound)
+            const diff = step;  //distance from lowerBound
+            const originalEvent = await eventFactory.read(explorationArray[j].eventID);
+            for(const i in copiedScenario.events){
+                const copiedEvent = await eventFactory.read(copiedScenario.events[i]);
+                if(copiedEvent.name.toString()===originalEvent.name.toString()){
+                    const newDist1 = await distributionFactory.create(FIXED_AMOUNT, {value: diff+explorationArray[j].lowerBound});
+                    newDists.push(newDist1);
+                    await eventFactory.update(copiedEvent._id, {durationTypeDistribution: newDist1._id});
+                }
+            }
+        }
+        else if(explorationArray[0].type==="EVENT_AMOUNT"){
+            trueValues.push(step+explorationArray[j].lowerBound)
+            const diff = step;  //distance from lowerBound
+            const originalEvent = await eventFactory.read(explorationArray[j].eventID);
+            for(const i in copiedScenario.events){
+                const copiedEvent = await eventFactory.read(copiedScenario.events[i]);
+                if(copiedEvent.name.toString()===originalEvent.name.toString()){
+                    await eventFactory.update(copiedEvent._id, {amount: explorationArray[j].lowerBound+diff});
+                }
+            }
+        }
+        else if(explorationArray[0].type==="INVEST_PERCENTAGE"){
+            const firstInitial = ((step)+explorationArray[j].lowerBound)/100;  //distance from lowerBound
+            trueValues.push(firstInitial)
+            const secondInitial = 1-diff;
+            const originalEvent = await eventFactory.read(explorationArray[j].eventID);
+            for(const i in copiedScenario.events){
+                const copiedEvent = await eventFactory.read(copiedScenario.events[i]);
+                if(copiedEvent.name.toString()===originalEvent.name.toString()){
+                    await eventFactory.update(copiedEvent._id, {percentageAllocations: [
+                        [firstInitial, copiedEvent.percentageAllocations[0][1]],
+                        [secondInitial, copiedEvent.percentageAllocations[1][1]],
+                    ]});
+
+                }
+            }
+        }
+
+    }
+    const simulationResult = await simulate(
+        copiedScenario, 
+        fedIncome, 
+        stateIncome,
+        fedDeduction, 
+        capitalGains, 
+        rmdTable, 
+        csvFile, 
+        logFile,
+        trueValues[0],
+        trueValues[1],
+        seed,
+    );
     await scenarioFactory.deleteNotDistributions(copiedScenario._id);
+    for(const i in newDists){
+        if(newDists[i]!==undefined){
+            await distributionFactory.delete(newDists[i]._id);
+        }
+    }
     return simulationResult;
 }
 
@@ -303,8 +497,26 @@ function runInWorker(data) {
 }
 
 //recives ID of scenario in db
-export async function validateRun(scenarioID, numTimes, stateTaxIDArray, username, seed) {
-    await validate(scenarioID);
+/**
+ * 
+ * @param {ID of scenario} scenarioID 
+ * @param {Number of times to run scenario} numTimes 
+ * @param {Array of 2 for state tax of [single, married]} stateTaxIDArray 
+ * @param {string used for log files} username 
+ * @param {
+ * Can be null/undefined, but if not, [{
+    type: Enum, one of ["ROTH_BOOLEAN", "START_EVENT", "DURATION_EVENT", "EVENT_AMOUNT", "INVEST_PERCENTAGE"]
+    eventID: ObjectID
+    lowerBound: Number
+    upperBound: Number
+    step: Number
+    If the type is "ROTH_BOOLEAN", no step/eventID is required, and lower/upper bounds represnt the optimization years
+    }]
+ * } explorationArray 
+ * @returns 
+ */
+export async function validateRun(scenarioID, numTimes, stateTaxIDArray, username, explorationArray) {
+    await validate(scenarioID, explorationArray);
     const scrapeReturn = await scrape();
     const scenario = await scenarioFactory.read(scenarioID);
 
@@ -341,27 +553,146 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
     const logFile = await createEventLog(username, datetime, "../logs");
     scenarioID = scenarioID.toString();
 
-    const promises = [];
-    for (let i = 0; i < numTimes; i++) {
-        promises.push(
-            runInWorker({
-                scenarioID,
-                fedIncome,
-                capitalGains,
-                fedDeduction,
-                stateTax,
-                rmdTable,
-                csvFile: i === 0 ? csvFile : null,
-                logFile: i === 0 ? logFile : null
-            })
-        );
+    const promiseParameters = [];
+    /**
+     * First, create an array of parameters that will be ran
+     * 
+     * For 1/2D explorations, numTimes serves as the floor
+     */
+    let randomString = (Math.random() + 1).toString(36).substring(7);  //generate seed
+    for (let i = 0; i < numTimes; ) {
+        //if explorationArray is in play, create and run each combo
+        if(explorationArray==null||explorationArray==undefined){
+            promiseParameters.push(
+                {
+                    scenarioID,
+                    fedIncome,
+                    capitalGains,
+                    fedDeduction,
+                    stateTax,
+                    rmdTable,
+                    csvFile: i === 0 ? csvFile : null,
+                    logFile: i === 0 ? logFile : null,
+                }
+            );
+            i++;
+        }
+        else if(explorationArray.length===1){
+            let numSteps1;
+            if(explorationArray[0].type==="ROTH_BOOLEAN"){
+                numSteps1 = 2;
+            }
+            else{
+                numSteps1 = Math.floor((explorationArray[0].upperBound-explorationArray[0].lowerBound)/explorationArray[0].step) + 1;
+            }
+            for(let s = 0; s<numSteps1;s++){
+                promiseParameters.push(
+                    {
+                        scenarioID,
+                        fedIncome,
+                        capitalGains,
+                        fedDeduction,
+                        stateTax,
+                        rmdTable,
+                        csvFile: s+i === 0 ? csvFile : null,
+                        logFile: s+i === 0 ? logFile : null,
+                        explorationArray: explorationArray,
+                        step1: explorationArray[0].step !== undefined ? s*explorationArray[0].step: s,
+                        seed: randomString,
+                    }
+                );
+                i++;
+            }
+            
+        }
+        else if(explorationArray.length===2){
+            let numSteps1;
+            if(explorationArray[0].type==="ROTH_BOOLEAN"){
+                numSteps1 = 2;
+            }
+            else{
+                numSteps1 = Math.floor((explorationArray[0].upperBound-explorationArray[0].lowerBound)/explorationArray[0].step) + 1;
+            }
+            for(let s = 0; s<numSteps1;s++){
+                let numSteps2;
+                if(explorationArray[1].type==="ROTH_BOOLEAN"){
+                    numSteps2 = 2;
+                }
+                else{
+                    numSteps2 = Math.floor((explorationArray[1].upperBound-explorationArray[1].lowerBound)/explorationArray[1].step) + 1;
+                }
+                for(let s2 = 0; s2<numSteps2;s2++){
+                    promiseParameters.push(
+                        {
+                            scenarioID,
+                            fedIncome,
+                            capitalGains,
+                            fedDeduction,
+                            stateTax,
+                            rmdTable,
+                            csvFile: s2+s+i === 0 ? csvFile : null,
+                            logFile: s2+s+i === 0 ? logFile : null,
+                            explorationArray: explorationArray,
+                            step1: explorationArray[0].step !== undefined ? s*explorationArray[0].step : s,
+                            step2: explorationArray[1].step !== undefined ? s2*explorationArray[1].step : s2,
+                            seed: randomString,
+                        }
+                    );
+                    i++;
+                }
+                
+            }
+        }
+        else{
+            throw("explorationArray.length is bad");
+        }
     }
 
+
+
+    //Figure out how many worker threads to run at once:
+    const cpuCount = os.cpus().length;
+    let parallel = cpuCount-5;
+    if(1>parallel){
+        parallel=2; //have a minimum of 2
+    }
+    let promises = [];
+    for(let i=0;i<promiseParameters.length;i++){
+        if(promises.length<parallel){
+            //add promiseParameters[i] runworker
+            let data = promiseParameters[i]
+            promises.push(
+                runInWorker({
+                    scenarioID: data.scenarioID,
+                    fedIncome: data.fedIncome,
+                    capitalGains: data.capitalGains,
+                    fedDeduction: data.fedDeduction,
+                    stateTax: data.stateTax,
+                    rmdTable: data.rmdTable,
+                    csvFile: data.csvFile,
+                    logFile: data.logFile,
+                    explorationArray: data.explorationArray,
+                    step1: data.step1,
+                    step2: data.step2,
+                    seed: data.seed,
+                })
+            );
+            continue;
+        }
+        const results = await Promise.all(promises);
+        for (const res of results) {
+            if (res.error) throw new Error(res.error);
+            compiledResults.results.push(res);
+        }
+        promises = [];
+        i--;
+    }
     const results = await Promise.all(promises);
     for (const res of results) {
         if (res.error) throw new Error(res.error);
         compiledResults.results.push(res);
     }
+    
 
     await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
     return compiledResults;

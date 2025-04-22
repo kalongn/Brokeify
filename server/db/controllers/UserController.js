@@ -178,18 +178,14 @@ export default class UserController {
         const taxController = new TaxController();
         const simulationController = new SimulationController();
         try {
-            const user = await User.findById(id).populate('ownerScenarios userSpecificTaxes userSimulations');
+            const user = await User.findById(id);
             for (const scenario of user.ownerScenarios) {
                 await scenarioController.delete(scenario._id);
             }
             for (const tax of user.userSpecificTaxes) {
                 await taxController.delete(tax._id);
             }
-            for (const simulation of user.userSimulations) {
-                simulationController.delete(simulation._id);
-            }
-            // REMOVE AFTER HW7
-            if(user.previousSimulation) {
+            if (user.previousSimulation) {
                 await simulationController.delete(user.previousSimulation);
             }
             return await User.findByIdAndDelete(id);
