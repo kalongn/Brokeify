@@ -1,99 +1,122 @@
-import { useState} from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "../../components/Layout";
 import styles from "./Charts.module.css";
 import Accordion from "../../components/Accordion";
-import ShadedLineChart from "../../components/ShadedLineChart";
-import StackedBarChart from "../../components/StackedBarChart";
 import LineChart from "../../components/LineChart";
+import MultiLineChart from "../../components/MultiLineChart";
+import LineChartParameter from "../../components/LineChartParameter";
+import ModalOneD from "../../components/ModalOneD";
 
-import ModalAddChart from "../../components/ModalAddChart";
-
+{/*Note: We will need to account for the parameter we passed in to get here...as that will decide whether a certain chart will show or not
+  (show linechartparameter only if the parameter is numeric)* I currently pass it as a boolean*/}
 const OneD = () => {
-
   const { simulationId } = useParams();
+  console.log("Simulation ID:", simulationId);
 
   const [scenarioName, setScenarioName] = useState("Unknown Scenario");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
-
   const [charts, setCharts] = useState([]);
-
 
   const handleGenerateCharts = async () => {
     try {
-      const generatedCharts =[
+      const mockMultiLineData = {
+        data: [
+          {
+            parameterValue: 60,
+            values: [100000, 120000, 140000]
+          },
+          {
+            parameterValue: 65,
+            values: [95000, 110000, 130000]
+          },
+          {
+            parameterValue: 70,
+            values: [90000, 105000, 125000]
+          }
+        ],
+        labels: ["2025", "2026", "2027", "2028"]
+      };
+
+      const mockFinalValueData = [
+        { parameterValue: 60, finalValue: 140000 },
+        { parameterValue: 65, finalValue: 130000 },
+        { parameterValue: 70, finalValue: 125000 }
+      ];
+
+      const generatedCharts = [
         {
           id: 1,
-          type: "Shaded Line Chart",
-          label: "Shaded Line Chart",
-          data: [/* Your data here */]
+          type: "Multi-Line Over Time",
+          label: "Multi-Line Over Time",
+          data: mockMultiLineData
         },
         {
           id: 2,
-          type: "Line Chart",
-          label: "Line Chart",
-          data: [/* Your data here */]
-        },
-        {
-          id: 3,
-          type: "Stacked Bar Chart",
-          label: "Stacked Bar Chart",
-          data: [/* Your data here */]
+          type: "Final Value vs Parameter",
+          label: "Final Value vs Parameter",
+          data: mockFinalValueData
         }
       ];
+
       setCharts(generatedCharts);
       setShowCharts(true);
     } catch (error) {
+      console.error("Error generating charts:", error);
       setShowCharts(false);
     }
   };
- 
+
   return (
     <Layout>
       <div className={styles.content}>
         <div className={styles.leftSide}>
-          <h2> Result</h2>
+          <h2>{scenarioName} 1D Results</h2>
           <div className={styles.buttonGroup}>
             <button className={styles.addChart} onClick={() => setShowAddModal(true)}>
               Add Charts
             </button>
             <button onClick={handleGenerateCharts}>Generate Charts</button>
           </div>
-          <ModalAddChart isOpen={showAddModal} setIsOpen={setShowAddModal} setCharts={setCharts} />
+
+          {/*TODO: Update this based on actual scenario parameter type*/}
+          <ModalOneD
+            isOpen={showAddModal}
+            setIsOpen={setShowAddModal}
+            setCharts={setCharts}
+            isScenarioParameterNumeric={false} 
+          />
 
           <h3>Added Charts</h3>
           <div className={styles.chartList}>
             {charts.map((chart) => (
               <div key={chart.id} className={styles.chartItem}>
-                <Accordion key={chart.id} title={chart.type} content={chart.label} />
+                <Accordion title={chart.type} content={chart.label} />
               </div>
             ))}
           </div>
         </div>
-        <div className={styles.rightSide}>
-          {/* If showCharts is true but no charts exist, show the message */}
-          {!showCharts && (
-            <div className={styles.chartCount}>
-              No Charts Generated Yet...
-            </div>
-          )}
 
-          {/* If showCharts is true and there are no charts, show the 'Please add charts' message */}
+        <div className={styles.rightSide}>
+          {!showCharts && <div className={styles.chartCount}>No Charts Generated Yet...</div>}
           {showCharts && charts.length === 0 && (
             <div className={styles.noChartsMessage}>
               Please add a selection of charts, and then generate.
             </div>
           )}
-
-          {/*After user taps on "Generate Charts", charts will show*/}
           {showCharts && charts.length > 0 && charts.map((chart) => (
             <div key={chart.id} className={styles.chart}>
-              <h3>{chart.type}</h3>
-              {/* Charts will show depending on type */}
-              {chart.type === "Shaded Line Chart" && chart.data && <ShadedLineChart data={chart.data} />}
-              {chart.type === "Line Chart" && chart.data && <LineChart data={chart.data} />}
-              {chart.type === "Stacked Bar Chart" && chart.data && <StackedBarChart data={chart.data} />}
+              <h3>{chart.label}</h3>
+              {chart.type === "Multi-Line Over Time" && chart.data && (
+                <MultiLineChart data={chart.data.data} labels={chart.data.labels} />
+              )}
+              {chart.type === "Final Value vs Parameter" && chart.data && (
+                <LineChartParameter data={chart.data} />
+              )}
+              {chart.type === "Line Chart" && chart.data && (
+                <LineChart data={chart.data} />
+              )}
             </div>
           ))}
         </div>
