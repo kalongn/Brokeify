@@ -26,6 +26,7 @@ import ModalAddChart from "../../components/ModalAddChart";
   const scenarioName = "My Scenario"; //Temp kept this for ESLint Error 
   
   const [showAddChartsModal, setShowAddChartsModal] = useState(false);
+  const [showAdd1DModal, setShowAdd1DModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [charts, setCharts] = useState([]);
 
