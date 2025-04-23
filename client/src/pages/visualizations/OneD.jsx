@@ -10,12 +10,21 @@ import ModalOneD from "../../components/ModalOneD";
 import ModalAddChart from "../../components/ModalAddChart";
 {/*Note: We will need to account for the parameter we passed in to get here...as that will decide whether a certain chart will show or not
   (show linechartparameter only if the parameter is numeric)* I currently pass it as a boolean*/}
-const OneD = () => {
+{/*Note: We need charts from charts.jsx too I believe, which is why
+  we have "Add Chart" button here.The logic for that is the same. 
+  
+  "Add 1D Chart" is the new functionality. 
+  
+  */}
+
+  const OneD = () => {
   const { simulationId } = useParams();
   console.log("Simulation ID:", simulationId);
 
-  const [scenarioName, setScenarioName] = useState("Unknown Scenario");
-  const [showAdd1DModal, setShowAdd1DModal] = useState(false);
+  //TODO: Update below with actual scenario name
+  //const [scenarioName, setScenarioName] = useState("Unknown Scenario");
+  const scenarioName = "My Scenario"; //Temp kept this for ESLint Error 
+  
   const [showAddChartsModal, setShowAddChartsModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [charts, setCharts] = useState([]);
