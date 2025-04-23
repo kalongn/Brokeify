@@ -196,9 +196,6 @@ export async function chooseLifeExpectancies(scenario){
 }
 export async function getCashInvestment(investmentTypes) {
     const cashName = "Cash";
-    const investmentTypeFactory = new InvestmentTypeController();
-    const investmentFactory = new InvestmentController();
-    const distributionFactory = new DistributionController();
 
 
     let cashInvestmentType = investmentTypes.find(type => type.name === cashName);

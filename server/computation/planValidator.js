@@ -177,7 +177,21 @@ async function validate(scenarioID, explorationArray) {
     }
 }
 
-//TODO: add checking for the year value
+async function removeOutOfDateTax(taxBracket){
+    if(taxBracket){
+        const realYear = new Date().getFullYear();
+        if(taxBracket.year==realYear){
+            return taxBracket;
+        }
+        else{
+            await taxFactory.delete(taxBracket._id);
+            return null;
+        }
+    }
+    return null;
+
+}
+
 async function scrape() {
     //check to see if federalIncomeTax, federalStandardDeduction, capitalGains exist
     //scrape, parse, and save to DB if not
@@ -191,6 +205,8 @@ async function scrape() {
     let capitalGainsMarried = null;
     let federalDeductionSingle = null;
     let federalDeductionMarried = null;
+
+
     for (const i in a) {
         if (a[i].taxType === "FEDERAL_INCOME" && a[i].filingStatus === "SINGLE") {
             federalIncomeSingle = a[i];
@@ -225,6 +241,18 @@ async function scrape() {
             federalDeductionMarried = a[i];
         }
     }
+
+    //determine if any of the taxes are out-of-date, remove if so
+
+    federalIncomeSingle = await removeOutOfDateTax(federalIncomeSingle);
+    federalIncomeMarried = await removeOutOfDateTax(federalIncomeMarried);
+    capitalGainsSingle = await removeOutOfDateTax(capitalGainsSingle);
+    capitalGainsMarried = await removeOutOfDateTax(capitalGainsMarried);
+    federalDeductionSingle = await removeOutOfDateTax(federalDeductionSingle);
+    federalDeductionMarried = await removeOutOfDateTax(federalDeductionMarried);
+
+    
+
 
     if (federalIncomeSingle === null || federalIncomeMarried === null) {
         //scrape:
