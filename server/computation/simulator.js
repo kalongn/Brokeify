@@ -339,8 +339,9 @@ export async function simulate(
     }
     //create array of touples of investment._id, investment.value
     const investmentValuesArray = [];
-    for(const i in scenario.investmentTypes){ 
-      for (const investmentIndex in investmentTypes[i].investments) {
+    for(const i in scenario.investmentTypes){
+      const investmentType = await investmentTypeFactory.read(investmentTypes[i]._id);
+      for (const investmentIndex in investmentType.investments) {
         const inv = await investmentFactory.read(investmentTypes[i].investments[investmentIndex]);
         const touple = {
           name: `${investmentTypes[i].name} ${inv.taxStatus}`,
