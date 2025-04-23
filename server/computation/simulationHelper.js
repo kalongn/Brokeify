@@ -951,18 +951,17 @@ export async function processInvestmentEvents(scenario, currentYear) {
         }
 
         //distribute to all investments
-        if(logFile!==null){
-            for (const investmentIDIndex in event.allocatedInvestments) {
-                const investmentID = event.allocatedInvestments[investmentIDIndex];
-                const investment = await investmentFactory.read(investmentID);
+        for (const investmentIDIndex in event.allocatedInvestments) {
+            const investmentID = event.allocatedInvestments[investmentIDIndex];
+            const investment = await investmentFactory.read(investmentID);
+            
+            await investmentFactory.update(investment._id, { value: Math.round((investment.value + tentativeInvestmentAmounts[investmentIDIndex])*100)/100 });
+            //get investment type:
+            for (const investmentTypeIDIndex in scenario.investmentTypes) {
+                const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
+                const investmentType = await investmentTypeFactory.read(investmentTypeID);
                 
-                await investmentFactory.update(investment._id, { value: Math.round((investment.value + tentativeInvestmentAmounts[investmentIDIndex])*100)/100 });
-                //get investment type:
-                for (const investmentTypeIDIndex in scenario.investmentTypes) {
-                    const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
-                    const investmentType = await investmentTypeFactory.read(investmentTypeID);
-                    
-                    
+                if(logFile!==null){
                     for (const j in investmentType.investments) {
                         
                         
@@ -973,11 +972,11 @@ export async function processInvestmentEvents(scenario, currentYear) {
                         }
                         
                     }
-                    
-
                 }
+                
 
             }
+
         }
         return;
     }
