@@ -127,7 +127,7 @@ const populateDB = async () => {
     //const stateTax = await parseStateTaxYAML("../yaml_files/state_taxes/state_tax_NY.yaml")
     //console.log(stateTax)
     //const s = await taxfactory.read(stateTax[0]);
-    const fileContents = fs.readFileSync("../yaml_files/scenarios/testScenario.yaml", 'utf8');
+    const fileContents = fs.readFileSync("../yaml_files/scenarios/testScenario4.yaml", 'utf8');
     const parsed = yaml.load(fileContents);
     
     const scenarioID = await parseAndSaveYAML(parsed, null);
@@ -162,14 +162,14 @@ const populateDB = async () => {
     console.log('====================== Simulation Test =====================');
     //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
-        const r = await validateRun(scenario._id, 1, [stateIncomeTax._id, stateIncomeTax._id], "GUEST",explorationArray);
-        console.log(r);
+        const r = await validateRun(scenario._id, 10, [stateIncomeTax._id, stateIncomeTax._id], "GUEST");
+        console.log(r.results.length);
     }
     catch (err) {
         const res = await connection.dropDatabase();
         throw (err);
     }
     //drop all objects in database
-    const res = await connection.dropDatabase();
+    //const res = await connection.dropDatabase();
     //console.log(res);
 };
