@@ -176,6 +176,18 @@ const ScenarioSimulation = () => {
           </div>
 
           {/* {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>} */}
+          <div className={styles.simulationDescription}>
+            <p>
+              Disclaimer:
+              <br />
+              If the state of residence tax is not uploaded, the simulation will use 0 as the state tax rate.
+              <br />
+              If filing status is married, you need both MARRIEDJOINT and SINGLE state tax files.
+              <br />
+              If filing status is single, you need only the SINGLE state tax file.
+              <br />
+            </p>
+          </div>
 
           <div className={styles.buttonBox}>
             <div className={styles.buttons}>
