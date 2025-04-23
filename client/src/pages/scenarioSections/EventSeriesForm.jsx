@@ -135,7 +135,7 @@ const EventSeriesForm = () => {
   useEffect(() => {
     switch (eventType) {
       case "invest": {
-        const relevantInvestments = allInvestments.filter((investment) => investment.taxStatus !== "Pre-Tax Retirement");
+        const relevantInvestments = allInvestments.filter((investment) => investment.taxStatus !== "Pre-Tax Retirement" && investment.taxStatus !== "Cash");
         const investmentOptions = relevantInvestments.map((investment) => {
           return { value: investment.id, label: investment.label + "\n(" + investment.taxStatus + ")" };
         });
