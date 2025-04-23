@@ -7,7 +7,7 @@ import LineChart from "../../components/LineChart";
 import MultiLineChart from "../../components/MultiLineChart";
 import LineChartParameter from "../../components/LineChartParameter";
 import ModalOneD from "../../components/ModalOneD";
-
+import ModalAddChart from "../../components/ModalAddChart";
 {/*Note: We will need to account for the parameter we passed in to get here...as that will decide whether a certain chart will show or not
   (show linechartparameter only if the parameter is numeric)* I currently pass it as a boolean*/}
 const OneD = () => {
@@ -15,7 +15,8 @@ const OneD = () => {
   console.log("Simulation ID:", simulationId);
 
   const [scenarioName, setScenarioName] = useState("Unknown Scenario");
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAdd1DModal, setShowAdd1DModal] = useState(false);
+  const [showAddChartsModal, setShowAddChartsModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [charts, setCharts] = useState([]);
 
@@ -74,18 +75,28 @@ const OneD = () => {
         <div className={styles.leftSide}>
           <h2>{scenarioName} 1D Results</h2>
           <div className={styles.buttonGroup}>
-            <button className={styles.addChart} onClick={() => setShowAddModal(true)}>
+            <button className={styles.addChart} onClick={() => setShowAdd1DModal(true)}>
+              Add 1D Charts
+            </button>
+            <button className={styles.addChart} onClick={() => setShowAddChartsModal(true)}>
               Add Charts
             </button>
-            <button onClick={handleGenerateCharts}>Generate Charts</button>
           </div>
-
+          <div className={styles.chartGenerate}>
+          <button onClick={handleGenerateCharts} className={styles.generateButton}>Generate Charts</button>
+          </div>
           {/*TODO: Update this based on actual scenario parameter type*/}
           <ModalOneD
-            isOpen={showAddModal}
-            setIsOpen={setShowAddModal}
+            isOpen={showAdd1DModal}
+            setIsOpen={setShowAdd1DModal}
             setCharts={setCharts}
             isScenarioParameterNumeric={false} 
+          />
+
+          <ModalAddChart
+            isOpen={showAddChartsModal}
+            setIsOpen={setShowAddChartsModal}
+            setCharts={setCharts}
           />
 
           <h3>Added Charts</h3>
