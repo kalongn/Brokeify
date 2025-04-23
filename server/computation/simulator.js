@@ -398,12 +398,14 @@ export async function simulate(
         for (const i in scenario.events) {
           const event = await eventFactory.read(scenario.events[i]);
           if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
-            
-            
-            await eventFactory.update(event._id, {
-              amount: event.amount * event.userContributions,
-            });
-            
+            //if spouse was 100%, remove it completley
+            if (event.userContributions === 0) {
+              await eventFactory.delete(event._id);
+            } else {
+              await eventFactory.update(event._id, {
+                amount: event.amount * event.userContributions,
+              });
+            }
           }
         }
 

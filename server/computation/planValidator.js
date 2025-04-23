@@ -392,7 +392,7 @@ export async function run(
         if(explorationArray[0].type==="ROTH_BOOLEAN"){
             //0 = off, 1 = on
             trueValues.push(step)
-            if(step===0){
+            if(step===-2){  // Roth -> -1 is roth, -2 not roth
                 copiedScenario.startYearRothOptimizer=undefined;
                 await scenarioFactory.update(copiedScenario._id, {startYearRothOptimizer: undefined});
 
@@ -633,8 +633,8 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
                             csvFile: s2+s+i === 0 ? csvFile : null,
                             logFile: s2+s+i === 0 ? logFile : null,
                             explorationArray: explorationArray,
-                            step1: explorationArray[0].step !== undefined ? s*explorationArray[0].step : s,
-                            step2: explorationArray[1].step !== undefined ? s2*explorationArray[1].step : s2,
+                            step1: explorationArray[0].step !== undefined ? s*explorationArray[0].step : s-2,   // Roth -> -1 is roth, -2 not roth
+                            step2: explorationArray[1].step !== undefined ? s2*explorationArray[1].step : s2-2,
                             seed: randomString,
                         }
                     );
@@ -692,7 +692,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
         if (res.error) throw new Error(res.error);
         compiledResults.results.push(res);
     }
-    
+
 
     await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
     return compiledResults;
