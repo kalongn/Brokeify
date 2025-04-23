@@ -182,7 +182,7 @@ const ScenarioSimulation = () => {
               <br />
               If the state income tax of the scenario stated state of residence is not uploaded, the simulation will use 0 as the state tax rate.
               <br />
-              There are 4 state tax no needed however: New York, New Jersey, Connecticut and Washington.
+              There are 4 state tax files that are not needed however: New York, New Jersey, Connecticut, and Washington.
               <br />
               If filing status is married, you need both MARRIEDJOINT and SINGLE state tax files.
               <br />
