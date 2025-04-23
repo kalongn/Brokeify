@@ -196,9 +196,6 @@ export async function chooseLifeExpectancies(scenario){
 }
 export async function getCashInvestment(investmentTypes) {
     const cashName = "Cash";
-    const investmentTypeFactory = new InvestmentTypeController();
-    const investmentFactory = new InvestmentController();
-    const distributionFactory = new DistributionController();
 
 
     let cashInvestmentType = investmentTypes.find(type => type.name === cashName);
@@ -467,7 +464,15 @@ export async function performRothConversion(curYearIncome, curYearSS, federalInc
         if (!investment || investment.taxStatus !== "PRE_TAX_RETIREMENT") continue;
 
         //find the corresponding investment type
-        let investmentType = investmentTypes.find(type => type.investments.some(inv => inv._id.toString() === investment._id.toString()));
+        let investmentType;
+        for(const i in investmentTypes){
+            const invType = await investmentTypeFactory.read(investmentTypes[i]._id);
+            for(const j in invType.investments){
+                if(invType.investments[j]._id.toString()===investment._id.toString()){
+                    investmentType = invType
+                }
+            }
+        }
         if (!investmentType) continue;
 
         let transferAmount = Math.min(investment.value, remainingRC);
@@ -503,7 +508,7 @@ export async function performRothConversion(curYearIncome, curYearSS, federalInc
 
             // Add the new investment to the investment type
             investmentType.investments.push(newInvestment._id);
-            await investmentFactory.create(newInvestment._id, { value: newInvestment.value });
+            await investmentTypeFactory.update(investmentType._id, {investments: investmentType.investments});
         }
         
 

@@ -339,8 +339,9 @@ export async function simulate(
     }
     //create array of touples of investment._id, investment.value
     const investmentValuesArray = [];
-    for(const i in scenario.investmentTypes){ 
-      for (const investmentIndex in investmentTypes[i].investments) {
+    for(const i in scenario.investmentTypes){
+      const investmentType = await investmentTypeFactory.read(investmentTypes[i]._id);
+      for (const investmentIndex in investmentType.investments) {
         const inv = await investmentFactory.read(investmentTypes[i].investments[investmentIndex]);
         const touple = {
           name: `${investmentTypes[i].name} ${inv.taxStatus}`,
@@ -397,9 +398,7 @@ export async function simulate(
         //update events
         for (const i in scenario.events) {
           const event = await eventFactory.read(scenario.events[i]);
-          if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
-            
-            
+          if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {     
             await eventFactory.update(event._id, {
               amount: event.amount * event.userContributions,
             });

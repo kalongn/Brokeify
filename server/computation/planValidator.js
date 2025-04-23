@@ -177,7 +177,21 @@ async function validate(scenarioID, explorationArray) {
     }
 }
 
-//TODO: add checking for the year value
+async function removeOutOfDateTax(taxBracket){
+    if(taxBracket){
+        const realYear = new Date().getFullYear();
+        if(taxBracket.year==realYear){
+            return taxBracket;
+        }
+        else{
+            await taxFactory.delete(taxBracket._id);
+            return null;
+        }
+    }
+    return null;
+
+}
+
 async function scrape() {
     //check to see if federalIncomeTax, federalStandardDeduction, capitalGains exist
     //scrape, parse, and save to DB if not
@@ -191,6 +205,8 @@ async function scrape() {
     let capitalGainsMarried = null;
     let federalDeductionSingle = null;
     let federalDeductionMarried = null;
+
+
     for (const i in a) {
         if (a[i].taxType === "FEDERAL_INCOME" && a[i].filingStatus === "SINGLE") {
             federalIncomeSingle = a[i];
@@ -225,6 +241,18 @@ async function scrape() {
             federalDeductionMarried = a[i];
         }
     }
+
+    //determine if any of the taxes are out-of-date, remove if so
+
+    federalIncomeSingle = await removeOutOfDateTax(federalIncomeSingle);
+    federalIncomeMarried = await removeOutOfDateTax(federalIncomeMarried);
+    capitalGainsSingle = await removeOutOfDateTax(capitalGainsSingle);
+    capitalGainsMarried = await removeOutOfDateTax(capitalGainsMarried);
+    federalDeductionSingle = await removeOutOfDateTax(federalDeductionSingle);
+    federalDeductionMarried = await removeOutOfDateTax(federalDeductionMarried);
+
+    
+
 
     if (federalIncomeSingle === null || federalIncomeMarried === null) {
         //scrape:
@@ -392,7 +420,7 @@ export async function run(
         if(explorationArray[0].type==="ROTH_BOOLEAN"){
             //0 = off, 1 = on
             trueValues.push(step)
-            if(step===0){
+            if(step===-2){  // Roth -> -1 is roth, -2 not roth
                 copiedScenario.startYearRothOptimizer=undefined;
                 await scenarioFactory.update(copiedScenario._id, {startYearRothOptimizer: undefined});
 
@@ -633,8 +661,8 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
                             csvFile: s2+s+i === 0 ? csvFile : null,
                             logFile: s2+s+i === 0 ? logFile : null,
                             explorationArray: explorationArray,
-                            step1: explorationArray[0].step !== undefined ? s*explorationArray[0].step : s,
-                            step2: explorationArray[1].step !== undefined ? s2*explorationArray[1].step : s2,
+                            step1: explorationArray[0].step !== undefined ? s*explorationArray[0].step : s-2,   // Roth -> -1 is roth, -2 not roth
+                            step2: explorationArray[1].step !== undefined ? s2*explorationArray[1].step : s2-2,
                             seed: randomString,
                         }
                     );
@@ -692,7 +720,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
         if (res.error) throw new Error(res.error);
         compiledResults.results.push(res);
     }
-    
+
 
     await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
     return compiledResults;
