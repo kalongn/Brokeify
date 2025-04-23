@@ -123,6 +123,41 @@ const generateStackedBarData = (chart, yearToResults) => {
     const labels = [];
 
     const finalNameToValues = {}
+    for (const year in yearToResults) {
+        const yearlyResults = yearToResults[year];
+        for (const result of yearlyResults) {
+            switch (chart.content.quantity) {
+                case "Investments Breakdown":
+                    result.investmentValues.forEach((investment) => {
+                        if (!finalNameToValues[investment.name]) {
+                            finalNameToValues[investment.name] = [];
+                        }
+                    });
+                    break;
+                case "Incomes Breakdown":
+                    result.incomeByEvent.forEach((income) => {
+                        if (!finalNameToValues[income.name]) {
+                            finalNameToValues[income.name] = [];
+                        }
+                    });
+                    break;
+                case "Expenses Breakdown":
+                    result.expenseByEvent.forEach((expense) => {
+                        if (!finalNameToValues[expense.name]) {
+                            finalNameToValues[expense.name] = [];
+                        }
+                    });
+                    break;
+                default:
+                    // Should not happen
+                    break;
+            }
+        }
+    }
+    if (chart.content.quantity === "Expenses Breakdown" && !finalNameToValues["Total Taxes"]) {
+        finalNameToValues["Total Taxes"] = [];
+    }
+    finalNameToValues["Other"] = [];
 
     for (const year in yearToResults) {
         labels.push(year);
@@ -189,11 +224,8 @@ const generateStackedBarData = (chart, yearToResults) => {
         }
 
         nameToListOfValues["Other"] = otherValue;
-        for (const name in nameToListOfValues) {
-            if (!finalNameToValues[name]) {
-                finalNameToValues[name] = [];
-            }
-            finalNameToValues[name].push(nameToListOfValues[name]);
+        for (const name in finalNameToValues) {
+            finalNameToValues[name].push(nameToListOfValues[name] ? nameToListOfValues[name] : 0);
         }
     }
 
