@@ -33,6 +33,7 @@ import {
   chooseEventTimeframe,
   chooseLifeExpectancies,
   getCashInvestment,
+  setupMap,
   updateTaxBracketsForInflation,
   updateContributionLimitsForInflation,
   adjustEventAmount,
@@ -48,6 +49,7 @@ import {
 } from "./simulationHelper.js";
 
 export let csvFile, logFile;
+import { invMap } from "./simulationHelper.js";
 
 export async function simulate(
   scenario,
@@ -121,14 +123,9 @@ export async function simulate(
   );
   let cashInvestment = await getCashInvestment(investmentTypes);
   scenario.investmentTypes = investmentTypes.map((type) => type._id);
-  scenarioFactory.update(scenario._id, scenario);
+  await scenarioFactory.update(scenario._id, scenario);
 
-  let investmentIds = investmentTypes.flatMap((type) => type.investments);
-
-  let investments = await Promise.all(
-    investmentIds.map(async (id) => await investmentFactory.read(id))
-  );
-
+  await setupMap(scenario._id);
   let cumulativeInflation = 1;
   let lastYearTaxes = 0;
   let thisYearTaxes = 0;
@@ -149,9 +146,9 @@ export async function simulate(
         async (id) => await investmentTypeFactory.read(id)
       )
     );
-    investmentIds = investmentTypes.flatMap((type) => type.investments);
+    let investmentIds = investmentTypes.flatMap((type) => type.investments);
 
-    investments = await Promise.all(
+    let investments = await Promise.all(
       investmentIds.map(async (id) => await investmentFactory.read(id))
     );
 

@@ -24,7 +24,7 @@ const resultFactory = new ResultController();
 import { updateCSV, updateLog } from './logHelpers.js';
 import { logFile, csvFile } from './simulator.js';
 let prng = Math.random;
-
+export let invMap = new Map();
 export async function sample(expectedValue, distributionID, seed) {
 
     if (seed !== undefined && seed !== null) {
@@ -229,7 +229,22 @@ export async function getCashInvestment(investmentTypes) {
 
     return newCashInvestment;
 }
+export async function setupMap(scenarioID){
+    const scenario = await scenarioFactory.read(scenarioID);
+    //this function setsup the global map between an investment and it's type
+    const newInvMap = new Map();
+    for (const investmentTypeIDIndex in scenario.investmentTypes) {
+        const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
+        const investmentType = await investmentTypeFactory.read(investmentTypeID);
+        for (const investmentIndex in investmentType.investments) {
+            newInvMap.set(investmentType.investments[investmentIndex].toString(), investmentType._id.toString());
+            
+        }
 
+    }
+    invMap = newInvMap;
+    return invMap;
+}
 
 export function updateTaxBracketsForInflation(taxData, inflationRate) {
     //Multiplies tax brackes by 1+inflationRate
@@ -340,16 +355,7 @@ export async function processRMDs(rmdTable, currentYear, birthYear, scenario) {
         await investmentFactory.update(investment._id, { value: investment.value });
         //find investment type of investment
         
-        let investmentType = null;
-        for (const j in investmentTypes) {
-            
-            for (const i in investmentTypes[j].investments) {
-                
-                if (investmentTypes[j].investments[i].toString() == investment._id.toString()) {
-                    investmentType = investmentTypes[j];
-                }
-            }
-        }
+        let investmentType = await investmentTypeFactory.read(invMap.get(investment._id.toString()));
         //now that we have the investmentType, find a NON_RETIREMENT investment
         //create one if it doesn exist
         //deposit the right amount in there
@@ -368,6 +374,7 @@ export async function processRMDs(rmdTable, currentYear, birthYear, scenario) {
             const createdInvestment = await investmentFactory.create({ taxStatus: "NON_RETIREMENT", value: withdrawAmount });
             investmentType.investments.push(createdInvestment._id);
             await investmentTypeFactory.update(investmentType._id, { investments: investmentType.investments });
+            invMap.set(createdInvestment._id.toString(), investmentType._id.toString());
         }
         const eventDetails = `Year: ${currentYear} - RMD - Transfering $${Math.ceil(withdrawAmount * 100) / 100} within Investment Type ${investmentType.name}: ${investmentType.description}\n`;
         updateLog(eventDetails);
@@ -464,15 +471,7 @@ export async function performRothConversion(curYearIncome, curYearSS, federalInc
         if (!investment || investment.taxStatus !== "PRE_TAX_RETIREMENT") continue;
 
         //find the corresponding investment type
-        let investmentType;
-        for(const i in investmentTypes){
-            const invType = await investmentTypeFactory.read(investmentTypes[i]._id);
-            for(const j in invType.investments){
-                if(invType.investments[j]._id.toString()===investment._id.toString()){
-                    investmentType = invType
-                }
-            }
-        }
+        let investmentType = await investmentTypeFactory.read(invMap.get(investment._id.toString()));;
         if (!investmentType) continue;
 
         let transferAmount = Math.min(investment.value, remainingRC);
@@ -509,6 +508,7 @@ export async function performRothConversion(curYearIncome, curYearSS, federalInc
             // Add the new investment to the investment type
             investmentType.investments.push(newInvestment._id);
             await investmentTypeFactory.update(investmentType._id, {investments: investmentType.investments});
+            invMap.set(newInvestment._id.toString(), investmentType._id.toString());
         }
         
 
@@ -959,25 +959,16 @@ export async function processInvestmentEvents(scenario, currentYear) {
 
             await investmentFactory.update(investment._id, { value: Math.round((investment.value + tentativeInvestmentAmounts[investmentIDIndex])*100)/100 });
             //get investment type:
-            for (const investmentTypeIDIndex in scenario.investmentTypes) {
-                const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
-                const investmentType = await investmentTypeFactory.read(investmentTypeID);
+            
                 
-                if(logFile!==null){
-                    for (const j in investmentType.investments) {
-                        
-                        
-                        if (investmentType.investments[j].toString() == investmentID.toString()) {
-                            let eventDetails = `Year: ${currentYear} - INVEST - Investing $${Math.ceil(tentativeInvestmentAmounts[investmentIDIndex] * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
-                            updateLog(eventDetails);
-                            break;
-                        }
-                        
-                    }
-                }
+            if(logFile!==null){
+                let investmentType = await investmentTypeFactory.read(invMap.get(investment._id.toString()));
+                let eventDetails = `Year: ${currentYear} - INVEST - Investing $${Math.ceil(tentativeInvestmentAmounts[investmentIDIndex] * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
+                updateLog(eventDetails);
+            }
                 
 
-            }
+            
 
         }
         return;
@@ -1056,17 +1047,10 @@ export async function rebalanceInvestments(scenario, currentYear) {
 
                 //get investment type:
                 if(logFile!==null){
-                    for (const investmentTypeIDIndex in scenario.investmentTypes) {
-                        const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
-                        const investmentType = await investmentTypeFactory.read(investmentTypeID);
-                        for (const j in investmentType.investments) {
-                            if (investmentType.investments[j].toString() == investmentID.toString()) {
-                                let eventDetails = `Year: ${currentYear} - REBALANCE - Selling $${Math.ceil(sellValue * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
-                                updateLog(eventDetails);
-                            }
-                        }
-
-                    }
+                    let investmentType = await investmentTypeFactory.read(invMap.get(investment._id.toString()));
+                    let eventDetails = `Year: ${currentYear} - REBALANCE - Selling $${Math.ceil(sellValue * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
+                    updateLog(eventDetails);
+                    
                 }
 
 
@@ -1088,20 +1072,9 @@ export async function rebalanceInvestments(scenario, currentYear) {
                 await investmentFactory.update(investment._id, { value: Math.round((targetValues[investmentIDIndex])*100)/100 });
                 //get investment type:
                 if(logFile!==null){
-                    for (const investmentTypeIDIndex in scenario.investmentTypes) {
-                        const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
-                        const investmentType = await investmentTypeFactory.read(investmentTypeID);
-                        for (const j in investmentType.investments) {
-                            
-                            
-                            if (investmentType.investments[j] == investmentID) {
-                                let eventDetails = `Year: ${currentYear} - REBALANCE - Buying $${Math.ceil(buyValue * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
-                                console.log(eventDetails);
-                                updateLog(eventDetails);
-                            }
-                        }
-
-                    }
+                    let investmentType = await investmentTypeFactory.read(invMap.get(investment._id.toString()));
+                    let eventDetails = `Year: ${currentYear} - REBALANCE - Buying $${Math.ceil(buyValue * 100) / 100} in investment type ${investmentType.name}: ${investmentType.description} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
+                    updateLog(eventDetails);
                 }
 
             }
