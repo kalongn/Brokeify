@@ -931,18 +931,20 @@ export async function processInvestmentEvents(scenario, currentYear) {
                 const investment = await investmentFactory.read(investmentID);
                 if (investment.taxStatus === "AFTER_TAX_RETIREMENT") {
                     tentativeInvestmentAmounts[investmentIDIndex] *= lbRatio;
-                    totalProportion += proportions[investmentIDIndex];
+                    totalProportion += proportions[investmentIDIndex][0];
                 }
             }
 
             let amountToRedistribute = b - scenario.annualPostTaxContributionLimit;
             //redistribute investments in NON_RETIREMENT investments
-            for (const investmentIDIndex in event.allocatedInvestments) {
-                const investmentID = event.allocatedInvestments[investmentIDIndex];
-                const investment = await investmentFactory.read(investmentID);
-                if (investment.taxStatus !== "AFTER_TAX_RETIREMENT") {
-                    let pro = proportions[investmentIDIndex] / (1 - totalProportion);
-                    tentativeInvestmentAmounts[investmentIDIndex] += pro * amountToRedistribute;
+            if(totalProportion!==0){
+                for (const investmentIDIndex in event.allocatedInvestments) {
+                    const investmentID = event.allocatedInvestments[investmentIDIndex];
+                    const investment = await investmentFactory.read(investmentID);
+                    if (investment.taxStatus !== "AFTER_TAX_RETIREMENT") {
+                        let pro = proportions[investmentIDIndex] / (1 - totalProportion);
+                        tentativeInvestmentAmounts[investmentIDIndex] += pro * amountToRedistribute;
+                    }
                 }
             }
 
@@ -954,7 +956,7 @@ export async function processInvestmentEvents(scenario, currentYear) {
         for (const investmentIDIndex in event.allocatedInvestments) {
             const investmentID = event.allocatedInvestments[investmentIDIndex];
             const investment = await investmentFactory.read(investmentID);
-            
+
             await investmentFactory.update(investment._id, { value: Math.round((investment.value + tentativeInvestmentAmounts[investmentIDIndex])*100)/100 });
             //get investment type:
             for (const investmentTypeIDIndex in scenario.investmentTypes) {
