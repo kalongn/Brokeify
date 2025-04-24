@@ -302,18 +302,16 @@ export async function shouldPerformRMD(currentYear, birthYear, investments) {
 export async function processRMDs(rmdTable, currentYear, birthYear, scenario) {
     const realYear = new Date().getFullYear();
     const age = realYear + currentYear - birthYear;
-    const investmentTypes = [];
-    const investments = [];
-    for (const i in scenario.investmentTypes) {
-        const investmentType = await investmentTypeFactory.read(scenario.investmentTypes[i]);
-        investmentTypes.push(investmentType);
-        for (const j in investmentType.investments) {
-            investments.push(await investmentFactory.read(investmentType.investments[j]));
-        }
-    }
-    
-    let index = rmdTable.ages.indexOf(age);
 
+    //Batch fetch investment types and investments
+    const investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
+    const investmentTypeMap = new Map(investmentTypes.map(type => [type._id.toString(), type]));
+
+    const allInvestmentIds = investmentTypes.flatMap(type => type.investments);
+    const allInvestments = await investmentFactory.readMany(allInvestmentIds);
+    const investmentMap = new Map(allInvestments.map(inv => [inv._id.toString(), inv]));
+
+    let index = rmdTable.ages.indexOf(age);
     if (index === -1) {
         index = rmdTable.ages.length - 1;
     }
@@ -321,57 +319,56 @@ export async function processRMDs(rmdTable, currentYear, birthYear, scenario) {
     const distributionPeriod = rmdTable.distributionPeriods[index];
     if (!distributionPeriod) return 0;
 
-    //calculate sum of pretax investment values
-    const preTaxInvestments = investments.filter(inv => inv.taxStatus === "PRE_TAX_RETIREMENT");
+    // Calculate sum of pretax investment values
+    const preTaxInvestments = allInvestments.filter(inv => inv.taxStatus === "PRE_TAX_RETIREMENT");
     const s = preTaxInvestments.reduce((sum, inv) => sum + inv.value, 0);
     if (s <= 0) return 0;
     const rmd = s / distributionPeriod;
 
-    //process RMD according to orderedRMDStrategy
+    // Process RMD according to orderedRMDStrategy
     let remainingRMD = rmd;
-    
 
-    
     for (const investmentId of scenario.orderedRMDStrategy) {
-        
-        const investment = investmentId.hasOwnProperty('value') ? investmentId : await investmentFactory.read(investmentId);
-        
+        const investment = investmentId.hasOwnProperty('value') ? investmentId : investmentMap.get(investmentId.toString());
         if (!investment || investment.taxStatus !== "PRE_TAX_RETIREMENT") continue;
 
         const withdrawAmount = Math.min(investment.value, remainingRMD);
         investment.value -= withdrawAmount;
         remainingRMD -= withdrawAmount;
         await investmentFactory.update(investment._id, { value: investment.value });
-        //find investment type of investment
-        
-        let investmentType = await investmentTypeFactory.read(invMap.get(investment._id.toString()));
-        //now that we have the investmentType, find a NON_RETIREMENT investment
-        //create one if it doesn exist
-        //deposit the right amount in there
-        if (investmentType == null) {
+
+        // Find investment type of investment
+        const investmentTypeId = invMap.get(investment._id.toString());
+        const investmentType = investmentTypeMap.get(investmentTypeId);
+
+        if (!investmentType) {
             throw ("In processRMD, investment type is null");
         }
-        let foundBool = false;
-        for (const i in investmentType.investments) {
-            const investment = await investmentFactory.read(investmentType.investments[i]);
-            if (investment.taxStatus == "NON_RETIREMENT") {
-                await investmentFactory.update(investment._id, { value: investment.value + withdrawAmount });
-                foundBool = true;
+
+        // Find a NON_RETIREMENT investment (or create one)
+        let foundNonRetirement = false;
+        for (const invId of investmentType.investments) {
+            const inv = investmentMap.get(invId.toString());
+            if (inv && inv.taxStatus === "NON_RETIREMENT") {
+                await investmentFactory.update(inv._id, { value: inv.value + withdrawAmount });
+                foundNonRetirement = true;
+                break;
             }
         }
-        if (!foundBool) {
+
+        if (!foundNonRetirement) {
             const createdInvestment = await investmentFactory.create({ taxStatus: "NON_RETIREMENT", value: withdrawAmount });
             investmentType.investments.push(createdInvestment._id);
             await investmentTypeFactory.update(investmentType._id, { investments: investmentType.investments });
             invMap.set(createdInvestment._id.toString(), investmentType._id.toString());
         }
+
         const eventDetails = `Year: ${currentYear} - RMD - Transfering $${Math.ceil(withdrawAmount * 100) / 100} within Investment Type ${investmentType.name}: ${investmentType.description}\n`;
         updateLog(eventDetails);
         if (remainingRMD <= 0) break;
     }
 
     return rmd;
-
 }
 export async function updateInvestments(investmentTypes) {
     let curYearIncome = 0; // Track taxable income for 'non-retirement' investments
