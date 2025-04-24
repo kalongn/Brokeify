@@ -63,118 +63,107 @@ export async function sample(expectedValue, distributionID, seed) {
 
 }
 export async function chooseEventTimeframe(scenario) {
-    //select timeframes for events
-    //check whether invest events overlap, or rebalance events of smae type overlap
-    //if so, return false
-    //otherwise, return true
+    //Select timeframes for events
+    //Check whether invest events overlap, or rebalance events of the same type overlap
+    //If so, return false
+    //Otherwise, return true
 
-    //determine starts/durartions for all events that are not 'start with/after'
-    let startWithOrAfterEvents = 0;
-    for (const eventIDIndex in scenario.events) {
-        const eventID = scenario.events[eventIDIndex];
-        const event = await eventFactory.read(eventID);
-        
-        //if it has start year distribution, choose it
-        if(event.startYearTypeDistribution===undefined){
-            startWithOrAfterEvents++;
-            continue;
+    try {
+        //Fetch all events at once using a direct MongoDB query
+        const events = await eventFactory.readMany(scenario.events);
+        const eventsMap = new Map(events.map(event => [event._id.toString(), event]));
+
+        //Determine starts/durations for all events that are not 'start with/after'
+        let startWithOrAfterEvents = 0;
+        for (const eventId of scenario.events) {
+            const event = eventsMap.get(eventId.toString());
+            if (!event) {
+                //console.log(`Event with ID ${eventId} not found!`);
+                continue;
+            }
+
+            if (event.startYearTypeDistribution === undefined) {
+                startWithOrAfterEvents++;
+                continue;
+            }
+
+            const startYear = await sample(0, event.startYearTypeDistribution);
+            const duration = await sample(0, event.durationTypeDistribution);
+
+            await eventFactory.update(event._id, { startYear: startYear, duration: duration });
         }
-        const startYear = await sample(0, event.startYearTypeDistribution);
-        const duration  = await sample(0, event.durationTypeDistribution);
-        
-        await eventFactory.update(event._id, {startYear: startYear, duration: duration});
 
-    
-    
+        //Now, choose startWithOrAfterEvents
+        while (startWithOrAfterEvents > 0) {
+            for (const eventId of scenario.events) {
+                const event = eventsMap.get(eventId.toString());
+                if (!event) {
+                    //console.log(`Event with ID ${eventId} not found!`);
+                    continue;
+                }
+
+                if (!(event.startsWith !== undefined || event.startsAfter !== undefined)) {
+                    continue;
+                }
+
+                if (event.startsWith !== undefined) {
+                    const refedEvent = eventsMap.get(event.startsWith.toString());
+                    if (!refedEvent) {
+                        //console.log(`Referenced event with ID ${event.startsWith} not found!`);
+                        return false; // Or handle this error appropriately
+                    }
+                    const duration = await sample(0, event.durationTypeDistribution);
+                    await eventFactory.update(event._id, { startYear: refedEvent.startYear, duration: duration });
+                } else if (event.startsAfter !== undefined) {
+                    const refedEvent = eventsMap.get(event.startsAfter.toString());
+                    if (!refedEvent) {
+                        //console.log(`Referenced event with ID ${event.startsAfter} not found!`);
+                        return false;
+                    }
+                    const duration = await sample(0, event.durationTypeDistribution);
+                    await eventFactory.update(event._id, { startYear: refedEvent.startYear + refedEvent.duration + 1, duration: duration });
+                }
+                startWithOrAfterEvents--;
+            }
+        }
+
+        // Finally, do verification for invest events and rebalance events
+        // First: invest
+        const investEvents = Array.from(eventsMap.values()).filter(event => event.eventType === "INVEST");
+        for (let i = 0; i < investEvents.length; i++) {
+            for (let j = i + 1; j < investEvents.length; j++) {
+                const event1 = investEvents[i];
+                const event2 = investEvents[j];
+
+                if (!(event2.startYear + event2.duration < event1.startYear || event1.startYear + event1.duration < event2.startYear)) {
+                    return false;
+                }
+            }
+        }
+
+        // Next, rebalance:
+        const rebalanceEvents = Array.from(eventsMap.values()).filter(event => event.eventType === "REBALANCE");
+        for (let i = 0; i < rebalanceEvents.length; i++) {
+            for (let j = i + 1; j < rebalanceEvents.length; j++) {
+                const event1 = rebalanceEvents[i];
+                const event2 = rebalanceEvents[j];
+
+                if (event1.taxStatus !== event2.taxStatus) {
+                    continue;
+                }
+
+                if (!(event2.startYear + event2.duration < event1.startYear || event1.startYear + event1.duration < event2.startYear)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+
+    } catch (error) {
+        console.log("Error in chooseEventTimeframe:", error);
+        return false;
     }
-    //now, choose startWithOrAfterEvents 
-    while(startWithOrAfterEvents>0){
-        for (const eventIDIndex in scenario.events) {
-            const eventID = scenario.events[eventIDIndex];
-            const event = await eventFactory.read(eventID);
-            
-            if(!(event.startsWith!==undefined||event.startsAfter!==undefined)){
-                continue;
-            }
-            //starts with or starts after
-            if(event.startsWith!==undefined){
-                const refedEvent = await eventFactory.read(event.startsWith);
-                const duration  = await sample(0, event.durationTypeDistribution);
-                await eventFactory.update(event._id, {startYear: refedEvent.startYear, duration: duration});
-            }
-            else if(event.startsAfter!==undefined){
-                const refedEvent = await eventFactory.read(event.startsAfter);
-                const duration  = await sample(0, event.durationTypeDistribution);
-                await eventFactory.update(event._id, {startYear: refedEvent.startYear+refedEvent.duration+1, duration: duration});
-            }
-            startWithOrAfterEvents--;
-        
-        }
-    }
-
-
-
-
-    //finally, do verification for invest events and rebalance events
-
-    //first: invest
-    for (const eventIDIndex in scenario.events) {
-        const eventID = scenario.events[eventIDIndex];
-        const event = await eventFactory.read(eventID);
-        
-        if(event.eventType!=="INVEST"){
-            continue;
-        }
-        for (const eventIDIndex2 in scenario.events) {
-            const eventID2 = scenario.events[eventIDIndex2];
-            const event2 = await eventFactory.read(eventID2);
-            
-            if(event2._id.toString()===event._id.toString()){
-                continue;
-            }
-            if(event2.eventType!=="INVEST"){
-                continue;
-            }
-
-            //check if overlap
-            
-            if(!(event2.startYear+event2.duration<event.startYear||event.startYear+event.duration<event2.startYear)){   
-                return false;
-            }
-        }
-    }
-    //next, rebalance:
-    for (const eventIDIndex in scenario.events) {
-        const eventID = scenario.events[eventIDIndex];
-        const event = await eventFactory.read(eventID);
-        
-        if(event.eventType!=="REBALANCE"){
-            continue;
-        }
-
-        for (const eventIDIndex2 in scenario.events) {
-            const eventID2 = scenario.events[eventIDIndex2];
-            const event2 = await eventFactory.read(eventID2);
-            if(event2._id.toString()===event._id.toString()){
-                continue;
-            }
-            if(event2.eventType!=="REBALANCE"){
-                continue;
-            }
-            if(event2.taxStatus!=event.taxStatus){
-                continue;
-            }
-
-            //check if overlap
-            
-            if(!(event2.startYear+event2.duration<event.startYear||event.startYear+event.duration<event2.startYear)){   
-                return false;
-            }
-        }
-    }
-    return true;
-
-
 }
 
 export async function chooseLifeExpectancies(scenario){

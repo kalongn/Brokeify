@@ -188,55 +188,71 @@ export async function simulate(
         await updateContributionLimitsForInflation(scenario, inflationRate);
 
         const events = scenario.events;
-        //update events
-        for (const i of events) {
-            const event = await eventFactory.read(i);
+		//fetch all events in one go
+		const allEvents = await eventFactory.readMany(events);
+		const eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
 
-            if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
-                await adjustEventAmount(event, inflationRate, scenario, currentYear);
-            }
-        }
-        const incomeByEvent = [];
+		//update events
+		for (const eventId of events) {
+			const event = eventsMap.get(eventId);
+			if (!event) {
+				//console.log(`Event with ID ${eventId} not found!`);
+				continue;
+			}
 
-        for (const i of events) {
-            const event = await eventFactory.read(i);
-            if (event.eventType !== "INCOME") {
-                continue;
-            }
+			if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
+				await adjustEventAmount(event, inflationRate, scenario, currentYear);
+			}
+		}
 
-            const income = event.amount;
+		const incomeByEvent = [];
+		cashInvestment = await investmentFactory.read(cashInvestment._id);
+		//No need to fetch events again, use the map
+		for (const eventId of events) {
+			const event = eventsMap.get(eventId);
+			if (!event) {
+				//console.log(`Event with ID ${eventId} not found!`);
+				continue;
+			}
 
-            if (
-                !(
-                    event.startYear <= realYear + currentYear &&
-                    event.startYear + event.duration >= realYear + currentYear
-                )
-            ) {
-                continue;
-            }
+			if (event.eventType !== "INCOME") {
+				continue;
+			}
 
-            const incomeEventDetails = `Year: ${currentYear} - INCOME - ${
-                event.name
-            }: ${event.description} - Amount is $${Math.ceil(income * 100) / 100}\n`;
-            updateLog(incomeEventDetails);
-            event.amount = income;
+			const income = event.amount;
 
-            incomeByEvent.push({
-                name: event.name,
-                value: income,
-            });
+			if (
+				!(
+					event.startYear <= realYear + currentYear &&
+					event.startYear + event.duration >= realYear + currentYear
+				)
+			) {
+				continue;
+			}
 
-            const a = await investmentFactory.read(cashInvestment._id);
+			const incomeEventDetails = `Year: ${currentYear} - INCOME - ${
+				event.name
+			}: ${event.description} - Amount is $${Math.ceil(income * 100) / 100}\n`;
+			updateLog(incomeEventDetails);
+			event.amount = income;
 
-            await investmentFactory.update(cashInvestment._id, {
-                value: a.value + income,
-            });
+			incomeByEvent.push({
+				name: event.name,
+				value: income,
+			});
 
-            curYearIncome += income;
-            if (event.isSocialSecurity) {
-                curYearSS += income;
-            }
-        }
+			//fetch cashInvestment only once outside the loop if possible, or use a similar batching approach if needed inside
+			cashInvestment.value+=income;
+
+
+			curYearIncome += income;
+			if (event.isSocialSecurity) {
+				curYearSS += income;
+			}
+		}
+		await investmentFactory.update(cashInvestment._id, {
+			value: cashInvestment.value
+		});
         const reportedIncome = curYearIncome;
 
         //await processRMDs(rmdTable, currentYear, scenario.userBirthYear, scenario);
