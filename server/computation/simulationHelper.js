@@ -776,15 +776,26 @@ export async function processExpenses(scenario, previousYearTaxes, currentYear) 
 
     return toReturn;
 }
-export async function processDiscretionaryExpenses(scenario, currentYear) { //returns amount not paid
-    //first: determine how much value you have above fincncial goal:
+export async function processDiscretionaryExpenses(scenario, currentYear) {
+    // First: determine how much value you have above financial goal:
 
-    //find amount I want to pay:
+    // Find amount I want to pay:
     const expenseBreakdown = [];
     let totalExpenses = 0;
-    for (const eventIDIndex in scenario.events) {
-        const eventID = scenario.events[eventIDIndex];
-        const event = await eventFactory.read(eventID);
+
+    // Batch fetch events
+    const eventIds = scenario.events;
+    const events = await eventFactory.readMany(eventIds);
+    const eventsMap = new Map(events.map(event => [event._id.toString(), event]));
+
+
+    for (const eventId of eventIds) {
+        const event = eventsMap.get(eventId.toString());
+        if (!event) {
+            console.warn(`Event with ID ${eventId} not found!`);
+            continue;
+        }
+
         const realYear = new Date().getFullYear();
         if (!(event.startYear <= realYear + currentYear && event.duration + event.startYear >= realYear + currentYear)) {
             continue;
@@ -793,50 +804,50 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
             totalExpenses += event.amount;
         }
     }
-    //console.log(`TOTAL DISCRETIONARY EXPENSES: ${totalExpenses}`);
-    //find sum of value of investments:
-    totalExpenses = Math.round((totalExpenses)*100)/100;
+    // Find sum of value of investments:
     let totalValue = 0;
-    for (const investmentTypeIDIndex in scenario.investmentTypes) {
-        const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
-        const investmentType = await investmentTypeFactory.read(investmentTypeID);
-        for (const investmentIndex in investmentType.investments) {
-            const investment = await investmentFactory.read(investmentType.investments[investmentIndex]);
-            totalValue += investment.value;
-        }
-
+    const investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
+    const allInvestmentIds = investmentTypes.flatMap(type => type.investments);
+    const investments = await investmentFactory.readMany(allInvestmentIds);
+    for (const investment of investments) {
+        totalValue += investment.value;
     }
-    totalValue = Math.round((totalValue)*100)/100;
+    totalValue = Math.round((totalValue) * 100) / 100;
 
+    // Calculate total in strategy
     let totalInStrategy = 0;
-    for (const investmentIDIndex in scenario.orderedExpenseWithdrawalStrategy) {
-
-        const investmentID = scenario.orderedExpenseWithdrawalStrategy[investmentIDIndex];
-        const investment = await investmentFactory.read(investmentID);
-        
+    const strategyInvestments = await investmentFactory.readMany(scenario.orderedExpenseWithdrawalStrategy);
+    for (const investment of strategyInvestments) {
         totalInStrategy += investment.value;
-
     }
-    totalInStrategy = Math.round((totalInStrategy)*100)/100;
+    totalInStrategy = Math.round((totalInStrategy) * 100) / 100;
 
-    let amountICanPay = Math.max(totalValue - scenario.financialGoal, totalInStrategy);
-    if (amountICanPay <= 0) {
-        
-        return { np: totalExpenses, p: 0, c:0, expenseBreakdown: expenseBreakdown };
-    }
+    totalExpenses = Math.round((totalExpenses) * 100) / 100;
     let toReturn = { np: 0, p: totalExpenses, c: 0, expenseBreakdown: expenseBreakdown };
     let leftToPay = totalExpenses;
+    let amountICanPay = Math.max(totalValue - scenario.financialGoal, totalInStrategy);
+
+
+    
+
+    amountICanPay = Math.max(totalValue - scenario.financialGoal, totalInStrategy);
+    if (amountICanPay <= 0) {
+        return { np: totalExpenses, p: 0, c: 0, expenseBreakdown: expenseBreakdown };
+    }
+
     if (amountICanPay < totalExpenses) {
-        toReturn = { np: totalExpenses - amountICanPay, p: amountICanPay, c: 0, expenseBreakdown: expenseBreakdown};
+        toReturn = { np: totalExpenses - amountICanPay, p: amountICanPay, c: 0, expenseBreakdown: expenseBreakdown };
         leftToPay = amountICanPay;
     }
 
-    
-    //determine the expenses you are 'going to pay' in order to log them
+    // Determine the expenses you are 'going to pay' in order to log them
     let logToPay = amountICanPay;
-    for (const eventIDIndex in scenario.events) {
-        const eventID = scenario.events[eventIDIndex];
-        const event = await eventFactory.read(eventID);
+    for (const eventId of eventIds) {
+        const event = eventsMap.get(eventId.toString());
+        if (!event) {
+            console.warn(`Event with ID ${eventId} not found!`);
+            continue;
+        }
         const realYear = new Date().getFullYear();
         if (logToPay <= 0) {
             break;
@@ -855,61 +866,51 @@ export async function processDiscretionaryExpenses(scenario, currentYear) { //re
             });
         }
     }
-    //start from cash:
-    let cashInvestment;
-    for (const investmentTypeIDIndex in scenario.investmentTypes) {
-        const investmentTypeID = scenario.investmentTypes[investmentTypeIDIndex];
-        const investmentType = await investmentTypeFactory.read(investmentTypeID);
-        if (investmentType.name === "Cash") {
-            cashInvestment = await investmentFactory.read(investmentType.investments[0]);
-        }
 
+    // Start from cash:
+    let cashInvestment;
+    for (const investmentType of investmentTypes) {
+        if (investmentType.name === "Cash") {
+            cashInvestment = await investmentFactory.read(investmentType.investments[0]); // Assuming it's the first one
+            break;
+        }
     }
+
+
     if (!cashInvestment) {
         throw ("CRITICAL ERROR: COULD NOT FIND CASH INVESTMENT IN processDiscretionaryExpenses()");
     }
 
-    //pay from cash:
+    // Pay from cash:
     if (cashInvestment.value >= leftToPay) {
-        
-        await investmentFactory.update(cashInvestment._id, { value: Math.round((cashInvestment.value - leftToPay)*100)/100 });
+        await investmentFactory.update(cashInvestment._id, { value: Math.round((cashInvestment.value - leftToPay) * 100) / 100 });
         leftToPay = 0;
-    }
-    else {
+    } else {
         leftToPay -= cashInvestment.value;
         await investmentFactory.update(cashInvestment._id, { value: 0 });
-
     }
-    //go in order of orderedExpenseWithdrawalStrategy
-    for (const investmentIDIndex in scenario.orderedExpenseWithdrawalStrategy) {
+
+    // Go in order of orderedExpenseWithdrawalStrategy
+    const orderedInvestments = await investmentFactory.readMany(scenario.orderedExpenseWithdrawalStrategy);
+    for (const investment of orderedInvestments) {
         if (leftToPay === 0) {
             break;
         }
-        const investmentID = scenario.orderedExpenseWithdrawalStrategy[investmentIDIndex];
-        const investment = await investmentFactory.read(investmentID);
 
-        //take out as much value as posssible
+        //take out as much value as possible
         if (investment.value > leftToPay) {
-            await investmentFactory.update(investment._id, { value: Math.round((investment.value - leftToPay)*100)/100 });
+            await investmentFactory.update(investment._id, { value: Math.round((investment.value - leftToPay) * 100) / 100 });
             leftToPay = 0;
             toReturn.c += leftToPay;
             break;
-        }
-        else {
-
+        } else {
             leftToPay -= investment.value;
             toReturn.c += investment.value;
             await investmentFactory.update(investment._id, { value: 0 });
-
         }
-
-
     }
 
-
-
     return toReturn;
-
 }
 export async function processInvestmentEvents(scenario, currentYear) {
     //cannot include pre-tax-retirement
