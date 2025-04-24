@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, appendFileSync, fstat } from 'fs';
 import seedrandom from 'seedrandom';
+import mongoose from "mongoose";
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
 import InvestmentController from "../db/controllers/InvestmentController.js";
@@ -371,52 +372,77 @@ export async function processRMDs(rmdTable, currentYear, birthYear, scenario) {
     return rmd;
 }
 export async function updateInvestments(investmentTypes) {
-    let curYearIncome = 0; // Track taxable income for 'non-retirement' investments
-    //const investmentFactory = new InvestmentController(); // Initialize DB controller
+    let curYearIncome = 0; //Track taxable income for 'non-retirement' investments
 
-    // Iterate through investment types
+    //Batch fetch investments and distributions
+    const allInvestmentIds = investmentTypes.flatMap(type => type.investments);
+    const allInvestments = await investmentFactory.readMany(allInvestmentIds);
+    const investmentMap = new Map(allInvestments.map(inv => [inv._id.toString(), inv]));
+
+    const allDistributionIds = investmentTypes.map(type => type.expectedAnnualIncomeDistribution)
+        .concat(investmentTypes.map(type => type.expectedAnnualReturnDistribution));
+    const distributions = await distributionFactory.readMany(allDistributionIds);
+    const distributionMap = new Map(distributions.map(dist => [dist._id.toString(), dist]));
+
+    const updates = []; //array to hold update operations
+
+    //Iterate through investment types
     for (const type of investmentTypes) {
-        for (const investmentID of type.investments) {
-            
-            const investment = investmentID.hasOwnProperty('value') ? investmentID : await investmentFactory.read(investmentID);
+        const expectedAnnualIncomeDistribution = distributionMap.get(type.expectedAnnualIncomeDistribution.toString());
+        const expectedAnnualReturnDistribution = distributionMap.get(type.expectedAnnualReturnDistribution.toString());
 
-            //investmentFactory.read(investmentID);
-            //calculate generated income
-            let generatedIncome = await sample(type.expectedAnnualIncome, type.expectedAnnualIncomeDistribution);
-            //add the income to the investment value
-            let distribution = await distributionFactory.read(type.expectedAnnualIncomeDistribution);
-            if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {
+        for (const investmentID of type.investments) {
+            const investment = investmentMap.get(investmentID.toString());
+
+            if (!investment) {
+                console.warn(`Investment with ID ${investmentID} not found!`);
+                continue;
             }
-            else {
+
+            //Calculate generated income
+            let generatedIncome = await sample(type.expectedAnnualIncome, expectedAnnualIncomeDistribution);
+            if (expectedAnnualIncomeDistribution.distributionType !== "FIXED_AMOUNT" &&
+                expectedAnnualIncomeDistribution.distributionType !== "UNIFORM_AMOUNT" &&
+                expectedAnnualIncomeDistribution.distributionType !== "NORMAL_AMOUNT") {
                 generatedIncome = investment.value * (generatedIncome);
             }
-            //add income to curYearIncome if 'non-retirement' and 'taxable'
+
+            //Add income to curYearIncome if 'non-retirement' and 'taxable'
             if (investment.taxStatus === "NON_RETIREMENT" && type.taxability) {
                 curYearIncome += generatedIncome;
             }
 
-            investment.value +=generatedIncome
+            investment.value += generatedIncome;
 
-
-            //calculate value change (growth) based on expected return
-            let growth = await sample(type.expectedAnnualReturn, type.expectedAnnualReturnDistribution);
-            distribution = await distributionFactory.read(type.expectedAnnualReturnDistribution);
-            if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {
+            //Calculate value change (growth) based on expected return
+            let growth = await sample(type.expectedAnnualReturn, expectedAnnualReturnDistribution);
+            if (expectedAnnualReturnDistribution.distributionType !== "FIXED_AMOUNT" &&
+                expectedAnnualReturnDistribution.distributionType !== "UNIFORM_AMOUNT" &&
+                expectedAnnualReturnDistribution.distributionType !== "NORMAL_AMOUNT") {
+                investment.value *= (1 + growth);
+            } else {
                 investment.value += (growth);
             }
-            else {
-                investment.value *= (1 + growth);
-            }
 
-            //calculate expenses using the average value over the year
+            //Calculate expenses using the average value over the year
             let avgValue = (investment.value + (investment.value / (1 + growth))) / 2;
             let expenses = avgValue * type.expenseRatio;
 
-            //subtract expens
+            //Subtract expenses
             investment.value -= expenses;
-            investment.value = Math.round((investment.value)*100)/100;
-            await investmentFactory.update(investment._id, { value: investment.value });
+            investment.value = Math.round((investment.value) * 100) / 100;
+
+            updates.push({
+                updateOne: {
+                    filter: { _id: investment._id },
+                    update: { $set: { value: investment.value } },
+                },
+            });
         }
+    }
+
+    if (updates.length > 0) {
+        await mongoose.model('Investment').bulkWrite(updates);
     }
 
     return curYearIncome;

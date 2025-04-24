@@ -116,11 +116,7 @@ export async function simulate(
     const endYear =
         scenario.userBirthYear + scenario.userLifeExpectancy - realYear;
 
-    let investmentTypes = await Promise.all(
-        scenario.investmentTypes.map(
-            async (id) => await investmentTypeFactory.read(id)
-        )
-    );
+    let investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
     let cashInvestment = await getCashInvestment(investmentTypes);
     scenario.investmentTypes = investmentTypes.map((type) => type._id);
     await scenarioFactory.update(scenario._id, scenario);
@@ -141,16 +137,9 @@ export async function simulate(
         curYearSS = 0;
         thisYearGains = 0;
         thisYearTaxes = 0;
-        investmentTypes = await Promise.all(
-            scenario.investmentTypes.map(
-                async (id) => await investmentTypeFactory.read(id)
-            )
-        );
-        let investmentIds = investmentTypes.flatMap((type) => type.investments);
-
-        let investments = await Promise.all(
-            investmentIds.map(async (id) => await investmentFactory.read(id))
-        );
+        investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
+		let investmentIds = investmentTypes.flatMap((type) => type.investments);
+		let investments = await investmentFactory.readMany(investmentIds);
 
         const inflationRate = await sample(
             scenario.inflationAssumption,
