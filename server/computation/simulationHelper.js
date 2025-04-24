@@ -449,92 +449,131 @@ export async function updateInvestments(investmentTypes) {
 }
 export async function performRothConversion(curYearIncome, curYearSS, federalIncomeTax, currentYear, birthYear, orderedRothStrategy, investmentTypes) {
 
-
     const age = currentYear - birthYear;
-
-    //compute curYearFedTaxableIncome
-
     const curYearFedTaxableIncome = curYearIncome - 0.15 * curYearSS;
 
-    //find the user's current tax bracket
-    
+    // Find the user's current tax bracket
     let taxBracket = federalIncomeTax.taxBrackets.find(bracket =>
         curYearFedTaxableIncome >= bracket.lowerBound && curYearFedTaxableIncome <= bracket.upperBound
     );
 
-    if (!taxBracket) return { curYearIncome, curYearEarlyWithdrawals: 0 }; // No valid tax bracket found
+    if (!taxBracket) return { curYearIncome, curYearEarlyWithdrawals: 0 };
 
-    //upper limit of tax bracket
     const u = taxBracket.upperBound;
-
-
     let rc = u - curYearFedTaxableIncome;
-    if (rc <= 0) return { curYearIncome, curYearEarlyWithdrawals: 0 }; // No room for Roth conversion
-
-    
+    if (rc <= 0) return { curYearIncome, curYearEarlyWithdrawals: 0 };
 
     let remainingRC = rc;
 
-    for (const investmentID of orderedRothStrategy) {
-        if (remainingRC <= 0) break; // Stop once RC amount is satisfied
+    // Batch fetch investments and build a map for quick access
+    const allInvestmentIds = orderedRothStrategy.map(id => typeof id === 'object' ? id._id : id).filter(id => id !== undefined);
+    const investments = await investmentFactory.readMany(allInvestmentIds);
+    const investmentMap = new Map(investments.map(inv => [inv._id.toString(), inv]));
 
-        //fetch the investment from DB if needed
-        let investment = investmentID.hasOwnProperty('value') ? investmentID : await investmentFactory.read(investmentID);
+    // Batch fetch all investments within investment types involved in the strategy
+    const allPotentialAfterTaxInvestmentIds = [];
+    for (const type of investmentTypes) {
+        allPotentialAfterTaxInvestmentIds.push(...type.investments);
+    }
+    const allPotentialAfterTaxInvestments = await investmentFactory.readMany(allPotentialAfterTaxInvestmentIds);
+    const allPotentialAfterTaxInvestmentsMap = new Map(allPotentialAfterTaxInvestments.map(inv => [inv._id.toString(), inv]));
+
+
+    const investmentTypeMap = new Map(investmentTypes.map(type => [type._id.toString(), type]));
+
+
+    const investmentUpdates = [];
+    const investmentTypeUpdates = [];
+    const newInvestments = [];
+
+    for (const investmentId of orderedRothStrategy) {
+        if (remainingRC <= 0) break;
+
+        //Ensure investmentId is consistently the ID
+        const investmentIdToUse = typeof investmentId === 'object' ? investmentId._id : investmentId;
+        let investment = investmentMap.get(investmentIdToUse.toString());
+
+        if (!investment) {
+            // If investment is not found in the map, it might be the object itself
+            if (investmentId.hasOwnProperty('value') && investmentId.hasOwnProperty('_id') && investmentId.taxStatus === "PRE_TAX_RETIREMENT") {
+                investment = investmentId;
+            } else {
+                console.warn(`Investment with ID ${investmentIdToUse} not found!`);
+                continue;
+            }
+        }
+
         if (!investment || investment.taxStatus !== "PRE_TAX_RETIREMENT") continue;
 
-        //find the corresponding investment type
-        let investmentType = await investmentTypeFactory.read(invMap.get(investment._id.toString()));;
+        const investmentType = investmentTypeMap.get(invMap.get(investment._id.toString()));
         if (!investmentType) continue;
-
         let transferAmount = Math.min(investment.value, remainingRC);
         investment.value -= transferAmount;
         remainingRC -= transferAmount;
 
-        //find or create an equivalent "AFTER_TAX_RETIREMENT" investment
-        let afterTaxInvestment = false;
-
-
-        for (const investmentID2Index in investmentType.investments) {
-
-
-            const investmentID2 = investmentType.investments[investmentID2Index];
-
-            let investment2 = investmentID2.hasOwnProperty('value') ? investmentID2 : await investmentFactory.read(investmentID2);
-
-            if (investment2.taxStatus == "AFTER_TAX_RETIREMENT") {
-                afterTaxInvestment = investment2;
-
+        // Find or create an equivalent "AFTER_TAX_RETIREMENT" investment
+        let afterTaxInvestment = null;
+        for (const invId of investmentType.investments) {
+            const inv = allPotentialAfterTaxInvestmentsMap.get(invId.toString());
+            if (inv && inv.taxStatus === "AFTER_TAX_RETIREMENT") {
+                afterTaxInvestment = inv;
+                break;
             }
         }
 
         if (afterTaxInvestment) {
             afterTaxInvestment.value += transferAmount;
-            await investmentFactory.update(afterTaxInvestment._id, { value: afterTaxInvestment.value });
-        } else {
-            // Create a new after-tax retirement investment under the same type
-            const newInvestment = await investmentFactory.create({
-                value: transferAmount,
-                taxStatus: "AFTER_TAX_RETIREMENT"
+            investmentUpdates.push({
+                updateOne: {
+                    filter: { _id: afterTaxInvestment._id },
+                    update: { $set: { value: afterTaxInvestment.value } }
+                }
             });
 
+        } else {
+            //Create a new after-tax retirement investment under the same type
+            const newInvestment = {
+                value: transferAmount,
+                taxStatus: "AFTER_TAX_RETIREMENT"
+            };
+            const createdInvestment = await investmentFactory.create(newInvestment);
+            newInvestments.push(createdInvestment._id);
+
             // Add the new investment to the investment type
-            investmentType.investments.push(newInvestment._id);
-            await investmentTypeFactory.update(investmentType._id, {investments: investmentType.investments});
-            invMap.set(newInvestment._id.toString(), investmentType._id.toString());
+            investmentType.investments.push(createdInvestment._id);
+            investmentTypeUpdates.push({
+                updateOne: {
+                    filter: { _id: investmentType._id },
+                    update: { $set: { investments: investmentType.investments } }
+                }
+            });
+
+            invMap.set(createdInvestment._id.toString(), investmentType._id.toString());
         }
-        
 
-        // Update the original pre-tax investment in DB
+        //Update the original pre-tax investment
+        investmentUpdates.push({
+            updateOne: {
+                filter: { _id: investment._id },
+                update: { $set: { value: investment.value } }
+            }
+        });
 
-        await investmentFactory.update(investment._id, { value: investment.value });
         const eventDetails = `Year: ${currentYear} - ROTH - Transfering $${Math.ceil(transferAmount * 100) / 100} within Investment Type ${investmentType.name}: ${investmentType.description}\n`;
         updateLog(eventDetails);
+    }
+
+    if (investmentUpdates.length) {
+        await mongoose.model('Investment').bulkWrite(investmentUpdates);
+    }
+    if (investmentTypeUpdates.length) {
+        await mongoose.model('InvestmentType').bulkWrite(investmentTypeUpdates);
     }
 
     //update current year income
     curYearIncome += rc - remainingRC;
 
-    // update early withdrawals if the user is younger than 59
+    //update early withdrawals if the user is younger than 59
     let curYearEarlyWithdrawals = age < 59 ? rc - remainingRC : 0;
 
     return { curYearIncome, curYearEarlyWithdrawals };
