@@ -188,6 +188,7 @@ router.post("/runSimulation/", async (req, res) => {
         return res.status(200).send(simulationId._id);
     } catch (error) {
         console.error("Error fetching simulation:", error);
+        await userController.update(userId, { isRunningSimulation: false });
         return res.status(500).send("Internal Server Error");
     }
 });
