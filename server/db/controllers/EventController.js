@@ -82,6 +82,23 @@ export default class EventController {
         }
     }
 
+    /**
+     * Reads multiple Events with the given array of IDs
+     * @param {mongoose.Types.ObjectId[]} ids An array of Event IDs
+     * @returns {Promise<Array<Event>>} A Promise that resolves to an array of Event objects
+     */
+    async readMany(ids) {
+        try {
+            if (!Array.isArray(ids) || ids.length === 0) {
+                return [];
+            }
+            const events = await mongoose.model('Event').find({ _id: { $in: ids } }).exec();
+            return events;
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
     async readWithPopulate(id) {
         try {
             const event = await Event.findById(id)
