@@ -190,7 +190,6 @@ export async function simulate(
 		const incomeByEvent = adjustEventsAmountReturn.incomeByEvent;
 		cashInvestment = adjustEventsAmountReturn.cashInvestment;
 
-		console.log(`curYearIncome - ${curYearIncome}`)
         const reportedIncome = curYearIncome;
 		console.timeEnd("adjustEventsAmount");
 
@@ -237,7 +236,6 @@ export async function simulate(
 		console.time("calculateTaxes")
         curYearIncome += rothConversion.curYearIncome;
         let earlyWithdrawalTaxPaid = 0;
-		console.log(`lastYearIncome: ${lastYearIncome} lastYearSS: ${lastYearSS}: lastYearEarlyWithdrawl:${lastYearEarlyWithdrawl} lastYearGains: ${lastYearGains}`)
         const calcTaxReturn = calculateTaxes(
             federalIncomeTax,
             stateIncomeTax,
