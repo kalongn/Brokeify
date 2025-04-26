@@ -23,7 +23,7 @@ const generateLineChartData = (yearToResults) => {
                 count++;
             }
         }
-        values.push(yearlyResults.length > 0 ? count / yearlyResults.length : 0);
+        values.push(yearlyResults.length > 0 ? count / yearlyResults.length * 100 : 0);
     }
 
     return {
@@ -79,7 +79,7 @@ const generateShadedLineData = (chart, yearToResults) => {
                     value = result.earlyWithdrawalTax;
                     break;
                 case "Percentage of Discretionary Expenses":
-                    value = result.totalDiscretionaryExpenses;
+                    value = result.totalDiscretionaryExpenses * 100;
                     break;
                 default:
                     // Should not happen
