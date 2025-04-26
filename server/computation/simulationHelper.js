@@ -265,32 +265,56 @@ export async function updateContributionLimitsForInflation(scenario, inflationRa
     scenario.annualPostTaxContributionLimit = scenario.annualPostTaxContributionLimit * (1 + inflationRate);
     await scenarioFactory.update(scenario._id, { annualPreTaxContributionLimit: scenario.annualPreTaxContributionLimit, annualPostTaxContributionLimit: scenario.annualPostTaxContributionLimit });
 }
-export async function adjustEventAmount(event, inflationRate, scenario, currentYear) {
-    //adjusts event.amount for inflation and expected change
-    if (event.eventType === "INVEST" || event.eventType === "REBALANCE") {
-        return;
-    }
-    if (event.isinflationAdjusted) {
-        event.amount = event.amount * (1 + inflationRate);
-    }
-    const realYear = new Date().getFullYear();
-    if(event.startYear<=realYear+currentYear&&event.startYear+event.duration>=realYear+currentYear){
-        let amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
-        let distribution = await distributionFactory.read(event.expectedAnnualChangeDistribution);
-        if(scenario.filingStatus==="SINGLE"){
-            amountRate*=event.userContributions;
+export async function adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear) {
+    const incomeUpdates = [];
+    const expenseUpdates = [];
+
+    for (const eventId of scenario.events) {
+        const event = eventsMap.get(eventId.toString());
+        if (!event) {
+            //console.log(`Event with ID ${eventId} not found!`);
+            continue;
         }
-        if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {     
+        if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
+            //adjusts event.amount for inflation and expected change
+            if (event.isinflationAdjusted) {
+                event.amount = event.amount * (1 + inflationRate);
+            }
+            const realYear = new Date().getFullYear();
+            if (event.startYear <= realYear + currentYear && event.startYear + event.duration >= realYear + currentYear) {
+                let amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
+                let distribution = await distributionFactory.read(event.expectedAnnualChangeDistribution);
+                if (scenario.filingStatus === "SINGLE") {
+                    amountRate *= event.userContributions;
+                }
+                if (distribution.distributionType === "FIXED_AMOUNT" || distribution.distributionType === "UNIFORM_AMOUNT" || distribution.distributionType === "NORMAL_AMOUNT") {
+                } else {
+                    amountRate = (amountRate) * event.amount;
+                }
+                event.amount = Math.round((event.amount + amountRate) * 100) / 100;
+            }
+            const updateOp = {
+                updateOne: {
+                    filter: { _id: event._id },
+                    update: { $set: { amount: event.amount } }
+                }
+            };
+    
+            if (event.eventType === "INCOME") {
+                incomeUpdates.push(updateOp);
+            } else if (event.eventType === "EXPENSE") {
+                expenseUpdates.push(updateOp);
+            }
         }
-        else {
-            
-            amountRate = (amountRate) * event.amount;
-        }
-        
-        event.amount = Math.round((event.amount + amountRate)*100)/100;
     }
-    await eventFactory.update(event._id, event);
-    return event.amount;
+    
+    if (incomeUpdates.length > 0) {
+        await mongoose.model('Income').bulkWrite(incomeUpdates, {});
+    }
+    
+    if (expenseUpdates.length > 0) {
+        await mongoose.model('Expense').bulkWrite(expenseUpdates, {});
+    }
 }
 export async function shouldPerformRMD(currentYear, birthYear, investments) {
     // If the user’s age is at least 74 and at the end of the previous

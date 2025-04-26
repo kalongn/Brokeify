@@ -36,7 +36,7 @@ import {
     setupMap,
     updateTaxBracketsForInflation,
     updateContributionLimitsForInflation,
-    adjustEventAmount,
+    adjustEventsAmount,
     shouldPerformRMD,
     processRMDs,
     updateInvestments,
@@ -182,17 +182,8 @@ export async function simulate(
 		let eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
 
 		//update events
-		for (const eventId of events) {
-			const event = eventsMap.get(eventId.toString());
-			if (!event) {
-				//console.log(`Event with ID ${eventId} not found!`);
-				continue;
-			}
+		await adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear);
 
-			if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
-				await adjustEventAmount(event, inflationRate, scenario, currentYear);
-			}
-		}
 		allEvents = await eventFactory.readMany(events);
 		eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
 		const incomeByEvent = [];
