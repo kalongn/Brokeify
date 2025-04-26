@@ -101,7 +101,7 @@ const ScenarioSimulation = () => {
       return;
     }
     const num = numSimulations;
-    if (isNaN(num) || num < 10 || num > 50) {
+    if (isNaN(num) || num < 10 || num > 100) {
       setErrors({ simulation: 'Number of simulation runs must be between 10 and 50' });
       return;
     }
