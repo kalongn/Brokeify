@@ -134,15 +134,13 @@ export async function simulate(
     let lastYearEarlyWithdrawl = 0;
     while (currentYear <= endYear) {
 		//console.time("loop")
+		//console.time("taxes/initial")
         curYearIncome = 0;
         curYearSS = 0;
         thisYearGains = 0;
         thisYearTaxes = 0;
-        investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
-		let investmentIds = investmentTypes.flatMap((type) => type.investments);
-		let investments = await investmentFactory.readMany(investmentIds);
 
-        const inflationRate = await sample(
+		const inflationRate = await sample(
             scenario.inflationAssumption,
             scenario.inflationAssumptionDistribution
         );
@@ -151,6 +149,39 @@ export async function simulate(
         }\n`;
         updateLog(inflationeEventDetails);
         cumulativeInflation = cumulativeInflation * (1 + inflationRate);
+
+
+        investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
+		let investmentIds = investmentTypes.flatMap((type) => type.investments);
+		let investments = await investmentFactory.readMany(investmentIds);
+
+		//start events:
+		const events = scenario.events;
+		//fetch all events in one go
+		let allEvents = await eventFactory.readMany(events);
+		let eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
+
+		//update events
+		cashInvestment = await investmentFactory.read(cashInvestment._id);
+		const adjustEventsAmountReturnPromise = adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear, cashInvestment);
+
+
+		//start RMDs:
+		let rmdPromise = undefined;
+		const shouldPerformRMDs = await shouldPerformRMD(
+            currentYear,
+            scenario.userBirthYear,
+            investments
+        );
+        if (shouldPerformRMDs) {
+            rmdPromise = processRMDs(
+                rmdTable,
+                currentYear,
+                scenario.userBirthYear,
+                scenario
+            );
+        }
+
 
         //Could change from married to single if spouse dies, so we have to maintain both
         updateTaxBracketsForInflation(federalIncomeTaxArray[0], inflationRate);
@@ -176,45 +207,32 @@ export async function simulate(
         }
 
         scenario = await updateContributionLimitsForInflation(scenario, inflationRate);
-		//console.time("adjustEventsAmount");
-        const events = scenario.events;
-		//fetch all events in one go
-		let allEvents = await eventFactory.readMany(events);
-		let eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
-
-		//update events
-		cashInvestment = await investmentFactory.read(cashInvestment._id);
-		const adjustEventsAmountReturn = await adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear, cashInvestment);
-		curYearIncome += adjustEventsAmountReturn.curYearIncome;
-		curYearSS += adjustEventsAmountReturn.curYearSS;
-		const incomeByEvent = adjustEventsAmountReturn.incomeByEvent;
-		cashInvestment = adjustEventsAmountReturn.cashInvestment;
-
-        const reportedIncome = curYearIncome;
-		//console.timeEnd("adjustEventsAmount");
+		//console.timeEnd("taxes/initial")
 
         //await processRMDs(rmdTable, currentYear, scenario.userBirthYear, scenario);
 		//console.time("processRMDs");
-        const shouldPerformRMDs = await shouldPerformRMD(
-            currentYear,
-            scenario.userBirthYear,
-            investments
-        );
-        if (shouldPerformRMDs) {
-            const rmd = await processRMDs(
-                rmdTable,
-                currentYear,
-                scenario.userBirthYear,
-                scenario
-            );
-
-            curYearIncome += rmd;
-        }
+		if(rmdPromise!==undefined){
+			curYearIncome += await rmdPromise;
+		}
 		//console.timeEnd("processRMDs");
+
+
 
 		//console.time("updateInvestments")
         curYearIncome += await updateInvestments(investmentTypes);
 		//console.timeEnd("updateInvestments")
+
+
+		//console.time("adjustEventsAmount");
+        const adjustEventsAmountReturn = await adjustEventsAmountReturnPromise;
+		curYearIncome += adjustEventsAmountReturn.curYearIncome;
+		curYearSS += adjustEventsAmountReturn.curYearSS;
+		const incomeByEvent = adjustEventsAmountReturn.incomeByEvent;
+		cashInvestment = adjustEventsAmountReturn.cashInvestment;
+        const reportedIncome = curYearIncome;
+		//console.timeEnd("adjustEventsAmount");
+
+
 		//console.time("performRothConversion")
         let rothConversion = {curYearIncome: 0, curYearEarlyWithdrawals: 0}
         if(scenario.startYearRothOptimizer!==undefined 
@@ -337,10 +355,10 @@ export async function simulate(
         };
 
         results.yearlyResults.push(yearlyRes);
+		//console.timeEnd("results")
 		if (csvFile !== null && csvFile !== undefined) {
 			await updateCSV(currentYear, investments, scenario);
 		}
-		//console.timeEnd("results")
         lastYearIncome = curYearIncome;
         lastYearSS = curYearSS;
         lastYearEarlyWithdrawl = rothConversion.curYearEarlyWithdrawals;
