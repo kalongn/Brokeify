@@ -133,7 +133,7 @@ export async function simulate(
     let lastYearSS = 0;
     let lastYearEarlyWithdrawl = 0;
     while (currentYear <= endYear) {
-		console.time("loop")
+		//console.time("loop")
         curYearIncome = 0;
         curYearSS = 0;
         thisYearGains = 0;
@@ -176,7 +176,7 @@ export async function simulate(
         }
 
         scenario = await updateContributionLimitsForInflation(scenario, inflationRate);
-		console.time("adjustEventsAmount");
+		//console.time("adjustEventsAmount");
         const events = scenario.events;
 		//fetch all events in one go
 		let allEvents = await eventFactory.readMany(events);
@@ -191,10 +191,10 @@ export async function simulate(
 		cashInvestment = adjustEventsAmountReturn.cashInvestment;
 
         const reportedIncome = curYearIncome;
-		console.timeEnd("adjustEventsAmount");
+		//console.timeEnd("adjustEventsAmount");
 
         //await processRMDs(rmdTable, currentYear, scenario.userBirthYear, scenario);
-		console.time("processRMDs");
+		//console.time("processRMDs");
         const shouldPerformRMDs = await shouldPerformRMD(
             currentYear,
             scenario.userBirthYear,
@@ -210,12 +210,12 @@ export async function simulate(
 
             curYearIncome += rmd;
         }
-		console.timeEnd("processRMDs");
+		//console.timeEnd("processRMDs");
 
-		console.time("updateInvestments")
+		//console.time("updateInvestments")
         curYearIncome += await updateInvestments(investmentTypes);
-		console.timeEnd("updateInvestments")
-		console.time("performRothConversion")
+		//console.timeEnd("updateInvestments")
+		//console.time("performRothConversion")
         let rothConversion = {curYearIncome: 0, curYearEarlyWithdrawals: 0}
         if(scenario.startYearRothOptimizer!==undefined 
             && scenario.startYearRothOptimizer<=realYear+currentYear
@@ -232,8 +232,8 @@ export async function simulate(
                 investmentTypes
             );
         }
-		console.timeEnd("performRothConversion")
-		console.time("calculateTaxes")
+		//console.timeEnd("performRothConversion")
+		//console.time("calculateTaxes")
         curYearIncome += rothConversion.curYearIncome;
         let earlyWithdrawalTaxPaid = 0;
         const calcTaxReturn = calculateTaxes(
@@ -247,8 +247,8 @@ export async function simulate(
             lastYearGains,
             currentYear
         );
-		console.timeEnd("calculateTaxes")
-		console.time("processExpenses")
+		//console.timeEnd("calculateTaxes")
+		//console.time("processExpenses")
         thisYearTaxes = calcTaxReturn.t;
         earlyWithdrawalTaxPaid = calcTaxReturn.e;
         let nonDiscretionaryExpenses = 0;
@@ -256,8 +256,8 @@ export async function simulate(
         nonDiscretionaryExpenses = expensesReturn.t;
         thisYearGains += expensesReturn.c; //if you sell investments
         const expenseBreakdown = expensesReturn.expenseBreakdown;
-		console.timeEnd("processExpenses")
-		console.time("processDiscretionaryExpenses")
+		//console.timeEnd("processExpenses")
+		//console.time("processDiscretionaryExpenses")
         lastYearTaxes = thisYearTaxes;
         //returns amount not paid, paid, and capital gains
         let discretionaryAmountIgnored, discretionaryAmountPaid;
@@ -270,14 +270,14 @@ export async function simulate(
         thisYearGains += processDiscretionaryResult.c;
         const totalExpenseBreakdown = [...expenseBreakdown, ...processDiscretionaryResult.expenseBreakdown];
         let totalExpenses = nonDiscretionaryExpenses + discretionaryAmountPaid;
-		console.timeEnd("processDiscretionaryExpenses")
-		console.time("processInvestmentEvents")
+		//console.timeEnd("processDiscretionaryExpenses")
+		//console.time("processInvestmentEvents")
         await processInvestmentEvents(scenario, currentYear);
-		console.timeEnd("processInvestmentEvents")
-		console.time("rebalanceInvestments")
+		//console.timeEnd("processInvestmentEvents")
+		//console.time("rebalanceInvestments")
         thisYearGains += await rebalanceInvestments(scenario, currentYear);
-		console.timeEnd("rebalanceInvestments")
-		console.time("results")
+		//console.timeEnd("rebalanceInvestments")
+		//console.time("results")
         lastYearGains = thisYearGains;
         thisYearGains = 0;
 
@@ -337,15 +337,13 @@ export async function simulate(
         };
 
         results.yearlyResults.push(yearlyRes);
-
-        await resultFactory.update(results._id, {
-            yearlyResults: results.yearlyResults,
-        });
-        await updateCSV(currentYear, investments, scenario);
+		if (csvFile !== null && csvFile !== undefined) {
+			await updateCSV(currentYear, investments, scenario);
+		}
+		//console.timeEnd("results")
         lastYearIncome = curYearIncome;
         lastYearSS = curYearSS;
         lastYearEarlyWithdrawl = rothConversion.curYearEarlyWithdrawals;
-		console.timeEnd("results")
         //finally, check if spouse has died (sad)
         //if so, update shared thingies, and tax to be paid
         if (scenario.filingStatus === "MARRIEDJOINT") {
@@ -374,8 +372,11 @@ export async function simulate(
 
         scenario = await scenarioFactory.read(scenario);
         currentYear++;
-		console.timeEnd("loop")
+		//console.timeEnd("loop")
     }
+	await resultFactory.update(results._id, {
+		yearlyResults: results.yearlyResults,
+	});
 
     console.log("Simulation complete.");
     return results;
