@@ -178,12 +178,12 @@ export async function simulate(
 
         const events = scenario.events;
 		//fetch all events in one go
-		const allEvents = await eventFactory.readMany(events);
-		const eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
+		let allEvents = await eventFactory.readMany(events);
+		let eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
 
 		//update events
 		for (const eventId of events) {
-			const event = eventsMap.get(eventId);
+			const event = eventsMap.get(eventId.toString());
 			if (!event) {
 				//console.log(`Event with ID ${eventId} not found!`);
 				continue;
@@ -193,12 +193,13 @@ export async function simulate(
 				await adjustEventAmount(event, inflationRate, scenario, currentYear);
 			}
 		}
-
+		allEvents = await eventFactory.readMany(events);
+		eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
 		const incomeByEvent = [];
 		cashInvestment = await investmentFactory.read(cashInvestment._id);
 		//No need to fetch events again, use the map
 		for (const eventId of events) {
-			const event = eventsMap.get(eventId);
+			const event = eventsMap.get(eventId.toString());
 			if (!event) {
 				//console.log(`Event with ID ${eventId} not found!`);
 				continue;
@@ -208,8 +209,6 @@ export async function simulate(
 				continue;
 			}
 
-			const income = event.amount;
-
 			if (
 				!(
 					event.startYear <= realYear + currentYear &&
@@ -218,7 +217,7 @@ export async function simulate(
 			) {
 				continue;
 			}
-
+			const income = event.amount;
 			const incomeEventDetails = `Year: ${currentYear} - INCOME - ${
 				event.name
 			}: ${event.description} - Amount is $${Math.ceil(income * 100) / 100}\n`;
