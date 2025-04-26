@@ -26,6 +26,7 @@ import { updateCSV, updateLog } from './logHelpers.js';
 import { logFile, csvFile } from './simulator.js';
 let prng = Math.random;
 export let invMap = new Map();
+let distMap = new Map();
 export async function sample(expectedValue, distributionID, seed) {
 
     if (seed !== undefined && seed !== null) {
@@ -34,9 +35,19 @@ export async function sample(expectedValue, distributionID, seed) {
         return;
     }
 
+    let distribution;
+    if(distributionID.distributionType!==undefined){
+        distribution = distributionID
+    }
+    else if((distribution = distMap.get(distributionID.toString()))!==undefined){
+        //distributuion set in if statement
+    }
+    else{
+        distribution = await distributionFactory.read(distributionID);
+        distMap.set(distributionID.toString(), distribution);
+    }
     //sample from distribution
 
-    const distribution = distributionID.distributionType!==undefined ? distributionID : await distributionFactory.read(distributionID);
     if (distribution === null) {
 
         return expectedValue;
@@ -326,7 +337,7 @@ export async function adjustEventsAmount(eventsMap, inflationRate, scenario, cur
                     name: event.name,
                     value: income,
                 });
-
+                cashInvestment.value += income;
                 curYearIncome += income;
                 if (event.isSocialSecurity) {
                     curYearSS += income;
@@ -336,7 +347,6 @@ export async function adjustEventsAmount(eventsMap, inflationRate, scenario, cur
             }
         }
     }
-    
     if (incomeUpdates.length > 0) {
         await mongoose.model('Income').bulkWrite(incomeUpdates, {});
     }
@@ -344,11 +354,11 @@ export async function adjustEventsAmount(eventsMap, inflationRate, scenario, cur
     if (expenseUpdates.length > 0) {
         await mongoose.model('Expense').bulkWrite(expenseUpdates, {});
     }
-    await investmentFactory.update(cashInvestment._id, {
+    cashInvestment = await investmentFactory.update(cashInvestment._id, {
         value: cashInvestment.value
     });
 
-    return {incomeByEvent, curYearIncome, curYearSS};
+    return {incomeByEvent, curYearIncome, curYearSS, cashInvestment};
 }
 export async function shouldPerformRMD(currentYear, birthYear, investments) {
     // If the user’s age is at least 74 and at the end of the previous

@@ -176,7 +176,7 @@ export async function simulate(
         }
 
         scenario = await updateContributionLimitsForInflation(scenario, inflationRate);
-
+		console.time("adjustEventsAmount");
         const events = scenario.events;
 		//fetch all events in one go
 		let allEvents = await eventFactory.readMany(events);
@@ -184,13 +184,18 @@ export async function simulate(
 
 		//update events
 		cashInvestment = await investmentFactory.read(cashInvestment._id);
-		const {incomeByEvent, totalIncome, ssIncome} = await adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear, cashInvestment);
-		curYearIncome += totalIncome;
-		curYearSS += ssIncome;
-		//No need to fetch events again, use the map
+		const adjustEventsAmountReturn = await adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear, cashInvestment);
+		curYearIncome += adjustEventsAmountReturn.curYearIncome;
+		curYearSS += adjustEventsAmountReturn.curYearSS;
+		const incomeByEvent = adjustEventsAmountReturn.incomeByEvent;
+		cashInvestment = adjustEventsAmountReturn.cashInvestment;
+
+		console.log(`curYearIncome - ${curYearIncome}`)
         const reportedIncome = curYearIncome;
+		console.timeEnd("adjustEventsAmount");
 
         //await processRMDs(rmdTable, currentYear, scenario.userBirthYear, scenario);
+		console.time("processRMDs");
         const shouldPerformRMDs = await shouldPerformRMD(
             currentYear,
             scenario.userBirthYear,
@@ -206,8 +211,12 @@ export async function simulate(
 
             curYearIncome += rmd;
         }
-        curYearIncome += await updateInvestments(investmentTypes);
+		console.timeEnd("processRMDs");
 
+		console.time("updateInvestments")
+        curYearIncome += await updateInvestments(investmentTypes);
+		console.timeEnd("updateInvestments")
+		console.time("performRothConversion")
         let rothConversion = {curYearIncome: 0, curYearEarlyWithdrawals: 0}
         if(scenario.startYearRothOptimizer!==undefined 
             && scenario.startYearRothOptimizer<=realYear+currentYear
@@ -224,9 +233,11 @@ export async function simulate(
                 investmentTypes
             );
         }
-
+		console.timeEnd("performRothConversion")
+		console.time("calculateTaxes")
         curYearIncome += rothConversion.curYearIncome;
         let earlyWithdrawalTaxPaid = 0;
+		console.log(`lastYearIncome: ${lastYearIncome} lastYearSS: ${lastYearSS}: lastYearEarlyWithdrawl:${lastYearEarlyWithdrawl} lastYearGains: ${lastYearGains}`)
         const calcTaxReturn = calculateTaxes(
             federalIncomeTax,
             stateIncomeTax,
@@ -238,6 +249,8 @@ export async function simulate(
             lastYearGains,
             currentYear
         );
+		console.timeEnd("calculateTaxes")
+		console.time("processExpenses")
         thisYearTaxes = calcTaxReturn.t;
         earlyWithdrawalTaxPaid = calcTaxReturn.e;
         let nonDiscretionaryExpenses = 0;
@@ -245,7 +258,8 @@ export async function simulate(
         nonDiscretionaryExpenses = expensesReturn.t;
         thisYearGains += expensesReturn.c; //if you sell investments
         const expenseBreakdown = expensesReturn.expenseBreakdown;
-
+		console.timeEnd("processExpenses")
+		console.time("processDiscretionaryExpenses")
         lastYearTaxes = thisYearTaxes;
         //returns amount not paid, paid, and capital gains
         let discretionaryAmountIgnored, discretionaryAmountPaid;
@@ -258,45 +272,47 @@ export async function simulate(
         thisYearGains += processDiscretionaryResult.c;
         const totalExpenseBreakdown = [...expenseBreakdown, ...processDiscretionaryResult.expenseBreakdown];
         let totalExpenses = nonDiscretionaryExpenses + discretionaryAmountPaid;
-
+		console.timeEnd("processDiscretionaryExpenses")
+		console.time("processInvestmentEvents")
         await processInvestmentEvents(scenario, currentYear);
-
+		console.timeEnd("processInvestmentEvents")
+		console.time("rebalanceInvestments")
         thisYearGains += await rebalanceInvestments(scenario, currentYear);
-
+		console.timeEnd("rebalanceInvestments")
+		console.time("results")
         lastYearGains = thisYearGains;
         thisYearGains = 0;
 
-        investmentTypes = await Promise.all(
-            scenario.investmentTypes.map(
-                async (id) => await investmentTypeFactory.read(id)
-            )
-        );
-        investmentIds = investmentTypes.flatMap((type) => type.investments);
-        investments = await Promise.all(
-            investmentIds.map(async (id) => await investmentFactory.read(id))
-        );
-        let totalValue = 0;
-        for (const investmentIndex in investments) {
-            totalValue += investments[investmentIndex].value;
-        }
-        //console.log(`The net asset value of ${currentYear+realYear} is ${totalValue}`);
-        let boolIsViolated = false;
-        if (totalValue < scenario.financialGoal) {
-            boolIsViolated = true;
-        }
-        //create array of touples of investment._id, investment.value
-        const investmentValuesArray = [];
-        for(const i in scenario.investmentTypes){
-            const investmentType = await investmentTypeFactory.read(investmentTypes[i]._id);
-            for (const investmentIndex in investmentType.investments) {
-                const inv = await investmentFactory.read(investmentTypes[i].investments[investmentIndex]);
-                const touple = {
-                    name: `${investmentTypes[i].name} ${inv.taxStatus}`,
-                    value: inv.value,
-                };
-                investmentValuesArray.push(touple);
-            }
-        }
+		investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
+		investmentIds = investmentTypes.flatMap((type) => type.investments);
+		investments = await investmentFactory.readMany(investmentIds);
+	   
+		// Create a map for quick lookup of investmentTypes by ID
+		const investmentTypeMap = new Map(investmentTypes.map(type => [type._id.toString(), type._id])); // Store _id for lookup
+	   
+		let totalValue = 0;
+		for (const investment of investments) {
+			totalValue += investment.value;
+		}
+	   
+		const boolIsViolated = totalValue < scenario.financialGoal;
+	   
+		const investmentValuesArray = [];
+		for (const investmentTypeId of scenario.investmentTypes) { // Iterate through scenario's investmentTypes
+			const investmentType = investmentTypeMap.get(investmentTypeId.toString());
+			if (investmentType) {
+				for (const investmentId of investmentType.investments) {
+					const inv = investments.find(inv => inv._id.toString() === investmentId.toString()); // Find investment in fetched array
+					if (inv) {
+						const tuple = {
+							name: `${investmentType.name} ${inv.taxStatus}`,
+							value: inv.value,
+						};
+						investmentValuesArray.push(tuple);
+					}
+				}
+			}
+		}
         //create yearly results
         let discretionaryExpensesPercentage = discretionaryAmountPaid;
         if (discretionaryAmountIgnored + discretionaryAmountPaid != 0) {
@@ -331,7 +347,7 @@ export async function simulate(
         lastYearIncome = curYearIncome;
         lastYearSS = curYearSS;
         lastYearEarlyWithdrawl = rothConversion.curYearEarlyWithdrawals;
-
+		console.timeEnd("results")
         //finally, check if spouse has died (sad)
         //if so, update shared thingies, and tax to be paid
         if (scenario.filingStatus === "MARRIEDJOINT") {
