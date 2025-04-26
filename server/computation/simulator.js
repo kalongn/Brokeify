@@ -288,7 +288,7 @@ export async function simulate(
 		investments = await investmentFactory.readMany(investmentIds);
 	   
 		// Create a map for quick lookup of investmentTypes by ID
-		const investmentTypeMap = new Map(investmentTypes.map(type => [type._id.toString(), type._id])); // Store _id for lookup
+		const investmentTypeMap = new Map(investmentTypes.map(type => [type._id.toString(), type])); // Store _id for lookup
 	   
 		let totalValue = 0;
 		for (const investment of investments) {
