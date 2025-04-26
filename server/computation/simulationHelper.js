@@ -260,10 +260,11 @@ export function updateTaxBracketsForInflation(taxData, inflationRate) {
 
     
 }
-export function updateContributionLimitsForInflation(scenario, inflationRate) {
+export async function updateContributionLimitsForInflation(scenario, inflationRate) {
     scenario.annualPreTaxContributionLimit = scenario.annualPreTaxContributionLimit * (1 + inflationRate);
     scenario.annualPostTaxContributionLimit = scenario.annualPostTaxContributionLimit * (1 + inflationRate);
-    return scenario;
+    const res =  await scenarioFactory.update(scenario.id, {annualPreTaxContributionLimit: scenario.annualPreTaxContributionLimit, annualPostTaxContributionLimit: scenario.annualPostTaxContributionLimit});
+    return res;
 }
 export async function adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear, cashInvestment) {
     const realYear = new Date().getFullYear();

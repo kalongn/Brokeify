@@ -133,6 +133,7 @@ export async function simulate(
     let lastYearSS = 0;
     let lastYearEarlyWithdrawl = 0;
     while (currentYear <= endYear) {
+		console.time("loop")
         curYearIncome = 0;
         curYearSS = 0;
         thisYearGains = 0;
@@ -174,7 +175,7 @@ export async function simulate(
             federalStandardDeduction = federalStandardDeductionObjectArray[0];
         }
 
-        scenario = updateContributionLimitsForInflation(scenario, inflationRate);
+        scenario = await updateContributionLimitsForInflation(scenario, inflationRate);
 
         const events = scenario.events;
 		//fetch all events in one go
@@ -205,7 +206,6 @@ export async function simulate(
 
             curYearIncome += rmd;
         }
-        
         curYearIncome += await updateInvestments(investmentTypes);
 
         let rothConversion = {curYearIncome: 0, curYearEarlyWithdrawals: 0}
@@ -360,6 +360,7 @@ export async function simulate(
 
         scenario = await scenarioFactory.read(scenario);
         currentYear++;
+		console.timeEnd("loop")
     }
 
     console.log("Simulation complete.");
