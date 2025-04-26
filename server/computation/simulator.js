@@ -174,7 +174,7 @@ export async function simulate(
             federalStandardDeduction = federalStandardDeductionObjectArray[0];
         }
 
-        await updateContributionLimitsForInflation(scenario, inflationRate);
+        scenario = updateContributionLimitsForInflation(scenario, inflationRate);
 
         const events = scenario.events;
 		//fetch all events in one go
@@ -182,56 +182,11 @@ export async function simulate(
 		let eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
 
 		//update events
-		await adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear);
-
-		allEvents = await eventFactory.readMany(events);
-		eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
-		const incomeByEvent = [];
 		cashInvestment = await investmentFactory.read(cashInvestment._id);
+		const {incomeByEvent, totalIncome, ssIncome} = await adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear, cashInvestment);
+		curYearIncome += totalIncome;
+		curYearSS += ssIncome;
 		//No need to fetch events again, use the map
-		for (const eventId of events) {
-			const event = eventsMap.get(eventId.toString());
-			if (!event) {
-				//console.log(`Event with ID ${eventId} not found!`);
-				continue;
-			}
-
-			if (event.eventType !== "INCOME") {
-				continue;
-			}
-
-			if (
-				!(
-					event.startYear <= realYear + currentYear &&
-					event.startYear + event.duration >= realYear + currentYear
-				)
-			) {
-				continue;
-			}
-			const income = event.amount;
-			const incomeEventDetails = `Year: ${currentYear} - INCOME - ${
-				event.name
-			}: ${event.description} - Amount is $${Math.ceil(income * 100) / 100}\n`;
-			updateLog(incomeEventDetails);
-			event.amount = income;
-
-			incomeByEvent.push({
-				name: event.name,
-				value: income,
-			});
-
-			//fetch cashInvestment only once outside the loop if possible, or use a similar batching approach if needed inside
-			cashInvestment.value+=income;
-
-
-			curYearIncome += income;
-			if (event.isSocialSecurity) {
-				curYearSS += income;
-			}
-		}
-		await investmentFactory.update(cashInvestment._id, {
-			value: cashInvestment.value
-		});
         const reportedIncome = curYearIncome;
 
         //await processRMDs(rmdTable, currentYear, scenario.userBirthYear, scenario);

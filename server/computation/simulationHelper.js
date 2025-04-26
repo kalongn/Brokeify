@@ -260,19 +260,30 @@ export function updateTaxBracketsForInflation(taxData, inflationRate) {
 
     
 }
-export async function updateContributionLimitsForInflation(scenario, inflationRate) {
+export function updateContributionLimitsForInflation(scenario, inflationRate) {
     scenario.annualPreTaxContributionLimit = scenario.annualPreTaxContributionLimit * (1 + inflationRate);
     scenario.annualPostTaxContributionLimit = scenario.annualPostTaxContributionLimit * (1 + inflationRate);
-    await scenarioFactory.update(scenario._id, { annualPreTaxContributionLimit: scenario.annualPreTaxContributionLimit, annualPostTaxContributionLimit: scenario.annualPostTaxContributionLimit });
+    return scenario;
 }
-export async function adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear) {
+export async function adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear, cashInvestment) {
+    const realYear = new Date().getFullYear();
     const incomeUpdates = [];
     const expenseUpdates = [];
-
+    const incomeByEvent = [];
+    let curYearIncome =0;
+    let curYearSS = 0;
     for (const eventId of scenario.events) {
         const event = eventsMap.get(eventId.toString());
         if (!event) {
             //console.log(`Event with ID ${eventId} not found!`);
+            continue;
+        }
+        if (
+            !(
+                event.startYear <= realYear + currentYear &&
+                event.startYear + event.duration >= realYear + currentYear
+            )
+        ) {
             continue;
         }
         if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
@@ -302,6 +313,23 @@ export async function adjustEventsAmount(eventsMap, inflationRate, scenario, cur
     
             if (event.eventType === "INCOME") {
                 incomeUpdates.push(updateOp);
+                const income  = event.amount;
+
+                const incomeEventDetails = `Year: ${currentYear} - INCOME - ${
+                    event.name
+                }: ${event.description} - Amount is $${Math.ceil(income * 100) / 100}\n`;
+
+                updateLog(incomeEventDetails);
+
+                incomeByEvent.push({
+                    name: event.name,
+                    value: income,
+                });
+
+                curYearIncome += income;
+                if (event.isSocialSecurity) {
+                    curYearSS += income;
+                }
             } else if (event.eventType === "EXPENSE") {
                 expenseUpdates.push(updateOp);
             }
@@ -315,6 +343,11 @@ export async function adjustEventsAmount(eventsMap, inflationRate, scenario, cur
     if (expenseUpdates.length > 0) {
         await mongoose.model('Expense').bulkWrite(expenseUpdates, {});
     }
+    await investmentFactory.update(cashInvestment._id, {
+        value: cashInvestment.value
+    });
+
+    return {incomeByEvent, curYearIncome, curYearSS};
 }
 export async function shouldPerformRMD(currentYear, birthYear, investments) {
     // If the user’s age is at least 74 and at the end of the previous
