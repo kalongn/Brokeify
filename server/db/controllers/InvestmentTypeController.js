@@ -60,6 +60,23 @@ export default class InvestmentTypeController {
             throw new Error(error);
         }
     }
+
+    /**
+     * Reads multiple InvestmentTypes with the given array of IDs
+     * @param {mongoose.Types.ObjectId[]} ids An array of InvestmentType IDs
+     * @returns {Promise<Array<Event>>} A Promise that resolves to an array of InvestmentType objects
+     */
+    async readMany(ids) {
+        try {
+            if (!Array.isArray(ids) || ids.length === 0) {
+                return [];
+            }
+            const investmentTypes = await mongoose.model('InvestmentType').find({ _id: { $in: ids } }).exec();
+            return investmentTypes;
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
     
     async readWithPopulate(id) {
         try {

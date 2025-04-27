@@ -87,6 +87,23 @@ export default class DistributionController {
     }
 
     /**
+     * Reads multiple Distributions with the given array of IDs
+     * @param {mongoose.Types.ObjectId[]} ids An array of Distribution IDs
+     * @returns {Promise<Array<Event>>} A Promise that resolves to an array of Distribution objects
+     */
+    async readMany(ids) {
+        try {
+            if (!Array.isArray(ids) || ids.length === 0) {
+                return [];
+            }
+            const distributions = await mongoose.model('Distribution').find({ _id: { $in: ids } }).exec();
+            return distributions;
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
      * This function update the distribution of the given Id with the given data, handling the distribution type accordingly
      * @param {mongoose.Types.ObjectId} id 
      *      The Id of the distribution to be updated

@@ -101,8 +101,8 @@ const ScenarioSimulation = () => {
       return;
     }
     const num = numSimulations;
-    if (isNaN(num) || num < 10 || num > 50) {
-      setErrors({ simulation: 'Number of simulation runs must be between 10 and 50' });
+    if (isNaN(num) || num < 10 || num > 100) {
+      setErrors({ simulation: 'Number of simulation runs must be between 10 and 100' });
       return;
     }
 
@@ -176,6 +176,20 @@ const ScenarioSimulation = () => {
           </div>
 
           {/* {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>} */}
+          <div className={styles.simulationDescription}>
+            <p>
+              Disclaimer:
+              <br />
+              If the state income tax of the scenario stated state of residence is not uploaded, the simulation will use 0 as the state tax rate.
+              <br />
+              There are 4 state tax files that are not needed however: New York, New Jersey, Connecticut, and Washington.
+              <br />
+              If filing status is married, you need both MARRIEDJOINT and SINGLE state tax files.
+              <br />
+              If filing status is single, you need only the SINGLE state tax file.
+              <br />
+            </p>
+          </div>
 
           <div className={styles.buttonBox}>
             <div className={styles.buttons}>
