@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { clearErrors } from "../utils/ScenarioHelper";
 import Layout from '../components/Layout';
+import ChartTabs from '../components/ChartTabs';
 import ErrorMessage from '../components/ErrorMessage';
 import Axios from 'axios';
 
@@ -13,11 +14,13 @@ import styles from './SimulationPage.module.css';
 const ScenarioSimulation = () => {
 
   const [scenarios, setScenarios] = useState([]);
-  const [selectedScenario, setSelectedScenario] = useState('');
-  const [numSimulations, setNumSimulations] = useState(10);
+  const [chartData, setChartData] = useState([]);
+  // const [selectedScenario, setSelectedScenario] = useState('');
+  // const [numSimulations, setNumSimulations] = useState(10);
   const [errors, setErrors] = useState({});
   const [isRunning, setIsRunning] = useState(false);
   const [previousRun, setPreviousRun] = useState(null);
+  console.log(chartData);
 
   // Co-pilot (Gemini 2.5 pro) assistance:
   // Idea: only user to only run 1 simulation at a time, need a setInterval to check if the simulation is still running
@@ -96,11 +99,11 @@ const ScenarioSimulation = () => {
 
 
   const handleRunSimulation = async () => {
-    if (!selectedScenario) {
+    if (!chartData.selectedScenario) {
       setErrors({ scenario: 'Scenario selection is required' });
       return;
     }
-    const num = numSimulations;
+    const num = chartData.numSimulations;
     if (isNaN(num) || num < 10 || num > 50) {
       setErrors({ simulation: 'Number of simulation runs must be between 10 and 50' });
       return;
@@ -123,7 +126,7 @@ const ScenarioSimulation = () => {
       const response = await Axios.post('/runSimulation', {},
         {
           params: {
-            scenarioId: selectedScenario,
+            scenarioId: chartData.selectedScenario,
             numTimes: num
           }
         }
@@ -147,40 +150,17 @@ const ScenarioSimulation = () => {
         <h2>Scenario Simulation</h2>
         <ErrorMessage errors={errors} />
 
+
+        <ChartTabs
+          scenarios={scenarios}
+          chartData={chartData}
+          setChartData={setChartData}
+          setErrors={setErrors}
+        />
         <div className={styles.section}>
-          <div className={styles.group}>
-            <p>Select a Scenario:</p>
-            {/* TODO: modify to react-select here */}
-            <select id="scenario" className={styles.dropdown} value={selectedScenario} onChange={(e) => setSelectedScenario(e.target.value)}>
-              <option value="" hidden disabled>-- Select a Scenario --</option>
-              {scenarios.map((scenario, index) => (
-                <option key={index} value={scenario.id}>
-                  {scenario.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <p>Enter number of simulation runs: </p>
-            <input
-              id="simulation"
-              type="number"
-              min="10"
-              max="50"
-              step="1"
-              className={styles.simInput}
-              value={numSimulations}
-              onChange={(e) => setNumSimulations(e.target.value)}
-            />
-          </div>
-
-          {/* {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>} */}
-
+          <h2>Results</h2>
           <div className={styles.buttonBox}>
             <div className={styles.buttons}>
-              <div className={styles.simulationButtons}>
-              </div>
               <button
                 className={`${styles.runSimulation} ladda-button`}
                 data-style="expand-left"
@@ -192,10 +172,6 @@ const ScenarioSimulation = () => {
               </button>
             </div>
           </div>
-        </div>
-
-        <div className={styles.section}>
-          <h2>Results</h2>
           {!isRunning && previousRun === null && (
             <p style={{ marginTop: '20px', fontStyle: 'italic' }}>
               Please select a scenario, enter number of simulations, and run simulation to see results.
