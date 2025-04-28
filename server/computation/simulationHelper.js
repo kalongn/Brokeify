@@ -94,7 +94,7 @@ export async function chooseEventTimeframe(scenario) {
         }
         const realYear = new Date().getFullYear();
         let startYear = await sample(0, event.startYearTypeDistribution);
-        startYear = Math.min(startYear, realYear)
+        startYear = Math.max(startYear, realYear)
         const duration  = await sample(0, event.durationTypeDistribution);
         
         await eventFactory.update(event._id, {startYear: startYear, duration: duration});
@@ -293,21 +293,13 @@ export async function adjustEventsAmount(eventsMap, inflationRate, scenario, cur
             //console.log(`Event with ID ${eventId} not found!`);
             continue;
         }
-        if (
-            !(
-                event.startYear <= realYear + currentYear &&
-                event.startYear + event.duration >= realYear + currentYear
-            )
-        ) {
-            continue;
-        }
+        
         if (event.eventType === "INCOME" || event.eventType === "EXPENSE") {
             //adjusts event.amount for inflation and expected change
             if (event.isinflationAdjusted) {
                 event.amount = event.amount * (1 + inflationRate);
             }
-            const realYear = new Date().getFullYear();
-            if (event.startYear <= realYear + currentYear && event.startYear + event.duration >= realYear + currentYear) {
+            if (event.startYear < realYear + currentYear && event.startYear + event.duration >= realYear + currentYear) {
                 let amountRate = await sample(event.expectedAnnualChange, event.expectedAnnualChangeDistribution);
                 let distribution = await distributionFactory.read(event.expectedAnnualChangeDistribution);
                 if (scenario.filingStatus === "SINGLE") {
@@ -328,6 +320,14 @@ export async function adjustEventsAmount(eventsMap, inflationRate, scenario, cur
     
             if (event.eventType === "INCOME") {
                 incomeUpdates.push(updateOp);
+                if (    //seperate from next section due to if its the start year of the event
+                    !(
+                        event.startYear <= realYear + currentYear &&
+                        event.startYear + event.duration >= realYear + currentYear
+                    )
+                ) {
+                    continue;
+                }
                 const income  = event.amount;
 
                 const incomeEventDetails = `Year: ${currentYear} - INCOME - ${
@@ -844,7 +844,7 @@ export async function processExpenses(scenario, previousYearTaxes, currentYear) 
         if (investment.value > totalExpenses) {
             //capital gain = f * (current value - purchase price).
             let capitalGain = (totalExpenses/investment.value) * (investment.value - investment.purchasePrice)
-            update.updateOne.update = { $set: { value: investment.value - totalExpenses, purchasePrice: investment.purchasePrice-totalExpenses } };
+            update.updateOne.update = { $set: { value: investment.value - totalExpenses, purchasePrice: Math.max(0, investment.purchasePrice-totalExpenses) } };
             totalExpenses = 0;
             if(investment.taxStatus==="NON_RETIREMENT"){
                 toReturn.capitalGain += capitalGain;
@@ -1004,7 +1004,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) {
         if (investment.value > leftToPay) {
             //capital gain = f * (current value - purchase price).
             let capitalGain = (leftToPay/investment.value) * (investment.value - investment.purchasePrice)
-            update.updateOne.update = { $set: { value: investment.value - leftToPay, purchasePrice: investment.purchasePrice-totalExpenses } };
+            update.updateOne.update = { $set: { value: investment.value - leftToPay, purchasePrice: Math.max(0, investment.purchasePrice-totalExpenses) } };
             leftToPay = 0;
             if(investment.taxStatus==="NON_RETIREMENT"){
                 toReturn.capitalGain += capitalGain;
@@ -1246,7 +1246,7 @@ export async function rebalanceInvestments(scenario, currentYear) {
                     updateOne: {
                         filter: { _id: investment._id },
                         update: { $set: { value: Math.round(targetValues[i] * 100) / 100,
-                                    purchasePrice: investment.purchasePrice-sellValue} }
+                                    purchasePrice: Math.max(0, investment.purchasePrice-sellValue)} }
                     }
                 });
 
