@@ -461,7 +461,7 @@ export async function parseAndSaveYAML(yamlStr, userId) {
             orderedRMDStrategy: data.RMDStrategy.map(inv => idMap.get(inv)),
             startYearRothOptimizer: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionStart : undefined),
             endYearRothOptimizer: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionEnd : undefined),
-            orderedRothStrategy: data.RothConversionStrategy.map(inv => idMap.get(inv)),
+            orderedRothStrategy: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionStrategy.map(inv => idMap.get(inv)) : []),
             ownerFirstName: firstName,
             ownerLastName: lastName,
             ownerEmail: email,
