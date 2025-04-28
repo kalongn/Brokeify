@@ -124,6 +124,7 @@ export default class InvestmentController {
 
             const clonedInvestment = await this.create({
                 value: investment.value,
+                purchasePrice: investment.value,   //initially, purchase price = value
                 taxStatus: investment.taxStatus,
             });
             return clonedInvestment.id;
