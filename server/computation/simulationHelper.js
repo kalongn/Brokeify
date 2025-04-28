@@ -24,6 +24,7 @@ const resultFactory = new ResultController();
 
 import { updateCSV, updateLog } from './logHelpers.js';
 import { logFile, csvFile } from './simulator.js';
+import { start } from 'repl';
 let prng = Math.random;
 export let invMap = new Map();
 let distMap = new Map();
@@ -91,7 +92,9 @@ export async function chooseEventTimeframe(scenario) {
             startWithOrAfterEvents++;
             continue;
         }
-        const startYear = await sample(0, event.startYearTypeDistribution);
+        const realYear = new Date().getFullYear();
+        let startYear = await sample(0, event.startYearTypeDistribution);
+        startYear = Math.min(startYear, realYear)
         const duration  = await sample(0, event.durationTypeDistribution);
         
         await eventFactory.update(event._id, {startYear: startYear, duration: duration});
