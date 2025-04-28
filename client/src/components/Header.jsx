@@ -73,10 +73,10 @@ const Header = ({ setVerified }) => {
             a.click();
             a.remove();
           } catch (error) {
-            if (error.response && error.response?.status === 409) {
+            if (error.response?.status === 409) {
               console.error('Scenario not filled out up to basic requirements.');
               alert('Scenario not filled out up to basic requirements.');
-            } else if (error.response && error.response?.status === 403) {
+            } else if (error.response?.status === 403) {
               console.error('You do not have permission to access this scenario.');
               alert('You do not have permission to access this scenario.');
             } else {
