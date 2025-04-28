@@ -61,7 +61,7 @@ router.get("/runSimulation", async (req, res) => {
             .map((scenario) => {
                 return {
                     id: scenario._id,
-                    name: scenario.name,
+                    name: scenario.name + " (" + scenario.dateCreated + ")",
                 }
             });
         const data = {
