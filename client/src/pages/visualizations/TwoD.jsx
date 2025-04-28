@@ -4,6 +4,8 @@ import Layout from "../../components/Layout";
 import styles from "./Charts.module.css";
 import Accordion from "../../components/Accordion";
 import LineChart from "../../components/LineChart";
+import ShadedLineChart from "../../components/ShadedLineChart";
+import StackedBarChart from "../../components/StackedBarChart";
 import ModalAddChart from "../../components/ModalAddChart";
 import SurfacePlot from "../../components/SurfacePlot";
 import ContourPlot from "../../components/ContourPlot";
@@ -20,11 +22,6 @@ const TwoD = () => {
 
   const handleGenerateCharts = async () => {
     try {
-      const mockFinalValueData = [
-        { parameterValue: 60, finalValue: 140000 },
-        { parameterValue: 65, finalValue: 130000 },
-        { parameterValue: 70, finalValue: 125000 }
-      ];
 
       const mockSurfaceData = {
         x: [50, 55, 60, 65, 70, 75],

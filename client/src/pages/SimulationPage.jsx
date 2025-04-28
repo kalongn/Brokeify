@@ -214,10 +214,12 @@ const ScenarioSimulation = () => {
         </Link>
         </div>
         <div>
+        <div className={styles.section}>
         <h2>Temp: Two Dimensional Simulation</h2>
         <Link className={styles.seeResults} to={`/visualizations/TwoDimensional/${previousRun}`}>
             See TwoD
         </Link>
+        </div>
         </div>
         <div className={styles.section}>
           <h2>Results</h2>
