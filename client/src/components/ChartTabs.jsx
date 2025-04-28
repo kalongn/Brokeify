@@ -50,7 +50,7 @@ const ChartTabs = ({ scenarios, chartData, setChartData, setErrors }) => {
               min="10"
               max="50"
               step="1"
-              value={chartData.numSimulations !== undefined ? chartData.numSimulations : 10}
+              defaultValue={chartData.numSimulations !== undefined ? chartData.numSimulations : 10}
               onChange={handleChange}
             />
           </label>
