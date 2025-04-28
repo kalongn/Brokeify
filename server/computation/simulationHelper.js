@@ -1238,7 +1238,7 @@ export async function rebalanceInvestments(scenario, currentYear) {
             const investment = investmentMap.get(investments[i]._id.toString());
             if (targetValues[i] < actualValues[i]) {
                 let sellValue = actualValues[i] - targetValues[i];
-                let capitalGain = (sellValue/investment.value)(investment.value - investment.purchasePrice)
+                let capitalGain = (sellValue / investment.value)*(investment.value - investment.purchasePrice)
                 if(investment.taxStatus==="NON_RETIREMENT"){
                     amountSold += capitalGain;
                 }
