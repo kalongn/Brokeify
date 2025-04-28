@@ -4,70 +4,53 @@ import Layout from "../../components/Layout";
 import styles from "./Charts.module.css";
 import Accordion from "../../components/Accordion";
 import LineChart from "../../components/LineChart";
-import MultiLineChart from "../../components/MultiLineChart";
-import LineChartParameter from "../../components/LineChartParameter";
-import ModalOneD from "../../components/ModalOneD";
 import ModalAddChart from "../../components/ModalAddChart";
-{/*Note: We will need to account for the parameter we passed in to get here...as that will decide whether a certain chart will show or not
-  (show linechartparameter only if the parameter is numeric)* I currently pass it as a boolean*/}
-{/*Note: We need charts from charts.jsx too I believe, which is why
-  we have "Add Chart" button here.The logic for that is the same. 
-  
-  "Add 1D Chart" is the new functionality. 
-  
-  */}
-
-  const OneD = () => {
+import SurfacePlot from "../../components/SurfacePlot";
+import ContourPlot from "../../components/ContourPlot";
+import ModalTwoD from "../../components/ModalTwoD";
+const TwoD = () => {
   const { simulationId } = useParams();
   console.log("Simulation ID:", simulationId);
 
-  //TODO: Update below with actual scenario name
-  //const [scenarioName, setScenarioName] = useState("Unknown Scenario");
-  const scenarioName = "My Scenario"; //Temp kept this for ESLint Error 
-  
+  const scenarioName = "My Scenario"; // Temp kept for ESLint
   const [showAddChartsModal, setShowAddChartsModal] = useState(false);
-  const [showAdd1DModal, setShowAdd1DModal] = useState(false);
+  const [showAdd2DModal, setShowAdd2DModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [charts, setCharts] = useState([]);
 
   const handleGenerateCharts = async () => {
     try {
-      const mockMultiLineData = {
-        data: [
-          {
-            parameterValue: 60,
-            values: [100000, 120000, 140000]
-          },
-          {
-            parameterValue: 65,
-            values: [95000, 110000, 130000]
-          },
-          {
-            parameterValue: 70,
-            values: [90000, 105000, 125000]
-          }
-        ],
-        labels: ["2025", "2026", "2027", "2028"]
-      };
-
       const mockFinalValueData = [
         { parameterValue: 60, finalValue: 140000 },
         { parameterValue: 65, finalValue: 130000 },
         { parameterValue: 70, finalValue: 125000 }
       ];
 
+      const mockSurfaceData = {
+        x: [50, 55, 60, 65, 70, 75],
+        y: [0.1, 0.2, 0.3, 0.4, 0.5],
+        z: [
+          [0.6, 0.8, 0.9, 0.7, 0.5, 0.3],
+          [0.7, 1.0, 1.2, 0.9, 0.6, 0.4],
+          [0.8, 1.3, 1.5, 1.1, 0.7, 0.5],
+          [0.7, 1.0, 1.2, 0.9, 0.6, 0.4],
+          [0.6, 0.8, 0.9, 0.7, 0.5, 0.3],
+        ]
+      };
+
+
       const generatedCharts = [
         {
           id: 1,
-          type: "Multi-Line Over Time",
-          label: "Multi-Line Over Time",
-          data: mockMultiLineData
+          type: "Surface Plot",
+          label: "Surface Plot",
+          data: mockSurfaceData
         },
         {
           id: 2,
-          type: "Final Value vs Parameter",
-          label: "Final Value vs Parameter",
-          data: mockFinalValueData
+          type: "Contour Plot",
+          label: "Contour Plot",
+          data: mockSurfaceData
         }
       ];
 
@@ -83,24 +66,26 @@ import ModalAddChart from "../../components/ModalAddChart";
     <Layout>
       <div className={styles.content}>
         <div className={styles.leftSide}>
-          <h2>{scenarioName} 1D Results</h2>
+          <h2>{scenarioName} 2D Results</h2>
           <div className={styles.buttonGroup}>
-            <button className={styles.addChart} onClick={() => setShowAdd1DModal(true)}>
-              Add 1D Charts
+            <button className={styles.addChart} onClick={() => setShowAdd2DModal(true)}>
+              Add 2D Charts
             </button>
             <button className={styles.addChart} onClick={() => setShowAddChartsModal(true)}>
               Add Charts
             </button>
           </div>
           <div className={styles.chartGenerate}>
-          <button onClick={handleGenerateCharts} className={styles.generateButton}>Generate Charts</button>
+            <button onClick={handleGenerateCharts} className={styles.generateButton}>
+              Generate Charts
+            </button>
           </div>
-          {/*TODO: Update this based on actual scenario parameter type*/}
-          <ModalOneD
-            isOpen={showAdd1DModal}
-            setIsOpen={setShowAdd1DModal}
+
+          <ModalTwoD
+            isOpen={showAdd2DModal}
+            setIsOpen={setShowAdd2DModal}
             setCharts={setCharts}
-            isScenarioParameterNumeric={false} 
+            isScenarioParameterNumeric={false}
           />
 
           <ModalAddChart
@@ -120,7 +105,9 @@ import ModalAddChart from "../../components/ModalAddChart";
         </div>
 
         <div className={styles.rightSide}>
-          {!showCharts && <div className={styles.chartCount}>No Charts Generated Yet...</div>}
+          {!showCharts && (
+            <div className={styles.chartCount}>No Charts Generated Yet...</div>
+          )}
           {showCharts && charts.length === 0 && (
             <div className={styles.noChartsMessage}>
               Please add a selection of charts, and then generate.
@@ -129,19 +116,15 @@ import ModalAddChart from "../../components/ModalAddChart";
           {showCharts && charts.length > 0 && charts.map((chart) => (
             <div key={chart.id} className={styles.chart}>
               <h3>{chart.label}</h3>
-               {/* Charts will show depending on type */}
+              {/* Charts will show depending on type */}
               {chart.type === "Shaded Line Chart" && chart.data && <ShadedLineChart data={chart.data} />}
               {chart.type === "Line Chart" && chart.data && <LineChart data={chart.data} />}
               {chart.type === "Stacked Bar Chart" && chart.data && <StackedBarChart data={chart.data} />}
-
-              {chart.type === "Multi-Line Over Time" && chart.data && (
-                <MultiLineChart data={chart.data.data} labels={chart.data.labels} />
+              {chart.type === "Surface Plot" && chart.data && (
+                <SurfacePlot data={chart.data} />
               )}
-              {chart.type === "Final Value vs Parameter" && chart.data && (
-                <LineChartParameter data={chart.data} />
-              )}
-              {chart.type === "Line Chart" && chart.data && (
-                <LineChart data={chart.data} />
+              {chart.type === "Contour Plot" && chart.data && (
+                <ContourPlot data={chart.data} />
               )}
             </div>
           ))}
@@ -151,4 +134,4 @@ import ModalAddChart from "../../components/ModalAddChart";
   );
 };
 
-export default OneD;
+export default TwoD;

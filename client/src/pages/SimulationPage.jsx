@@ -213,6 +213,12 @@ const ScenarioSimulation = () => {
             See OneD
         </Link>
         </div>
+        <div>
+        <h2>Temp: Two Dimensional Simulation</h2>
+        <Link className={styles.seeResults} to={`/visualizations/TwoDimensional/${previousRun}`}>
+            See TwoD
+        </Link>
+        </div>
         <div className={styles.section}>
           <h2>Results</h2>
           {!isRunning && previousRun === null && (
