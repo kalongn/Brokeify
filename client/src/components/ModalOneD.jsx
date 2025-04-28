@@ -97,10 +97,10 @@ const ModalOneD = ({ isOpen, setIsOpen, setCharts, isScenarioParameterNumeric })
           onClick={() => handleChartClick('multiLine')}
         >
           <h3>Multi-Line Chart</h3>
-          <p>Multiple Values of a Quantity Over Time</p>
+          <p>Multiple Values of a Selected Quantity Over Time</p>
           <div className={styles.chartPreview}>
             {/*TODO: Update this image*/}
-            <img src="/src/assets/lineChartEx.png" alt="Final Value Line Chart Preview" />
+            <img src="/src/assets/multilineChartEx.png" alt="Final Value Line Chart Preview" />
           </div>
           {selectedChart === 'multiLine' && (
             <div className={styles.chartSettings}>
@@ -125,10 +125,10 @@ const ModalOneD = ({ isOpen, setIsOpen, setCharts, isScenarioParameterNumeric })
             className={`${styles.chartCard} ${selectedChart === 'finalValue' ? styles.selected : ''}`}
             onClick={() => handleChartClick('finalValue')}
           >
-            <h3>Final Value vs Parameter</h3>
-            <p>Shows the final result of a quantity as the parameter changes</p>
+            <h3>Line Chart</h3>
+            <p>Selected Quantity as a Function of Parameter Value</p>
             <div className={styles.chartPreview}>
-              <img src="/src/assets/lineChartEx.png" alt="Final Value Line Chart Preview" />
+              <img src="/src/assets/finalValueChart.png" alt="Final Value Line Chart Preview" />
             </div>
             {selectedChart === 'finalValue' && (
               <div className={styles.chartSettings}>

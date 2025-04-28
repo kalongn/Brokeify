@@ -100,7 +100,7 @@ import ModalAddChart from "../../components/ModalAddChart";
             isOpen={showAdd1DModal}
             setIsOpen={setShowAdd1DModal}
             setCharts={setCharts}
-            isScenarioParameterNumeric={false} 
+            isScenarioParameterNumeric={true} 
           />
 
           <ModalAddChart
