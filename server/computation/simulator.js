@@ -272,7 +272,8 @@ export async function simulate(
         let nonDiscretionaryExpenses = 0;
         const expensesReturn = await processExpenses(scenario, lastYearTaxes, currentYear);
         nonDiscretionaryExpenses = expensesReturn.t;
-        thisYearGains += expensesReturn.c; //if you sell investments
+        thisYearGains += expensesReturn.capitalGain; //if you sell investments
+		curYearIncome += expensesReturn.incomeGain;
         const expenseBreakdown = expensesReturn.expenseBreakdown;
 		//console.timeEnd("processExpenses")
 		//console.time("processDiscretionaryExpenses")
@@ -285,7 +286,8 @@ export async function simulate(
         );
         discretionaryAmountIgnored = processDiscretionaryResult.np;
         discretionaryAmountPaid = processDiscretionaryResult.p;
-        thisYearGains += processDiscretionaryResult.c;
+        thisYearGains += processDiscretionaryResult.capitalGain;
+		curYearIncome += processDiscretionaryResult.incomeGain;
         const totalExpenseBreakdown = [...expenseBreakdown, ...processDiscretionaryResult.expenseBreakdown];
         let totalExpenses = nonDiscretionaryExpenses + discretionaryAmountPaid;
 		//console.timeEnd("processDiscretionaryExpenses")

@@ -430,14 +430,14 @@ export async function processRMDs(rmdTable, currentYear, birthYear, scenario) {
         for (const invId of investmentType.investments) {
             const inv = investmentMap.get(invId.toString());
             if (inv && inv.taxStatus === "NON_RETIREMENT") {
-                await investmentFactory.update(inv._id, { value: inv.value + withdrawAmount });
+                await investmentFactory.update(inv._id, { value: inv.value + withdrawAmount, purchasePrice: inv.purchasePrice+ withdrawAmount});
                 foundNonRetirement = true;
                 break;
             }
         }
 
         if (!foundNonRetirement) {
-            const createdInvestment = await investmentFactory.create({ taxStatus: "NON_RETIREMENT", value: withdrawAmount });
+            const createdInvestment = await investmentFactory.create({ taxStatus: "NON_RETIREMENT", value: withdrawAmount, purchasePrice: withdrawAmount });
             investmentType.investments.push(createdInvestment._id);
             await investmentTypeFactory.update(investmentType._id, { investments: investmentType.investments });
             invMap.set(createdInvestment._id.toString(), investmentType._id.toString());
@@ -492,7 +492,7 @@ export async function updateInvestments(investmentTypes) {
             }
 
             investment.value += generatedIncome;
-
+            investment.purchasePrice+=generatedIncome;  //reinvest back into investment
             //Calculate value change (growth) based on expected return
             let growth = await sample(type.expectedAnnualReturn, expectedAnnualReturnDistribution);
             if (expectedAnnualReturnDistribution.distributionType !== "FIXED_AMOUNT" &&
@@ -514,7 +514,7 @@ export async function updateInvestments(investmentTypes) {
             updates.push({
                 updateOne: {
                     filter: { _id: investment._id },
-                    update: { $set: { value: investment.value } },
+                    update: { $set: { value: investment.value, purchasePrice: investment.purchasePrice } },
                 },
             });
         }
@@ -612,7 +612,8 @@ export async function performRothConversion(curYearIncome, curYearSS, federalInc
         } else {
             //Create a new after-tax retirement investment under the same type
             const newInvestment = {
-                value: transferAmount,
+                value: transferAmount,  
+                purchasePrice: 0,   //doesn't have a 'purchasePrice' because it isnt relevant
                 taxStatus: "AFTER_TAX_RETIREMENT"
             };
             const createdInvestment = await investmentFactory.create(newInvestment);
@@ -776,7 +777,7 @@ export async function processExpenses(scenario, previousYearTaxes, currentYear) 
     }
 
     totalExpenses = Math.round((totalExpenses) * 100) / 100;
-    let toReturn = { t: totalExpenses, c: 0, expenseBreakdown: expenseBreakdown };
+    let toReturn = { t: totalExpenses, capitalGain: 0, incomeGain: 0, expenseBreakdown: expenseBreakdown };
 
     // Pay expenses, starting with cash and going to expense strategy:
     // Get cash investment:
@@ -838,13 +839,26 @@ export async function processExpenses(scenario, previousYearTaxes, currentYear) 
         };
 
         if (investment.value > totalExpenses) {
-            update.updateOne.update = { $set: { value: investment.value - totalExpenses } };
+            //capital gain = f * (current value - purchase price).
+            let capitalGain = (totalExpenses/investment.value) * (investment.value - investment.purchasePrice)
+            update.updateOne.update = { $set: { value: investment.value - totalExpenses, purchasePrice: investment.purchasePrice-totalExpenses } };
             totalExpenses = 0;
-            toReturn.c += totalExpenses;
+            if(investment.taxStatus==="NON_RETIREMENT"){
+                toReturn.capitalGain += capitalGain;
+            }
+            else if(investment.taxStatus==="PRE_TAX_RETIREMENT"){
+                toReturn.incomeGain += capitalGain;
+            }
         } else {
+            let capitalGain = (investment.value - investment.purchasePrice)
             totalExpenses -= investment.value;
-            toReturn.c += investment.value;
-            update.updateOne.update = { $set: { value: 0 } };
+            if(investment.taxStatus==="NON_RETIREMENT"){
+                toReturn.capitalGain += capitalGain;
+            }
+            else if(investment.taxStatus==="PRE_TAX_RETIREMENT"){
+                toReturn.incomeGain += capitalGain;
+            }
+            update.updateOne.update = { $set: { value: 0, purchasePrice: 0} };
         }
         investmentUpdates.push(update);
     }
@@ -902,7 +916,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) {
     totalInStrategy = Math.round((totalInStrategy) * 100) / 100;
 
     totalExpenses = Math.round((totalExpenses) * 100) / 100;
-    let toReturn = { np: 0, p: totalExpenses, c: 0, expenseBreakdown: expenseBreakdown };
+    let toReturn = { np: 0, p: totalExpenses, capitalGain: 0, incomeGain:0, expenseBreakdown: expenseBreakdown };
     let leftToPay = totalExpenses;
     let amountICanPay = Math.max(totalValue - scenario.financialGoal, totalInStrategy);
 
@@ -911,11 +925,11 @@ export async function processDiscretionaryExpenses(scenario, currentYear) {
 
     amountICanPay = Math.max(totalValue - scenario.financialGoal, totalInStrategy);
     if (amountICanPay <= 0) {
-        return { np: totalExpenses, p: 0, c: 0, expenseBreakdown: expenseBreakdown };
+        return { np: totalExpenses, p: 0, capitalGain: 0, incomeGain:0, expenseBreakdown: expenseBreakdown };
     }
 
     if (amountICanPay < totalExpenses) {
-        toReturn = { np: totalExpenses - amountICanPay, p: amountICanPay, c: 0, expenseBreakdown: expenseBreakdown };
+        toReturn = { np: totalExpenses - amountICanPay, p: amountICanPay, capitalGain: 0, incomeGain:0, expenseBreakdown: expenseBreakdown };
         leftToPay = amountICanPay;
     }
 
@@ -970,23 +984,47 @@ export async function processDiscretionaryExpenses(scenario, currentYear) {
     }
 
     // Go in order of orderedExpenseWithdrawalStrategy
+    const investmentUpdates = [];
     const orderedInvestments = await investmentFactory.readMany(scenario.orderedExpenseWithdrawalStrategy);
     for (const investment of orderedInvestments) {
         if (leftToPay === 0) {
             break;
         }
 
-        //take out as much value as possible
+        let update = {
+            updateOne: {
+                filter: { _id: investment._id },
+                update: {}
+            }
+        };
+
         if (investment.value > leftToPay) {
-            await investmentFactory.update(investment._id, { value: Math.round((investment.value - leftToPay) * 100) / 100 });
+            //capital gain = f * (current value - purchase price).
+            let capitalGain = (leftToPay/investment.value) * (investment.value - investment.purchasePrice)
+            update.updateOne.update = { $set: { value: investment.value - leftToPay, purchasePrice: investment.purchasePrice-totalExpenses } };
             leftToPay = 0;
-            toReturn.c += leftToPay;
-            break;
+            if(investment.taxStatus==="NON_RETIREMENT"){
+                toReturn.capitalGain += capitalGain;
+            }
+            else if(investment.taxStatus==="PRE_TAX_RETIREMENT"){
+                toReturn.incomeGain += capitalGain;
+            }
         } else {
+            let capitalGain = (investment.value - investment.purchasePrice)
             leftToPay -= investment.value;
-            toReturn.c += investment.value;
-            await investmentFactory.update(investment._id, { value: 0 });
+            if(investment.taxStatus==="NON_RETIREMENT"){
+                toReturn.capitalGain += capitalGain;
+            }
+            else if(investment.taxStatus==="PRE_TAX_RETIREMENT"){
+                toReturn.incomeGain += capitalGain;
+            }
+            update.updateOne.update = { $set: { value: 0, purchasePrice: 0} };
         }
+        investmentUpdates.push(update);
+    }
+
+    if (investmentUpdates.length > 0) {
+        await mongoose.model('Investment').bulkWrite(investmentUpdates);
     }
 
     return toReturn;
@@ -1120,7 +1158,8 @@ export async function processInvestmentEvents(scenario, currentYear) {
             investmentUpdates.push({
                 updateOne: {
                     filter: { _id: investment._id },
-                    update: { $set: { value: Math.round((investment.value + tentativeInvestmentAmounts[i]) * 100) / 100 } }
+                    update: { $set: { value: Math.round((investment.value + tentativeInvestmentAmounts[i]) * 100) / 100,
+                         purchasePrice : Math.round((investment.purchasePrice + tentativeInvestmentAmounts[i]) * 100) / 100} }
                 }
             });
 
@@ -1152,7 +1191,7 @@ export async function rebalanceInvestments(scenario, currentYear) {
     });
 
     let totalCapitalGains = 0;
-
+    let totalIncomeGains = 0;
     for (const eventId of eventIds) {
         const event = eventsMap.get(eventId.toString());
         if (!event) {
@@ -1196,12 +1235,15 @@ export async function rebalanceInvestments(scenario, currentYear) {
             const investment = investmentMap.get(investments[i]._id.toString());
             if (targetValues[i] < actualValues[i]) {
                 let sellValue = actualValues[i] - targetValues[i];
-                amountSold += sellValue;
-
+                let capitalGain = (sellValue/investment.value)(investment.value - investment.purchasePrice)
+                if(investment.taxStatus==="NON_RETIREMENT"){
+                    amountSold += capitalGain;
+                }
                 investmentUpdates.push({
                     updateOne: {
                         filter: { _id: investment._id },
-                        update: { $set: { value: Math.round(targetValues[i] * 100) / 100 } }
+                        update: { $set: { value: Math.round(targetValues[i] * 100) / 100,
+                                    purchasePrice: investment.purchasePrice-sellValue} }
                     }
                 });
 
