@@ -53,17 +53,21 @@ router.get("/runSimulation", async (req, res) => {
     }
     try {
         const user = await userController.readWithScenarios(req.session.user);
-        const allScenarios = user.ownerScenarios.concat(user.editorScenarios, user.viewerScenarios);
-
-        const data = {
-            isRunning: user.isRunningSimulation,
-            previousRun: user.previousSimulation,
-            scenarios: allScenarios.map((scenario) => {
+        const scenarios = user.ownerScenarios.concat(user.editorScenarios, user.viewerScenarios);
+        const readyScenarios = (await Promise.all(scenarios.map((scenario) => {
+            return scenarioController.read(scenario._id);
+        })))
+            .filter((scenario) => scenario.isSimulationReady)
+            .map((scenario) => {
                 return {
                     id: scenario._id,
                     name: scenario.name,
                 }
-            }),
+            });
+        const data = {
+            isRunning: user.isRunningSimulation,
+            previousRun: user.previousSimulation,
+            scenarios: readyScenarios,
         }
         return res.status(200).send(data);
     } catch (error) {
