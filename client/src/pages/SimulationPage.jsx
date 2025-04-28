@@ -149,47 +149,47 @@ const ScenarioSimulation = () => {
       <div className={styles.background}>
         <h2>Scenario Simulation</h2>
         <ErrorMessage errors={errors} />
+        <div className={styles.columns}>
+          <ChartTabs
+            scenarios={scenarios}
+            chartData={chartData}
+            setChartData={setChartData}
+            setErrors={setErrors}
+          />
+          <div className={styles.section}>
+            <h2>Results</h2>
+            {!isRunning && previousRun === null && (
+              <p style={{ marginTop: '20px', fontStyle: 'italic' }}>
+                Please select a scenario, enter number of simulations, and run simulation to see results.
+              </p>
+            )}
 
-
-        <ChartTabs
-          scenarios={scenarios}
-          chartData={chartData}
-          setChartData={setChartData}
-          setErrors={setErrors}
-        />
-        <div className={styles.section}>
-          <h2>Results</h2>
-          <div className={styles.buttonBox}>
-            <div className={styles.buttons}>
-              <button
-                className={`${styles.runSimulation} ladda-button`}
-                data-style="expand-left"
-                data-spinner-size="25"
-                ref={runButtonRef}
-                onClick={() => handleRunSimulation()}
-              >
-                <span>Run Simulation</span>
-              </button>
+            {isRunning ? (
+              <p>A simulation is running... Please wait.</p>
+            ) : (
+              previousRun !== null && (
+                <div>
+                  <p>Most Recent Run Result:</p>
+                  <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
+                    See Results
+                  </Link>
+                </div>
+              )
+            )}
+            <div className={styles.buttonBox}>
+              <div className={styles.buttons}>
+                <button
+                  className={`${styles.runSimulation} ladda-button`}
+                  data-style="expand-left"
+                  data-spinner-size="25"
+                  ref={runButtonRef}
+                  onClick={() => handleRunSimulation()}
+                >
+                  <span>Run Simulation</span>
+                </button>
+              </div>
             </div>
           </div>
-          {!isRunning && previousRun === null && (
-            <p style={{ marginTop: '20px', fontStyle: 'italic' }}>
-              Please select a scenario, enter number of simulations, and run simulation to see results.
-            </p>
-          )}
-
-          {isRunning ? (
-            <p>A simulation is running... Please wait.</p>
-          ) : (
-            previousRun !== null && (
-              <div>
-                <p>Most Recent Run Result:</p>
-                <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
-                  See Results
-                </Link>
-              </div>
-            )
-          )}
         </div>
       </div>
     </Layout>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 
 import Select from 'react-select';
-
+import styles from './ChartTabs.module.css';
 
 const ChartParameters = ({ parameterIndex, chartData, handleChange, handleSelectChange }) => {
   const parameterOptions = [
@@ -17,7 +17,7 @@ const ChartParameters = ({ parameterIndex, chartData, handleChange, handleSelect
   return (
     <div>
       <label>
-        Select Event Series
+        Select Event Series {parameterIndex}
         <Select
           options={eventSeries.map((event) => ({ value: event.name, label: event.name }))}
           onChange={(option) => handleSelectChange(option, `eventSeries${parameterIndex}`)}
@@ -32,7 +32,7 @@ const ChartParameters = ({ parameterIndex, chartData, handleChange, handleSelect
           className="select"
         />
       </label>
-      <div>
+      <div className={styles.parameterBounds}>
         <label>
           Lower Bound
           <input

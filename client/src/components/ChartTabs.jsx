@@ -5,7 +5,7 @@ import Select from 'react-select';
 import ChartParameters from './ChartParameters';
 
 import { clearErrors } from "../utils/ScenarioHelper";
-import styles from '../pages/SimulationPage.module.css';
+import sectionStyles from '../pages/SimulationPage.module.css';
 
 const ChartTabs = ({ scenarios, chartData, setChartData, setErrors }) => {
   const [activeTab, setActiveTab] = useState("Charts");
@@ -24,11 +24,11 @@ const ChartTabs = ({ scenarios, chartData, setChartData, setErrors }) => {
     clearErrors(setErrors, "selectInput");
   };
   return (
-    <>
+    <div>
       <button onClick={() => setActiveTab("Charts")}>Charts</button>
       <button onClick={() => setActiveTab("1-D Exploration")}>1-D Exploration</button>
       <button onClick={() => setActiveTab("2-D Exploration")}>2-D Exploration</button>
-      <div className={styles.section}>
+      <div className={sectionStyles.section}>
         <div>
           <label>
             Select Scenario
@@ -67,7 +67,7 @@ const ChartTabs = ({ scenarios, chartData, setChartData, setErrors }) => {
           ))
         )}
       </div>
-    </>
+    </div>
   )
 }
 
