@@ -29,6 +29,7 @@ const ScenarioSchema = new mongoose.Schema({
     ownerEmail: { type: String },
     editorEmails: [{ type: String }],
     viewerEmails: [{ type: String }],
+    isSimulationReady: { type: Boolean, default: false },
 });
 
 const Scenario = mongoose.model('Scenario', ScenarioSchema);
