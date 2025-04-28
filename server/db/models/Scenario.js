@@ -30,6 +30,13 @@ const ScenarioSchema = new mongoose.Schema({
     editorEmails: [{ type: String }],
     viewerEmails: [{ type: String }],
     isSimulationReady: { type: Boolean, default: false },
+    dateCreated: {
+        type: String,
+        default: () => {
+            const date = new Date();
+            return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+        }
+    },
 });
 
 const Scenario = mongoose.model('Scenario', ScenarioSchema);
