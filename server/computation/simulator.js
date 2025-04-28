@@ -122,7 +122,7 @@ export async function simulate(
     await scenarioFactory.update(scenario._id, scenario);
 
     await setupMap(scenario._id);
-    let cumulativeInflation = 1;
+    let cumulativeInflation = 0;
     let lastYearTaxes = 0;
     let thisYearTaxes = 0;
     let lastYearGains = 0;
@@ -148,7 +148,7 @@ export async function simulate(
             Math.ceil(inflationRate * 1000) / 1000
         }\n`;
         updateLog(inflationeEventDetails);
-        cumulativeInflation = cumulativeInflation * (1 + inflationRate);
+        cumulativeInflation = ((cumulativeInflation+1) * (1 + inflationRate)) -1;
 
 
         investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);

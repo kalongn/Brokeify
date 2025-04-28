@@ -472,7 +472,7 @@ export async function updateInvestments(investmentTypes) {
 
         for (const investmentID of type.investments) {
             const investment = investmentMap.get(investmentID.toString());
-
+            if(investment.taxStatus==="CASH")continue;
             if (!investment) {
                 console.warn(`Investment with ID ${investmentID} not found!`);
                 continue;
@@ -510,7 +510,7 @@ export async function updateInvestments(investmentTypes) {
             //Subtract expenses
             investment.value -= expenses;
             investment.value = Math.round((investment.value) * 100) / 100;
-
+            //console.log(`New value of investment is ${investment.value}`)
             updates.push({
                 updateOne: {
                     filter: { _id: investment._id },
