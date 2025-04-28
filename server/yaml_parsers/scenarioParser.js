@@ -465,6 +465,7 @@ export async function parseAndSaveYAML(yamlStr, userId) {
             ownerFirstName: firstName,
             ownerLastName: lastName,
             ownerEmail: email,
+            isSimulationReady: true,
         });
 
         await userController.update(userId, {
