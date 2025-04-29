@@ -9,7 +9,18 @@ import sectionStyles from '../pages/SimulationPage.module.css';
 
 const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }) => {
   const [activeTab, setActiveTab] = useState("Charts");
+  const [selectRemount, setSelectRemount] = useState(0);
   const chartParametersCount = Number(activeTab[0]);
+
+  // Only number of simulations and the selected scenario inputs are shared across all tabs
+  const changeTab = (tab) => {
+    setActiveTab(tab);
+    setSimulationInput(() => ({
+      numSimulations: simulationInput.numSimulations,
+      selectedScenario: simulationInput.selectedScenario 
+    }));
+    setSelectRemount((prevKey) => prevKey + 1);
+  }  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,13 +32,13 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   const handleSelectChange = (selectedOption, field) => {
     setSimulationInput((prev) => ({ ...prev, [field]: selectedOption.value }));
     // Clear errors when user makes changes
-    clearErrors(setErrors, "selectInput");
+    clearErrors(setErrors, field);
   };
   return (
     <div>
-      <button onClick={() => setActiveTab("Charts")}>Charts</button>
-      <button onClick={() => setActiveTab("1-D Exploration")}>1-D Exploration</button>
-      <button onClick={() => setActiveTab("2-D Exploration")}>2-D Exploration</button>
+      <button onClick={() => changeTab("Charts")}>Charts</button>
+      <button onClick={() => changeTab("1-D Exploration")}>1-D Exploration</button>
+      <button onClick={() => changeTab("2-D Exploration")}>2-D Exploration</button>
       <div className={sectionStyles.section}>
         <div>
           <label>
@@ -60,6 +71,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
             <ChartParameters
               key={index}
               parameterIndex={index+1}
+              selectRemount={selectRemount}
               simulationInput={simulationInput}
               handleChange={handleChange}
               handleSelectChange={handleSelectChange}

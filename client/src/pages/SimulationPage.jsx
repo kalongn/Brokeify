@@ -14,7 +14,9 @@ import styles from './SimulationPage.module.css';
 const ScenarioSimulation = () => {
 
   const [scenarios, setScenarios] = useState([]);
-  const [simulationInput, setSimulationInput] = useState([]);
+  const [simulationInput, setSimulationInput] = useState({
+    numSimulations: 10
+  });
   // const [selectedScenario, setSelectedScenario] = useState('');
   // const [numSimulations, setNumSimulations] = useState(10);
   const [errors, setErrors] = useState({});
