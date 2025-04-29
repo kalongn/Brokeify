@@ -4,6 +4,8 @@ import Layout from "../../components/Layout";
 import styles from "./Charts.module.css";
 import Accordion from "../../components/Accordion";
 import LineChart from "../../components/LineChart";
+import ShadedLineChart from "../../components/ShadedLineChart";
+import StackedBarChart from "../../components/StackedBarChart";
 import MultiLineChart from "../../components/MultiLineChart";
 import LineChartParameter from "../../components/LineChartParameter";
 import ModalOneD from "../../components/ModalOneD";
@@ -130,6 +132,11 @@ import ModalAddChart from "../../components/ModalAddChart";
           {showCharts && charts.length > 0 && charts.map((chart) => (
             <div key={chart.id} className={styles.chart}>
               <h3>{chart.label}</h3>
+              {/* Charts will show depending on type */}
+              {chart.type === "Shaded Line Chart" && chart.data && <ShadedLineChart data={chart.data} />}
+              {chart.type === "Line Chart" && chart.data && <LineChart data={chart.data} />}
+              {chart.type === "Stacked Bar Chart" && chart.data && <StackedBarChart data={chart.data} />}
+
               {chart.type === "Multi-Line Over Time" && chart.data && (
                 <MultiLineChart data={chart.data.data} labels={chart.data.labels} />
               )}
