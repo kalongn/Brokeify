@@ -157,8 +157,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
     <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <h2 className={styles.header}>Select a Chart</h2>
       {hasParameterValue && (
-      <div >
-        <label>Select value for {parameter}:</label>  
+      <div className = {styles.parameterSection} >
+        <label>Select a value for {parameter}:</label>  
         <Select
           options={parameterArray.map(year => ({ value: year, label: year }))}
           value={
