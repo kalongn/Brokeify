@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import styles from "./ModalAddChart.module.css";
 import { useState } from 'react';
 import ModalBase from './ModalBase';
+import Select from 'react-select';
 
 const shadedLineQuantities = [
   "Total Investments",
@@ -33,8 +34,13 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
 
   const isShadedQuantityNumeric = numericQuantities.includes(selectedShadedQuantity);
   const [parameter, setParameter] = useState("start year");
-  const [parameterValue, setParameterValue] = useState('');
-
+  const [selectedParameterValue, setSelectedParameterValue] = useState('');
+  
+  const parameterArray = ["2021", "2022", "2023", "2024"];
+  const parameterOptions = parameterArray.map(year => ({
+    value: year,
+    label: year
+  }));
   
   const handleChartClick = (chartType) => {
     setSelectedChart(chartType);
@@ -51,9 +57,10 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
       errors.chartSelection = 'Please select a chart type.';
     }
 
-    if (!parameterValue || parameterValue.trim() === '') {
+    if (!selectedParameterValue || selectedParameterValue.trim() === '') {
       errors.parameterValue = `Please enter a value for ${parameter}.`;
     }
+    
     if (selectedChart === 'shaded') {
       if (!selectedShadedQuantity) errors.shadedQuantity = 'Please select a quantity.';
       if (isShadedQuantityNumeric) {
@@ -150,18 +157,24 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
     <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <h2 className={styles.header}>Select a Chart</h2>
       {hasParameterValue && (
-        <div className={styles.chartCard}>
-          <label>Enter value for {parameter}:</label>  
-          <input
-            type="number"
-            value={parameterValue}
-            onChange={(e) => setParameterValue(e.target.value)}
-          />
-          {validationErrors.parameterValue && (
-            <p className={styles.error}>{validationErrors.parameterValue}</p>
-          )}
-        </div>
-      )}
+      <div >
+        <label>Select value for {parameter}:</label>  
+        <Select
+          options={parameterArray.map(year => ({ value: year, label: year }))}
+          value={
+            parameterArray
+              .map(year => ({ value: year, label: year }))
+              .find(option => option.value === selectedParameterValue)
+          }
+          onChange={(selectedOption) => setSelectedParameterValue(selectedOption.value)}
+          placeholder={`Select ${parameter}`}
+        />
+        {validationErrors.parameterValue && (
+          <p className={styles.error}>{validationErrors.parameterValue}</p>
+        )}
+      </div>
+    )}
+
 
       <div className={styles.chartOptions}>
         {/* Line Chart */}
