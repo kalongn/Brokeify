@@ -24,7 +24,7 @@ const numericQuantities = [
   "Early Withdrawal Tax"
 ];
 
-const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
+const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
   const [selectedChart, setSelectedChart] = useState(null);
   // const [formData, setFormData] = useState({});
   const [selectedShadedQuantity, setSelectedShadedQuantity] = useState('');
@@ -32,7 +32,10 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
   const isShadedQuantityNumeric = numericQuantities.includes(selectedShadedQuantity);
+  const [parameter, setParameter] = useState("start year");
+  const [parameterValue, setParameterValue] = useState('');
 
+  
   const handleChartClick = (chartType) => {
     setSelectedChart(chartType);
     setValidationErrors((prevErrors) => {
@@ -46,6 +49,10 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
     const errors = {};
     if (!selectedChart) {
       errors.chartSelection = 'Please select a chart type.';
+    }
+
+    if (!parameterValue || parameterValue.trim() === '') {
+      errors.parameterValue = `Please enter a value for ${parameter}.`;
     }
     if (selectedChart === 'shaded') {
       if (!selectedShadedQuantity) errors.shadedQuantity = 'Please select a quantity.';
@@ -142,7 +149,19 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
   return (
     <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <h2 className={styles.header}>Select a Chart</h2>
-
+      <div className = {styles.chartCard}>
+        <label>Enter value for {parameter}:</label>  
+        
+        <input
+          type="number"
+          value={parameterValue}
+          onChange={(e) => setParameterValue(e.target.value)}
+        />
+        {validationErrors.parameterValue && (
+          <p className={styles.error}>{validationErrors.parameterValue}</p>
+        )}
+       
+      </div>
       <div className={styles.chartOptions}>
         {/* Line Chart */}
         <div
@@ -279,7 +298,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
 AddChart.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   setIsOpen: PropTypes.func.isRequired,
-  setCharts: PropTypes.func.isRequired
+  setCharts: PropTypes.func.isRequired,
+  hasParameterValue: PropTypes.bool.isRequired
 };
 
 export default AddChart;
