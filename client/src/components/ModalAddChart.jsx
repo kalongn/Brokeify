@@ -250,8 +250,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
           {selectedChart === 'stacked' && (
             <div className={styles.chartSettings}>
               <div className={styles.radioGroup}>
-                <label><input type="radio" name="barValueType" value="Median" /> Median</label>
-                <label><input type="radio" name="barValueType" value="Average" /> Average</label>
+                <p><input type="radio" name="barValueType" value="Median" /> Median</p>
+                <p><input type="radio" name="barValueType" value="Average" /> Average</p>
               </div>
               {validationErrors.barType && (
                 <p className={styles.error}>{validationErrors.barType}</p>
@@ -274,7 +274,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
               </div>
 
               <p className={styles.thresholdLabel}>
-                Aggregation Threshold
+                <p>Aggregation Threshold </p>
                 <input type="number" />
                 {/*TOD0: Get and add the questionmark icon to reflect like below*/}
                 {/* <span className={styles.tooltip} title="Categories with values less than this threshold will be combined into an 'Other' category.">?</span>*/}
