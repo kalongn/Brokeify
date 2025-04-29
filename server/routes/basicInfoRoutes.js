@@ -95,7 +95,8 @@ router.post("/basicInfo/:scenarioId", async (req, res) => {
             userBirthYear: birthYear,
             userLifeExpectancyDistribution: newUserLifeExpectancy,
             spouseBirthYear: spouseBirthYear === undefined ? null : spouseBirthYear,
-            spouseLifeExpectancyDistribution: spouseLifeExpectancyDistribution
+            spouseLifeExpectancyDistribution: spouseLifeExpectancyDistribution,
+            isSimulationReady: true
         });
 
         return res.status(200).send("Basic info updated.");

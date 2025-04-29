@@ -373,13 +373,21 @@ export async function parseAndSaveYAML(yamlStr, userId) {
         });
         await Promise.all(investmentTypePromises);
 
+        const rothInvestments = [];
+
         // Save Investments
         for (const i in data.investments) {
             const inv = data.investments[i];
+            const taxStatus = taxStatusMap.get(inv.taxStatus.toString());
             const createdInvestment = await investmentFactory.create({
                 value: inv.value,
-                taxStatus: taxStatusMap.get(inv.taxStatus.toString()),
+                taxStatus: taxStatus,
             });
+
+            if (taxStatus === "PRE_TAX_RETIREMENT") {
+                rothInvestments.push(createdInvestment._id.toString());
+            }
+
             //update investment type:
             const investmentTypeID = idMap.get(`${inv.investmentType} TYPE`);
             const investmentType = await investmentTypeFactory.read(investmentTypeID);
@@ -461,10 +469,11 @@ export async function parseAndSaveYAML(yamlStr, userId) {
             orderedRMDStrategy: data.RMDStrategy.map(inv => idMap.get(inv)),
             startYearRothOptimizer: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionStart : undefined),
             endYearRothOptimizer: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionEnd : undefined),
-            orderedRothStrategy: data.RothConversionStrategy.map(inv => idMap.get(inv)),
+            orderedRothStrategy: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionStrategy.map(inv => idMap.get(inv)) : rothInvestments),
             ownerFirstName: firstName,
             ownerLastName: lastName,
             ownerEmail: email,
+            isSimulationReady: true,
         });
 
         await userController.update(userId, {

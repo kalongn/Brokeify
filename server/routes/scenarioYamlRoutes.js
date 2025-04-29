@@ -3,12 +3,14 @@ import multer from 'multer';
 import yaml from 'js-yaml';
 import fs from 'fs';
 
+import ScenarioController from '../db/controllers/ScenarioController.js';
 import { exportScenarioAsYAML } from '../yaml_parsers/scenarioExporter.js';
 import { parseAndSaveYAML } from '../yaml_parsers/scenarioParser.js';
 import { canView } from './helper.js';
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
+const scenarioController = new ScenarioController();
 
 router.get('/scenario/:scenarioId/export', async (req, res) => {
     if (!req.session.user) {
@@ -18,7 +20,10 @@ router.get('/scenario/:scenarioId/export', async (req, res) => {
     if (!(await canView(req.session.user, scenarioId))) {
         return res.status(403).send("You do not have permission to access this scenario.");
     }
-
+    const scenario = await scenarioController.read(scenarioId);
+    if (!scenario.isSimulationReady) {
+        return res.status(409).send("Scenario is not ready for export.");
+    }
     try {
         const { filename, yamlStr } = await exportScenarioAsYAML(scenarioId);
         res.setHeader('Content-Type', 'application/x-yaml');
