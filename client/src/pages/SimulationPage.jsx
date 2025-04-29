@@ -12,13 +12,10 @@ import * as Ladda from 'ladda/js/ladda'; // or import from submodule path
 import styles from './SimulationPage.module.css';
 
 const ScenarioSimulation = () => {
-
   const [scenarios, setScenarios] = useState([]);
   const [simulationInput, setSimulationInput] = useState({
     numSimulations: 10
   });
-  // const [selectedScenario, setSelectedScenario] = useState('');
-  // const [numSimulations, setNumSimulations] = useState(10);
   const [errors, setErrors] = useState({});
   const [isRunning, setIsRunning] = useState(false);
   const [previousRun, setPreviousRun] = useState(null);
@@ -165,7 +162,6 @@ const ScenarioSimulation = () => {
                 Please select a scenario, enter number of simulations, and run simulation to see results.
               </p>
             )}
-
             {isRunning ? (
               <p>A simulation is running... Please wait.</p>
             ) : (

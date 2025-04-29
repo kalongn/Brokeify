@@ -43,7 +43,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
               Lower Bound
               <input
                 type="number"
-                value={simulationInput[`lowerBound${parameterIndex}`]}
+                name={`lowerBound${parameterIndex}`}
                 onChange={handleChange}
               />
             </label>
@@ -51,7 +51,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
               Upper Bound
               <input
                 type="number"
-                value={simulationInput[`upperBound${parameterIndex}`]}
+                name={`upperBound${parameterIndex}`}
                 onChange={handleChange}
               />
             </label>
@@ -59,7 +59,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
               Step Size
               <input
                 type="number"
-                value={simulationInput[`stepSize${parameterIndex}`]}
+                name={`stepSize${parameterIndex}`}
                 onChange={handleChange}
               />
             </label>

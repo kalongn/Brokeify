@@ -9,7 +9,9 @@ import sectionStyles from '../pages/SimulationPage.module.css';
 
 const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }) => {
   const [activeTab, setActiveTab] = useState("Charts");
+  // Key used to force remount and clear Select component inputs when the tab is changed
   const [selectRemount, setSelectRemount] = useState(0);
+  // Used to map ChartParameters
   const chartParametersCount = Number(activeTab[0]);
 
   // Only number of simulations and the selected scenario inputs are shared across all tabs
@@ -24,9 +26,15 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setSimulationInput((prev) => ({ ...prev, [name]: value }));
+    let processedValue = value;
+    // Match to names with numbers since ChartParameter inputs are named as such: lowerBound1
+    if (name.match(/\d/) || name === "numSimulations") {
+      processedValue = Number(value);
+    }
+    setSimulationInput((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
     clearErrors(setErrors, name);
+    console.log(simulationInput);
   };
 
   const handleSelectChange = (selectedOption, field) => {
@@ -56,11 +64,12 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
             Number of Simulation Runs
             <br />
             <input
-              id="simulation"
+              id="numSimulations"
               type="number"
               min="10"
               max="50"
               step="1"
+              name="numSimulations"
               defaultValue={simulationInput.numSimulations !== undefined ? simulationInput.numSimulations : 10}
               onChange={handleChange}
             />
