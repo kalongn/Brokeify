@@ -16,6 +16,7 @@ const InvestmentTypeSchema = new mongoose.Schema({
 
 const InvestmentSchema = new mongoose.Schema({
     value: { type: Number },
+    purchasePrice: {type: Number},
     taxStatus: { type: String, enum: TAX_STATUS }
 });
 

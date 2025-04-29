@@ -53,17 +53,21 @@ router.get("/runSimulation", async (req, res) => {
     }
     try {
         const user = await userController.readWithScenarios(req.session.user);
-        const allScenarios = user.ownerScenarios.concat(user.editorScenarios, user.viewerScenarios);
-
+        const scenarios = user.ownerScenarios.concat(user.editorScenarios, user.viewerScenarios);
+        const readyScenarios = (await Promise.all(scenarios.map((scenario) => {
+            return scenarioController.read(scenario._id);
+        })))
+            .filter((scenario) => scenario.isSimulationReady)
+            .map((scenario) => {
+                return {
+                    id: scenario._id,
+                    name: scenario.name + " | created at " + scenario.dateCreated,
+                }
+            });
         const data = {
             isRunning: user.isRunningSimulation,
             previousRun: user.previousSimulation,
-            scenarios: allScenarios.map((scenario) => {
-                return {
-                    id: scenario._id,
-                    name: scenario.name,
-                }
-            }),
+            scenarios: readyScenarios,
         }
         return res.status(200).send(data);
     } catch (error) {
@@ -188,6 +192,7 @@ router.post("/runSimulation/", async (req, res) => {
         return res.status(200).send(simulationId._id);
     } catch (error) {
         console.error("Error fetching simulation:", error);
+        await userController.update(userId, { isRunningSimulation: false });
         return res.status(500).send("Internal Server Error");
     }
 });
