@@ -7,19 +7,19 @@ import ChartParameters from './ChartParameters';
 import { clearErrors } from "../utils/ScenarioHelper";
 import sectionStyles from '../pages/SimulationPage.module.css';
 
-const ChartTabs = ({ scenarios, chartData, setChartData, setErrors }) => {
+const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }) => {
   const [activeTab, setActiveTab] = useState("Charts");
   const chartParametersCount = Number(activeTab[0]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setChartData((prev) => ({ ...prev, [name]: value }));
+    setSimulationInput((prev) => ({ ...prev, [name]: value }));
     // Clear errors when user makes changes
     clearErrors(setErrors, name);
   };
 
   const handleSelectChange = (selectedOption, field) => {
-    setChartData((prev) => ({ ...prev, [field]: selectedOption.value }));
+    setSimulationInput((prev) => ({ ...prev, [field]: selectedOption.value }));
     // Clear errors when user makes changes
     clearErrors(setErrors, "selectInput");
   };
@@ -50,7 +50,7 @@ const ChartTabs = ({ scenarios, chartData, setChartData, setErrors }) => {
               min="10"
               max="50"
               step="1"
-              defaultValue={chartData.numSimulations !== undefined ? chartData.numSimulations : 10}
+              defaultValue={simulationInput.numSimulations !== undefined ? simulationInput.numSimulations : 10}
               onChange={handleChange}
             />
           </label>
@@ -60,7 +60,7 @@ const ChartTabs = ({ scenarios, chartData, setChartData, setErrors }) => {
             <ChartParameters
               key={index}
               parameterIndex={index+1}
-              chartData={chartData}
+              simulationInput={simulationInput}
               handleChange={handleChange}
               handleSelectChange={handleSelectChange}
             />
@@ -73,8 +73,8 @@ const ChartTabs = ({ scenarios, chartData, setChartData, setErrors }) => {
 
 ChartTabs.propTypes = {
   scenarios: PropTypes.object.isRequired,
-  chartData: PropTypes.object.isRequired,
-  setChartData: PropTypes.func.isRequired,
+  simulationInput: PropTypes.object.isRequired,
+  setSimulationInput: PropTypes.func.isRequired,
   setErrors: PropTypes.func.isRequired
 };
 

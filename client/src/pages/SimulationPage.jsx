@@ -14,13 +14,13 @@ import styles from './SimulationPage.module.css';
 const ScenarioSimulation = () => {
 
   const [scenarios, setScenarios] = useState([]);
-  const [chartData, setChartData] = useState([]);
+  const [simulationInput, setSimulationInput] = useState([]);
   // const [selectedScenario, setSelectedScenario] = useState('');
   // const [numSimulations, setNumSimulations] = useState(10);
   const [errors, setErrors] = useState({});
   const [isRunning, setIsRunning] = useState(false);
   const [previousRun, setPreviousRun] = useState(null);
-  console.log(chartData);
+  console.log(simulationInput);
 
   // Co-pilot (Gemini 2.5 pro) assistance:
   // Idea: only user to only run 1 simulation at a time, need a setInterval to check if the simulation is still running
@@ -99,11 +99,11 @@ const ScenarioSimulation = () => {
 
 
   const handleRunSimulation = async () => {
-    if (!chartData.selectedScenario) {
+    if (!simulationInput.selectedScenario) {
       setErrors({ scenario: 'Scenario selection is required' });
       return;
     }
-    const num = chartData.numSimulations;
+    const num = simulationInput.numSimulations;
     if (isNaN(num) || num < 10 || num > 50) {
       setErrors({ simulation: 'Number of simulation runs must be between 10 and 50' });
       return;
@@ -126,7 +126,7 @@ const ScenarioSimulation = () => {
       const response = await Axios.post('/runSimulation', {},
         {
           params: {
-            scenarioId: chartData.selectedScenario,
+            scenarioId: simulationInput.selectedScenario,
             numTimes: num
           }
         }
@@ -152,8 +152,8 @@ const ScenarioSimulation = () => {
         <div className={styles.columns}>
           <ChartTabs
             scenarios={scenarios}
-            chartData={chartData}
-            setChartData={setChartData}
+            simulationInput={simulationInput}
+            setSimulationInput={setSimulationInput}
             setErrors={setErrors}
           />
           <div className={styles.section}>

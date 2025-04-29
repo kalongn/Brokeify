@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Select from 'react-select';
 import styles from './ChartTabs.module.css';
 
-const ChartParameters = ({ parameterIndex, chartData, handleChange, handleSelectChange }) => {
+const ChartParameters = ({ parameterIndex, simulationInput, handleChange, handleSelectChange }) => {
   const parameterOptions = [
       { value: "Roth Optimizer", label: "Toggle Roth Optimizer" },
       { value: "Start Year", label: "Start Year" },
@@ -37,7 +37,7 @@ const ChartParameters = ({ parameterIndex, chartData, handleChange, handleSelect
           Lower Bound
           <input
             type="number"
-            value={chartData[`lowerBound${parameterIndex}`]}
+            value={simulationInput[`lowerBound${parameterIndex}`]}
             onChange={handleChange}
           />
         </label>
@@ -45,7 +45,7 @@ const ChartParameters = ({ parameterIndex, chartData, handleChange, handleSelect
           Upper Bound
           <input
             type="number"
-            value={chartData[`upperBound${parameterIndex}`]}
+            value={simulationInput[`upperBound${parameterIndex}`]}
             onChange={handleChange}
           />
         </label>
@@ -53,7 +53,7 @@ const ChartParameters = ({ parameterIndex, chartData, handleChange, handleSelect
           Step Size
           <input
             type="number"
-            value={chartData[`stepSize${parameterIndex}`]}
+            value={simulationInput[`stepSize${parameterIndex}`]}
             onChange={handleChange}
           />
         </label>
@@ -64,7 +64,7 @@ const ChartParameters = ({ parameterIndex, chartData, handleChange, handleSelect
 
 ChartParameters.propTypes = {
   parameterIndex: PropTypes.number.isRequired,
-  chartData: PropTypes.object.isRequired,
+  simulationInput: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   handleSelectChange: PropTypes.func.isRequired
 };
