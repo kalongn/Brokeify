@@ -66,7 +66,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
               id="numSimulations"
               type="number"
               min="10"
-              max="50"
+              max="100"
               step="1"
               name="numSimulations"
               defaultValue={simulationInput.numSimulations !== undefined ? simulationInput.numSimulations : 10}
