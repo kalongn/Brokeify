@@ -34,7 +34,6 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     setSimulationInput((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
     clearErrors(setErrors, name);
-    console.log(simulationInput);
   };
 
   const handleSelectChange = (selectedOption, field) => {

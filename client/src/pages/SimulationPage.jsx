@@ -19,7 +19,6 @@ const ScenarioSimulation = () => {
   const [errors, setErrors] = useState({});
   const [isRunning, setIsRunning] = useState(false);
   const [previousRun, setPreviousRun] = useState(null);
-  console.log(simulationInput);
 
   // Co-pilot (Gemini 2.5 pro) assistance:
   // Idea: only user to only run 1 simulation at a time, need a setInterval to check if the simulation is still running
@@ -103,8 +102,8 @@ const ScenarioSimulation = () => {
       return;
     }
     const num = simulationInput.numSimulations;
-    if (isNaN(num) || num < 10 || num > 50) {
-      setErrors({ simulation: 'Number of simulation runs must be between 10 and 50' });
+    if (isNaN(num) || num < 10 || num > 100) {
+      setErrors({ simulation: 'Number of simulation runs must be between 10 and 100' });
       return;
     }
 
