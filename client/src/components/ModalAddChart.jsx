@@ -149,19 +149,20 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
   return (
     <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <h2 className={styles.header}>Select a Chart</h2>
-      <div className = {styles.chartCard}>
-        <label>Enter value for {parameter}:</label>  
-        
-        <input
-          type="number"
-          value={parameterValue}
-          onChange={(e) => setParameterValue(e.target.value)}
-        />
-        {validationErrors.parameterValue && (
-          <p className={styles.error}>{validationErrors.parameterValue}</p>
-        )}
-       
-      </div>
+      {hasParameterValue && (
+        <div className={styles.chartCard}>
+          <label>Enter value for {parameter}:</label>  
+          <input
+            type="number"
+            value={parameterValue}
+            onChange={(e) => setParameterValue(e.target.value)}
+          />
+          {validationErrors.parameterValue && (
+            <p className={styles.error}>{validationErrors.parameterValue}</p>
+          )}
+        </div>
+      )}
+
       <div className={styles.chartOptions}>
         {/* Line Chart */}
         <div

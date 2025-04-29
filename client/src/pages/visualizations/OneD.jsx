@@ -107,6 +107,7 @@ import ModalAddChart from "../../components/ModalAddChart";
             isOpen={showAddChartsModal}
             setIsOpen={setShowAddChartsModal}
             setCharts={setCharts}
+            hasParameterValue={true}
           />
 
           <h3>Added Charts</h3>
