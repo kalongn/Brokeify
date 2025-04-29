@@ -207,15 +207,17 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
           </div>
           {selectedChart === 'shaded' && (
             <div className={styles.chartSettings}>
-              <select
-                value={selectedShadedQuantity}
-                onChange={(e) => setSelectedShadedQuantity(e.target.value)}
-              >
-                <option value="" disabled hidden>Select Quantity</option>
-                {shadedLineQuantities.map((q) => (
-                  <option key={q} value={q}>{q}</option>
-                ))}
-              </select>
+               {/*Note: Used AI here. Prompted to ChatGPT: please replace this section of code with React Select.
+             Performance: Did well! */}
+              <Select
+                options={shadedLineQuantities.map(q => ({ value: q, label: q }))}
+                value={shadedLineQuantities
+                  .map(q => ({ value: q, label: q }))
+                  .find(option => option.value === selectedShadedQuantity)}
+                onChange={(selected) => setSelectedShadedQuantity(selected.value)}
+                placeholder="Select Quantity"
+              />
+
               {validationErrors.shadedQuantity && (
                 <p className={styles.error}>{validationErrors.shadedQuantity}</p>
               )}
@@ -255,15 +257,17 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
                 <p className={styles.error}>{validationErrors.barType}</p>
               )}
               <div className={styles.selectContainer}>
-                <select
-                  value={selectedBarQuantity}
-                  onChange={(e) => setSelectedBarQuantity(e.target.value)}
-                >
-                  <option value="" disabled hidden>Select Quantity</option>
-                  {stackedBarQuantities.map((quantity) => (
-                    <option key={quantity} value={quantity}>{quantity}</option>
-                  ))}
-                </select>
+             {/*Note: Used AI here. Prompted to ChatGPT: please replace this section of code with React Select.
+             Performance: Did well! */}
+              <Select
+                options={stackedBarQuantities.map(q => ({ value: q, label: q }))}
+                value={stackedBarQuantities
+                  .map(q => ({ value: q, label: q }))
+                  .find(option => option.value === selectedBarQuantity)}
+                onChange={(selected) => setSelectedBarQuantity(selected.value)}
+                placeholder="Select Quantity"
+              />
+
                 {validationErrors.barQuantity && (
                   <p className={styles.error}>{validationErrors.barQuantity}</p>
                 )}
