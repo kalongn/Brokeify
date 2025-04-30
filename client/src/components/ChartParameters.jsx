@@ -110,7 +110,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
           isDisabled={simulationInput.selectedScenario === undefined}
         />
       </label>
-      {simulationInput[`parameter${parameterIndex}`] !== undefined && simulationInput[`parameter${parameterIndex}`] !== "Roth" && (
+      {simulationInput[`parameter${parameterIndex}`] !== undefined && simulationInput[`parameter${parameterIndex}`] !== "ROTH_BOOLEAN" && (
         <>
           <label>
             Select Event Series {parameterIndex}
