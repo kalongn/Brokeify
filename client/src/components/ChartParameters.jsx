@@ -87,13 +87,11 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
 
   useEffect(() => {
     const parameterValue = simulationInput[`parameter${parameterIndex}`];
-    if (parameterValue === "Start Year") {
+    if (parameterValue === "START_EVENT" || parameterValue === "DURATION_EVENT") {
       setdisplayedEvents(events);
-    } else if (parameterValue === "Duration") {
-      setdisplayedEvents(events);
-    } else if (parameterValue === "Initial Amount") {
+    } else if (parameterValue === "EVENT_AMOUNT") {
       setdisplayedEvents(incomeExpenseEvents);
-    } else if (parameterValue === "Investment Percentage") {
+    } else if (parameterValue === "INVEST_PERCENTAGE") {
       setdisplayedEvents(investEvents);
     } else {
       setdisplayedEvents([]);
