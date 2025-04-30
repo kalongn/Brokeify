@@ -6,17 +6,12 @@ import Axios from 'axios';
 import styles from './ChartTabs.module.css';
 
 const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handleChange, handleSelectChange, setSelectRemount, setSimulationInput }) => {
-  const [parameterOptions, setparameterOptions] = useState([
-    { value: "Start Year", label: "Start Year" },
-    { value: "Duration", label: "Duration" },
-    { value: "Initial Amount", label: "Initial Amount" },
-    { value: "Investment Percentage", label: "First of Two Investments" }
-  ]);
+  const [parameterOptions, setparameterOptions] = useState([]);
 
   const [events, setEvents] = useState([]);
   const [incomeExpenseEvents, setincomeExpenseEvents] = useState([]);
   const [investEvents, setInvestEvents] = useState([]);
-  const [displayedEvents, setdisplayedEvents] = useState([{ name: "Event 1" }, { name: "Event 2" }, { name: "Event 3" }]);
+  const [displayedEvents, setdisplayedEvents] = useState([]);
 
 
   useEffect(() => {
