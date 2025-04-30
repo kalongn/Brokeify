@@ -102,13 +102,15 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
     <div>
       <label>
         Select Parameter {parameterIndex}
-        <Select
-          key={selectRemount}
-          options={parameterOptions}
-          onChange={(option) => handleSelectChange(option, `parameter${parameterIndex}`)}
-          className={`select ${simulationInput.selectedScenario === undefined ? "disabled" : ""}`}
-          isDisabled={simulationInput.selectedScenario === undefined}
-        />
+        <div className={`${styles.selectWrapper} ${simulationInput.selectedScenario === undefined ? styles.disabled : ''}`}>
+          <Select
+            key={selectRemount}
+            options={parameterOptions}
+            onChange={(option) => handleSelectChange(option, `parameter${parameterIndex}`)}
+            className="select"
+            isDisabled={simulationInput.selectedScenario === undefined}
+          />
+        </div>
       </label>
       {simulationInput[`parameter${parameterIndex}`] !== undefined && simulationInput[`parameter${parameterIndex}`] !== "ROTH_BOOLEAN" && (
         <>
@@ -118,8 +120,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
               key={selectRemount}
               options={displayedEvents.map((event) => ({ value: event.id, label: event.name }))}
               onChange={(option) => handleSelectChange(option, `displayedEvents${parameterIndex}`)}
-              className={`select ${simulationInput.selectedScenario === undefined ? styles.disabled : ""}`}
-              isDisabled={simulationInput.selectedScenario === undefined}
+              className="select"
             />
           </label>
 
