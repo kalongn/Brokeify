@@ -84,6 +84,8 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
               simulationInput={simulationInput}
               handleChange={handleChange}
               handleSelectChange={handleSelectChange}
+              setSelectRemount={setSelectRemount}
+              setSimulationInput={setSimulationInput}
             />
           ))
         )}
