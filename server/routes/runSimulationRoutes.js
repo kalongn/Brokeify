@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from "url";
 
-import { canView } from "./helper.js";
+import { canView, distributionToString } from "./helper.js";
 import { validateRun } from "../computation/planValidator.js";
 
 import UserController from "../db/controllers/UserController.js";
@@ -88,6 +88,62 @@ router.get("/runSimulation/isRunningSimulation", async (req, res) => {
         return res.status(500).send("Internal Server Error");
     }
 })
+
+router.get("/runSimulation/exploration", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Unauthorized");
+    }
+    try {
+        const user = await userController.read(req.session.user);
+        const scenario = await scenarioController.readWithPopulate(req.query.scenarioId);
+
+        const isRothEnabled = scenario.startYearRothOptimizer !== undefined;
+
+        const allEventSeries = scenario.events.map((event) => {
+            return {
+                id: event._id,
+                name: event.name,
+                // type: event.type,
+                // startYear: distributionToString(event.startYearTypeDistribution),
+                // duration: distributionToString(event.durationTypeDistribution)
+            }
+        });
+
+        const allIncomeExpenseEvent = scenario.events
+            .filter((event) => event.eventType === "INCOME" || event.eventType === "EXPENSE")
+            .map((event) => ({
+                id: event._id,
+                name: event.name,
+                // type: event.type,
+                // startYear: distributionToString(event.startYearTypeDistribution),
+                // duration: distributionToString(event.durationTypeDistribution),
+                // amount: event.amount,
+            }));
+
+        const allInvestEvent = scenario.events
+            .filter((event) => event.eventType === "INVEST" && event.allocatedInvestments.length == 2)
+            .map((event) => ({
+                id: event._id,
+                name: event.name,
+                // type: event.type,
+                // startYear: distributionToString(event.startYearTypeDistribution),
+                // duration: distributionToString(event.durationTypeDistribution),
+                // percentageAllocation: event.allocatedInvestments[0]
+            }));
+
+        const data = {
+            isRothEnabled: isRothEnabled,
+            events: allEventSeries,
+            incomeExpenseEvents: allIncomeExpenseEvent,
+            investEvents: allInvestEvent,
+        }
+
+        return res.status(200).send(data);
+    } catch (error) {
+        console.error("Error fetching exploration:", error);
+        return res.status(500).send("Internal Server Error");
+    }
+});
 
 router.post("/runSimulation/", async (req, res) => {
     if (!req.session.user) {
