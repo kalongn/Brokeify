@@ -41,6 +41,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     // Clear errors when user makes changes
     clearErrors(setErrors, field);
   };
+  console.log(simulationInput);
   return (
     <div>
       <button onClick={() => changeTab("Charts")}>Charts</button>
