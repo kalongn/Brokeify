@@ -94,7 +94,8 @@ const Limits = () => {
     const newErrors = {};
     const infDist = distributions.inflationAssumption;
     validateRequired(newErrors, "initialLimit", formData.initialLimit);
-    validateDistribution(newErrors, "inflationAssumption", infDist);
+    // Last argument is to indicate inflation values can be negative
+    validateDistribution(newErrors, "inflationAssumption", infDist, true);
 
     // Set all errors at once
     setErrors(newErrors);
