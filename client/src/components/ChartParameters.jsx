@@ -54,16 +54,16 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
       setparameterOptions(() => {
         const options = []
         if (allEvents.length > 0) {
-          options.push({ value: "Start Year", label: "Start Year" }, { value: "Duration", label: "Duration" },)
+          options.push({ value: "START_EVENT", label: "Start Year" }, { value: "DURATION_EVENT", label: "Duration" },)
         }
         if (allIncomeExpenseEvents.length > 0) {
-          options.push({ value: "Initial Amount", label: "Initial Amount" })
+          options.push({ value: "EVENT_AMOUNT", label: "Initial Amount" })
         }
         if (allInvestEvents.length > 0) {
-          options.push({ value: "Investment Percentage", label: "First of Two Investments" })
+          options.push({ value: "INVEST_PERCENTAGE", label: "First of Two Investments" })
         }
         if (isRothEnabled) {
-          options.push({ value: "Roth", label: "Disable Roth Optimizer" });
+          options.push({ value: "ROTH_BOOLEAN", label: "Disable Roth Optimizer" });
         }
         return options;
       })
