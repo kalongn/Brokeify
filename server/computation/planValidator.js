@@ -426,12 +426,13 @@ export async function run(
 
             }
             else{
-                copiedScenario.startYearRothOptimizer=explorationArray[j].lowerBound;
-                copiedScenario.endYearRothOptimizer=explorationArray[j].upperBound;
-                await scenarioFactory.update(copiedScenario._id, {
-                        startYearRothOptimizer: explorationArray[j].lowerBound, 
-                        endYearRothOptimizer: explorationArray[j].upperBound
-                    });
+                // Should already be in the scenario
+                // copiedScenario.startYearRothOptimizer=explorationArray[j].lowerBound;
+                // copiedScenario.endYearRothOptimizer=explorationArray[j].upperBound;
+                // await scenarioFactory.update(copiedScenario._id, {
+                //         startYearRothOptimizer: explorationArray[j].lowerBound, 
+                //         endYearRothOptimizer: explorationArray[j].upperBound
+                //     });
                 
             }
         }
