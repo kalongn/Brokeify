@@ -94,7 +94,6 @@ router.get("/runSimulation/exploration", async (req, res) => {
         return res.status(401).send("Unauthorized");
     }
     try {
-        const user = await userController.read(req.session.user);
         const scenario = await scenarioController.readWithPopulate(req.query.scenarioId);
 
         const isRothEnabled = scenario.startYearRothOptimizer !== undefined;
@@ -145,18 +144,18 @@ router.get("/runSimulation/exploration", async (req, res) => {
     }
 });
 
-router.post("/runSimulation/", async (req, res) => {
+router.post("/runSimulation", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Unauthorized");
     }
     const userId = req.session.user;
     const scenarioId = req.query.scenarioId;
     const numTimes = req.query.numTimes;
+
     try {
         if (!await canView(userId, scenarioId)) {
             return res.status(403).send("Forbidden");
         }
-
         await userController.update(userId, { isRunningSimulation: true });
 
         const scenario = await scenarioController.read(scenarioId);
@@ -228,13 +227,117 @@ router.post("/runSimulation/", async (req, res) => {
 
         const taxIdArray = [singleTax._id, marriedTax._id];
 
+        // Exploration stuff
+        let explorationArray = [];
+        if (req.query.exploration) {
+            const exploration = req.query.exploration;
+            if (exploration.parameter1) {
+                let param1 = null;
+                switch (exploration.parameter1) {
+                    case "START_EVENT":
+                        param1 = {
+                            type: exploration.parameter1,
+                            eventID: exploration.displayedEvents1,
+                            lowerBound: Number(exploration.lowerBound1),
+                            upperBound: Number(exploration.upperBound1),
+                            step: Number(exploration.stepSize1),
+                        };
+                        break;
+                    case "DURATION_EVENT":
+                        param1 = {
+                            type: exploration.parameter1,
+                            eventID: exploration.displayedEvents1,
+                            lowerBound: Number(exploration.lowerBound1),
+                            upperBound: Number(exploration.upperBound1),
+                            step: Number(exploration.stepSize1),
+                        };
+                        break;
+                    case "EVENT_AMOUNT":
+                        param1 = {
+                            type: exploration.parameter1,
+                            eventID: exploration.displayedEvents1,
+                            lowerBound: Number(exploration.lowerBound1),
+                            upperBound: Number(exploration.upperBound1),
+                            step: Number(exploration.stepSize1),
+                        };
+                        break;
+                    case "INVEST_PERCENTAGE":
+                        param1 = {
+                            type: exploration.parameter1,
+                            eventID: exploration.displayedEvents1,
+                            lowerBound: Number(exploration.lowerBound1) / 100,
+                            upperBound: Number(exploration.upperBound1) / 100,
+                            step: Number(exploration.stepSize1) / 100,
+                        };
+                        break;
+                    case "ROTH_BOOLEAN":
+                        param1 = {
+                            type: exploration.parameter1,
+                        };
+                        break;
+                }
+                explorationArray.push(param1);
+            }
+
+            if (exploration.parameter2) {
+                let param2 = null;
+                switch (exploration.parameter2) {
+                    case "START_EVENT":
+                        param2 = {
+                            type: exploration.parameter2,
+                            eventID: exploration.displayedEvents2,
+                            lowerBound: Number(exploration.lowerBound2),
+                            upperBound: Number(exploration.upperBound2),
+                            step: Number(exploration.stepSize2),
+                        };
+                        break;
+                    case "DURATION_EVENT":
+                        param2 = {
+                            type: exploration.parameter2,
+                            eventID: exploration.displayedEvents2,
+                            lowerBound: Number(exploration.lowerBound2),
+                            upperBound: Number(exploration.upperBound2),
+                            step: Number(exploration.stepSize2),
+                        };
+                        break;
+                    case "EVENT_AMOUNT":
+                        param2 = {
+                            type: exploration.parameter2,
+                            eventID: exploration.displayedEvents2,
+                            lowerBound: Number(exploration.lowerBound2),
+                            upperBound: Number(exploration.upperBound2),
+                            step: Number(exploration.stepSize2),
+                        };
+                        break;
+                    case "INVEST_PERCENTAGE":
+                        param2 = {
+                            type: exploration.parameter2,
+                            eventID: exploration.displayedEvents2,
+                            lowerBound: Number(exploration.lowerBound2) / 100,
+                            upperBound: Number(exploration.upperBound2) / 100,
+                            step: Number(exploration.stepSize2) / 100,
+                        };
+                        break;
+                    case "ROTH_BOOLEAN":
+                        param2 = {
+                            type: exploration.parameter2,
+                        };
+                        break;
+                }
+                explorationArray.push(param2);
+            }
+        } else {
+            explorationArray = null;
+        }
+
         console.log("Tax IDs:", taxIdArray);
         console.log("Username:", username);
         console.log("Scenario ID:", scenarioId);
         console.log("Num Times:", numTimes);
+        console.log("Exploration Array:", explorationArray);
 
         // Running the simulation
-        const simulationId = await validateRun(scenarioId, numTimes, taxIdArray, username)
+        const simulationId = await validateRun(scenarioId, numTimes, taxIdArray, username, explorationArray);
 
         if (needDeleteSingleTaxAfter) {
             await taxController.delete(singleTax);

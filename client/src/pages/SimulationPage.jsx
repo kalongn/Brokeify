@@ -121,14 +121,18 @@ const ScenarioSimulation = () => {
     }
 
     try {
-      const exploration = simulationInput;
+      const selectedScenarioId = simulationInput.selectedScenario;
+      let exploration = structuredClone(simulationInput);
       delete exploration.selectedScenario;
       delete exploration.numSimulations;
+      if (Object.keys(exploration).length === 0) {
+        exploration = null;
+      }
 
       const response = await Axios.post('/runSimulation', {},
         {
           params: {
-            scenarioId: simulationInput.selectedScenario,
+            scenarioId: selectedScenarioId,
             numTimes: num,
             exploration: exploration,
           }
