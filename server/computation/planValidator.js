@@ -626,7 +626,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
                         csvFile: s+i === 0 ? csvFile : null,
                         logFile: s+i === 0 ? logFile : null,
                         explorationArray: explorationArray,
-                        step1: explorationArray[0].step !== undefined ? s*explorationArray[0].step: s,
+                        step1: explorationArray[0].step !== undefined ? s*explorationArray[0].step: s-2,
                         seed: randomString,
                     }
                 );
