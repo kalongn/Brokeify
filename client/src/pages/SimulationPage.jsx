@@ -121,11 +121,16 @@ const ScenarioSimulation = () => {
     }
 
     try {
+      const exploration = simulationInput;
+      delete exploration.selectedScenario;
+      delete exploration.numSimulations;
+
       const response = await Axios.post('/runSimulation', {},
         {
           params: {
             scenarioId: simulationInput.selectedScenario,
-            numTimes: num
+            numTimes: num,
+            exploration: exploration,
           }
         }
       );
