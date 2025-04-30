@@ -68,7 +68,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
           options.push({ value: "Investment Percentage", label: "First of Two Investments" })
         }
         if (isRothEnabled) {
-          options.push({ value: "Roth Conversion", label: "Roth Conversion" });
+          options.push({ value: "Roth", label: "Disable Roth Optimizer" });
         }
         return options;
       })
