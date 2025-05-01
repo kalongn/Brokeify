@@ -571,10 +571,39 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
         JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[0]))),
         JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[1]))),
     ];
-
+    let simulationType, paramOneType, paramTwoType, paramOne, paramTwo;
+    if(!explorationArray){
+        simulationType = "NORMAL";
+    }
+    else if(explorationArray.length>=1){
+        simulationType = "1D";
+        paramOneType = explorationArray[0].type;
+        if(explorationArray[0].type==="ROTH_BOOLEAN"){
+            paramOne = undefined;
+        }
+        else{
+            paramOne = explorationArray[0].eventID;
+        }
+        
+    }
+    if(explorationArray && explorationArray.length===2){
+        simulationType = "2D";
+        paramTwoType = explorationArray[1].type;
+        if(explorationArray[1].type==="ROTH_BOOLEAN"){
+            paramTwo = undefined;
+        }
+        else{
+            paramTwo = explorationArray[1].eventID;
+        }
+    }
     const compiledResults = await simulationFactory.create({
         scenario: scenario,
-        results: []
+        results: [],
+        simulationType: simulationType,
+        paramOneType: paramOneType,
+        paramTwoType: paramTwoType,
+        paramOne: paramOne,
+        paramTwo: paramTwo,
     });
 
     const datetime = new Date();
@@ -681,7 +710,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
 
     //Figure out how many worker threads to run at once:
     const cpuCount = os.cpus().length;
-    let parallel = cpuCount - 5;
+    let parallel = cpuCount - 2;
     if (1 > parallel) {
         parallel = 2; // have a minimum of 2
     }
