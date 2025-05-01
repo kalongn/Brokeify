@@ -226,7 +226,7 @@ export async function processDiscretionaryExpenses(scenario, currentYear) {
             let eventAmount = Math.min(logToPay, event.amount);
             let eventDetails = `Year: ${currentYear} - EXPENSE - Paying $${Math.ceil(eventAmount * 100) / 100} due to event ${event.name}: ${event.description}.\n`;
             updateLog(eventDetails);
-            logToPay -= event.amount;
+            logToPay -= eventAmount;
             expenseBreakdown.push({
                 name: event.name,
                 value: eventAmount,
