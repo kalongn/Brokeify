@@ -145,10 +145,10 @@ async function validate(scenarioID, explorationArray) {
                     throw(`Event ID ${explorationValue.eventID} was not found in scenario`);
                 }
                 if(!Number.isInteger(explorationValue.upperBound)){
-                    throw("Upper Bound of scenario exploration must be Integer");
+                    //throw("Upper Bound of scenario exploration must be Integer");
                 }
                 if(!Number.isInteger(explorationValue.lowerBound)){
-                    throw("Lower Bound of scenario exploration must be Integer");
+                    //throw("Lower Bound of scenario exploration must be Integer");
                 }
                 if(!Number.isInteger(explorationValue.step)){
                     throw("Step of scenario exploration must be Integer");
