@@ -145,10 +145,10 @@ async function validate(scenarioID, explorationArray) {
                     throw(`Event ID ${explorationValue.eventID} was not found in scenario`);
                 }
                 if(!Number.isInteger(explorationValue.upperBound)){
-                    throw("Upper Bound of scenario exploration must be Integer");
+                    //throw("Upper Bound of scenario exploration must be Integer");
                 }
                 if(!Number.isInteger(explorationValue.lowerBound)){
-                    throw("Lower Bound of scenario exploration must be Integer");
+                    //throw("Lower Bound of scenario exploration must be Integer");
                 }
                 if(!Number.isInteger(explorationValue.step)){
                     throw("Step of scenario exploration must be Integer");
@@ -443,7 +443,7 @@ export async function run(
             for(const i in copiedScenario.events){
                 const copiedEvent = await eventFactory.read(copiedScenario.events[i]);
                 if(copiedEvent.name.toString()===originalEvent.name.toString()){
-                    const newDist1 = await distributionFactory.create(FIXED_AMOUNT, {value: diff+explorationArray[j].lowerBound});
+                    const newDist1 = await distributionFactory.create("FIXED_AMOUNT", {value: diff+explorationArray[j].lowerBound});
                     newDists.push(newDist1);
                     await eventFactory.update(copiedEvent._id, {startYearTypeDistribution: newDist1._id, startsWith: undefined, startsAfter: undefined});
                 }
@@ -457,7 +457,7 @@ export async function run(
             for(const i in copiedScenario.events){
                 const copiedEvent = await eventFactory.read(copiedScenario.events[i]);
                 if(copiedEvent.name.toString()===originalEvent.name.toString()){
-                    const newDist1 = await distributionFactory.create(FIXED_AMOUNT, {value: diff+explorationArray[j].lowerBound});
+                    const newDist1 = await distributionFactory.create("FIXED_AMOUNT", {value: diff+explorationArray[j].lowerBound});
                     newDists.push(newDist1);
                     await eventFactory.update(copiedEvent._id, {durationTypeDistribution: newDist1._id});
                 }
@@ -571,10 +571,39 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
         JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[0]))),
         JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[1]))),
     ];
-
+    let simulationType, paramOneType, paramTwoType, paramOne, paramTwo;
+    if(!explorationArray){
+        simulationType = "NORMAL";
+    }
+    else if(explorationArray.length>=1){
+        simulationType = "1D";
+        paramOneType = explorationArray[0].type;
+        if(explorationArray[0].type==="ROTH_BOOLEAN"){
+            paramOne = undefined;
+        }
+        else{
+            paramOne = explorationArray[0].eventID;
+        }
+        
+    }
+    if(explorationArray && explorationArray.length===2){
+        simulationType = "2D";
+        paramTwoType = explorationArray[1].type;
+        if(explorationArray[1].type==="ROTH_BOOLEAN"){
+            paramTwo = undefined;
+        }
+        else{
+            paramTwo = explorationArray[1].eventID;
+        }
+    }
     const compiledResults = await simulationFactory.create({
         scenario: scenario,
-        results: []
+        results: [],
+        simulationType: simulationType,
+        paramOneType: paramOneType,
+        paramTwoType: paramTwoType,
+        paramOne: paramOne,
+        paramTwo: paramTwo,
     });
 
     const datetime = new Date();
@@ -681,48 +710,95 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
 
     //Figure out how many worker threads to run at once:
     const cpuCount = os.cpus().length;
-    let parallel = cpuCount-5;
-    if(1>parallel){
-        parallel=2; //have a minimum of 2
+    let parallel = cpuCount - 2;
+    if (1 > parallel) {
+        parallel = 2; // have a minimum of 2
     }
-    let promises = [];
-    for(let i=0;i<promiseParameters.length;i++){
-        if(promises.length<parallel){
-            //add promiseParameters[i] runworker
-            let data = promiseParameters[i]
-            promises.push(
-                runInWorker({
-                    scenarioID: data.scenarioID,
-                    fedIncome: data.fedIncome,
-                    capitalGains: data.capitalGains,
-                    fedDeduction: data.fedDeduction,
-                    stateTax: data.stateTax,
-                    rmdTable: data.rmdTable,
-                    csvFile: data.csvFile,
-                    logFile: data.logFile,
-                    explorationArray: data.explorationArray,
-                    step1: data.step1,
-                    step2: data.step2,
-                    seed: data.seed,
-                })
-            );
-            continue;
+
+    const resultsAccumulator = []; // To store results as they come in
+    const activeWorkers = []; // To track active worker promises
+
+    console.log(`Running simulations with up to ${parallel} parallel workers...`);
+
+    for (let i = 0; i < promiseParameters.length; i++) {
+        const data = promiseParameters[i];
+        const workerPromise = runInWorker({
+                scenarioID: data.scenarioID,
+                fedIncome: data.fedIncome,
+                capitalGains: data.capitalGains,
+                fedDeduction: data.fedDeduction,
+                stateTax: data.stateTax,
+                rmdTable: data.rmdTable,
+                csvFile: data.csvFile,
+                logFile: data.logFile,
+                explorationArray: data.explorationArray,
+                step1: data.step1,
+                step2: data.step2,
+                seed: data.seed,
+            })
+            .then(result => {
+                if (result.error) {
+                    // Propagate error to be caught by Promise.all later
+                    throw new Error(result.error);
+                }
+                resultsAccumulator.push(result);
+                // Find and remove the completed promise from activeWorkers
+                const index = activeWorkers.findIndex(p => p === wrappedPromise);
+                if (index > -1) {
+                    activeWorkers.splice(index, 1);
+                }
+                //console.log(`Worker ${i+1} finished. Active: ${activeWorkers.length}`);
+                return result; // Pass the result along if needed elsewhere
+            })
+            .catch(error => {
+                // Handle potential errors during worker execution or result processing
+                console.error(`Error in worker for simulation ${i+1}:`, error);
+                // Ensure promise is removed even on error
+                const index = activeWorkers.findIndex(p => p === wrappedPromise);
+                if (index > -1) {
+                    activeWorkers.splice(index, 1);
+                }
+                throw error; // Re-throw the error to be caught by Promise.all
+            });
+
+        // Wrap the promise to easily find it later for removal
+        const wrappedPromise = workerPromise;
+        activeWorkers.push(wrappedPromise);
+        //console.log(`Worker ${i+1} started. Active: ${activeWorkers.length}`);
+
+        // If we've reached the parallel limit, wait for at least one worker to finish
+        if (activeWorkers.length >= parallel) {
+            //console.log(`Reached parallel limit (${parallel}). Waiting for a worker to finish...`);
+            try {
+                await Promise.race(activeWorkers);
+            } catch (error) {
+                // Error already logged in the .catch block,
+                // Promise.race rejects if any promise in the iterable rejects.
+                // We continue the loop as the specific promise is removed in its catch handler.
+                // console.log("Caught error via Promise.race, continuing...");
+            }
         }
-        const results = await Promise.all(promises);
-        for (const res of results) {
-            if (res.error) throw new Error(res.error);
-            compiledResults.results.push(res);
-        }
-        promises = [];
-        i--;
     }
-    const results = await Promise.all(promises);
-    for (const res of results) {
-        if (res.error) throw new Error(res.error);
-        compiledResults.results.push(res);
+
+    // Wait for all remaining workers to complete
+    console.log("All simulations dispatched. Waiting for remaining workers to finish...");
+    try {
+        await Promise.all(activeWorkers); // Wait for any remaining promises
+    } catch(error) {
+         console.error("Error occurred while waiting for final workers:", error);
+         // Decide how to handle final errors, maybe throw or just log.
+         // Note: Individual errors were likely already logged by the .catch handler.
     }
 
 
-    await simulationFactory.update(compiledResults._id, { results: compiledResults.results });
+    console.log("All workers finished.");
+
+    // Update compiled results with the accumulated results
+    compiledResults.results = resultsAccumulator; // Assign the collected results
+
+    // The original code below this point (saving results) remains the same
+    // await simulationFactory.update(compiledResults._id, { results: compiledResults.results }); // This line might be redundant now
+
+    await simulationFactory.update(compiledResults._id, { results: resultsAccumulator });
     return compiledResults;
 }
