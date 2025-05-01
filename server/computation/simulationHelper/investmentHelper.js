@@ -393,7 +393,7 @@ export async function processInvestmentEvents(scenario, currentYear) {
         } else if (event.assetAllocationType === "GLIDE") {
             for (const bounds of event.percentageAllocations) {
                 let ratio = ((realYear + currentYear - event.startYear) / (event.duration));
-                let proportion = bounds[1] * ratio + bounds[0] * (1 - ratio);
+                let proportion = [bounds[1] * ratio + bounds[0] * (1 - ratio)];
                 proportions.push(proportion);
             }
         }
