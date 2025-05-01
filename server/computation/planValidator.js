@@ -443,7 +443,7 @@ export async function run(
             for(const i in copiedScenario.events){
                 const copiedEvent = await eventFactory.read(copiedScenario.events[i]);
                 if(copiedEvent.name.toString()===originalEvent.name.toString()){
-                    const newDist1 = await distributionFactory.create(FIXED_AMOUNT, {value: diff+explorationArray[j].lowerBound});
+                    const newDist1 = await distributionFactory.create("FIXED_AMOUNT", {value: diff+explorationArray[j].lowerBound});
                     newDists.push(newDist1);
                     await eventFactory.update(copiedEvent._id, {startYearTypeDistribution: newDist1._id, startsWith: undefined, startsAfter: undefined});
                 }
@@ -457,7 +457,7 @@ export async function run(
             for(const i in copiedScenario.events){
                 const copiedEvent = await eventFactory.read(copiedScenario.events[i]);
                 if(copiedEvent.name.toString()===originalEvent.name.toString()){
-                    const newDist1 = await distributionFactory.create(FIXED_AMOUNT, {value: diff+explorationArray[j].lowerBound});
+                    const newDist1 = await distributionFactory.create("FIXED_AMOUNT", {value: diff+explorationArray[j].lowerBound});
                     newDists.push(newDist1);
                     await eventFactory.update(copiedEvent._id, {durationTypeDistribution: newDist1._id});
                 }
