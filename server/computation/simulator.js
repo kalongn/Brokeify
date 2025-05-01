@@ -27,29 +27,43 @@ const taxFactory = new TaxController();
 const simulationFactory = new SimulationController();
 const distributionFactory = new DistributionController();
 const resultFactory = new ResultController();
-import { updateCSV, updateLog } from "./logHelpers.js";
-import {
-    sample,
+import { 
+    updateCSV, 
+    updateLog 
+} from "./simulationHelper/logHelpers.js";
+import { 
+    sample
+} from "./simulationHelper/sample.js";
+import { 
     chooseEventTimeframe,
     chooseLifeExpectancies,
     getCashInvestment,
     setupMap,
+} from "./simulationHelper/setupHelper.js";
+import { 
     updateTaxBracketsForInflation,
-    updateContributionLimitsForInflation,
+    updateContributionLimitsForInflation
+} from "./simulationHelper/inflationHelper.js";
+import {
     adjustEventsAmount,
+} from "./simulationHelper/eventHelper.js"
+import { 
     shouldPerformRMD,
     processRMDs,
     updateInvestments,
     performRothConversion,
-    calculateTaxes,
+    processInvestmentEvents,
+    rebalanceInvestments
+} from "./simulationHelper/investmentHelper.js";
+import { 
+    calculateTaxes
+} from "./simulationHelper/taxesHelper.js";
+import {
     processExpenses,
     processDiscretionaryExpenses,
-    processInvestmentEvents,
-    rebalanceInvestments,
-} from "./simulationHelper.js";
-
+} from "./simulationHelper/expensesHelper.js";
 export let csvFile, logFile;
-import { invMap } from "./simulationHelper.js";
+import { invMap } from "./simulationHelper/simulationHelper.js";
 
 export async function simulate(
     scenario,

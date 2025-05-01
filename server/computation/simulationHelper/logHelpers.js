@@ -1,28 +1,17 @@
 
 
 import { readFileSync, writeFileSync, existsSync, appendFileSync, fstat } from 'fs';
-import DistributionController from "../db/controllers/DistributionController.js";
-import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
-import InvestmentController from "../db/controllers/InvestmentController.js";
-import EventController from "../db/controllers/EventController.js";
-import ScenarioController from "../db/controllers/ScenarioController.js";
-import UserController from "../db/controllers/UserController.js";
+import { investmentTypeFactory,
+        investmentFactory,
+        eventFactory,
+        scenarioFactory,
+        taxFactory,
+        simulationFactory,
+        distributionFactory,
+        resultFactory,
+} from './simulationHelper.js';
+import { logFile, csvFile } from '../simulator.js';
 
-import RMDTableController from "../db/controllers/RMDTableController.js";
-import TaxController from "../db/controllers/TaxController.js";
-import ResultController from "../db/controllers/ResultController.js";
-import SimulationController from "../db/controllers/SimulationController.js";
-import { cursorTo } from 'readline';
-const investmentTypeFactory = new InvestmentTypeController();
-const investmentFactory = new InvestmentController();
-const eventFactory = new EventController();
-const scenarioFactory = new ScenarioController();
-const taxFactory = new TaxController();
-const simulationFactory = new SimulationController();
-const distributionFactory = new DistributionController();
-const resultFactory = new ResultController();
-
-import { logFile, csvFile } from './simulator.js';
 
 export async function updateCSV(currentYear, investments, scenario) {
     //takes in current year of simulation and a list of investments
