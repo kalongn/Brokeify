@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import styles from "./ModalAddChart.module.css";
 import { useState } from 'react';
 import ModalBase from './ModalBase';
+import Select from 'react-select';
 
 const shadedLineQuantities = [
   "Total Investments",
@@ -24,7 +25,7 @@ const numericQuantities = [
   "Early Withdrawal Tax"
 ];
 
-const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
+const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
   const [selectedChart, setSelectedChart] = useState(null);
   // const [formData, setFormData] = useState({});
   const [selectedShadedQuantity, setSelectedShadedQuantity] = useState('');
@@ -32,7 +33,13 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
   const isShadedQuantityNumeric = numericQuantities.includes(selectedShadedQuantity);
+  const [parameter, setParameter] = useState("start year");
 
+  const [selectedParameterValue, setSelectedParameterValue] = useState('');
+  
+  const parameterArray = ["2021", "2022", "2023", "2024"];
+ 
+    
   const handleChartClick = (chartType) => {
     setSelectedChart(chartType);
     setValidationErrors((prevErrors) => {
@@ -40,6 +47,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
       delete newErrors.chartSelection;
       return newErrors;
     });
+    setParameter("Start year"); //ESLint Error Temp Fix 
+
   };
 
   const validateForm = () => {
@@ -47,6 +56,11 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
     if (!selectedChart) {
       errors.chartSelection = 'Please select a chart type.';
     }
+
+    if (!selectedParameterValue || selectedParameterValue.trim() === '') {
+      errors.parameterValue = `Please enter a value for ${parameter}.`;
+    }
+    
     if (selectedChart === 'shaded') {
       if (!selectedShadedQuantity) errors.shadedQuantity = 'Please select a quantity.';
       if (isShadedQuantityNumeric) {
@@ -142,6 +156,25 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
   return (
     <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <h2 className={styles.header}>Select a Chart</h2>
+      {hasParameterValue && (
+      <div className = {styles.parameterSection} >
+        <label>Select a value for {parameter}:</label>  
+        <Select
+          options={parameterArray.map(year => ({ value: year, label: year }))}
+          value={
+            parameterArray
+              .map(year => ({ value: year, label: year }))
+              .find(option => option.value === selectedParameterValue)
+          }
+          onChange={(selectedOption) => setSelectedParameterValue(selectedOption.value)}
+          placeholder={`Select ${parameter}`}
+        />
+        {validationErrors.parameterValue && (
+          <p className={styles.error}>{validationErrors.parameterValue}</p>
+        )}
+      </div>
+    )}
+
 
       <div className={styles.chartOptions}>
         {/* Line Chart */}
@@ -174,15 +207,17 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
           </div>
           {selectedChart === 'shaded' && (
             <div className={styles.chartSettings}>
-              <select
-                value={selectedShadedQuantity}
-                onChange={(e) => setSelectedShadedQuantity(e.target.value)}
-              >
-                <option value="" disabled hidden>Select Quantity</option>
-                {shadedLineQuantities.map((q) => (
-                  <option key={q} value={q}>{q}</option>
-                ))}
-              </select>
+               {/*Note: Used AI here. Prompted to ChatGPT: please replace this section of code with React Select.
+             Performance: Did well! */}
+              <Select
+                options={shadedLineQuantities.map(q => ({ value: q, label: q }))}
+                value={shadedLineQuantities
+                  .map(q => ({ value: q, label: q }))
+                  .find(option => option.value === selectedShadedQuantity)}
+                onChange={(selected) => setSelectedShadedQuantity(selected.value)}
+                placeholder="Select Quantity"
+              />
+
               {validationErrors.shadedQuantity && (
                 <p className={styles.error}>{validationErrors.shadedQuantity}</p>
               )}
@@ -215,29 +250,31 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
           {selectedChart === 'stacked' && (
             <div className={styles.chartSettings}>
               <div className={styles.radioGroup}>
-                <label><input type="radio" name="barValueType" value="Median" /> Median</label>
-                <label><input type="radio" name="barValueType" value="Average" /> Average</label>
+                <p><input type="radio" name="barValueType" value="Median" /> Median</p>
+                <p><input type="radio" name="barValueType" value="Average" /> Average</p>
               </div>
               {validationErrors.barType && (
                 <p className={styles.error}>{validationErrors.barType}</p>
               )}
               <div className={styles.selectContainer}>
-                <select
-                  value={selectedBarQuantity}
-                  onChange={(e) => setSelectedBarQuantity(e.target.value)}
-                >
-                  <option value="" disabled hidden>Select Quantity</option>
-                  {stackedBarQuantities.map((quantity) => (
-                    <option key={quantity} value={quantity}>{quantity}</option>
-                  ))}
-                </select>
+             {/*Note: Used AI here. Prompted to ChatGPT: please replace this section of code with React Select.
+             Performance: Did well! */}
+              <Select
+                options={stackedBarQuantities.map(q => ({ value: q, label: q }))}
+                value={stackedBarQuantities
+                  .map(q => ({ value: q, label: q }))
+                  .find(option => option.value === selectedBarQuantity)}
+                onChange={(selected) => setSelectedBarQuantity(selected.value)}
+                placeholder="Select Quantity"
+              />
+
                 {validationErrors.barQuantity && (
                   <p className={styles.error}>{validationErrors.barQuantity}</p>
                 )}
               </div>
 
               <p className={styles.thresholdLabel}>
-                Aggregation Threshold
+                <p>Aggregation Threshold </p>
                 <input type="number" />
                 {/*TOD0: Get and add the questionmark icon to reflect like below*/}
                 {/* <span className={styles.tooltip} title="Categories with values less than this threshold will be combined into an 'Other' category.">?</span>*/}
@@ -279,7 +316,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
 AddChart.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   setIsOpen: PropTypes.func.isRequired,
-  setCharts: PropTypes.func.isRequired
+  setCharts: PropTypes.func.isRequired,
+  hasParameterValue: PropTypes.bool.isRequired
 };
 
 export default AddChart;

@@ -58,7 +58,7 @@ const Charts = () => {
       setShowCharts(false);
     }
   };
-
+ 
   return (
     <Layout>
       <div className={styles.content}>
@@ -70,7 +70,7 @@ const Charts = () => {
             </button>
             <button onClick={handleGenerateCharts}>Generate Charts</button>
           </div>
-          <ModalAddChart isOpen={showAddModal} setIsOpen={setShowAddModal} setCharts={setCharts} />
+          <ModalAddChart isOpen={showAddModal} setIsOpen={setShowAddModal} setCharts={setCharts} hasParameterValue={false}/>
 
           <h3>Added Charts</h3>
           <div className={styles.chartList}>

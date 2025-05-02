@@ -175,6 +175,10 @@ const ScenarioSimulation = () => {
             ) : (
               previousRun !== null && (
                 <div>
+                  <h3>Temp: One Dimensional Simulation</h3>
+                  <Link className={styles.seeResults} to={`/visualizations/OneDimensional/${previousRun}`}>
+                    See OneD
+                  </Link>
                   <p>Most Recent Run Result:</p>
                   <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
                     See Results
