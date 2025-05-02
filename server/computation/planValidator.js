@@ -66,8 +66,11 @@ async function validate(scenarioID, explorationArray) {
     //ensures no circly dependancies for events
     for (const i in scenario.events) {
         let event = await eventFactory.read(scenario.events[i]);
+        let seenIds = [event._id.toString()];
         let dependancyID = null;
-
+        if(!event.startYearTypeDistribution && !event.startsWith && !event.startsAfter){
+            throw("Event needs start information")
+        }
         if (event.startsWith && event.startsAfter) {
             throw ("Event Cannot Start Both With And After");
         }
@@ -80,12 +83,11 @@ async function validate(scenarioID, explorationArray) {
 
         }
         while (dependancyID != null) {  //itarate through dependancies
-
-            if (dependancyID.toString() === event._id.toString()) {
-
-
+            
+            if (seenIds.includes(dependancyID.toString())) {
                 throw ("Circular Event Dependancies");
             }
+            seenIds.push(dependancyID.toString())
             const newEvent = await eventFactory.read(dependancyID.toString());
             if (!newEvent) {
                 throw ("Referenced Event Does Not Exist");
@@ -102,7 +104,6 @@ async function validate(scenarioID, explorationArray) {
             else {
                 dependancyID = null;
             }
-            event = newEvent;
         }
     }
 

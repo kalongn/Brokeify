@@ -237,7 +237,7 @@ async function fillInvestEvent(eventID, eventData, idMap) {
         const startAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
-            startAfter: startAfter,
+            startsAfter: startAfter,
             description: description,
             assetAllocationType: glidePath ? "GLIDE" : "FIXED",
             percentageAllocations: percentageAllocations,
