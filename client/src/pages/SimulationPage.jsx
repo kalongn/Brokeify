@@ -179,6 +179,10 @@ const ScenarioSimulation = () => {
                   <Link className={styles.seeResults} to={`/visualizations/OneDimensional/${previousRun}`}>
                     See OneD
                   </Link>
+                  <h3>Temp: Two Dimensional Simulation</h3>
+                  <Link className={styles.seeResults} to={`/visualizations/TwoDimensional/${previousRun}`}>
+                    See TwoD
+                  </Link>
                   <p>Most Recent Run Result:</p>
                   <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
                     See Results
