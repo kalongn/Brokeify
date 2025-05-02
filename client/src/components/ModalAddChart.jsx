@@ -34,12 +34,12 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
 
   const isShadedQuantityNumeric = numericQuantities.includes(selectedShadedQuantity);
   const [parameter, setParameter] = useState("start year");
+
   const [selectedParameterValue, setSelectedParameterValue] = useState('');
   
   const parameterArray = ["2021", "2022", "2023", "2024"];
  
-  setParameter("Start year"); //ESLint Error Temp Fix 
-  
+    
   const handleChartClick = (chartType) => {
     setSelectedChart(chartType);
     setValidationErrors((prevErrors) => {
@@ -47,6 +47,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
       delete newErrors.chartSelection;
       return newErrors;
     });
+    setParameter("Start year"); //ESLint Error Temp Fix 
+
   };
 
   const validateForm = () => {
