@@ -56,9 +56,10 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
     if (!selectedChart) {
       errors.chartSelection = 'Please select a chart type.';
     }
-
-    if (!selectedParameterValue || selectedParameterValue.trim() === '') {
-      errors.parameterValue = `Please enter a value for ${parameter}.`;
+    if(hasParameterValue){
+      if (!selectedParameterValue || selectedParameterValue.trim() === '') {
+        errors.parameterValue = `Please enter a value for ${parameter}.`;
+      }
     }
     
     if (selectedChart === 'shaded') {
@@ -148,8 +149,11 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
         label: cContent.label,
         data: {}
       };
+      console.log("CHART:", newChart);
       return [...prevCharts, newChart];
     });
+    console.log("New Chart Added");
+
     setIsOpen(false);
   }
 
