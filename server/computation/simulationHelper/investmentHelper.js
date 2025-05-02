@@ -398,7 +398,7 @@ export async function processInvestmentEvents(scenario, currentYear) {
         }
         let tentativeInvestmentAmounts = [];
         for (const i in proportions) {
-            const p = proportions[i];
+            const p = proportions[i][0];
             tentativeInvestmentAmounts.push(p * amountToInvest);
         }
 
