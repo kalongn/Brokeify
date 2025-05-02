@@ -8,6 +8,8 @@ const SimulationSchema = new mongoose.Schema({
     paramTwoType: { type: String, enum: EXPLORATION_TYPE, default: undefined },
     paramOne: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
     paramTwo: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
+    paramOneSteps: [{type: Number}],
+    paramTwoSteps: [{type: Number}],
 });
 
 const Simulation = mongoose.model('Simulation', SimulationSchema);
