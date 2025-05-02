@@ -8,11 +8,17 @@
   overflow-y: auto;
 }
 
+.columns {
+  display: flex;
+  gap: 2rem;
+}
+
 .section {
   background-color: var(--color-primary-muted);
   padding: 1rem;
   border-radius: 10px;
   height: auto;
+  width: 40vw;
   margin-bottom: 2rem;
 }
 

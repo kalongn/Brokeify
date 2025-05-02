@@ -1,0 +1,11 @@
+.parameterBounds {
+  display: flex;
+}
+.selectWrapper.disabled {
+  cursor: not-allowed;
+}
+.selectWrapper.disabled div {
+  background-color: var(--color-background);
+  color: var(--color-primary-muted);
+  border-color: var(--color-silver);
+}
