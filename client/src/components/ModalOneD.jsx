@@ -87,8 +87,8 @@ const ModalOneD = ({ isOpen, setIsOpen, setCharts, isScenarioParameterNumeric })
     setIsOpen(false);
   };
 
-  
-{/*Note: I used ChatGPT on this page to convert my original selects to React-Select*/}
+
+  {/*Note: I used ChatGPT on this page to convert my original selects to React-Select*/ }
   // Utility function for mapping options
   const toOptions = (arr) => arr.map(item => ({ value: item, label: item }));
 
@@ -136,7 +136,7 @@ const ModalOneD = ({ isOpen, setIsOpen, setCharts, isScenarioParameterNumeric })
             <h3>Final Value vs Parameter</h3>
             <p>Shows the final result of a quantity as the parameter changes</p>
             <div className={styles.chartPreview}>
-               {/*TODO: Update this image*/} {/*Note: This is done in 2D PR */}
+              {/*TODO: Update this image*/} {/*Note: This is done in 2D PR */}
               <img src="/src/assets/lineChartEx.png" alt="Final Value Line Chart Preview" />
             </div>
             {selectedChart === 'finalValue' && (
