@@ -27,29 +27,43 @@ const taxFactory = new TaxController();
 const simulationFactory = new SimulationController();
 const distributionFactory = new DistributionController();
 const resultFactory = new ResultController();
-import { updateCSV, updateLog } from "./logHelpers.js";
-import {
-    sample,
+import { 
+    updateCSV, 
+    updateLog 
+} from "./simulationHelper/logHelpers.js";
+import { 
+    sample
+} from "./simulationHelper/sample.js";
+import { 
     chooseEventTimeframe,
     chooseLifeExpectancies,
     getCashInvestment,
     setupMap,
+} from "./simulationHelper/setupHelper.js";
+import { 
     updateTaxBracketsForInflation,
-    updateContributionLimitsForInflation,
+    updateContributionLimitsForInflation
+} from "./simulationHelper/inflationHelper.js";
+import {
     adjustEventsAmount,
+} from "./simulationHelper/eventHelper.js"
+import { 
     shouldPerformRMD,
     processRMDs,
     updateInvestments,
     performRothConversion,
-    calculateTaxes,
+    processInvestmentEvents,
+    rebalanceInvestments
+} from "./simulationHelper/investmentHelper.js";
+import { 
+    calculateTaxes
+} from "./simulationHelper/taxesHelper.js";
+import {
     processExpenses,
     processDiscretionaryExpenses,
-    processInvestmentEvents,
-    rebalanceInvestments,
-} from "./simulationHelper.js";
-
+} from "./simulationHelper/expensesHelper.js";
 export let csvFile, logFile;
-import { invMap } from "./simulationHelper.js";
+import { invMap } from "./simulationHelper/simulationHelper.js";
 
 export async function simulate(
     scenario,
@@ -122,7 +136,7 @@ export async function simulate(
     await scenarioFactory.update(scenario._id, scenario);
 
     await setupMap(scenario._id);
-    let cumulativeInflation = 1;
+    let cumulativeInflation = 0;
     let lastYearTaxes = 0;
     let thisYearTaxes = 0;
     let lastYearGains = 0;
@@ -148,7 +162,7 @@ export async function simulate(
             Math.ceil(inflationRate * 1000) / 1000
         }\n`;
         updateLog(inflationeEventDetails);
-        cumulativeInflation = cumulativeInflation * (1 + inflationRate);
+        cumulativeInflation = ((cumulativeInflation+1) * (1 + inflationRate)) -1;
 
 
         investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
@@ -247,7 +261,8 @@ export async function simulate(
                 currentYear,
                 scenario.userBirthYear,
                 scenario.orderedRothStrategy,
-                investmentTypes
+                investmentTypes,
+                scenario.annualPostTaxContributionLimit
             );
         }
 		//console.timeEnd("performRothConversion")
@@ -272,7 +287,8 @@ export async function simulate(
         let nonDiscretionaryExpenses = 0;
         const expensesReturn = await processExpenses(scenario, lastYearTaxes, currentYear);
         nonDiscretionaryExpenses = expensesReturn.t;
-        thisYearGains += expensesReturn.c; //if you sell investments
+        thisYearGains += expensesReturn.capitalGain; //if you sell investments
+		curYearIncome += expensesReturn.incomeGain;
         const expenseBreakdown = expensesReturn.expenseBreakdown;
 		//console.timeEnd("processExpenses")
 		//console.time("processDiscretionaryExpenses")
@@ -285,7 +301,8 @@ export async function simulate(
         );
         discretionaryAmountIgnored = processDiscretionaryResult.np;
         discretionaryAmountPaid = processDiscretionaryResult.p;
-        thisYearGains += processDiscretionaryResult.c;
+        thisYearGains += processDiscretionaryResult.capitalGain;
+		curYearIncome += processDiscretionaryResult.incomeGain;
         const totalExpenseBreakdown = [...expenseBreakdown, ...processDiscretionaryResult.expenseBreakdown];
         let totalExpenses = nonDiscretionaryExpenses + discretionaryAmountPaid;
 		//console.timeEnd("processDiscretionaryExpenses")

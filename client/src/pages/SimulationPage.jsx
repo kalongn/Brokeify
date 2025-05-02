@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { clearErrors } from "../utils/ScenarioHelper";
 import Layout from '../components/Layout';
+import ChartTabs from '../components/ChartTabs';
 import ErrorMessage from '../components/ErrorMessage';
 import Axios from 'axios';
 
@@ -11,10 +12,10 @@ import * as Ladda from 'ladda/js/ladda'; // or import from submodule path
 import styles from './SimulationPage.module.css';
 
 const ScenarioSimulation = () => {
-
   const [scenarios, setScenarios] = useState([]);
-  const [selectedScenario, setSelectedScenario] = useState('');
-  const [numSimulations, setNumSimulations] = useState(10);
+  const [simulationInput, setSimulationInput] = useState({
+    numSimulations: 10
+  });
   const [errors, setErrors] = useState({});
   const [isRunning, setIsRunning] = useState(false);
   const [previousRun, setPreviousRun] = useState(null);
@@ -96,11 +97,11 @@ const ScenarioSimulation = () => {
 
 
   const handleRunSimulation = async () => {
-    if (!selectedScenario) {
+    if (!simulationInput.selectedScenario) {
       setErrors({ scenario: 'Scenario selection is required' });
       return;
     }
-    const num = numSimulations;
+    const num = simulationInput.numSimulations;
     if (isNaN(num) || num < 10 || num > 100) {
       setErrors({ simulation: 'Number of simulation runs must be between 10 and 100' });
       return;
@@ -120,11 +121,20 @@ const ScenarioSimulation = () => {
     }
 
     try {
+      const selectedScenarioId = simulationInput.selectedScenario;
+      let exploration = structuredClone(simulationInput);
+      delete exploration.selectedScenario;
+      delete exploration.numSimulations;
+      if (Object.keys(exploration).length === 0) {
+        exploration = null;
+      }
+
       const response = await Axios.post('/runSimulation', {},
         {
           params: {
-            scenarioId: selectedScenario,
-            numTimes: num
+            scenarioId: selectedScenarioId,
+            numTimes: num,
+            exploration: exploration,
           }
         }
       );
@@ -146,99 +156,50 @@ const ScenarioSimulation = () => {
       <div className={styles.background}>
         <h2>Scenario Simulation</h2>
         <ErrorMessage errors={errors} />
-
-        <div className={styles.section}>
-          <div className={styles.group}>
-            <p>Select a Scenario:</p>
-            {/* TODO: modify to react-select here */}
-            <select id="scenario" className={styles.dropdown} value={selectedScenario} onChange={(e) => setSelectedScenario(e.target.value)}>
-              <option value="" hidden disabled>-- Select a Scenario --</option>
-              {scenarios.map((scenario, index) => (
-                <option key={index} value={scenario.id}>
-                  {scenario.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <p>Enter number of simulation runs: </p>
-            <input
-              id="simulation"
-              type="number"
-              min="10"
-              max="50"
-              step="1"
-              className={styles.simInput}
-              value={numSimulations}
-              onChange={(e) => setNumSimulations(e.target.value)}
-            />
-          </div>
-
-          {/* {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>} */}
-          <div className={styles.simulationDescription}>
-            <p>
-              Disclaimer:
-              <br />
-              If the state income tax of the scenario stated state of residence is not uploaded, the simulation will use 0 as the state tax rate.
-              <br />
-              There are 4 state tax files that are not needed however: New York, New Jersey, Connecticut, and Washington.
-              <br />
-              If filing status is married, you need both MARRIEDJOINT and SINGLE state tax files.
-              <br />
-              If filing status is single, you need only the SINGLE state tax file.
-              <br />
-            </p>
-          </div>
-
-          <div className={styles.buttonBox}>
-            <div className={styles.buttons}>
-              <div className={styles.simulationButtons}>
+        <div className={styles.columns}>
+          <ChartTabs
+            scenarios={scenarios}
+            simulationInput={simulationInput}
+            setSimulationInput={setSimulationInput}
+            setErrors={setErrors}
+          />
+          <div className={styles.section}>
+            <h2>Results</h2>
+            {!isRunning && previousRun === null && (
+              <p style={{ marginTop: '20px', fontStyle: 'italic' }}>
+                Please select a scenario, enter number of simulations, and run simulation to see results.
+              </p>
+            )}
+            {isRunning ? (
+              <p>A simulation is running... Please wait.</p>
+            ) : (
+              previousRun !== null && (
+                <div>
+                  <h3>Temp: One Dimensional Simulation</h3>
+                  <Link className={styles.seeResults} to={`/visualizations/OneDimensional/${previousRun}`}>
+                    See OneD
+                  </Link>
+                  <p>Most Recent Run Result:</p>
+                  <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
+                    See Results
+                  </Link>
+                </div>
+              )
+            )}
+            <div className={styles.buttonBox}>
+              <div className={styles.buttons}>
+                <button
+                  className={`${styles.runSimulation} ladda-button`}
+                  data-style="expand-left"
+                  data-spinner-size="25"
+                  ref={runButtonRef}
+                  onClick={() => handleRunSimulation()}
+                >
+                  <span>Run Simulation</span>
+                </button>
               </div>
-              <button
-                className={`${styles.runSimulation} ladda-button`}
-                data-style="expand-left"
-                data-spinner-size="25"
-                ref={runButtonRef}
-                onClick={() => handleRunSimulation()}
-              >
-                <span>Run Simulation</span>
-              </button>
             </div>
           </div>
-        </div>
-        <div className={styles.section}>
-          <h2>Temp: One Dimensional Simulation</h2>
-        <Link className={styles.seeResults} to={`/visualizations/OneDimensional/${previousRun}`}>
-            See OneD
-        </Link>
-        </div>
-        <div>
-        <h2>Temp: Two Dimensional Simulation</h2>
-        <Link className={styles.seeResults} to={`/visualizations/TwoDimensional/${previousRun}`}>
-            See TwoD
-        </Link>
-        </div>
-        <div className={styles.section}>
-          <h2>Results</h2>
-          {!isRunning && previousRun === null && (
-            <p style={{ marginTop: '20px', fontStyle: 'italic' }}>
-              Please select a scenario, enter number of simulations, and run simulation to see results.
-            </p>
-          )}
-
-          {isRunning ? (
-            <p>A simulation is running... Please wait.</p>
-          ) : (
-            previousRun !== null && (
-              <div>
-                <p>Most Recent Run Result:</p>
-                <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
-                  See Results
-                </Link>
-              </div>
-            )
-          )}
         </div>
       </div>
     </Layout>
