@@ -10,8 +10,6 @@ import MultiLineChart from "../../components/MultiLineChart";
 import LineChartParameter from "../../components/LineChartParameter";
 import ModalOneD from "../../components/ModalOneD";
 import ModalAddChart from "../../components/ModalAddChart";
-import ShadedLineChart from "../../components/ShadedLineChart";
-import StackedBarChart from "../../components/StackedBarChart";
 
 {/*Note: We will need to account for the parameter we passed in to get here...as that will decide whether a certain chart will show or not
   (show linechartparameter only if the parameter is numeric)* I currently pass it as a boolean*/}
