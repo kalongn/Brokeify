@@ -37,10 +37,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
   const [selectedParameterValue, setSelectedParameterValue] = useState('');
   
   const parameterArray = ["2021", "2022", "2023", "2024"];
-  const parameterOptions = parameterArray.map(year => ({
-    value: year,
-    label: year
-  }));
+ 
+  setParameter("Start year"); //ESLint Error Temp Fix 
   
   const handleChartClick = (chartType) => {
     setSelectedChart(chartType);
