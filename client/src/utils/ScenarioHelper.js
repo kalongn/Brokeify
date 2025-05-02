@@ -63,7 +63,9 @@ export const validateRequired = (newErrors, field, value) => {
   return newErrors;
 }
 
-export const validateDistribution = (newErrors, field, dist) => {
+export const validateDistribution = (newErrors, field, dist, canNegative = false) => {
+  console.log(canNegative);
+  console.log("percentage", dist.isPercentage);
   // Check if a type of distribution has been selected
   const type = dist.type;
   const name = field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1');
@@ -76,30 +78,42 @@ export const validateDistribution = (newErrors, field, dist) => {
     case "fixed":
       if (dist.value === null || dist.value === undefined) {
         newErrors[field] = `${name} field is required`;
-      } else if (dist.value < 0) {
+      } else if (dist.value < 0 && !canNegative) {
         newErrors[field] = `${name} value must be non-negative`;
-      } else if (isPercentage && dist.value > 100) {
-        newErrors[field] = `${name} percentage must be between 0 and 100`;
+      } else if (isPercentage) {
+        if (!canNegative && (dist.value < 0 || dist.value > 100)) {
+          newErrors[field] = `${name} percentage must be between 0 and 100`;
+        } else if (canNegative && (dist.value < -100 || dist.value > 100)) {
+          newErrors[field] = `${name} percentage must be between -100 and 100`;
+        }
       }
       break;
     case "uniform":
       if ((dist.lowerBound === null || dist.upperBound === null) || (dist.lowerBound === undefined || dist.upperBound === undefined)) {
         newErrors[field] = `${name} lower and upper bounds are required`;
-      } else if (dist.lowerBound < 0 || dist.upperBound < 0) {
+      } else if ((dist.lowerBound < 0 || dist.upperBound < 0) && !canNegative) {
         newErrors[field] = `${name} bounds must be non-negative`;
-      } else if (dist.lowerBound > dist.upperBound) {
+      } else if ((canNegative && dist.lowerBound > dist.upperBound) || (!canNegative && dist.lowerBound < 0)) {
         newErrors[field] = `${name} lower bound must be less than or equal to upper bound`;
-      } else if (isPercentage && (dist.lowerBound > 100 || dist.upperBound > 100)) {
-        newErrors[field] = `${name} percentage must be between 0 and 100`;
+      } else if (isPercentage) {
+        if ((dist.lowerBound > 100 || dist.upperBound > 100)) {
+          newErrors[field] = `${name} percentage must be between -100 and 100`;
+        } else if ((dist.lowerBound < -100 || dist.upperBound < -100) && canNegative) {
+          newErrors[field] = `${name} percentage must be between -100 and 100`;
+        }
       }
       break;
     case "normal":
       if ((dist.mean === null || dist.standardDeviation === null) || (dist.mean === undefined || dist.standardDeviation === undefined)) {
         newErrors[field] = `${name} mean and standard deviation are required`;
-      } else if (dist.mean < 0 || dist.standardDeviation < 0) {
+      } else if ((dist.mean < 0 || dist.standardDeviation < 0) && !canNegative) {
         newErrors[field] = `${name} mean and standard deviation must be non-negative`;
-      } else if (isPercentage && (dist.mean > 100 || dist.standardDeviation > 100)) {
-        newErrors[field] = `${name} mean and standard deviation must be less than 100`;
+      } else if (isPercentage) {
+        if ((dist.mean > 100 || dist.standardDeviation > 100) && !canNegative) {
+          newErrors[field] = `${name} mean and standard deviation must be between 0 and 100`;
+        } else if ((dist.mean < -100 || dist.standardDeviation < -100) && canNegative) {
+          newErrors[field] = `${name} mean and standard deviation must be between -100 and 100`;
+        }
       }
       break;
     default:
@@ -111,7 +125,7 @@ export const validateDistribution = (newErrors, field, dist) => {
 export const clearErrors = (setErrors, name) => {
   // Prompt to AI (Amazon Q): in highlighted code, instead of making it "", can i just delete the field name refers to?
   // Works as needed, only needing to re-prompt to disable eslint error and edit for "selectInput"
-  if(name !== "selectInput") {
+  if (name !== "selectInput") {
     setErrors(prev => {
       // eslint-disable-next-line no-unused-vars
       const { [name]: _, ...rest } = prev;

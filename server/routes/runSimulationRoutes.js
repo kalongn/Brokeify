@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from "url";
 
-import { canView } from "./helper.js";
+import { canView, distributionToString } from "./helper.js";
 import { validateRun } from "../computation/planValidator.js";
 
 import UserController from "../db/controllers/UserController.js";
@@ -53,17 +53,21 @@ router.get("/runSimulation", async (req, res) => {
     }
     try {
         const user = await userController.readWithScenarios(req.session.user);
-        const allScenarios = user.ownerScenarios.concat(user.editorScenarios, user.viewerScenarios);
-
+        const scenarios = user.ownerScenarios.concat(user.editorScenarios, user.viewerScenarios);
+        const readyScenarios = (await Promise.all(scenarios.map((scenario) => {
+            return scenarioController.read(scenario._id);
+        })))
+            .filter((scenario) => scenario.isSimulationReady)
+            .map((scenario) => {
+                return {
+                    id: scenario._id,
+                    name: scenario.name + " | created at " + scenario.dateCreated,
+                }
+            });
         const data = {
             isRunning: user.isRunningSimulation,
             previousRun: user.previousSimulation,
-            scenarios: allScenarios.map((scenario) => {
-                return {
-                    id: scenario._id,
-                    name: scenario.name,
-                }
-            }),
+            scenarios: readyScenarios,
         }
         return res.status(200).send(data);
     } catch (error) {
@@ -85,18 +89,73 @@ router.get("/runSimulation/isRunningSimulation", async (req, res) => {
     }
 })
 
-router.post("/runSimulation/", async (req, res) => {
+router.get("/runSimulation/exploration", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Unauthorized");
+    }
+    try {
+        const scenario = await scenarioController.readWithPopulate(req.query.scenarioId);
+
+        const isRothEnabled = scenario.startYearRothOptimizer !== undefined;
+
+        const allEventSeries = scenario.events.map((event) => {
+            return {
+                id: event._id,
+                name: event.name,
+                // type: event.type,
+                // startYear: distributionToString(event.startYearTypeDistribution),
+                // duration: distributionToString(event.durationTypeDistribution)
+            }
+        });
+
+        const allIncomeExpenseEvent = scenario.events
+            .filter((event) => event.eventType === "INCOME" || event.eventType === "EXPENSE")
+            .map((event) => ({
+                id: event._id,
+                name: event.name,
+                // type: event.type,
+                // startYear: distributionToString(event.startYearTypeDistribution),
+                // duration: distributionToString(event.durationTypeDistribution),
+                // amount: event.amount,
+            }));
+
+        const allInvestEvent = scenario.events
+            .filter((event) => event.eventType === "INVEST" && event.allocatedInvestments.length == 2)
+            .map((event) => ({
+                id: event._id,
+                name: event.name,
+                // type: event.type,
+                // startYear: distributionToString(event.startYearTypeDistribution),
+                // duration: distributionToString(event.durationTypeDistribution),
+                // percentageAllocation: event.allocatedInvestments[0]
+            }));
+
+        const data = {
+            isRothEnabled: isRothEnabled,
+            events: allEventSeries,
+            incomeExpenseEvents: allIncomeExpenseEvent,
+            investEvents: allInvestEvent,
+        }
+
+        return res.status(200).send(data);
+    } catch (error) {
+        console.error("Error fetching exploration:", error);
+        return res.status(500).send("Internal Server Error");
+    }
+});
+
+router.post("/runSimulation", async (req, res) => {
     if (!req.session.user) {
         return res.status(401).send("Unauthorized");
     }
     const userId = req.session.user;
     const scenarioId = req.query.scenarioId;
     const numTimes = req.query.numTimes;
+
     try {
         if (!await canView(userId, scenarioId)) {
             return res.status(403).send("Forbidden");
         }
-
         await userController.update(userId, { isRunningSimulation: true });
 
         const scenario = await scenarioController.read(scenarioId);
@@ -168,13 +227,117 @@ router.post("/runSimulation/", async (req, res) => {
 
         const taxIdArray = [singleTax._id, marriedTax._id];
 
+        // Exploration stuff
+        let explorationArray = [];
+        if (req.query.exploration) {
+            const exploration = req.query.exploration;
+            if (exploration.parameter1) {
+                let param1 = null;
+                switch (exploration.parameter1) {
+                    case "START_EVENT":
+                        param1 = {
+                            type: exploration.parameter1,
+                            eventID: exploration.displayedEvents1,
+                            lowerBound: Number(exploration.lowerBound1),
+                            upperBound: Number(exploration.upperBound1),
+                            step: Number(exploration.stepSize1),
+                        };
+                        break;
+                    case "DURATION_EVENT":
+                        param1 = {
+                            type: exploration.parameter1,
+                            eventID: exploration.displayedEvents1,
+                            lowerBound: Number(exploration.lowerBound1),
+                            upperBound: Number(exploration.upperBound1),
+                            step: Number(exploration.stepSize1),
+                        };
+                        break;
+                    case "EVENT_AMOUNT":
+                        param1 = {
+                            type: exploration.parameter1,
+                            eventID: exploration.displayedEvents1,
+                            lowerBound: Number(exploration.lowerBound1),
+                            upperBound: Number(exploration.upperBound1),
+                            step: Number(exploration.stepSize1),
+                        };
+                        break;
+                    case "INVEST_PERCENTAGE":
+                        param1 = {
+                            type: exploration.parameter1,
+                            eventID: exploration.displayedEvents1,
+                            lowerBound: Number(exploration.lowerBound1),
+                            upperBound: Number(exploration.upperBound1),
+                            step: Number(exploration.stepSize1),
+                        };
+                        break;
+                    case "ROTH_BOOLEAN":
+                        param1 = {
+                            type: exploration.parameter1,
+                        };
+                        break;
+                }
+                explorationArray.push(param1);
+            }
+
+            if (exploration.parameter2) {
+                let param2 = null;
+                switch (exploration.parameter2) {
+                    case "START_EVENT":
+                        param2 = {
+                            type: exploration.parameter2,
+                            eventID: exploration.displayedEvents2,
+                            lowerBound: Number(exploration.lowerBound2),
+                            upperBound: Number(exploration.upperBound2),
+                            step: Number(exploration.stepSize2),
+                        };
+                        break;
+                    case "DURATION_EVENT":
+                        param2 = {
+                            type: exploration.parameter2,
+                            eventID: exploration.displayedEvents2,
+                            lowerBound: Number(exploration.lowerBound2),
+                            upperBound: Number(exploration.upperBound2),
+                            step: Number(exploration.stepSize2),
+                        };
+                        break;
+                    case "EVENT_AMOUNT":
+                        param2 = {
+                            type: exploration.parameter2,
+                            eventID: exploration.displayedEvents2,
+                            lowerBound: Number(exploration.lowerBound2),
+                            upperBound: Number(exploration.upperBound2),
+                            step: Number(exploration.stepSize2),
+                        };
+                        break;
+                    case "INVEST_PERCENTAGE":
+                        param2 = {
+                            type: exploration.parameter2,
+                            eventID: exploration.displayedEvents2,
+                            lowerBound: Number(exploration.lowerBound2) / 100,
+                            upperBound: Number(exploration.upperBound2) / 100,
+                            step: Number(exploration.stepSize2) / 100,
+                        };
+                        break;
+                    case "ROTH_BOOLEAN":
+                        param2 = {
+                            type: exploration.parameter2,
+                        };
+                        break;
+                }
+                explorationArray.push(param2);
+            }
+        } else {
+            explorationArray = null;
+        }
+
         console.log("Tax IDs:", taxIdArray);
         console.log("Username:", username);
         console.log("Scenario ID:", scenarioId);
         console.log("Num Times:", numTimes);
+        console.log("Exploration Array:", explorationArray);
 
         // Running the simulation
-        const simulationId = await validateRun(scenarioId, numTimes, taxIdArray, username)
+        const simulationId = await validateRun(scenarioId, numTimes, taxIdArray, username, explorationArray);
 
         if (needDeleteSingleTaxAfter) {
             await taxController.delete(singleTax);
@@ -188,6 +351,7 @@ router.post("/runSimulation/", async (req, res) => {
         return res.status(200).send(simulationId._id);
     } catch (error) {
         console.error("Error fetching simulation:", error);
+        await userController.update(userId, { isRunningSimulation: false });
         return res.status(500).send("Internal Server Error");
     }
 });
