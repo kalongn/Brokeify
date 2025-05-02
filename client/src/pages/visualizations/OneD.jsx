@@ -21,14 +21,14 @@ import ModalAddChart from "../../components/ModalAddChart";
   
   */}
 
-  const OneD = () => {
+const OneD = () => {
   const { simulationId } = useParams();
   console.log("Simulation ID:", simulationId);
 
   //TODO: Update below with actual scenario name
   //const [scenarioName, setScenarioName] = useState("Unknown Scenario");
   const scenarioName = "My Scenario"; //Temp kept this for ESLint Error 
-  
+
   const [showAddChartsModal, setShowAddChartsModal] = useState(false);
   const [showAdd1DModal, setShowAdd1DModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
@@ -97,14 +97,14 @@ import ModalAddChart from "../../components/ModalAddChart";
             </button>
           </div>
           <div className={styles.chartGenerate}>
-          <button onClick={handleGenerateCharts} className={styles.generateButton}>Generate Charts</button>
+            <button onClick={handleGenerateCharts} className={styles.generateButton}>Generate Charts</button>
           </div>
           {/*TODO: Update this based on actual scenario parameter type*/}
           <ModalOneD
             isOpen={showAdd1DModal}
             setIsOpen={setShowAdd1DModal}
             setCharts={setCharts}
-            isScenarioParameterNumeric={true} 
+            isScenarioParameterNumeric={true}
           />
 
           <ModalAddChart

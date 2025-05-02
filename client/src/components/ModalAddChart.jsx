@@ -36,10 +36,9 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
   const [parameter, setParameter] = useState("start year");
 
   const [selectedParameterValue, setSelectedParameterValue] = useState('');
-  
+
   const parameterArray = ["2021", "2022", "2023", "2024"];
- 
-    
+
   const handleChartClick = (chartType) => {
     setSelectedChart(chartType);
     setValidationErrors((prevErrors) => {
@@ -56,12 +55,12 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
     if (!selectedChart) {
       errors.chartSelection = 'Please select a chart type.';
     }
-    if(hasParameterValue){
+    if (hasParameterValue) {
       if (!selectedParameterValue || selectedParameterValue.trim() === '') {
         errors.parameterValue = `Please enter a value for ${parameter}.`;
       }
     }
-    
+
     if (selectedChart === 'shaded') {
       if (!selectedShadedQuantity) errors.shadedQuantity = 'Please select a quantity.';
       if (isShadedQuantityNumeric) {
@@ -149,10 +148,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
         label: cContent.label,
         data: {}
       };
-      console.log("CHART:", newChart);
       return [...prevCharts, newChart];
     });
-    console.log("New Chart Added");
 
     setIsOpen(false);
   }
@@ -161,23 +158,23 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
     <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <h2 className={styles.header}>Select a Chart</h2>
       {hasParameterValue && (
-      <div className = {styles.parameterSection} >
-        <label>Select a value for {parameter}:</label>  
-        <Select
-          options={parameterArray.map(year => ({ value: year, label: year }))}
-          value={
-            parameterArray
-              .map(year => ({ value: year, label: year }))
-              .find(option => option.value === selectedParameterValue)
-          }
-          onChange={(selectedOption) => setSelectedParameterValue(selectedOption.value)}
-          placeholder={`Select ${parameter}`}
-        />
-        {validationErrors.parameterValue && (
-          <p className={styles.error}>{validationErrors.parameterValue}</p>
-        )}
-      </div>
-    )}
+        <div className={styles.parameterSection} >
+          <label>Select a value for {parameter}:</label>
+          <Select
+            options={parameterArray.map(year => ({ value: year, label: year }))}
+            value={
+              parameterArray
+                .map(year => ({ value: year, label: year }))
+                .find(option => option.value === selectedParameterValue)
+            }
+            onChange={(selectedOption) => setSelectedParameterValue(selectedOption.value)}
+            placeholder={`Select ${parameter}`}
+          />
+          {validationErrors.parameterValue && (
+            <p className={styles.error}>{validationErrors.parameterValue}</p>
+          )}
+        </div>
+      )}
 
 
       <div className={styles.chartOptions}>
@@ -211,7 +208,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
           </div>
           {selectedChart === 'shaded' && (
             <div className={styles.chartSettings}>
-               {/*Note: Used AI here. Prompted to ChatGPT: please replace this section of code with React Select.
+              {/*Note: Used AI here. Prompted to ChatGPT: please replace this section of code with React Select.
              Performance: Did well! */}
               <Select
                 options={shadedLineQuantities.map(q => ({ value: q, label: q }))}
@@ -261,16 +258,16 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
                 <p className={styles.error}>{validationErrors.barType}</p>
               )}
               <div className={styles.selectContainer}>
-             {/*Note: Used AI here. Prompted to ChatGPT: please replace this section of code with React Select.
+                {/*Note: Used AI here. Prompted to ChatGPT: please replace this section of code with React Select.
              Performance: Did well! */}
-              <Select
-                options={stackedBarQuantities.map(q => ({ value: q, label: q }))}
-                value={stackedBarQuantities
-                  .map(q => ({ value: q, label: q }))
-                  .find(option => option.value === selectedBarQuantity)}
-                onChange={(selected) => setSelectedBarQuantity(selected.value)}
-                placeholder="Select Quantity"
-              />
+                <Select
+                  options={stackedBarQuantities.map(q => ({ value: q, label: q }))}
+                  value={stackedBarQuantities
+                    .map(q => ({ value: q, label: q }))
+                    .find(option => option.value === selectedBarQuantity)}
+                  onChange={(selected) => setSelectedBarQuantity(selected.value)}
+                  placeholder="Select Quantity"
+                />
 
                 {validationErrors.barQuantity && (
                   <p className={styles.error}>{validationErrors.barQuantity}</p>
