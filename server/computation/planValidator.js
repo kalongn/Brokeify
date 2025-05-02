@@ -477,7 +477,7 @@ export async function run(
         else if(explorationArray[0].type==="INVEST_PERCENTAGE"){
             const firstInitial = ((step)+explorationArray[j].lowerBound)/100;  //distance from lowerBound
             trueValues.push(firstInitial)
-            const secondInitial = 1-diff;
+            const secondInitial = 1-firstInitial;
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
             for(const i in copiedScenario.events){
                 const copiedEvent = await eventFactory.read(copiedScenario.events[i]);

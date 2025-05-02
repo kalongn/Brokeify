@@ -182,7 +182,7 @@ export async function updateInvestments(investmentTypes) {
 
     return curYearIncome;
 }
-export async function performRothConversion(curYearIncome, curYearSS, federalIncomeTax, currentYear, birthYear, orderedRothStrategy, investmentTypes) {
+export async function performRothConversion(curYearIncome, curYearSS, federalIncomeTax, currentYear, birthYear, orderedRothStrategy, investmentTypes, annualPostTaxContributionLimit) {
 
     const age = currentYear - birthYear;
     const curYearFedTaxableIncome = curYearIncome - 0.15 * curYearSS;
@@ -198,8 +198,7 @@ export async function performRothConversion(curYearIncome, curYearSS, federalInc
     let rc = u - curYearFedTaxableIncome;
     if (rc <= 0) return { curYearIncome, curYearEarlyWithdrawals: 0 };
 
-    let remainingRC = rc;
-
+    let remainingRC = Math.min(rc, annualPostTaxContributionLimit);
     // Batch fetch investments and build a map for quick access
     const allInvestmentIds = orderedRothStrategy.map(id => typeof id === 'object' ? id._id : id).filter(id => id !== undefined);
     const investments = await investmentFactory.readMany(allInvestmentIds);
@@ -393,7 +392,7 @@ export async function processInvestmentEvents(scenario, currentYear) {
         } else if (event.assetAllocationType === "GLIDE") {
             for (const bounds of event.percentageAllocations) {
                 let ratio = ((realYear + currentYear - event.startYear) / (event.duration));
-                let proportion = bounds[1] * ratio + bounds[0] * (1 - ratio);
+                let proportion = [bounds[1] * ratio + bounds[0] * (1 - ratio)];
                 proportions.push(proportion);
             }
         }

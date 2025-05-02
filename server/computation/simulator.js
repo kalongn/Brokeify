@@ -261,7 +261,8 @@ export async function simulate(
                 currentYear,
                 scenario.userBirthYear,
                 scenario.orderedRothStrategy,
-                investmentTypes
+                investmentTypes,
+                scenario.annualPostTaxContributionLimit
             );
         }
 		//console.timeEnd("performRothConversion")
