@@ -572,29 +572,43 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
         JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[0]))),
         JSON.parse(JSON.stringify(await taxFactory.read(stateTaxIDArray[1]))),
     ];
-    let simulationType, paramOneType, paramTwoType, paramOne, paramTwo;
+    let simulationType, paramOneType, paramTwoType, paramOne, paramTwo, paramOneSteps, paramTwoSteps;
     if(!explorationArray){
         simulationType = "NORMAL";
     }
     else if(explorationArray.length>=1){
         simulationType = "1D";
         paramOneType = explorationArray[0].type;
+        paramOneSteps = [];
         if(explorationArray[0].type==="ROTH_BOOLEAN"){
             paramOne = undefined;
+            paramOneSteps = [-1, -2];
         }
         else{
             paramOne = explorationArray[0].eventID;
+            let currentValue = explorationArray[0].lowerBound;
+            while(currentValue<=explorationArray[0].upperBound){
+                paramOneSteps.push(currentValue);
+                currentValue+=explorationArray[0].step;
+            }
         }
         
     }
     if(explorationArray && explorationArray.length===2){
         simulationType = "2D";
         paramTwoType = explorationArray[1].type;
+        paramTwoSteps = [];
         if(explorationArray[1].type==="ROTH_BOOLEAN"){
             paramTwo = undefined;
+            paramTwoSteps = [-1, -2];
         }
         else{
             paramTwo = explorationArray[1].eventID;
+            let currentValue = explorationArray[1].lowerBound;
+            while(currentValue<=explorationArray[1].upperBound){
+                paramTwoSteps.push(currentValue);
+                currentValue+=explorationArray[1].step;
+            }
         }
     }
     const compiledResults = await simulationFactory.create({
@@ -605,6 +619,8 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
         paramTwoType: paramTwoType,
         paramOne: paramOne,
         paramTwo: paramTwo,
+        paramOneSteps: paramOneSteps,
+        paramTwoSteps: paramTwoSteps
     });
 
     const datetime = new Date();
