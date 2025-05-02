@@ -29,6 +29,7 @@ import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
 import ViewScenario from './pages/ViewScenario.jsx';
 import Sharing from './pages/Sharing.jsx';
 import SimulationPage from './pages/SimulationPage.jsx';
+import TwoD from './pages/visualizations/TwoD.jsx';
 const App = () => {
   console.log('COVERAGE OBJECT:', window.__coverage__);
 
@@ -95,7 +96,9 @@ const App = () => {
         <Route path="/RouteTesting" element={<RouteTesting />} />
         <Route path="/Visualizations/Charts/:simulationId" element={<Charts />} />
         
-        <Route path="/Visualizations/OneDimensional/:simulationId" element={<OneD />} />                
+        <Route path="/Visualizations/OneDimensional/:simulationId" element={<OneD />} />  
+        
+        <Route path="/Visualizations/TwoDimensional/:simulationId" element={<TwoD />} />               
       </Routes>
     </>
   )
