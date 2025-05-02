@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import Axios from "axios";
+
 import Layout from "../../components/Layout";
 import styles from "./Charts.module.css";
 import Accordion from "../../components/Accordion";
@@ -13,25 +15,43 @@ import ModalAddChart from "../../components/ModalAddChart";
 
 {/*Note: We will need to account for the parameter we passed in to get here...as that will decide whether a certain chart will show or not
   (show linechartparameter only if the parameter is numeric)* I currently pass it as a boolean*/}
+
 {/*Note: We need charts from charts.jsx too I believe, which is why
   we have "Add Chart" button here.The logic for that is the same. 
-  
-  "Add 1D Chart" is the new functionality. 
-  
-  */}
+  "Add 1D Chart" is the new functionality. */}
 
 const OneD = () => {
   const { simulationId } = useParams();
-  console.log("Simulation ID:", simulationId);
 
-  //TODO: Update below with actual scenario name
-  //const [scenarioName, setScenarioName] = useState("Unknown Scenario");
-  const scenarioName = "My Scenario"; //Temp kept this for ESLint Error 
+  const [scenarioName, setScenarioName] = useState("Unknown Scenario");
+  const [paramOneType, setParamOneType] = useState(null);
+  const [paramOneName, setParamOneName] = useState(null);
 
   const [showAddChartsModal, setShowAddChartsModal] = useState(false);
   const [showAdd1DModal, setShowAdd1DModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [charts, setCharts] = useState([]);
+
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    Axios.get(`/charts/${simulationId}`).then((response) => {
+      const data = response.data;
+      setScenarioName(data.scenarioName);
+      setParamOneType(data.paramOneType);
+      setParamOneName(data.paramOneName);
+    }).catch((error) => {
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        alert("You do not have permission to view this scenario.");
+      } else {
+        alert("Error fetching scenario name. Please try again.");
+      }
+      setScenarioName("Unknown Scenario");
+      console.error('Error fetching scenario name:', error);
+    });
+
+  }, [simulationId]);
 
   const handleGenerateCharts = async () => {
     try {
@@ -87,6 +107,13 @@ const OneD = () => {
       <div className={styles.content}>
         <div className={styles.leftSide}>
           <h2>{scenarioName} 1D Results</h2>
+          <h4>Type: {paramOneType}
+            {paramOneType !== "Disable Roth" && (
+              <>
+                , Event: {paramOneName}
+              </>
+            )}
+          </h4>
           <div className={styles.buttonGroup}>
             <button className={styles.addChart} onClick={() => setShowAdd1DModal(true)}>
               Add 1D Charts
@@ -98,12 +125,11 @@ const OneD = () => {
           <div className={styles.chartGenerate}>
             <button onClick={handleGenerateCharts} className={styles.generateButton}>Generate Charts</button>
           </div>
-          {/*TODO: Update this based on actual scenario parameter type*/}
           <ModalOneD
             isOpen={showAdd1DModal}
             setIsOpen={setShowAdd1DModal}
             setCharts={setCharts}
-            isScenarioParameterNumeric={true}
+            isScenarioParameterNumeric={paramOneType !== "Disable Roth"}
           />
 
           <ModalAddChart

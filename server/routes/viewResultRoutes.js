@@ -1,14 +1,16 @@
 import express from 'express';
 
-import UserController from "../db/controllers/UserController.js";
+import EventController from "../db/controllers/EventController.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
 
-import { canView } from "./helper.js";
+import { canView, explorationTypeToFrontend } from "./helper.js";
 
 const router = express.Router();
+const eventController = new EventController();
 const simulationController = new SimulationController();
 const scenarioController = new ScenarioController();
+
 
 const generateLineChartData = (yearToResults) => {
     const labels = [];
@@ -254,9 +256,37 @@ router.get("/charts/:simulationId", async (req, res) => {
 
         const scenario = await scenarioController.read(scenarioId);
         const scenarioName = scenario.name;
-        return res.status(200).send({
-            scenarioName: scenarioName,
-        });
+
+        let data = null
+
+        switch (simulation.simulationType) {
+            case "NORMAL":
+                data = {
+                    scenarioName: scenarioName,
+                }
+                break;
+            case "1D":
+                const paramOneType = simulation.paramOneType;
+                let paramOneName = null;
+                if (paramOneType !== "ROTH_BOOLEAN") {
+                    const paramOne = await eventController.read(simulation.paramOne);
+                    paramOneName = paramOne.name;
+                }
+                data = {
+                    scenarioName: scenarioName,
+                    paramOneType: explorationTypeToFrontend(paramOneType),
+                    paramOneName: paramOneName,
+                }
+                break;
+            case "2D":
+                // TODO: Handle 2D simulation
+                data = {
+                    scenarioName: scenarioName,
+                }
+                break;
+        }
+
+        return res.status(200).send(data);
     } catch (error) {
         console.error("Error in charts route:", error);
         return res.status(500).send("Error retrieving charts.");
