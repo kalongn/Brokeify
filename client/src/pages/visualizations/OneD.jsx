@@ -4,11 +4,8 @@ import Layout from "../../components/Layout";
 import styles from "./Charts.module.css";
 import Accordion from "../../components/Accordion";
 import LineChart from "../../components/LineChart";
-<<<<<<< HEAD
-=======
 import ShadedLineChart from "../../components/ShadedLineChart";
 import StackedBarChart from "../../components/StackedBarChart";
->>>>>>> c068269f28c7e672832e690dd2f2bfe47648591e
 import MultiLineChart from "../../components/MultiLineChart";
 import LineChartParameter from "../../components/LineChartParameter";
 import ModalOneD from "../../components/ModalOneD";
@@ -112,21 +109,14 @@ import ModalAddChart from "../../components/ModalAddChart";
             isOpen={showAdd1DModal}
             setIsOpen={setShowAdd1DModal}
             setCharts={setCharts}
-<<<<<<< HEAD
-            isScenarioParameterNumeric={false} 
-=======
             isScenarioParameterNumeric={true} 
->>>>>>> c068269f28c7e672832e690dd2f2bfe47648591e
           />
 
           <ModalAddChart
             isOpen={showAddChartsModal}
             setIsOpen={setShowAddChartsModal}
             setCharts={setCharts}
-<<<<<<< HEAD
-=======
             hasParameterValue={true}
->>>>>>> c068269f28c7e672832e690dd2f2bfe47648591e
           />
 
           <h3>Added Charts</h3>
@@ -149,11 +139,7 @@ import ModalAddChart from "../../components/ModalAddChart";
           {showCharts && charts.length > 0 && charts.map((chart) => (
             <div key={chart.id} className={styles.chart}>
               <h3>{chart.label}</h3>
-<<<<<<< HEAD
-               {/* Charts will show depending on type */}
-=======
               {/* Charts will show depending on type */}
->>>>>>> c068269f28c7e672832e690dd2f2bfe47648591e
               {chart.type === "Shaded Line Chart" && chart.data && <ShadedLineChart data={chart.data} />}
               {chart.type === "Line Chart" && chart.data && <LineChart data={chart.data} />}
               {chart.type === "Stacked Bar Chart" && chart.data && <StackedBarChart data={chart.data} />}
