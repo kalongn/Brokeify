@@ -22,7 +22,7 @@ const scenarioFactory = new ScenarioController();
 const userController = new UserController();
 
 async function createDistribution(dist, returnAmtOrPct, idMap) {
-    if (dist.type === "startWith" || dist.type === "startAfter") {
+    if (dist.type === "startsWith" || dist.type === "startsAfter") {
         return null;
     }
     if (returnAmtOrPct) {
@@ -87,7 +87,7 @@ async function fillIncomeEvent(eventID, eventData, idMap) {
     //Two cases:
     //1) Starts independantly of other events
     //2) Starts with/after another event
-    if (eventData.start.type === "startWith") {
+    if (eventData.start.type === "startsWith") {
         //get event ID that it starts with
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
@@ -103,11 +103,11 @@ async function fillIncomeEvent(eventID, eventData, idMap) {
 
         return toReturn;
     }
-    else if (eventData.start.type === "startAfter") {
-        const startAfter = idMap.get(eventData.start.eventSeries.toString());
+    else if (eventData.start.type === "startsAfter") {
+        const startsAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
-            startAfter: startAfter,
+            startsAfter: startsAfter,
             description: description,
             amount: amount,
             expectedAnnualChangeDistribution: expectedAnnualChangeDistribution,
@@ -144,7 +144,7 @@ async function fillExpenseEvent(eventID, eventData, idMap) {
     const isinflationAdjusted = eventData.inflationAdjusted === "true" || eventData.inflationAdjusted == true;
     const userContributions = Number(eventData.userFraction);
     const isDiscretionary = eventData.discretionary === "true" || eventData.discretionary == true;
-    if (eventData.start.type === "startWith") {
+    if (eventData.start.type === "startsWith") {
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -159,7 +159,7 @@ async function fillExpenseEvent(eventID, eventData, idMap) {
 
         return toReturn;
     }
-    else if (eventData.start.type === "startAfter") {
+    else if (eventData.start.type === "startsAfter") {
         const startsAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -220,7 +220,7 @@ async function fillInvestEvent(eventID, eventData, idMap) {
         allocatedInvestments.push(toPush);
     }
 
-    if (eventData.start.type === "startWith") {
+    if (eventData.start.type === "startsWith") {
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -233,11 +233,11 @@ async function fillInvestEvent(eventID, eventData, idMap) {
         });
 
         return toReturn;
-    } else if (eventData.start.type === "startAfter") {
-        const startAfter = idMap.get(eventData.start.eventSeries.toString());
+    } else if (eventData.start.type === "startsAfter") {
+        const startsAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
-            startAfter: startAfter,
+            startsAfter: startsAfter,
             description: description,
             assetAllocationType: glidePath ? "GLIDE" : "FIXED",
             percentageAllocations: percentageAllocations,
@@ -291,7 +291,7 @@ async function fillRebalanceEvent(eventID, eventData, idMap, taxStatusMap) {
         allocatedInvestments.push(toPush);
     }
 
-    if (eventData.start.type === "startWith") {
+    if (eventData.start.type === "startsWith") {
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -304,11 +304,11 @@ async function fillRebalanceEvent(eventID, eventData, idMap, taxStatusMap) {
         });
 
         return toReturn;
-    } else if (eventData.start.type === "startAfter") {
-        const startAfter = idMap.get(eventData.start.eventSeries.toString());
+    } else if (eventData.start.type === "startsAfter") {
+        const startsAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
-            startAfter: startAfter,
+            startsAfter: startsAfter,
             description: description,
             assetAllocationType: glidePath ? "GLIDE" : "FIXED",
             percentageAllocations: percentageAllocations,
@@ -373,13 +373,21 @@ export async function parseAndSaveYAML(yamlStr, userId) {
         });
         await Promise.all(investmentTypePromises);
 
+        const rothInvestments = [];
+
         // Save Investments
         for (const i in data.investments) {
             const inv = data.investments[i];
+            const taxStatus = taxStatusMap.get(inv.taxStatus.toString());
             const createdInvestment = await investmentFactory.create({
                 value: inv.value,
-                taxStatus: taxStatusMap.get(inv.taxStatus.toString()),
+                taxStatus: taxStatus,
             });
+
+            if (taxStatus === "PRE_TAX_RETIREMENT") {
+                rothInvestments.push(createdInvestment._id.toString());
+            }
+
             //update investment type:
             const investmentTypeID = idMap.get(`${inv.investmentType} TYPE`);
             const investmentType = await investmentTypeFactory.read(investmentTypeID);
@@ -461,10 +469,11 @@ export async function parseAndSaveYAML(yamlStr, userId) {
             orderedRMDStrategy: data.RMDStrategy.map(inv => idMap.get(inv)),
             startYearRothOptimizer: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionStart : undefined),
             endYearRothOptimizer: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionEnd : undefined),
-            orderedRothStrategy: data.RothConversionStrategy.map(inv => idMap.get(inv)),
+            orderedRothStrategy: (data.RothConversionOpt === "true" || data.RothConversionOpt === true ? data.RothConversionStrategy.map(inv => idMap.get(inv)) : rothInvestments),
             ownerFirstName: firstName,
             ownerLastName: lastName,
             ownerEmail: email,
+            isSimulationReady: true,
         });
 
         await userController.update(userId, {

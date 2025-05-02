@@ -4,6 +4,8 @@ import Layout from "../../components/Layout";
 import styles from "./Charts.module.css";
 import Accordion from "../../components/Accordion";
 import LineChart from "../../components/LineChart";
+import ShadedLineChart from "../../components/ShadedLineChart";
+import StackedBarChart from "../../components/StackedBarChart";
 import MultiLineChart from "../../components/MultiLineChart";
 import LineChartParameter from "../../components/LineChartParameter";
 import ModalOneD from "../../components/ModalOneD";
@@ -20,14 +22,14 @@ import StackedBarChart from "../../components/StackedBarChart";
   
   */}
 
-  const OneD = () => {
+const OneD = () => {
   const { simulationId } = useParams();
   console.log("Simulation ID:", simulationId);
 
   //TODO: Update below with actual scenario name
   //const [scenarioName, setScenarioName] = useState("Unknown Scenario");
   const scenarioName = "My Scenario"; //Temp kept this for ESLint Error 
-  
+
   const [showAddChartsModal, setShowAddChartsModal] = useState(false);
   const [showAdd1DModal, setShowAdd1DModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
@@ -96,20 +98,21 @@ import StackedBarChart from "../../components/StackedBarChart";
             </button>
           </div>
           <div className={styles.chartGenerate}>
-          <button onClick={handleGenerateCharts} className={styles.generateButton}>Generate Charts</button>
+            <button onClick={handleGenerateCharts} className={styles.generateButton}>Generate Charts</button>
           </div>
           {/*TODO: Update this based on actual scenario parameter type*/}
           <ModalOneD
             isOpen={showAdd1DModal}
             setIsOpen={setShowAdd1DModal}
             setCharts={setCharts}
-            isScenarioParameterNumeric={true} 
+            isScenarioParameterNumeric={true}
           />
 
           <ModalAddChart
             isOpen={showAddChartsModal}
             setIsOpen={setShowAddChartsModal}
             setCharts={setCharts}
+            hasParameterValue={true}
           />
 
           <h3>Added Charts</h3>
@@ -132,7 +135,7 @@ import StackedBarChart from "../../components/StackedBarChart";
           {showCharts && charts.length > 0 && charts.map((chart) => (
             <div key={chart.id} className={styles.chart}>
               <h3>{chart.label}</h3>
-               {/* Charts will show depending on type */}
+              {/* Charts will show depending on type */}
               {chart.type === "Shaded Line Chart" && chart.data && <ShadedLineChart data={chart.data} />}
               {chart.type === "Line Chart" && chart.data && <LineChart data={chart.data} />}
               {chart.type === "Stacked Bar Chart" && chart.data && <StackedBarChart data={chart.data} />}
@@ -142,9 +145,6 @@ import StackedBarChart from "../../components/StackedBarChart";
               )}
               {chart.type === "Final Value vs Parameter" && chart.data && (
                 <LineChartParameter data={chart.data} />
-              )}
-              {chart.type === "Line Chart" && chart.data && (
-                <LineChart data={chart.data} />
               )}
             </div>
           ))}

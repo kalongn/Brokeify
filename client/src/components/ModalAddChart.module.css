@@ -32,7 +32,18 @@
   overflow-y: auto;
   max-height: 100%;
 }
+.parameterSection{
+  background: var(--color-white);
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 1rem; 
+   border-radius: 6px;
 
+  
+}
 .chartCard h3 {
   margin: 0;
   padding: 0;

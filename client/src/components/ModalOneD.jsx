@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import styles from "./ModalAddChart.module.css";
 import { useState } from 'react';
+import Select from 'react-select';
 import ModalBase from './ModalBase';
 
 const multiLineQuantities = [
@@ -86,6 +87,11 @@ const ModalOneD = ({ isOpen, setIsOpen, setCharts, isScenarioParameterNumeric })
     setIsOpen(false);
   };
 
+
+  {/*Note: I used ChatGPT on this page to convert my original selects to React-Select*/ }
+  // Utility function for mapping options
+  const toOptions = (arr) => arr.map(item => ({ value: item, label: item }));
+
   return (
     <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <h2 className={styles.header}>Select a Chart</h2>
@@ -104,21 +110,23 @@ const ModalOneD = ({ isOpen, setIsOpen, setCharts, isScenarioParameterNumeric })
           </div>
           {selectedChart === 'multiLine' && (
             <div className={styles.chartSettings}>
-              <select
-                value={selectedMultiLineQuantities}
-                onChange={(e) => setSelectedMultiLineQuantities(e.target.value)}
-              >
-                <option value="" disabled hidden>Select Quantity</option>
-                {multiLineQuantities.map(q => (
-                  <option key={q} value={q}>{q}</option>
-                ))}
-              </select>
+              <Select
+                options={toOptions(multiLineQuantities)}
+                value={
+                  selectedMultiLineQuantities
+                    ? { value: selectedMultiLineQuantities, label: selectedMultiLineQuantities }
+                    : null
+                }
+                onChange={(selected) => setSelectedMultiLineQuantities(selected.value)}
+                placeholder="Select Quantity"
+              />
               {validationErrors.multiLineQuantities && (
                 <p className={styles.error}>{validationErrors.multiLineQuantities}</p>
               )}
             </div>
           )}
         </div>
+
         {/* Final Value Line Chart */}
         {isScenarioParameterNumeric && (
           <div
@@ -132,15 +140,16 @@ const ModalOneD = ({ isOpen, setIsOpen, setCharts, isScenarioParameterNumeric })
             </div>
             {selectedChart === 'finalValue' && (
               <div className={styles.chartSettings}>
-                <select
-                  value={selectedLineChartParameterQuantities}
-                  onChange={(e) => setSelectedLineChartParameterQuantities(e.target.value)}
-                >
-                  <option value="" disabled hidden>Select Quantity</option>
-                  {lineChartParameterQuantities.map(quantity => (
-                    <option key={quantity} value={quantity}>{quantity}</option>
-                  ))}
-                </select>
+                <Select
+                  options={toOptions(lineChartParameterQuantities)}
+                  value={
+                    selectedLineChartParameterQuantities
+                      ? { value: selectedLineChartParameterQuantities, label: selectedLineChartParameterQuantities }
+                      : null
+                  }
+                  onChange={(selected) => setSelectedLineChartParameterQuantities(selected.value)}
+                  placeholder="Select Quantity"
+                />
                 {validationErrors.lineChartParameterQuantities && (
                   <p className={styles.error}>{validationErrors.lineChartParameterQuantities}</p>
                 )}
@@ -150,14 +159,14 @@ const ModalOneD = ({ isOpen, setIsOpen, setCharts, isScenarioParameterNumeric })
         )}
       </div>
 
-        <div className={styles.footer}>
-          {validationErrors.chartSelection && (
-            <p className={styles.error}>{validationErrors.chartSelection}</p>
-          )}
-          <button className={styles.saveButton} onClick={(e) => handleSaveChart(e)}>
-            Save & Add Chart
-          </button>
-        </div>
+      <div className={styles.footer}>
+        {validationErrors.chartSelection && (
+          <p className={styles.error}>{validationErrors.chartSelection}</p>
+        )}
+        <button className={styles.saveButton} onClick={(e) => handleSaveChart(e)}>
+          Save & Add Chart
+        </button>
+      </div>
     </ModalBase>
   );
 };
