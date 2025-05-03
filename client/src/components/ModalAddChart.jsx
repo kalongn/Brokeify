@@ -221,7 +221,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneTyp
           </>
           {paramTwoType && (
             <>
-              <label>Select a value for {paramTwoType !== "Disable Roth" && <>{paramTwoName}&apos;s</>} {paramTwoType !== "Disable Roth" ? <>{paramTwoType}</> : <>Roth Optimizer</>}:</label>
+              <label>Select a value for {paramTwoName}&apos;s {paramTwoType}:</label>
               <Select
                 options={parameterTwoArray.map(param => ({ value: param, label: param }))}
                 value={
@@ -230,7 +230,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneTyp
                     .find(option => option.value === selectedParameterTwoValue)
                 }
                 onChange={(selectedOption) => setselectedParameterTwoValue(selectedOption.value)}
-                placeholder={`Select ${paramTwoType !== "Disable Roth" ? paramTwoType : "Roth Optimizer Status"}`}
+                placeholder={`Select ${paramTwoType}`}
               />
             </>
           )}

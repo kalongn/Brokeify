@@ -101,23 +101,16 @@ const TwoD = () => {
             <h2>{scenarioName} 2D Results</h2>
             {paramsType.map((paramType, index) => (
               <h4 key={index}>
-                Type: {paramType !== "Disable Roth" ? <>{paramType}</> : <>Roth Optimizer</>}
-                {paramType !== "Disable Roth" ? (
-                  <>
-                    , Event: {paramsName[index]}
-                    <br />
-                    From: {paramsSteps[index][0]}
-                    {paramType === "First of Two Investments" && "%"}
-                    <br />
-                    To: {paramsSteps[index][paramsSteps[index].length - 1]}
-                    {paramType === "First of Two Investments" && "%"}
-                    <br />
-                    Step: {paramsSteps[index][1] - paramsSteps[index][0]}
-                    {paramType === "First of Two Investments" && "%"}
-                  </>
-                ) : (
-                  <> , Enabled versus Disabled Roth </>
-                )}
+                Type: {paramType}, Event: {paramsName[index]}
+                <br />
+                From: {paramsSteps[index][0]}
+                {paramType === "First of Two Investments" && "%"}
+                <br />
+                To: {paramsSteps[index][paramsSteps[index].length - 1]}
+                {paramType === "First of Two Investments" && "%"}
+                <br />
+                Step: {paramsSteps[index][1] - paramsSteps[index][0]}
+                {paramType === "First of Two Investments" && "%"}
               </h4>
             ))}
             <div className={styles.buttonGroup}>
@@ -207,7 +200,7 @@ const TwoD = () => {
           </div>
         </div>
       )}
-    </Layout>
+    </Layout >
   );
 };
 
