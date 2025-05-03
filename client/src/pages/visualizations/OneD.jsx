@@ -161,14 +161,14 @@ const OneD = () => {
               <div key={chart.id} className={styles.chart}>
                 <h3>{chart.label}</h3>
                 {/* Charts will show depending on type */}
-                {chart.type === "Shaded Line Chart" && chart.data && <ShadedLineChart data={chart.data} />}
-                {chart.type === "Line Chart" && chart.data && <LineChart data={chart.data} />}
-                {chart.type === "Stacked Bar Chart" && chart.data && <StackedBarChart data={chart.data} />}
+                {chart.type === "Shaded Line Chart" && Object.keys(chart.data).length !== 0 && <ShadedLineChart data={chart.data} />}
+                {chart.type === "Line Chart" && Object.keys(chart.data).length !== 0 && <LineChart data={chart.data} />}
+                {chart.type === "Stacked Bar Chart" && Object.keys(chart.data).length !== 0 && <StackedBarChart data={chart.data} />}
 
-                {chart.type === "Multi-Line Over Time" && chart.data && (
+                {chart.type === "Multi-Line Over Time" && Object.keys(chart.data).length !== 0 && (
                   <MultiLineChart data={chart.data.data} labels={chart.data.labels} />
                 )}
-                {chart.type === "Final Value vs Parameter" && chart.data && (
+                {chart.type === "Final Value vs Parameter" && Object.keys(chart.data).length !== 0 && (
                   <LineChartParameter data={chart.data} />
                 )}
               </div>
