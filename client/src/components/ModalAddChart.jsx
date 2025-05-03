@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import styles from "./ModalAddChart.module.css";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ModalBase from './ModalBase';
 import Select from 'react-select';
 
@@ -25,19 +25,23 @@ const numericQuantities = [
   "Early Withdrawal Tax"
 ];
 
-const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
+const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneType, paramOneName, paramOneSteps }) => {
   const [selectedChart, setSelectedChart] = useState(null);
-  // const [formData, setFormData] = useState({});
   const [selectedShadedQuantity, setSelectedShadedQuantity] = useState('');
   const [selectedBarQuantity, setSelectedBarQuantity] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
-
   const isShadedQuantityNumeric = numericQuantities.includes(selectedShadedQuantity);
-  const [parameter, setParameter] = useState("start year");
 
   const [selectedParameterValue, setSelectedParameterValue] = useState('');
+  const [parameterArray, setParameterArray] = useState([]);
 
-  const parameterArray = ["2021", "2022", "2023", "2024"];
+  useEffect(() => {
+    if (paramOneType && paramOneType !== "Disable Roth") {
+      setParameterArray(paramOneSteps);
+    } else {
+      setParameterArray(["Enabled", "Disabled"]);
+    }
+  }, [paramOneSteps, paramOneType]);
 
   const handleChartClick = (chartType) => {
     setSelectedChart(chartType);
@@ -46,8 +50,6 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
       delete newErrors.chartSelection;
       return newErrors;
     });
-    setParameter("Start year"); //ESLint Error Temp Fix 
-
   };
 
   const validateForm = () => {
@@ -57,7 +59,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
     }
     if (hasParameterValue) {
       if (!selectedParameterValue || selectedParameterValue.trim() === '') {
-        errors.parameterValue = `Please enter a value for ${parameter}.`;
+        errors.parameterValue = `Please enter a value for ${paramOneType}.`;
       }
     }
 
@@ -159,16 +161,16 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
       <h2 className={styles.header}>Select a Chart</h2>
       {hasParameterValue && (
         <div className={styles.parameterSection} >
-          <label>Select a value for {parameter}:</label>
+          <label>Select a value for {paramOneType !== "Disable Roth" && <>{paramOneName}&apos;s</>} {paramOneType}:</label>
           <Select
-            options={parameterArray.map(year => ({ value: year, label: year }))}
+            options={parameterArray.map(param => ({ value: param, label: param }))}
             value={
               parameterArray
-                .map(year => ({ value: year, label: year }))
+                .map(param => ({ value: param, label: param }))
                 .find(option => option.value === selectedParameterValue)
             }
             onChange={(selectedOption) => setSelectedParameterValue(selectedOption.value)}
-            placeholder={`Select ${parameter}`}
+            placeholder={`Select ${paramOneType}`}
           />
           {validationErrors.parameterValue && (
             <p className={styles.error}>{validationErrors.parameterValue}</p>
@@ -318,7 +320,10 @@ AddChart.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   setIsOpen: PropTypes.func.isRequired,
   setCharts: PropTypes.func.isRequired,
-  hasParameterValue: PropTypes.bool.isRequired
+  hasParameterValue: PropTypes.bool.isRequired,
+  paramOneType: PropTypes.string,
+  paramOneName: PropTypes.string,
+  paramOneSteps: PropTypes.array,
 };
 
 export default AddChart;

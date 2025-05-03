@@ -154,14 +154,17 @@ const OneD = () => {
               isScenarioParameterNumeric={paramOneType !== "Disable Roth"}
             />
 
-            {
-              <ModalAddChart
-                isOpen={showAddChartsModal}
-                setIsOpen={setShowAddChartsModal}
-                setCharts={setCharts}
-                hasParameterValue={true}
-              />
-            }
+
+            <ModalAddChart
+              isOpen={showAddChartsModal}
+              setIsOpen={setShowAddChartsModal}
+              setCharts={setCharts}
+              hasParameterValue={true}
+              paramOneType={paramOneType}
+              paramOneName={paramOneName}
+              paramOneSteps={paramOneSteps}
+            />
+
 
             <h3>Added Charts</h3>
             <div className={styles.chartList}>
