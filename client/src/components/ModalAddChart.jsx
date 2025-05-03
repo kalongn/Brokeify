@@ -145,9 +145,9 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneTyp
     if (hasParameterValue) {
       if (paramOneType) {
         if (paramOneType !== "Disable Roth") {
-          cContent.label += `Parameter: ${paramOneName}, ${selectedParameterValue}`;
+          cContent.label += `, Parameter: ${paramOneName}, ${selectedParameterValue}`;
         } else {
-          cContent.label += `Parameter: Roth Optimizer, ${selectedParameterValue}`;
+          cContent.label += `, Parameter: Roth Optimizer, ${selectedParameterValue}`;
         }
         cContent.paramOne = paramOneType !== "Disable Roth" ? selectedParameterValue : selectedParameterValue === "Enabled" ? -1 : -2;
       }
