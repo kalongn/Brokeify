@@ -58,7 +58,7 @@ const ModalOneD = ({ isOpen, setIsOpen, setCharts, isScenarioParameterNumeric })
     let cContent = {};
 
     if (selectedChart === 'multiLine') {
-      cType = 'Multi-Line Chart';
+      cType = 'Multi-Line Over Time';
       cContent = {
         quantity: selectedMultiLineQuantities,
         label: `Selected Quantity: ${selectedMultiLineQuantities}`
