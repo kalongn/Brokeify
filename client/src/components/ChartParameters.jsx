@@ -15,7 +15,6 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
 
 
   useEffect(() => {
-    // TODO: disable this if there's not selected scenario
     if (!simulationInput.selectedScenario) {
       return;
     }

@@ -39,19 +39,19 @@ const MultiLineChart = ({ data, labels }) => {
       data={dataPoints}
       layout={{
         title: 'Selected Quantity Over Time by Parameter Value',
-        xaxis: { title: 'Time', type: 'category'},
+        xaxis: { title: 'Time', type: 'category' },
         yaxis: { title: 'Value' },
         legend: { title: { text: 'Parameter Value' } },
         margin: { t: 40, r: 20, b: 50, l: 60 },
       }}
-     
+
     />
   );
 };
 
 MultiLineChart.propTypes = {
-    data: PropTypes.arrayOf(PropTypes.object).isRequired,
-    labels: PropTypes.array.isRequired,
+  data: PropTypes.arrayOf(PropTypes.object).isRequired,
+  labels: PropTypes.array.isRequired,
 };
 
 export default MultiLineChart;

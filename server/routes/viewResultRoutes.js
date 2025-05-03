@@ -1,14 +1,16 @@
 import express from 'express';
 
-import UserController from "../db/controllers/UserController.js";
+import EventController from "../db/controllers/EventController.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
 import SimulationController from "../db/controllers/SimulationController.js";
 
-import { canView } from "./helper.js";
+import { canView, explorationTypeToFrontend } from "./helper.js";
 
 const router = express.Router();
+const eventController = new EventController();
 const simulationController = new SimulationController();
 const scenarioController = new ScenarioController();
+
 
 const generateLineChartData = (yearToResults) => {
     const labels = [];
@@ -31,6 +33,88 @@ const generateLineChartData = (yearToResults) => {
         values: values,
     }
 };
+
+const generateMultiLineChartData = (chart, stepToYearToResults, paramType) => {
+    const labels = [];
+    const data = [];
+    let isLabelDone = false;
+    for (const step in stepToYearToResults) {
+        const yearToResults = stepToYearToResults[step];
+        const values = [];
+        for (const year in yearToResults) {
+            if (!isLabelDone) {
+                labels.push(year);
+            }
+            const yearlyResults = yearToResults[year];
+
+            if (chart.content.quantity === "Probability of Success") {
+                let count = 0;
+                for (const result of yearlyResults) {
+                    if (!result.isViolated) {
+                        count++;
+                    }
+                }
+                values.push(yearlyResults.length > 0 ? count / yearlyResults.length * 100 : 0);
+            } else {
+                const investmentValues = [];
+                for (const result of yearlyResults) {
+                    let sum = 0;
+                    for (const investmentValue of result.investmentValues) {
+                        sum += investmentValue.value;
+                    }
+                    investmentValues.push(sum);
+                }
+                investmentValues.sort((a, b) => a - b);
+                values.push(getPercentile(investmentValues, 0.5));
+            }
+        }
+        data.push({
+            parameterValue: paramType === "ROTH_BOOLEAN" ? step == "-1" ? "Roth" : "No Roth" : step,
+            values: values,
+        });
+        isLabelDone = true;
+    }
+    const result = {
+        labels: labels,
+        data: data,
+    }
+    return result
+}
+
+const oneDLineChartData = (chart, stepToYearToResults) => {
+    const result = [];
+    for (const step in stepToYearToResults) {
+        const yearToResults = stepToYearToResults[step];
+        const lastYear = Object.keys(yearToResults).pop();
+        const yearlyResults = yearToResults[lastYear];
+        let value = null;
+        if (chart.content.quantity === "Final Value: Probability of Success") {
+            let count = 0;
+            for (const result of yearlyResults) {
+                if (!result.isViolated) {
+                    count++;
+                }
+            }
+            value = yearlyResults.length > 0 ? count / yearlyResults.length * 100 : 0;
+        } else {
+            const investmentValues = [];
+            for (const result of yearlyResults) {
+                const sum = result.investmentValues.reduce((acc, investment) => acc + investment.value, 0);
+                investmentValues.push(sum);
+            }
+            investmentValues.sort((a, b) => a - b);
+            value = getPercentile(investmentValues, 0.5);
+        }
+        result.push({
+            parameterValue: step,
+            finalValue: value,
+        });
+    }
+    const data = {
+        data: result,
+    }
+    return data;
+}
 
 const getAverage = (arr) => {
     if (arr.length === 0) {
@@ -254,15 +338,117 @@ router.get("/charts/:simulationId", async (req, res) => {
 
         const scenario = await scenarioController.read(scenarioId);
         const scenarioName = scenario.name;
-        return res.status(200).send({
-            scenarioName: scenarioName,
-        });
+
+        let data = null
+
+        switch (simulation.simulationType) {
+            case "NORMAL":
+                data = {
+                    scenarioName: scenarioName,
+                }
+                break;
+            case "1D":
+                const paramOneType = simulation.paramOneType;
+                let paramOneName = null;
+                let paramOneSteps = null;
+                if (paramOneType !== "ROTH_BOOLEAN") {
+                    const paramOne = await eventController.read(simulation.paramOne);
+                    paramOneName = paramOne.name;
+                    paramOneSteps = simulation.paramOneSteps;
+                }
+                data = {
+                    scenarioName: scenarioName,
+                    paramOneType: explorationTypeToFrontend(paramOneType),
+                    paramOneName: paramOneName,
+                    paramOneSteps: paramOneSteps,
+                }
+                break;
+            case "2D":
+                // TODO: Handle 2D simulation
+                data = {
+                    scenarioName: scenarioName,
+                }
+                break;
+        }
+        return res.status(200).send(data);
     } catch (error) {
         console.error("Error in charts route:", error);
         return res.status(500).send("Error retrieving charts.");
     }
 })
 
+const normalSimulation = (requestChart, simulation) => {
+    const yearToResults = {}
+
+    simulation.results.forEach((result) => {
+        result.yearlyResults.forEach((yearlyResult) => {
+            if (!yearToResults[yearlyResult.year]) {
+                yearToResults[yearlyResult.year] = [];
+            }
+            yearToResults[yearlyResult.year].push(yearlyResult);
+        });
+    });
+
+    requestChart.forEach((chart) => {
+        switch (chart.type) {
+            case "Line Chart":
+                chart.data = generateLineChartData(yearToResults);
+                break;
+            case "Shaded Line Chart":
+                chart.data = generateShadedLineData(chart, yearToResults);
+                break;
+            case "Stacked Bar Chart":
+                chart.data = generateStackedBarData(chart, yearToResults);
+                break;
+            default:
+                break;
+        }
+    });
+    return requestChart;
+}
+
+const oneDSimuatlion = (requestChart, simulation) => {
+    const stepToYearToResults = {}
+    for (let i = 0; i < simulation.paramOneSteps.length; i++) {
+        stepToYearToResults[simulation.paramOneSteps[i]] = {}
+    }
+
+    simulation.results.forEach((result) => {
+        result.yearlyResults.forEach((yearlyResult) => {
+            const stepValue = simulation.paramOneType === "INVEST_PERCENTAGE" ? yearlyResult.step1 * 100 : yearlyResult.step1;
+            if (!stepToYearToResults[stepValue]) {
+                stepToYearToResults[stepValue] = {};
+            }
+            if (!stepToYearToResults[stepValue][yearlyResult.year]) {
+                stepToYearToResults[stepValue][yearlyResult.year] = [];
+            }
+            stepToYearToResults[stepValue][yearlyResult.year].push(yearlyResult);
+        });
+    });
+
+    requestChart.forEach((chart) => {
+        switch (chart.type) {
+            case "Multi-Line Over Time":
+                chart.data = generateMultiLineChartData(chart, stepToYearToResults, simulation.paramOneType);
+                break;
+            case "Final Value vs Parameter":
+                chart.data = oneDLineChartData(chart, stepToYearToResults);
+                break;
+            case "Line Chart":
+                chart.data = generateLineChartData(stepToYearToResults[chart.content.paramOne.toString()]);
+                break;
+            case "Shaded Line Chart":
+                chart.data = generateShadedLineData(chart, stepToYearToResults[chart.content.paramOne.toString()]);
+                break;
+            case "Stacked Bar Chart":
+                chart.data = generateStackedBarData(chart, stepToYearToResults[chart.content.paramOne.toString()]);
+                break;
+            default:
+                break;
+        }
+    });
+    return requestChart;
+}
 
 
 router.post("/charts/:simulationId", async (req, res) => {
@@ -277,40 +463,22 @@ router.post("/charts/:simulationId", async (req, res) => {
         const simulation = await simulationController.read(simulationId);
         const scenarioId = simulation.scenario.toString();
 
+        let responseData = null;
         if (!await canView(req.session.user, scenarioId)) {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
 
-        const yearToResults = {}
+        if (simulation.paramOneType !== undefined && simulation.paramTwoType !== undefined) {
+            // TODO: Handle 2D simulation
+            return res.status(400).send("2D simulation not supported yet.");
+        } else if (simulation.paramOneType !== undefined) {
+            responseData = oneDSimuatlion(charts, simulation);
+        } else {
+            // Normal simulation
+            responseData = normalSimulation(charts, simulation);
+        }
 
-        simulation.results.forEach((result) => {
-            result.yearlyResults.forEach((yearlyResult) => {
-                if (!yearToResults[yearlyResult.year]) {
-                    yearToResults[yearlyResult.year] = [];
-                }
-                yearToResults[yearlyResult.year].push(yearlyResult);
-            });
-        });
-
-
-
-        charts.forEach((chart) => {
-            switch (chart.type) {
-                case "Line Chart":
-                    chart.data = generateLineChartData(yearToResults);
-                    break;
-                case "Shaded Line Chart":
-                    chart.data = generateShadedLineData(chart, yearToResults);
-                    break;
-                case "Stacked Bar Chart":
-                    chart.data = generateStackedBarData(chart, yearToResults);
-                    break;
-                default:
-                    break;
-            }
-        });
-
-        return res.status(200).send(charts);
+        return res.status(200).send(responseData);
     } catch (error) {
         console.error("Error in charts route:", error);
         return res.status(500).send("Error retrieving charts.");
