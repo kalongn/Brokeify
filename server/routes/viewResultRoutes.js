@@ -347,7 +347,7 @@ router.get("/charts/:simulationId", async (req, res) => {
                     scenarioName: scenarioName,
                 }
                 break;
-            case "1D":
+            case "1D": {
                 const paramOneType = simulation.paramOneType;
                 let paramOneName = null;
                 let paramOneSteps = null;
@@ -362,12 +362,35 @@ router.get("/charts/:simulationId", async (req, res) => {
                     paramOneName: paramOneName,
                     paramOneSteps: paramOneSteps,
                 }
+            }
                 break;
-            case "2D":
-                // TODO: Handle 2D simulation
+            case "2D": {
+                const paramOneType = simulation.paramOneType;
+                const paramTwoType = simulation.paramTwoType;
+                let paramOneName = null;
+                let paramTwoName = null;
+                let paramOneSteps = null;
+                let paramTwoSteps = null;
+                if (paramOneType !== "ROTH_BOOLEAN") {
+                    const paramOne = await eventController.read(simulation.paramOne);
+                    paramOneName = paramOne.name;
+                    paramOneSteps = simulation.paramOneSteps;
+                }
+                if (paramTwoType !== "ROTH_BOOLEAN") {
+                    const paramTwo = await eventController.read(simulation.paramTwo);
+                    paramTwoName = paramTwo.name;
+                    paramTwoSteps = simulation.paramTwoSteps;
+                }
                 data = {
                     scenarioName: scenarioName,
+                    paramOneType: explorationTypeToFrontend(paramOneType),
+                    paramTwoType: explorationTypeToFrontend(paramTwoType),
+                    paramOneName: paramOneName,
+                    paramTwoName: paramTwoName,
+                    paramOneSteps: paramOneSteps,
+                    paramTwoSteps: paramTwoSteps,
                 }
+            }
                 break;
         }
         return res.status(200).send(data);
