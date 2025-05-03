@@ -51,42 +51,20 @@ const TwoD = () => {
   }, [simulationId]);
 
   const handleGenerateCharts = async () => {
-    // try {
-
-    //   const mockSurfaceData = {
-    //     x: [50, 55, 60, 65, 70, 75],
-    //     y: [0.1, 0.2, 0.3, 0.4, 0.5],
-    //     z: [
-    //       [0.6, 0.8, 0.9, 0.7, 0.5, 0.3],
-    //       [0.7, 1.0, 1.2, 0.9, 0.6, 0.4],
-    //       [0.8, 1.3, 1.5, 1.1, 0.7, 0.5],
-    //       [0.7, 1.0, 1.2, 0.9, 0.6, 0.4],
-    //       [0.6, 0.8, 0.9, 0.7, 0.5, 0.3],
-    //     ]
-    //   };
-
-
-    //   const generatedCharts = [
-    //     {
-    //       id: 1,
-    //       type: "Surface Plot",
-    //       label: "Surface Plot",
-    //       data: mockSurfaceData
-    //     },
-    //     {
-    //       id: 2,
-    //       type: "Contour Plot",
-    //       label: "Contour Plot",
-    //       data: mockSurfaceData
-    //     }
-    //   ];
-
-    //   setCharts(generatedCharts);
-    //   setShowCharts(true);
-    // } catch (error) {
-    //   console.error("Error generating charts:", error);
-    //   setShowCharts(false);
-    // }
+    try {
+      const response = await Axios.post(`/charts/${simulationId}`, charts);
+      const generatedCharts = response.data;
+      setCharts(generatedCharts);
+      setShowCharts(true);
+    } catch (error) {
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        alert("You do not have permission to view this scenario.");
+        setScenarioName("Unknown Scenario");
+      } else {
+        alert("Error fetching Graph Result. Please try again.");
+      }
+      setShowCharts(false);
+    }
   };
 
   return (

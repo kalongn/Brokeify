@@ -470,6 +470,104 @@ const oneDSimuatlion = (requestChart, simulation) => {
     return requestChart;
 }
 
+const twoDChartData = (chart, stepToStepToYearToResults) => {
+    const x = [];
+    const y = [];
+    const z = [];
+
+    for (const step1 in stepToStepToYearToResults) {
+        x.push(step1);
+    }
+    for (const step2 in stepToStepToYearToResults[x[0]]) {
+        y.push(step2);
+    }
+
+    for (const step1 in stepToStepToYearToResults) {
+        z.push([]);
+        for (const step2 in stepToStepToYearToResults[step1]) {
+            const yearlyResults = stepToStepToYearToResults[step1][step2];
+            const lastYear = Object.keys(yearlyResults).pop();
+            const lastYearResult = yearlyResults[lastYear];
+            let value = null;
+            if (chart.content.quantity === "Final Value: Probability of Success") {
+                let count = 0;
+                for (const result of lastYearResult) {
+                    if (!result.isViolated) {
+                        count++;
+                    }
+                }
+                value = lastYearResult.length > 0 ? count / lastYearResult.length * 100 : 0;
+            } else {
+                const investmentValues = [];
+                for (const result of lastYearResult) {
+                    const sum = result.investmentValues.reduce((acc, investment) => acc + investment.value, 0);
+                    investmentValues.push(sum);
+                }
+                investmentValues.sort((a, b) => a - b);
+                value = getPercentile(investmentValues, 0.5);
+            }
+            z[z.length - 1].push(value);
+        }
+    }
+    return {
+        x: x,
+        y: y,
+        z: z,
+    }
+};
+
+const twoDSimuatlion = (requestChart, simulation) => {
+    const stepToStepToYearToResults = {}
+    for (let i = 0; i < simulation.paramOneSteps.length; i++) {
+        stepToStepToYearToResults[simulation.paramOneSteps[i]] = {}
+        for (let j = 0; j < simulation.paramTwoSteps.length; j++) {
+            stepToStepToYearToResults[simulation.paramOneSteps[i]][simulation.paramTwoSteps[j]] = {}
+        }
+    }
+
+    simulation.results.forEach((result) => {
+        result.yearlyResults.forEach((yearlyResult) => {
+            const step1Value = simulation.paramOneType === "INVEST_PERCENTAGE" ? yearlyResult.step1 * 100 : yearlyResult.step1;
+            const step2Value = simulation.paramTwoType === "INVEST_PERCENTAGE" ? yearlyResult.step2 * 100 : yearlyResult.step2;
+            if (!stepToStepToYearToResults[step1Value][step2Value][yearlyResult.year]) {
+                stepToStepToYearToResults[step1Value][step2Value][yearlyResult.year] = [];
+            }
+            stepToStepToYearToResults[step1Value][step2Value][yearlyResult.year].push(yearlyResult);
+        });
+    })
+
+    requestChart.forEach((chart) => {
+        let paramOne = null;
+        let paramTwo = null;
+        if (chart.content.paramOne) {
+            paramOne = chart.content.paramOne;
+        }
+        if (chart.content.paramTwo) {
+            paramTwo = chart.content.paramTwo;
+        }
+        switch (chart.type) {
+            case "Surface Plot":
+                chart.data = twoDChartData(chart, stepToStepToYearToResults);
+                break;
+            case "Contour Plot":
+                chart.data = twoDChartData(chart, stepToStepToYearToResults);
+                break;
+            case "Line Chart":
+                chart.data = generateLineChartData(stepToStepToYearToResults[paramOne][paramTwo]);
+                break;
+            case "Shaded Line Chart":
+                chart.data = generateShadedLineData(chart, stepToStepToYearToResults[paramOne][paramTwo]);
+                break;
+            case "Stacked Bar Chart":
+                chart.data = generateStackedBarData(chart, stepToStepToYearToResults[paramOne][paramTwo]);
+                break;
+            default:
+                break;
+        }
+    });
+    return requestChart;
+}
+
 
 router.post("/charts/:simulationId", async (req, res) => {
     if (!req.session.user) {
@@ -489,8 +587,7 @@ router.post("/charts/:simulationId", async (req, res) => {
         }
 
         if (simulation.paramOneType !== undefined && simulation.paramTwoType !== undefined) {
-            // TODO: Handle 2D simulation
-            return res.status(400).send("2D simulation not supported yet.");
+            responseData = twoDSimuatlion(charts, simulation);
         } else if (simulation.paramOneType !== undefined) {
             responseData = oneDSimuatlion(charts, simulation);
         } else {
