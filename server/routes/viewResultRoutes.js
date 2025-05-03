@@ -295,6 +295,35 @@ router.get("/charts/:simulationId", async (req, res) => {
     }
 })
 
+const normalSimulation = (requestChart, simulation) => {
+    const yearToResults = {}
+
+    simulation.results.forEach((result) => {
+        result.yearlyResults.forEach((yearlyResult) => {
+            if (!yearToResults[yearlyResult.year]) {
+                yearToResults[yearlyResult.year] = [];
+            }
+            yearToResults[yearlyResult.year].push(yearlyResult);
+        });
+    });
+
+    requestChart.forEach((chart) => {
+        switch (chart.type) {
+            case "Line Chart":
+                chart.data = generateLineChartData(yearToResults);
+                break;
+            case "Shaded Line Chart":
+                chart.data = generateShadedLineData(chart, yearToResults);
+                break;
+            case "Stacked Bar Chart":
+                chart.data = generateStackedBarData(chart, yearToResults);
+                break;
+            default:
+                break;
+        }
+    });
+    return requestChart;
+}
 
 
 router.post("/charts/:simulationId", async (req, res) => {
@@ -309,40 +338,22 @@ router.post("/charts/:simulationId", async (req, res) => {
         const simulation = await simulationController.read(simulationId);
         const scenarioId = simulation.scenario.toString();
 
+        let responseData = null;
         if (!await canView(req.session.user, scenarioId)) {
             return res.status(403).send("You do not have permission to access this scenario.");
         }
 
-        const yearToResults = {}
+        if (simulation.paramOneType !== undefined && simulation.paramTwoType !== undefined) {
+            // TODO: Handle 2D simulation
+            return res.status(400).send("2D simulation not supported yet.");
+        } else if (simulation.paramOneType !== undefined) {
+            return res.status(400).send("1D simulation not supported yet.");
+        } else {
+            // Normal simulation
+            responseData = normalSimulation(charts, simulation);
+        }
 
-        simulation.results.forEach((result) => {
-            result.yearlyResults.forEach((yearlyResult) => {
-                if (!yearToResults[yearlyResult.year]) {
-                    yearToResults[yearlyResult.year] = [];
-                }
-                yearToResults[yearlyResult.year].push(yearlyResult);
-            });
-        });
-
-
-
-        charts.forEach((chart) => {
-            switch (chart.type) {
-                case "Line Chart":
-                    chart.data = generateLineChartData(yearToResults);
-                    break;
-                case "Shaded Line Chart":
-                    chart.data = generateShadedLineData(chart, yearToResults);
-                    break;
-                case "Stacked Bar Chart":
-                    chart.data = generateStackedBarData(chart, yearToResults);
-                    break;
-                default:
-                    break;
-            }
-        });
-
-        return res.status(200).send(charts);
+        return res.status(200).send(responseData);
     } catch (error) {
         console.error("Error in charts route:", error);
         return res.status(500).send("Error retrieving charts.");
