@@ -73,52 +73,11 @@ const OneD = () => {
       }
       setShowCharts(false);
     }
-    // try {
-    //   const mockMultiLineData = {
-    //     data: [
-    //       {
-    //         parameterValue: 60,
-    //         values: [100000, 120000, 140000]
-    //       },
-    //       {
-    //         parameterValue: 65,
-    //         values: [95000, 110000, 130000]
-    //       },
-    //       {
-    //         parameterValue: 70,
-    //         values: [90000, 105000, 125000]
-    //       }
-    //     ],
-    //     labels: ["2025", "2026", "2027", "2028"]
-    //   };
-
     //   const mockFinalValueData = [
     //     { parameterValue: 60, finalValue: 140000 },
     //     { parameterValue: 65, finalValue: 130000 },
     //     { parameterValue: 70, finalValue: 125000 }
     //   ];
-
-    //   const generatedCharts = [
-    //     {
-    //       id: 1,
-    //       type: "Multi-Line Over Time",
-    //       label: "Multi-Line Over Time",
-    //       data: mockMultiLineData
-    //     },
-    //     {
-    //       id: 2,
-    //       type: "Final Value vs Parameter",
-    //       label: "Final Value vs Parameter",
-    //       data: mockFinalValueData
-    //     }
-    //   ];
-
-    //   setCharts(generatedCharts);
-    //   setShowCharts(true);
-    // } catch (error) {
-    //   console.error("Error generating charts:", error);
-    //   setShowCharts(false);
-    // }
   };
 
   return (
