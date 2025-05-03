@@ -5,7 +5,7 @@ import Axios from 'axios';
 
 import styles from './ChartTabs.module.css';
 
-const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handleChange, handleSelectChange, setSelectRemount, setSimulationInput }) => {
+const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handleChange, handleSelectChange, setSelectRemount, setSimulationInput, isTwoD }) => {
   const [parameterOptions, setparameterOptions] = useState([]);
 
   const [events, setEvents] = useState([]);
@@ -61,7 +61,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
         if (allInvestEvents.length > 0) {
           options.push({ value: "INVEST_PERCENTAGE", label: "First of Two Investments" })
         }
-        if (isRothEnabled) {
+        if (isRothEnabled && !isTwoD) {
           options.push({ value: "ROTH_BOOLEAN", label: "Disable Roth Optimizer" });
         }
         return options;
@@ -82,7 +82,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
       }
       console.error('Error fetching scenario name:', error);
     });
-  }, [simulationInput.selectedScenario, simulationInput.numSimulations, setSelectRemount, setSimulationInput]);
+  }, [simulationInput.selectedScenario, simulationInput.numSimulations, setSelectRemount, setSimulationInput, isTwoD]);
 
   useEffect(() => {
     const parameterValue = simulationInput[`parameter${parameterIndex}`];
@@ -163,6 +163,7 @@ ChartParameters.propTypes = {
   handleSelectChange: PropTypes.func.isRequired,
   setSelectRemount: PropTypes.func.isRequired,
   setSimulationInput: PropTypes.func.isRequired,
+  isTwoD: PropTypes.bool,
 };
 
 export default ChartParameters;

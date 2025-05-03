@@ -86,6 +86,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
               handleSelectChange={handleSelectChange}
               setSelectRemount={setSelectRemount}
               setSimulationInput={setSimulationInput}
+              isTwoD={activeTab === "2-D Exploration"}
             />
           ))
         )}
