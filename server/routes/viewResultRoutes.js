@@ -430,7 +430,7 @@ const oneDLineChartData = (chart, stepToYearToResults) => {
     return data;
 }
 
-const oneDSimuatlion = (requestChart, simulation) => {
+const oneDSimulation = (requestChart, simulation) => {
     const stepToYearToResults = {}
     for (let i = 0; i < simulation.paramOneSteps.length; i++) {
         stepToYearToResults[simulation.paramOneSteps[i]] = {}
@@ -516,7 +516,7 @@ const twoDChartData = (chart, stepToStepToYearToResults) => {
     }
 };
 
-const twoDSimuatlion = (requestChart, simulation) => {
+const twoDSimulation = (requestChart, simulation) => {
     const stepToStepToYearToResults = {}
     for (let i = 0; i < simulation.paramOneSteps.length; i++) {
         stepToStepToYearToResults[simulation.paramOneSteps[i]] = {}
@@ -587,9 +587,9 @@ router.post("/charts/:simulationId", async (req, res) => {
         }
 
         if (simulation.paramOneType !== undefined && simulation.paramTwoType !== undefined) {
-            responseData = twoDSimuatlion(charts, simulation);
+            responseData = twoDSimulation(charts, simulation);
         } else if (simulation.paramOneType !== undefined) {
-            responseData = oneDSimuatlion(charts, simulation);
+            responseData = oneDSimulation(charts, simulation);
         } else {
             // Normal simulation
             responseData = normalSimulation(charts, simulation);
