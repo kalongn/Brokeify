@@ -110,7 +110,10 @@ const oneDLineChartData = (chart, stepToYearToResults) => {
             finalValue: value,
         });
     }
-    return result;
+    const data = {
+        data: result,
+    }
+    return data;
 }
 
 const getAverage = (arr) => {
@@ -429,7 +432,7 @@ const oneDSimuatlion = (requestChart, simulation) => {
                 chart.data = generateMultiLineChartData(chart, stepToYearToResults, simulation.paramOneType);
                 break;
             case "Final Value vs Parameter":
-                chart.data = {data: oneDLineChartData(chart, stepToYearToResults)};
+                chart.data = oneDLineChartData(chart, stepToYearToResults);
                 break;
             case "Line Chart":
                 chart.data = generateLineChartData(stepToYearToResults[chart.content.paramOne.toString()]);
