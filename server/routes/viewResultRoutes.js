@@ -34,6 +34,53 @@ const generateLineChartData = (yearToResults) => {
     }
 };
 
+const generateMultiLineChartData = (chart, stepToYearToResults, paramType) => {
+    const labels = [];
+    const data = [];
+    let isLabelDone = false;
+    for (const step in stepToYearToResults) {
+        const yearToResults = stepToYearToResults[step];
+        const values = [];
+        for (const year in yearToResults) {
+            if (!isLabelDone) {
+                labels.push(year);
+            }
+            const yearlyResults = yearToResults[year];
+
+            if (chart.content.quantity === "Probability of Success") {
+                let count = 0;
+                for (const result of yearlyResults) {
+                    if (!result.isViolated) {
+                        count++;
+                    }
+                }
+                values.push(yearlyResults.length > 0 ? count / yearlyResults.length * 100 : 0);
+            } else {
+                const investmentValues = [];
+                for (const result of yearlyResults) {
+                    let sum = 0;
+                    for (const investmentValue of result.investmentValues) {
+                        sum += investmentValue.value;
+                    }
+                    investmentValues.push(sum);
+                }
+                investmentValues.sort((a, b) => a - b);
+                values.push(getPercentile(investmentValues, 0.5));
+            }
+        }
+        data.push({
+            parameterValue: paramType === "ROTH_BOOLEAN" ? step == "-1" ? "Roth" : "No Roth" : step,
+            values: values,
+        });
+        isLabelDone = true;
+    }
+    const result = {
+        labels: labels,
+        data: data,
+    }
+    return result
+}
+
 const getAverage = (arr) => {
     if (arr.length === 0) {
         return 0;
@@ -346,8 +393,8 @@ const oneDSimuatlion = (requestChart, simulation) => {
 
     requestChart.forEach((chart) => {
         switch (chart.type) {
-            case "Multi-Line Chart":
-                // TODO: Handle multi-line chart
+            case "Multi-Line Over Time":
+                chart.data = generateMultiLineChartData(chart, stepToYearToResults, simulation.paramOneType);
                 break;
             case "Final Value vs Parameter":
                 // TODO: Handle final value vs parameter chart
