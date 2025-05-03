@@ -66,7 +66,7 @@ const ModalOneD = ({ isOpen, setIsOpen, setCharts, isScenarioParameterNumeric })
     }
 
     if (selectedChart === 'finalValue') {
-      cType = 'Final Value Line Chart';
+      cType = 'Final Value vs Parameter';
       cContent = {
         quantity: selectedLineChartParameterQuantities,
         label: `Selected Quantity: ${selectedLineChartParameterQuantities}`
