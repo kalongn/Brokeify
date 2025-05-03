@@ -147,13 +147,19 @@ const TwoD = () => {
               isOpen={showAdd2DModal}
               setIsOpen={setShowAdd2DModal}
               setCharts={setCharts}
-              isScenarioParameterNumeric={false}
             />
 
             <ModalAddChart
               isOpen={showAddChartsModal}
               setIsOpen={setShowAddChartsModal}
               setCharts={setCharts}
+              hasParameterValue={true}
+              paramOneType={paramsType[0]}
+              paramOneName={paramsName[0]}
+              paramOneSteps={paramsSteps[0]}
+              paramTwoType={paramsType[1]}
+              paramTwoName={paramsName[1]}
+              paramTwoSteps={paramsSteps[1]}
             />
 
             <h3>Added Charts</h3>
