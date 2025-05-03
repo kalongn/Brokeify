@@ -34,88 +34,6 @@ const generateLineChartData = (yearToResults) => {
     }
 };
 
-const generateMultiLineChartData = (chart, stepToYearToResults, paramType) => {
-    const labels = [];
-    const data = [];
-    let isLabelDone = false;
-    for (const step in stepToYearToResults) {
-        const yearToResults = stepToYearToResults[step];
-        const values = [];
-        for (const year in yearToResults) {
-            if (!isLabelDone) {
-                labels.push(year);
-            }
-            const yearlyResults = yearToResults[year];
-
-            if (chart.content.quantity === "Probability of Success") {
-                let count = 0;
-                for (const result of yearlyResults) {
-                    if (!result.isViolated) {
-                        count++;
-                    }
-                }
-                values.push(yearlyResults.length > 0 ? count / yearlyResults.length * 100 : 0);
-            } else {
-                const investmentValues = [];
-                for (const result of yearlyResults) {
-                    let sum = 0;
-                    for (const investmentValue of result.investmentValues) {
-                        sum += investmentValue.value;
-                    }
-                    investmentValues.push(sum);
-                }
-                investmentValues.sort((a, b) => a - b);
-                values.push(getPercentile(investmentValues, 0.5));
-            }
-        }
-        data.push({
-            parameterValue: paramType === "ROTH_BOOLEAN" ? step == "-1" ? "Roth" : "No Roth" : step,
-            values: values,
-        });
-        isLabelDone = true;
-    }
-    const result = {
-        labels: labels,
-        data: data,
-    }
-    return result
-}
-
-const oneDLineChartData = (chart, stepToYearToResults) => {
-    const result = [];
-    for (const step in stepToYearToResults) {
-        const yearToResults = stepToYearToResults[step];
-        const lastYear = Object.keys(yearToResults).pop();
-        const yearlyResults = yearToResults[lastYear];
-        let value = null;
-        if (chart.content.quantity === "Final Value: Probability of Success") {
-            let count = 0;
-            for (const result of yearlyResults) {
-                if (!result.isViolated) {
-                    count++;
-                }
-            }
-            value = yearlyResults.length > 0 ? count / yearlyResults.length * 100 : 0;
-        } else {
-            const investmentValues = [];
-            for (const result of yearlyResults) {
-                const sum = result.investmentValues.reduce((acc, investment) => acc + investment.value, 0);
-                investmentValues.push(sum);
-            }
-            investmentValues.sort((a, b) => a - b);
-            value = getPercentile(investmentValues, 0.5);
-        }
-        result.push({
-            parameterValue: step,
-            finalValue: value,
-        });
-    }
-    const data = {
-        data: result,
-    }
-    return data;
-}
-
 const getAverage = (arr) => {
     if (arr.length === 0) {
         return 0;
@@ -430,6 +348,88 @@ const normalSimulation = (requestChart, simulation) => {
     return requestChart;
 }
 
+const generateMultiLineChartData = (chart, stepToYearToResults, paramType) => {
+    const labels = [];
+    const data = [];
+    let isLabelDone = false;
+    for (const step in stepToYearToResults) {
+        const yearToResults = stepToYearToResults[step];
+        const values = [];
+        for (const year in yearToResults) {
+            if (!isLabelDone) {
+                labels.push(year);
+            }
+            const yearlyResults = yearToResults[year];
+
+            if (chart.content.quantity === "Probability of Success") {
+                let count = 0;
+                for (const result of yearlyResults) {
+                    if (!result.isViolated) {
+                        count++;
+                    }
+                }
+                values.push(yearlyResults.length > 0 ? count / yearlyResults.length * 100 : 0);
+            } else {
+                const investmentValues = [];
+                for (const result of yearlyResults) {
+                    let sum = 0;
+                    for (const investmentValue of result.investmentValues) {
+                        sum += investmentValue.value;
+                    }
+                    investmentValues.push(sum);
+                }
+                investmentValues.sort((a, b) => a - b);
+                values.push(getPercentile(investmentValues, 0.5));
+            }
+        }
+        data.push({
+            parameterValue: paramType === "ROTH_BOOLEAN" ? step == "-1" ? "Roth" : "No Roth" : step,
+            values: values,
+        });
+        isLabelDone = true;
+    }
+    const result = {
+        labels: labels,
+        data: data,
+    }
+    return result
+}
+
+const oneDLineChartData = (chart, stepToYearToResults) => {
+    const result = [];
+    for (const step in stepToYearToResults) {
+        const yearToResults = stepToYearToResults[step];
+        const lastYear = Object.keys(yearToResults).pop();
+        const yearlyResults = yearToResults[lastYear];
+        let value = null;
+        if (chart.content.quantity === "Final Value: Probability of Success") {
+            let count = 0;
+            for (const result of yearlyResults) {
+                if (!result.isViolated) {
+                    count++;
+                }
+            }
+            value = yearlyResults.length > 0 ? count / yearlyResults.length * 100 : 0;
+        } else {
+            const investmentValues = [];
+            for (const result of yearlyResults) {
+                const sum = result.investmentValues.reduce((acc, investment) => acc + investment.value, 0);
+                investmentValues.push(sum);
+            }
+            investmentValues.sort((a, b) => a - b);
+            value = getPercentile(investmentValues, 0.5);
+        }
+        result.push({
+            parameterValue: step,
+            finalValue: value,
+        });
+    }
+    const data = {
+        data: result,
+    }
+    return data;
+}
+
 const oneDSimuatlion = (requestChart, simulation) => {
     const stepToYearToResults = {}
     for (let i = 0; i < simulation.paramOneSteps.length; i++) {
@@ -439,9 +439,6 @@ const oneDSimuatlion = (requestChart, simulation) => {
     simulation.results.forEach((result) => {
         result.yearlyResults.forEach((yearlyResult) => {
             const stepValue = simulation.paramOneType === "INVEST_PERCENTAGE" ? yearlyResult.step1 * 100 : yearlyResult.step1;
-            if (!stepToYearToResults[stepValue]) {
-                stepToYearToResults[stepValue] = {};
-            }
             if (!stepToYearToResults[stepValue][yearlyResult.year]) {
                 stepToYearToResults[stepValue][yearlyResult.year] = [];
             }
