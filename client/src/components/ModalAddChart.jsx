@@ -149,7 +149,11 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneTyp
         } else {
           cContent.label += `, Parameter: Roth Optimizer, ${selectedParameterValue}`;
         }
-        cContent.paramOne = paramOneType !== "Disable Roth" ? selectedParameterValue : selectedParameterValue === "Enabled" ? -1 : -2;
+        if (paramOneType !== "Disable Roth") {
+          cContent.paramOne = selectedParameterValue;
+        } else {
+          cContent.paramOne = selectedParameterValue === "Enabled" ? -1 : -2;
+        }
       }
       // TODO: 2D add here
     }
