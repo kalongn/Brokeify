@@ -81,6 +81,38 @@ const generateMultiLineChartData = (chart, stepToYearToResults, paramType) => {
     return result
 }
 
+const oneDLineChartData = (chart, stepToYearToResults) => {
+    const result = [];
+    for (const step in stepToYearToResults) {
+        const yearToResults = stepToYearToResults[step];
+        const lastYear = Object.keys(yearToResults).pop();
+        const yearlyResults = yearToResults[lastYear];
+        let value = null;
+        if (chart.content.quantity === "Final Value: Probability of Success") {
+            let count = 0;
+            for (const result of yearlyResults) {
+                if (!result.isViolated) {
+                    count++;
+                }
+            }
+            value = yearlyResults.length > 0 ? count / yearlyResults.length * 100 : 0;
+        } else {
+            const investmentValues = [];
+            for (const result of yearlyResults) {
+                const sum = result.investmentValues.reduce((acc, investment) => acc + investment.value, 0);
+                investmentValues.push(sum);
+            }
+            investmentValues.sort((a, b) => a - b);
+            value = getPercentile(investmentValues, 0.5);
+        }
+        result.push({
+            parameterValue: step,
+            finalValue: value,
+        });
+    }
+    return result;
+}
+
 const getAverage = (arr) => {
     if (arr.length === 0) {
         return 0;
@@ -397,7 +429,7 @@ const oneDSimuatlion = (requestChart, simulation) => {
                 chart.data = generateMultiLineChartData(chart, stepToYearToResults, simulation.paramOneType);
                 break;
             case "Final Value vs Parameter":
-                // TODO: Handle final value vs parameter chart
+                chart.data = {data: oneDLineChartData(chart, stepToYearToResults)};
                 break;
             case "Line Chart":
                 chart.data = generateLineChartData(stepToYearToResults[chart.content.paramOne.toString()]);

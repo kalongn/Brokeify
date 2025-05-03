@@ -73,11 +73,6 @@ const OneD = () => {
       }
       setShowCharts(false);
     }
-    //   const mockFinalValueData = [
-    //     { parameterValue: 60, finalValue: 140000 },
-    //     { parameterValue: 65, finalValue: 130000 },
-    //     { parameterValue: 70, finalValue: 125000 }
-    //   ];
   };
 
   return (
@@ -169,7 +164,7 @@ const OneD = () => {
                   <MultiLineChart data={chart.data.data} labels={chart.data.labels} />
                 )}
                 {chart.type === "Final Value vs Parameter" && Object.keys(chart.data).length !== 0 && (
-                  <LineChartParameter data={chart.data} />
+                  <LineChartParameter data={chart.data.data} />
                 )}
               </div>
             ))}
