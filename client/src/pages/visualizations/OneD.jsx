@@ -23,9 +23,12 @@ import ModalAddChart from "../../components/ModalAddChart";
 const OneD = () => {
   const { simulationId } = useParams();
 
+  const [loading, setLoading] = useState(true);
+
   const [scenarioName, setScenarioName] = useState("Unknown Scenario");
   const [paramOneType, setParamOneType] = useState(null);
   const [paramOneName, setParamOneName] = useState(null);
+  const [paramOneSteps, setParamOneSteps] = useState(null);
 
   const [showAddChartsModal, setShowAddChartsModal] = useState(false);
   const [showAdd1DModal, setShowAdd1DModal] = useState(false);
@@ -41,6 +44,8 @@ const OneD = () => {
       setScenarioName(data.scenarioName);
       setParamOneType(data.paramOneType);
       setParamOneName(data.paramOneName);
+      setParamOneSteps(data.paramOneSteps);
+      setLoading(false);
     }).catch((error) => {
       if (error.response?.status === 403 || error.response?.status === 401) {
         alert("You do not have permission to view this scenario.");
@@ -104,76 +109,95 @@ const OneD = () => {
 
   return (
     <Layout>
-      <div className={styles.content}>
-        <div className={styles.leftSide}>
-          <h2>{scenarioName} 1D Results</h2>
-          <h4>Type: {paramOneType}
-            {paramOneType !== "Disable Roth" && (
-              <>
-                , Event: {paramOneName}
-              </>
+      {loading ?
+        <>
+          <div>
+            Loading...
+          </div>
+        </>
+        :
+        <div className={styles.content}>
+          <div className={styles.leftSide}>
+            <h2>{scenarioName} 1D Results</h2>
+            <h4>Type: {paramOneType}
+              {paramOneType !== "Disable Roth" ?
+                <>
+                  , Event: {paramOneName}
+                  <br />
+                  From: {paramOneSteps[0]}
+                  <br />
+                  To: {paramOneSteps[paramOneSteps.length - 1]}
+                  <br />
+                  Step: {paramOneSteps[1] - paramOneSteps[0]}
+                </>
+                :
+                <>
+                  Enabled versus Disabled Roth
+                </>
+              }
+            </h4>
+            <div className={styles.buttonGroup}>
+              <button className={styles.addChart} onClick={() => setShowAdd1DModal(true)}>
+                Add 1D Charts
+              </button>
+              <button className={styles.addChart} onClick={() => setShowAddChartsModal(true)}>
+                Add Charts
+              </button>
+            </div>
+            <div className={styles.chartGenerate}>
+              <button onClick={handleGenerateCharts} className={styles.generateButton}>Generate Charts</button>
+            </div>
+            <ModalOneD
+              isOpen={showAdd1DModal}
+              setIsOpen={setShowAdd1DModal}
+              setCharts={setCharts}
+              isScenarioParameterNumeric={paramOneType !== "Disable Roth"}
+            />
+
+            {
+              <ModalAddChart
+                isOpen={showAddChartsModal}
+                setIsOpen={setShowAddChartsModal}
+                setCharts={setCharts}
+                hasParameterValue={true}
+              />
+            }
+
+            <h3>Added Charts</h3>
+            <div className={styles.chartList}>
+              {charts.map((chart) => (
+                <div key={chart.id} className={styles.chartItem}>
+                  <Accordion title={chart.type} content={chart.label} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.rightSide}>
+            {!showCharts && <div className={styles.chartCount}>No Charts Generated Yet...</div>}
+            {showCharts && charts.length === 0 && (
+              <div className={styles.noChartsMessage}>
+                Please add a selection of charts, and then generate.
+              </div>
             )}
-          </h4>
-          <div className={styles.buttonGroup}>
-            <button className={styles.addChart} onClick={() => setShowAdd1DModal(true)}>
-              Add 1D Charts
-            </button>
-            <button className={styles.addChart} onClick={() => setShowAddChartsModal(true)}>
-              Add Charts
-            </button>
-          </div>
-          <div className={styles.chartGenerate}>
-            <button onClick={handleGenerateCharts} className={styles.generateButton}>Generate Charts</button>
-          </div>
-          <ModalOneD
-            isOpen={showAdd1DModal}
-            setIsOpen={setShowAdd1DModal}
-            setCharts={setCharts}
-            isScenarioParameterNumeric={paramOneType !== "Disable Roth"}
-          />
+            {showCharts && charts.length > 0 && charts.map((chart) => (
+              <div key={chart.id} className={styles.chart}>
+                <h3>{chart.label}</h3>
+                {/* Charts will show depending on type */}
+                {chart.type === "Shaded Line Chart" && chart.data && <ShadedLineChart data={chart.data} />}
+                {chart.type === "Line Chart" && chart.data && <LineChart data={chart.data} />}
+                {chart.type === "Stacked Bar Chart" && chart.data && <StackedBarChart data={chart.data} />}
 
-          <ModalAddChart
-            isOpen={showAddChartsModal}
-            setIsOpen={setShowAddChartsModal}
-            setCharts={setCharts}
-            hasParameterValue={true}
-          />
-
-          <h3>Added Charts</h3>
-          <div className={styles.chartList}>
-            {charts.map((chart) => (
-              <div key={chart.id} className={styles.chartItem}>
-                <Accordion title={chart.type} content={chart.label} />
+                {chart.type === "Multi-Line Over Time" && chart.data && (
+                  <MultiLineChart data={chart.data.data} labels={chart.data.labels} />
+                )}
+                {chart.type === "Final Value vs Parameter" && chart.data && (
+                  <LineChartParameter data={chart.data} />
+                )}
               </div>
             ))}
           </div>
-        </div>
-
-        <div className={styles.rightSide}>
-          {!showCharts && <div className={styles.chartCount}>No Charts Generated Yet...</div>}
-          {showCharts && charts.length === 0 && (
-            <div className={styles.noChartsMessage}>
-              Please add a selection of charts, and then generate.
-            </div>
-          )}
-          {showCharts && charts.length > 0 && charts.map((chart) => (
-            <div key={chart.id} className={styles.chart}>
-              <h3>{chart.label}</h3>
-              {/* Charts will show depending on type */}
-              {chart.type === "Shaded Line Chart" && chart.data && <ShadedLineChart data={chart.data} />}
-              {chart.type === "Line Chart" && chart.data && <LineChart data={chart.data} />}
-              {chart.type === "Stacked Bar Chart" && chart.data && <StackedBarChart data={chart.data} />}
-
-              {chart.type === "Multi-Line Over Time" && chart.data && (
-                <MultiLineChart data={chart.data.data} labels={chart.data.labels} />
-              )}
-              {chart.type === "Final Value vs Parameter" && chart.data && (
-                <LineChartParameter data={chart.data} />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+        </div>}
     </Layout>
   );
 };

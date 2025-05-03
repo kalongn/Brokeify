@@ -268,14 +268,17 @@ router.get("/charts/:simulationId", async (req, res) => {
             case "1D":
                 const paramOneType = simulation.paramOneType;
                 let paramOneName = null;
+                let paramOneSteps = null;
                 if (paramOneType !== "ROTH_BOOLEAN") {
                     const paramOne = await eventController.read(simulation.paramOne);
                     paramOneName = paramOne.name;
+                    paramOneSteps = simulation.paramOneSteps;
                 }
                 data = {
                     scenarioName: scenarioName,
                     paramOneType: explorationTypeToFrontend(paramOneType),
                     paramOneName: paramOneName,
+                    paramOneSteps: paramOneSteps,
                 }
                 break;
             case "2D":
@@ -285,7 +288,6 @@ router.get("/charts/:simulationId", async (req, res) => {
                 }
                 break;
         }
-
         return res.status(200).send(data);
     } catch (error) {
         console.error("Error in charts route:", error);
