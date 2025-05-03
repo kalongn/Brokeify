@@ -189,6 +189,24 @@ const allocateMethodToBackend = (allocationMethod) => {
             return null;
     }
 }
+
+const explorationTypeToFrontend = (explorationType) => {
+    switch (explorationType) {
+        case "ROTH_BOOLEAN":
+            return "Disable Roth";
+        case "START_EVENT":
+            return "Start Year";
+        case "DURATION_EVENT":
+            return "Duration";
+        case "EVENT_AMOUNT":
+            return "Initial Amount";
+        case "INVEST_PERCENTAGE":
+            return "First of Two Investments";
+        default:
+            return null;
+    }
+}
+
 const isNotGuest = async (userId) => {
     const user = await userController.read(userId);
     return user.permission !== "GUEST";
@@ -222,6 +240,7 @@ export {
     taxStatusToBackend,
     allocateMethodToFrontend,
     allocateMethodToBackend,
+    explorationTypeToFrontend,
     isNotGuest,
     isOwner,
     canEdit,
