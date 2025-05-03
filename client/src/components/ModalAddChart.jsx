@@ -58,7 +58,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneTyp
       errors.chartSelection = 'Please select a chart type.';
     }
     if (hasParameterValue) {
-      if (!selectedParameterValue || selectedParameterValue.trim() === '') {
+      if (!selectedParameterValue) {
         errors.parameterValue = `Please enter a value for ${paramOneType}.`;
       }
     }
@@ -142,6 +142,18 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneTyp
       };
     }
 
+    if (hasParameterValue) {
+      if (paramOneType) {
+        if (paramOneType !== "Disable Roth") {
+          cContent.label += `Parameter: ${paramOneName}, ${selectedParameterValue}`;
+        } else {
+          cContent.label += `Parameter: Roth Optimizer, ${selectedParameterValue}`;
+        }
+        cContent.paramOne = paramOneType !== "Disable Roth" ? selectedParameterValue : selectedParameterValue === "Enabled" ? -1 : -2;
+      }
+      // TODO: 2D add here
+    }
+
     setCharts((prevCharts) => {
       const newChart = {
         id: prevCharts.length + 1,
@@ -161,7 +173,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneTyp
       <h2 className={styles.header}>Select a Chart</h2>
       {hasParameterValue && (
         <div className={styles.parameterSection} >
-          <label>Select a value for {paramOneType !== "Disable Roth" && <>{paramOneName}&apos;s</>} {paramOneType}:</label>
+          <label>Select a value for {paramOneType !== "Disable Roth" && <>{paramOneName}&apos;s</>} {paramOneType !== "Disable Roth" ? <>{paramOneType}</> : <>Roth Optimizer</>}:</label>
           <Select
             options={parameterArray.map(param => ({ value: param, label: param }))}
             value={
@@ -170,7 +182,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneTyp
                 .find(option => option.value === selectedParameterValue)
             }
             onChange={(selectedOption) => setSelectedParameterValue(selectedOption.value)}
-            placeholder={`Select ${paramOneType}`}
+            placeholder={`Select ${paramOneType !== "Disable Roth" ? paramOneType : "Roth Optimizer Status"}`}
           />
           {validationErrors.parameterValue && (
             <p className={styles.error}>{validationErrors.parameterValue}</p>

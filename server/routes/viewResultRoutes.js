@@ -325,6 +325,49 @@ const normalSimulation = (requestChart, simulation) => {
     return requestChart;
 }
 
+const oneDSimuatlion = (requestChart, simulation) => {
+    const stepToYearToResults = {}
+    for (let i = 0; i < simulation.paramOneSteps.length; i++) {
+        stepToYearToResults[simulation.paramOneSteps[i]] = {}
+    }
+
+    simulation.results.forEach((result) => {
+        result.yearlyResults.forEach((yearlyResult) => {
+            const stepValue = simulation.paramOneType === "INVEST_PERCENTAGE" ? yearlyResult.step1 * 100 : yearlyResult.step1;
+            if (!stepToYearToResults[stepValue]) {
+                stepToYearToResults[stepValue] = {};
+            }
+            if (!stepToYearToResults[stepValue][yearlyResult.year]) {
+                stepToYearToResults[stepValue][yearlyResult.year] = [];
+            }
+            stepToYearToResults[stepValue][yearlyResult.year].push(yearlyResult);
+        });
+    });
+
+    requestChart.forEach((chart) => {
+        switch (chart.type) {
+            case "Multi-Line Chart":
+                // TODO: Handle multi-line chart
+                break;
+            case "Final Value vs Parameter":
+                // TODO: Handle final value vs parameter chart
+                break;
+            case "Line Chart":
+                chart.data = generateLineChartData(stepToYearToResults[chart.content.paramOne.toString()]);
+                break;
+            case "Shaded Line Chart":
+                chart.data = generateShadedLineData(chart, stepToYearToResults[chart.content.paramOne.toString()]);
+                break;
+            case "Stacked Bar Chart":
+                chart.data = generateStackedBarData(chart, stepToYearToResults[chart.content.paramOne.toString()]);
+                break;
+            default:
+                break;
+        }
+    });
+    return requestChart;
+}
+
 
 router.post("/charts/:simulationId", async (req, res) => {
     if (!req.session.user) {
@@ -347,7 +390,7 @@ router.post("/charts/:simulationId", async (req, res) => {
             // TODO: Handle 2D simulation
             return res.status(400).send("2D simulation not supported yet.");
         } else if (simulation.paramOneType !== undefined) {
-            return res.status(400).send("1D simulation not supported yet.");
+            responseData = oneDSimuatlion(charts, simulation);
         } else {
             // Normal simulation
             responseData = normalSimulation(charts, simulation);
