@@ -51,3 +51,9 @@
   border: 1px solid var(--color-silver);
   border-radius: 5px;
 }
+.disclaimer {
+  background-color: var(--color-background);
+  padding: 0.5rem;
+  border: 1px solid var(--color-primary);
+  border-left: 0.5rem solid var(--color-primary);
+}

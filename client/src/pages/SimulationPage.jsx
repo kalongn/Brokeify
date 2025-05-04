@@ -165,7 +165,15 @@ const ScenarioSimulation = () => {
   return (
     <Layout>
       <div className={styles.background}>
-        <h2>Scenario Simulation</h2>
+        <p>
+          <b>To run a simulation, a scenario needs at least the Basic Information section completed.</b>
+          <br /><br />
+          <i>
+            If the state income tax of the state of residence is not uploaded, the simulation will ignore state tax rate.
+            There are 4 state tax files that are uploaded by default: New York, New Jersey, Connecticut, and Washington.
+            If filing status is married, you need both MARRIEDJOINT and SINGLE state tax files; otherwise, you need only the SINGLE state tax file.
+          </i>
+        </p>
         <ErrorMessage errors={errors} />
         <div className={styles.columns}>
           <ChartTabs
@@ -188,6 +196,9 @@ const ScenarioSimulation = () => {
                 <div>
                   {previousRunSimulationType === "NORMAL" && <>
                     <h3>Most Recent Run Result (Normal):</h3>
+                    <p className={styles.disclaimer}>
+                      Most recent run stats
+                    </p>
                     <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
                       See Normal Results
                     </Link>
