@@ -147,7 +147,11 @@ router.get("/scenario-detail/:scenarioId", async (req, res) => {
                         name: investmentType.name,
                         value: investment.value,
                         taxStatus: investment.taxStatus,
-                        expectedAnnualReturnDistribution: distributionToString(investmentType?.expectedAnnualReturnDistribution) || "Unkown",
+                        expectedAnnualReturnDistribution: distributionToString(investmentType?.expectedAnnualReturnDistribution) || "Unknown",
+                        taxability: investmentType.taxability,
+                        expenseRatio: investmentType.expenseRatio,
+                        expectedAnnualIncomeDistribution:distributionToString(investmentType?.expectedAnnualIncomeDistribution) || "Unknown"
+
                     }
                     investmentIdMap[investment._id] = investmentStructure;
                     investments.push(investmentStructure);
