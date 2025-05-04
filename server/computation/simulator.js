@@ -146,7 +146,7 @@ export async function simulate(
     let lastYearSS = 0;
     let lastYearEarlyWithdrawl = 0;
     while (currentYear <= endYear) {
-		//console.time("loop")
+		console.time("loop")
         let allDbUpdateOps = [];
         let allDbTypeUpdateOps = [];
         curYearIncome = 0;
@@ -161,6 +161,16 @@ export async function simulate(
         let allEvents = await eventFactory.readMany(scenario.events);
         let allEventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
 		let investments = await investmentFactory.readMany(investmentIds);
+        cashInvestment = await investmentFactory.read(cashInvestment._id);
+        const allDistributionIds = investmentTypes.flatMap(type => [
+            type.expectedAnnualIncomeDistribution,
+            type.expectedAnnualReturnDistribution
+            // Add other distribution IDs if used elsewhere (e.g., events)
+        ]).filter(id => id); // Filter out null/undefined IDs
+        // Fetch unique distributions
+        const uniqueDistIds = [...new Set(allDistributionIds.map(id => id.toString()))];
+        const distributions = await distributionFactory.readMany(uniqueDistIds);
+        const distributionMap = new Map(distributions.map(dist => [dist._id.toString(), dist]));
 
 		let inflationRate = await sample(
             scenario.inflationAssumption,
@@ -173,32 +183,21 @@ export async function simulate(
         updateLog(inflationeEventDetails);
         cumulativeInflation = ((cumulativeInflation+1) * (1 + inflationRate)) -1;
 
-
-
-		//start events:
-		const events = scenario.events;
-		//fetch all events in one go
-		allEvents = await eventFactory.readMany(events);
-		let eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
-
 		//update events
-		cashInvestment = await investmentFactory.read(cashInvestment._id);
-		const adjustEventsAmountReturnPromise = adjustEventsAmount(eventsMap, inflationRate, scenario, currentYear, cashInvestment);
+		const adjustEventsAmountReturnPromise = adjustEventsAmount(allEventsMap, inflationRate, scenario, currentYear, cashInvestment);
 
 
 		//start RMDs:
-		let rmdPromise = undefined;
-		const shouldPerformRMDs = await shouldPerformRMD(
-            currentYear,
-            scenario.userBirthYear,
-            investments
-        );
-        if (shouldPerformRMDs) {
+		let rmdPromise;
+        const needsRMD = shouldPerformRMD(currentYear, scenario.userBirthYear, investmentsArray);
+        if (needsRMD) {
             rmdPromise = processRMDs(
-                rmdTable,
-                currentYear,
-                scenario.userBirthYear,
-                scenario
+                rmdTable, 
+                currentYear, 
+                scenario.userBirthYear, 
+                scenario,
+                allInvestmentsMap, 
+                investmentTypesMap 
             );
         }
 
@@ -231,15 +230,24 @@ export async function simulate(
 
         //await processRMDs(rmdTable, currentYear, scenario.userBirthYear, scenario);
 		//console.time("processRMDs");
-		if(rmdPromise!==undefined){
-			curYearIncome += await rmdPromise;
-		}
+		if (rmdPromise) {
+            const rmdResult = await rmdPromise; // Contains { income, dbInvestmentOps, dbInvestmentTypeOps }
+            curYearIncome += rmdResult.income; 
+            allDbUpdateOps.push(...rmdResult.dbInvestmentOps);
+            allDbTypeUpdateOps.push(...rmdResult.dbInvestmentTypeOps);
+        }
 		//console.timeEnd("processRMDs");
 
 
 
 		//console.time("updateInvestments")
-        curYearIncome += await updateInvestments(investmentTypes);
+        const updateInvestmentsResult = await updateInvestments(
+            investmentTypes, // Pass array of types
+            allInvestmentsMap,      // Pass map to be modified
+            distributionMap         // Pass pre-fetched distributions
+        );
+        curYearIncome += updateInvestmentsResult.income;
+        allDbUpdateOps.push(...updateInvestmentsResult.dbUpdateOperations);
 		//console.timeEnd("updateInvestments")
 
 
@@ -250,7 +258,6 @@ export async function simulate(
 		const incomeByEvent = adjustEventsAmountReturn.incomeByEvent;
 		cashInvestment = adjustEventsAmountReturn.cashInvestment;
         const reportedIncome = curYearIncome;
-        console.log(curYearIncome)
 		//console.timeEnd("adjustEventsAmount");
 
 		
@@ -270,7 +277,6 @@ export async function simulate(
                 allInvestmentsMap, // Pass map (will be modified)
                 investmentTypesMap,// Pass map (will be modified if new inv added)
             );
-            console.log(rothConversion)
             curYearIncome += rothConversion.incomeToAdd; // Add converted amount to income *after* calculation
             allDbUpdateOps.push(...rothConversion.dbInvestmentOps); // Collect investment updates
             allDbTypeUpdateOps.push(...rothConversion.dbInvestmentTypeOps); // Collect type updates
@@ -293,7 +299,6 @@ export async function simulate(
 		//console.time("processExpenses")
         thisYearTaxes = calcTaxReturn.t;
         earlyWithdrawalTaxPaid = calcTaxReturn.e;
-        console.log(calcTaxReturn)
 
         const expensesResult = processAllExpenses(
             scenario, 
@@ -459,7 +464,7 @@ export async function simulate(
 
         scenario = await scenarioFactory.read(scenario);
         currentYear++;
-		//console.timeEnd("loop")
+		console.timeEnd("loop")
     }
 	await resultFactory.update(results._id, {
 		yearlyResults: results.yearlyResults,

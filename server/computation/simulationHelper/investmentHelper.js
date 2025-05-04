@@ -16,7 +16,7 @@ import { logFile, csvFile } from '../simulator.js';
 import { invMap } from './simulationHelper.js';
 
 
-export async function shouldPerformRMD(currentYear, birthYear, investments) {
+export function shouldPerformRMD(currentYear, birthYear, investments) {
     // If the user’s age is at least 74 and at the end of the previous
     // year, there is at least one investment with tax status = “pre-tax” 
     // and with a positive value
@@ -35,152 +35,307 @@ export async function shouldPerformRMD(currentYear, birthYear, investments) {
 
     return hasPreTaxInvestment;
 }
-export async function processRMDs(rmdTable, currentYear, birthYear, scenario) {
+//Asked Gemini 2.5 to optimize by removing db reads/writes
+export async function processRMDs(
+    // Data passed down from simulate:
+    rmdTable,
+    currentYear,
+    birthYear,
+    scenario,
+    allInvestmentsMap,      // Pre-fetched map<investmentId, investmentObject> (MODIFIED IN PLACE)
+    investmentTypesMap      // Pre-fetched map<typeId, typeObject> (MODIFIED IN PLACE if new inv added)
+) {
     const realYear = new Date().getFullYear();
     const age = realYear + currentYear - birthYear;
+    const dbInvestmentOps = [];     // Collect investment update operations
+    const dbInvestmentTypeOps = []; // Collect investment type update operations
+    let totalRmdAmount = 0;         // RMD amount calculated
 
-    //Batch fetch investment types and investments
-    const investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
-    const investmentTypeMap = new Map(investmentTypes.map(type => [type._id.toString(), type]));
-
-    const allInvestmentIds = investmentTypes.flatMap(type => type.investments);
-    const allInvestments = await investmentFactory.readMany(allInvestmentIds);
-    const investmentMap = new Map(allInvestments.map(inv => [inv._id.toString(), inv]));
-
+    // Calculate RMD amount
+    // Find RMD table distribution period
     let index = rmdTable.ages.indexOf(age);
+    // If age is not exact, find the next highest age or use the last entry
     if (index === -1) {
-        index = rmdTable.ages.length - 1;
+         index = rmdTable.ages.findIndex(rmdAge => rmdAge >= age);
+         if (index === -1) { // Age is greater than any listed age
+             index = rmdTable.ages.length - 1;
+         }
+    }
+    const distributionPeriod = rmdTable.distributionPeriods[index];
+
+    if (!distributionPeriod || distributionPeriod <= 0) {
+         console.warn(`Year ${currentYear}: Invalid distribution period (${distributionPeriod}) found for age ${age}. Skipping RMD.`);
+         return { income: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [] };
     }
 
-    const distributionPeriod = rmdTable.distributionPeriods[index];
-    if (!distributionPeriod) return 0;
 
-    // Calculate sum of pretax investment values
-    const preTaxInvestments = allInvestments.filter(inv => inv.taxStatus === "PRE_TAX_RETIREMENT");
-    const s = preTaxInvestments.reduce((sum, inv) => sum + inv.value, 0);
-    if (s <= 0) return 0;
-    const rmd = s / distributionPeriod;
+    // Calculate sum of PRE_TAX_RETIREMENT investment values from the map
+    let totalPreTaxValue = 0;
+    allInvestmentsMap.forEach(inv => {
+        if (inv.taxStatus === "PRE_TAX_RETIREMENT") {
+            totalPreTaxValue += inv.value;
+        }
+    });
+    totalPreTaxValue = Math.round(totalPreTaxValue * 100) / 100;
 
-    // Process RMD according to orderedRMDStrategy
-    let remainingRMD = rmd;
 
-    for (const investmentId of scenario.orderedRMDStrategy) {
-        const investment = investmentId.hasOwnProperty('value') ? investmentId : investmentMap.get(investmentId.toString());
-        if (!investment || investment.taxStatus !== "PRE_TAX_RETIREMENT") continue;
+    if (totalPreTaxValue <= 0) {
+        return { income: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [] }; // No RMD needed if no pre-tax value
+    }
 
-        const withdrawAmount = Math.min(investment.value, remainingRMD);
-        investment.value -= withdrawAmount;
-        remainingRMD -= withdrawAmount;
-        await investmentFactory.update(investment._id, { value: investment.value });
+    totalRmdAmount = Math.max(0, Math.round((totalPreTaxValue / distributionPeriod) * 100) / 100);
+    if (totalRmdAmount <= 0) {
+        return { income: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [] };
+    }
 
-        // Find investment type of investment
-        const investmentTypeId = invMap.get(investment._id.toString());
-        const investmentType = investmentTypeMap.get(investmentTypeId);
 
-        if (!investmentType) {
-            throw ("In processRMD, investment type is null");
+    // Process RMD withdrawal according to orderedRMDStrategy
+    let remainingRMDToWithdraw = totalRmdAmount;
+
+    for (const sourceInvestmentId of scenario.orderedRMDStrategy) {
+        if (remainingRMDToWithdraw <= 0) break;
+
+        // Get the source pre-tax investment object from the map
+        const sourceInvestment = allInvestmentsMap.get(sourceInvestmentId.toString());
+
+        // Skip if not found, not pre-tax, or has no value
+        if (!sourceInvestment || sourceInvestment.taxStatus !== "PRE_TAX_RETIREMENT" || sourceInvestment.value <= 0) {
+            continue;
         }
 
-        // Find a NON_RETIREMENT investment (or create one)
-        let foundNonRetirement = false;
+        // Determine the actual amount to withdraw from this source
+        const withdrawAmount = Math.min(sourceInvestment.value, remainingRMDToWithdraw);
+         if (withdrawAmount <= 0) continue;
+
+        // Find the investment type
+        const investmentTypeId = invMap.get(sourceInvestmentId.toString()); // Assumes invMap is up-to-date or passed
+        const investmentType = investmentTypeId ? investmentTypesMap.get(investmentTypeId) : null;
+
+        if (!investmentType) {
+             console.error(`Year ${currentYear}: RMD Processing ERROR - Could not find InvestmentType for source investment ${sourceInvestmentId}. Halting RMD for this source.`);
+             // Potentially throw error or just skip this source? Skipping for now.
+             continue;
+        }
+
+        // --- Modify Source Investment (In Memory) ---
+        sourceInvestment.value = Math.round((sourceInvestment.value - withdrawAmount) * 100) / 100;
+        // RMD withdrawal comes out, basis reduction might depend on specific tax rules (often full amount is income)
+        // Original logic didn't adjust purchase price here, maintain that.
+        // sourceInvestment.purchasePrice = Math.max(0, sourceInvestment.purchasePrice * (sourceInvestment.value / (sourceInvestment.value + withdrawAmount)));
+
+        // Add source update operation
+        dbInvestmentOps.push({
+            updateOne: {
+                filter: { _id: sourceInvestment._id },
+                update: { $set: { value: sourceInvestment.value /*, purchasePrice: sourceInvestment.purchasePrice */ } }
+            }
+        });
+
+        // --- Find or Create Destination NON_RETIREMENT Investment ---
+        let destinationInvestment = null;
+        // Find existing non-retirement investment within the same type
         for (const invId of investmentType.investments) {
-            const inv = investmentMap.get(invId.toString());
-            if (inv && inv.taxStatus === "NON_RETIREMENT") {
-                await investmentFactory.update(inv._id, { value: inv.value + withdrawAmount, purchasePrice: inv.purchasePrice+ withdrawAmount});
-                foundNonRetirement = true;
+            const potentialDest = allInvestmentsMap.get(invId.toString());
+            if (potentialDest && potentialDest.taxStatus === "NON_RETIREMENT") {
+                destinationInvestment = potentialDest;
                 break;
             }
         }
 
-        if (!foundNonRetirement) {
-            const createdInvestment = await investmentFactory.create({ taxStatus: "NON_RETIREMENT", value: withdrawAmount, purchasePrice: withdrawAmount });
-            investmentType.investments.push(createdInvestment._id);
-            await investmentTypeFactory.update(investmentType._id, { investments: investmentType.investments });
-            invMap.set(createdInvestment._id.toString(), investmentType._id.toString());
+        if (destinationInvestment) {
+            // --- Update Existing Destination (In Memory) ---
+            destinationInvestment.value = Math.round((destinationInvestment.value + withdrawAmount) * 100) / 100;
+            // Add withdrawn amount to purchase price (basis) of the non-retirement account
+            destinationInvestment.purchasePrice = Math.round((destinationInvestment.purchasePrice + withdrawAmount) * 100) / 100;
+
+            // Add destination update operation
+            dbInvestmentOps.push({
+                updateOne: {
+                    filter: { _id: destinationInvestment._id },
+                    update: { $set: { value: destinationInvestment.value, purchasePrice: destinationInvestment.purchasePrice } }
+                }
+            });
+        } else {
+            // --- Create New Destination Investment (Immediate DB Create + In Memory Update) ---
+            const newInvestmentData = {
+                value: withdrawAmount,
+                purchasePrice: withdrawAmount, // Basis starts at the amount transferred
+                taxStatus: "NON_RETIREMENT"
+            };
+            try {
+                const createdInvestment = await investmentFactory.create(newInvestmentData);
+                // Add to simulation's current state
+                allInvestmentsMap.set(createdInvestment._id.toString(), createdInvestment);
+                if (invMap) invMap.set(createdInvestment._id.toString(), investmentType._id.toString()); // Update invMap if used
+
+                // Add new investment's ID to its parent type (in memory)
+                investmentType.investments.push(createdInvestment._id);
+
+                // Collect operation to update the InvestmentType document in DB
+                dbInvestmentTypeOps.push({
+                    updateOne: {
+                        filter: { _id: investmentType._id },
+                        update: { $set: { investments: investmentType.investments } }
+                    }
+                });
+                 console.log(`Year ${currentYear}: Created new RMD destination investment ${createdInvestment._id} for type ${investmentType.name}`);
+
+            } catch (error) {
+                 console.error(`Year ${currentYear}: Failed to create new RMD destination investment for type ${investmentType.name}. Error: ${error}`);
+                 // Revert source investment change? Halt? Log and continue?
+                 sourceInvestment.value += withdrawAmount; // Revert source change
+                 const sourceOpIndex = dbInvestmentOps.findIndex(op => op.updateOne.filter._id.toString() === sourceInvestment._id.toString());
+                 if (sourceOpIndex > -1) dbInvestmentOps.splice(sourceOpIndex, 1);
+                 continue; // Skip to next source investment
+            }
         }
 
-        const eventDetails = `Year: ${currentYear} - RMD - Transfering $${Math.ceil(withdrawAmount * 100) / 100} within Investment Type ${investmentType.name}: ${investmentType.description}\n`;
-        updateLog(eventDetails);
-        if (remainingRMD <= 0) break;
+        // Update remaining amount
+        remainingRMDToWithdraw -= withdrawAmount;
+
+        updateLog(`Year: ${currentYear} - RMD - Withdrawing $${withdrawAmount.toFixed(2)} from pre-tax, depositing to non-retirement within Type ${investmentType.name}.\n`);
+
+    } // End loop through strategy
+
+    if (remainingRMDToWithdraw > 0.01) { // Check if significant amount couldn't be withdrawn
+         console.warn(`Year ${currentYear}: RMD Warning - Could not fully withdraw required RMD. $${remainingRMDToWithdraw.toFixed(2)} remains.`);
+         // This might happen if pre-tax accounts in the strategy run out of funds.
+         // The calculated totalRmdAmount is still added to income regardless.
     }
 
-    return rmd;
+    // --- Final Filtering for Overlapping Updates ---
+    const finalDbInvestmentOpsMap = new Map();
+    dbInvestmentOps.forEach(op => {
+        if (op?.updateOne?.filter?._id) {
+            finalDbInvestmentOpsMap.set(op.updateOne.filter._id.toString(), op);
+        }
+    });
+    const finalDbInvestmentTypeOpsMap = new Map();
+     dbInvestmentTypeOps.forEach(op => {
+         if (op?.updateOne?.filter?._id) {
+             finalDbInvestmentTypeOpsMap.set(op.updateOne.filter._id.toString(), op);
+         }
+     });
+
+    // --- Return RMD amount (as income) and DB operations ---
+    return {
+        income: totalRmdAmount, // The calculated RMD is treated as income
+        dbInvestmentOps: Array.from(finalDbInvestmentOpsMap.values()),
+        dbInvestmentTypeOps: Array.from(finalDbInvestmentTypeOpsMap.values())
+    };
 }
-export async function updateInvestments(investmentTypes) {
-    let curYearIncome = 0; //Track taxable income for 'non-retirement' investments
 
-    //Batch fetch investments and distributions
-    const allInvestmentIds = investmentTypes.flatMap(type => type.investments);
-    const allInvestments = await investmentFactory.readMany(allInvestmentIds);
-    const investmentMap = new Map(allInvestments.map(inv => [inv._id.toString(), inv]));
 
-    const allDistributionIds = investmentTypes.map(type => type.expectedAnnualIncomeDistribution)
-        .concat(investmentTypes.map(type => type.expectedAnnualReturnDistribution));
-    const distributions = await distributionFactory.readMany(allDistributionIds);
-    const distributionMap = new Map(distributions.map(dist => [dist._id.toString(), dist]));
+export async function updateInvestments(
+    currentInvestmentTypes, // Array of investment type objects
+    allInvestmentsMap,      // Map<investmentId, investmentObject> (MODIFIED IN PLACE)
+    distributionMap         // Map<distId, distObject>
+) {
+    let curYearIncome = 0; // Track taxable income
+    const dbUpdateOperations = [];
 
-    const updates = []; //array to hold update operations
+    for (const type of currentInvestmentTypes) {
+        // --- Sample Income & Return ONCE per Investment Type ---
+        const incomeDist = distributionMap.get(type.expectedAnnualIncomeDistribution.toString());
+        const returnDist = distributionMap.get(type.expectedAnnualReturnDistribution.toString());
 
-    //Iterate through investment types
-    for (const type of investmentTypes) {
-        const expectedAnnualIncomeDistribution = distributionMap.get(type.expectedAnnualIncomeDistribution.toString());
-        const expectedAnnualReturnDistribution = distributionMap.get(type.expectedAnnualReturnDistribution.toString());
+        if (!incomeDist || !returnDist) {
+            console.warn(`Distributions missing for Type ${type.name}. Skipping type.`);
+            continue;
+        }
+
+        // Sample the rate or amount for the entire type for this year
+        const sampledIncomeRateOrAmount = await sample(type.expectedAnnualIncome, incomeDist);
+        const sampledReturnRateOrAmount = await sample(type.expectedAnnualReturn, returnDist);
+        const isIncomePercentage = incomeDist.distributionType.includes("PERCENTAGE");
+        const isReturnPercentage = returnDist.distributionType.includes("PERCENTAGE");
+        // --- End Sampling per Type ---
 
         for (const investmentID of type.investments) {
-            const investment = investmentMap.get(investmentID.toString());
-            if(investment.taxStatus==="CASH")continue;
-            if (!investment) {
-                console.warn(`Investment with ID ${investmentID} not found!`);
+            const investment = allInvestmentsMap.get(investmentID.toString());
+
+            if (!investment || investment.taxStatus === "CASH") {
                 continue;
             }
 
-            //Calculate generated income
-            let generatedIncome = await sample(type.expectedAnnualIncome, expectedAnnualIncomeDistribution);
-            if (expectedAnnualIncomeDistribution.distributionType !== "FIXED_AMOUNT" &&
-                expectedAnnualIncomeDistribution.distributionType !== "UNIFORM_AMOUNT" &&
-                expectedAnnualIncomeDistribution.distributionType !== "NORMAL_AMOUNT") {
-                generatedIncome = investment.value * (generatedIncome);
-            }
+            const initialValue = investment.value; // Value at start of year's update step
 
-            //Add income to curYearIncome if 'non-retirement' and 'taxable'
+            // --- Calculate generated income ---
+            let generatedIncome = 0;
+            if (isIncomePercentage) {
+                generatedIncome = initialValue * sampledIncomeRateOrAmount; // Apply type's rate to start value
+            } else {
+                // Apply type's fixed amount (distribute amount across investments? or apply fully to each? Let's assume apply fully per investment for now, matching original potential intent if multiple investments existed)
+                // If amount should be split: Need total value of type, then proportion for this investment.
+                // Applying fully seems simpler based on original structure.
+                generatedIncome = sampledIncomeRateOrAmount;
+            }
+            generatedIncome = Math.round(generatedIncome * 100) / 100;
+
+            // Add income to curYearIncome if applicable
             if (investment.taxStatus === "NON_RETIREMENT" && type.taxability) {
                 curYearIncome += generatedIncome;
             }
 
+            // --- Modify Investment Object In Memory ---
             investment.value += generatedIncome;
-            investment.purchasePrice+=generatedIncome;  //reinvest back into investment
-            //Calculate value change (growth) based on expected return
-            let growth = await sample(type.expectedAnnualReturn, expectedAnnualReturnDistribution);
-            if (expectedAnnualReturnDistribution.distributionType !== "FIXED_AMOUNT" &&
-                expectedAnnualReturnDistribution.distributionType !== "UNIFORM_AMOUNT" &&
-                expectedAnnualReturnDistribution.distributionType !== "NORMAL_AMOUNT") {
-                investment.value *= (1 + growth);
+            investment.purchasePrice += generatedIncome; // Reinvest income basis
+
+            // --- Calculate value change (growth) ---
+            let growthAmount = 0;
+             // Apply growth rate/amount to value *after* income reinvestment
+            const valueAfterIncome = investment.value;
+            if (isReturnPercentage) {
+                growthAmount = valueAfterIncome * sampledReturnRateOrAmount;
             } else {
-                investment.value += (growth);
+                // Apply type's fixed growth amount
+                growthAmount = sampledReturnRateOrAmount;
+            }
+            growthAmount = Math.round(growthAmount * 100) / 100;
+
+            // Apply growth
+            investment.value += growthAmount;
+
+            // --- Calculate expenses ---
+            let expenses = 0;
+            if (type.expenseRatio > 0) {
+                 // Use average value over the year *within this update step*
+                 // Avg = (Value after income + Value after income&growth) / 2
+                 // let avgValueForExpense = (valueAfterIncome + investment.value) / 2;
+                 // Or simpler: Use value *before* expenses are deducted
+                 expenses = investment.value * type.expenseRatio;
+                 expenses = Math.round(expenses * 100) / 100;
             }
 
-            //Calculate expenses using the average value over the year
-            let avgValue = (investment.value + (investment.value / (1 + growth))) / 2;
-            let expenses = avgValue * type.expenseRatio;
-
-            //Subtract expenses
+            // Subtract expenses
             investment.value -= expenses;
-            investment.value = Math.max(0, Math.round((investment.value) * 100) / 100);
-            //console.log(`New value of investment is ${investment.value}`)
-            updates.push({
+            investment.value = Math.max(0, Math.round(investment.value * 100) / 100);
+            // Ensure purchase price doesn't go negative if value does temporarily (unlikely)
+            investment.purchasePrice = Math.max(0, Math.round(investment.purchasePrice * 100) / 100);
+
+
+            // --- Collect DB Update Operation ---
+            dbUpdateOperations.push({
                 updateOne: {
                     filter: { _id: investment._id },
                     update: { $set: { value: investment.value, purchasePrice: investment.purchasePrice } },
                 },
             });
+        } // End loop over investments
+    } // End loop over types
+
+    // --- Final Filtering ---
+    const finalDbOpsMap = new Map();
+    dbUpdateOperations.forEach(op => {
+        if (op?.updateOne?.filter?._id) {
+            finalDbOpsMap.set(op.updateOne.filter._id.toString(), op);
         }
-    }
+    });
 
-    if (updates.length > 0) {
-        await mongoose.model('Investment').bulkWrite(updates);
-    }
-
-    return curYearIncome;
+    return {
+        income: curYearIncome,
+        dbUpdateOperations: Array.from(finalDbOpsMap.values())
+    };
 }
 //Asked Gemini 2.5 pro to optimize roth conversion to use minimal db writes/reads
 export async function performRothConversion(
@@ -363,7 +518,7 @@ export async function performRothConversion(
         curYearEarlyWithdrawals: earlyWithdrawalPenalty
     };
 }
-
+//Asked Gemini 2.5 Pro to optimize this by removing all db read/writes
 export function processInvestmentEvents( // Still async due to potential logging lookups
     scenario,
     currentYear,
@@ -564,7 +719,6 @@ export function processInvestmentEvents( // Still async due to potential logging
         dbUpdateOperations: Array.from(finalDbOpsMap.values())
     };
 }
-
 //Asked Gemini 2.5: "I want to update rebalance events in the same way: 
 // ...keep the same logic as exists and change the updates/inputs"
 export async function rebalanceInvestments( // Keep async for potential logging lookups
