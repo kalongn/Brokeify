@@ -28,6 +28,7 @@ async function createDistribution(dist, returnAmtOrPct, idMap) {
     if (returnAmtOrPct) {
         dist.type += returnAmtOrPct + "";
     }
+    console.log(dist.type)
     const distributionMap = new Map([
         ["fixed", "FIXED_AMOUNT"],
         ["uniform", "UNIFORM_AMOUNT"],
@@ -87,7 +88,7 @@ async function fillIncomeEvent(eventID, eventData, idMap) {
     //Two cases:
     //1) Starts independantly of other events
     //2) Starts with/after another event
-    if (eventData.start.type === "startsWith") {
+    if (eventData.start.type === "startWith") {
         //get event ID that it starts with
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
@@ -103,7 +104,7 @@ async function fillIncomeEvent(eventID, eventData, idMap) {
 
         return toReturn;
     }
-    else if (eventData.start.type === "startsAfter") {
+    else if (eventData.start.type === "startAfter") {
         const startsAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -144,7 +145,7 @@ async function fillExpenseEvent(eventID, eventData, idMap) {
     const isinflationAdjusted = eventData.inflationAdjusted === "true" || eventData.inflationAdjusted == true;
     const userContributions = Number(eventData.userFraction);
     const isDiscretionary = eventData.discretionary === "true" || eventData.discretionary == true;
-    if (eventData.start.type === "startsWith") {
+    if (eventData.start.type === "startWith") {
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -159,7 +160,7 @@ async function fillExpenseEvent(eventID, eventData, idMap) {
 
         return toReturn;
     }
-    else if (eventData.start.type === "startsAfter") {
+    else if (eventData.start.type === "startAfter") {
         const startsAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -220,7 +221,7 @@ async function fillInvestEvent(eventID, eventData, idMap) {
         allocatedInvestments.push(toPush);
     }
 
-    if (eventData.start.type === "startsWith") {
+    if (eventData.start.type === "startWith") {
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -233,7 +234,7 @@ async function fillInvestEvent(eventID, eventData, idMap) {
         });
 
         return toReturn;
-    } else if (eventData.start.type === "startsAfter") {
+    } else if (eventData.start.type === "startAfter") {
         const startsAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -291,7 +292,7 @@ async function fillRebalanceEvent(eventID, eventData, idMap, taxStatusMap) {
         allocatedInvestments.push(toPush);
     }
 
-    if (eventData.start.type === "startsWith") {
+    if (eventData.start.type === "startWith") {
         const startsWith = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
@@ -304,7 +305,7 @@ async function fillRebalanceEvent(eventID, eventData, idMap, taxStatusMap) {
         });
 
         return toReturn;
-    } else if (eventData.start.type === "startsAfter") {
+    } else if (eventData.start.type === "startAfter") {
         const startsAfter = idMap.get(eventData.start.eventSeries.toString());
         const toReturn = await eventFactory.update(eventID, {
             durationTypeDistribution: durationDistribution,
