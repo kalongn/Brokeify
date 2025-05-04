@@ -313,7 +313,7 @@ export async function performRothConversion(curYearIncome, curYearSS, federalInc
 
     return { curYearIncome, curYearEarlyWithdrawals };
 }
-export async function processInvestmentEvents(scenario, currentYear) {
+export async function processInvestmentEventsOld(scenario, currentYear) {
     // Cannot include pre-tax-retirement
     // First, get cashInvestment to determine available amount to invest
     // Get the invest event (should only be 1)
@@ -358,7 +358,7 @@ export async function processInvestmentEvents(scenario, currentYear) {
         if (!(event.startYear <= realYear + currentYear && event.duration + event.startYear >= realYear + currentYear)) {
             continue;
         }
-
+        console.log(`Doing invest in year ${currentYear}`);
         let amountToInvest = cashInvestment.value - event.maximumCash;
         if (amountToInvest <= 0) {
             return;
@@ -380,9 +380,9 @@ export async function processInvestmentEvents(scenario, currentYear) {
 
         if (!foundNonRetirement) {
             // Change investment amount to be annualPostTaxContributionLimit
-            amountToInvest = Math.max(scenario.annualPostTaxContributionLimit, amountToInvest);
+            amountToInvest = Math.min(scenario.annualPostTaxContributionLimit, amountToInvest);
         }
-
+        console.log(amountToInvest)
         await investmentFactory.update(cashInvestment._id, { value: Math.round((cashInvestment.value - amountToInvest) * 100) / 100 });
 
         // Determine percentage to invest in each:
@@ -572,4 +572,205 @@ export async function rebalanceInvestments(scenario, currentYear) {
     }
 
     return totalCapitalGains;
+}
+
+export function processInvestmentEvents( // Still async due to potential logging lookups
+    scenario,
+    currentYear,
+    allEventsMap,           
+    allInvestmentsMap,      
+    cashInvestment,         
+    investmentTypesMap,     
+) {
+    const realYear = new Date().getFullYear();
+    const dbUpdateOperations = []; // Array to collect DB update operations
+
+    if (!cashInvestment) {
+        console.error("CRITICAL ERROR: processInvestmentEvents received invalid cashInvestment reference!");
+        return { dbUpdateOperations: [] };
+    }
+
+    
+    for (const [eventId, event] of allEventsMap.entries()) {
+        if (event.eventType !== "INVEST" ||
+            !(event.startYear <= realYear + currentYear && event.duration + event.startYear >= realYear + currentYear)) {
+            continue;
+        }
+        // --- Use pre-fetched cash object ---
+        if (cashInvestment.value <= 0) {
+            // console.log(`Year ${currentYear}: Skipping Invest Event ${event.name} - No cash available.`);
+            continue;
+        }
+
+        let amountToInvest = cashInvestment.value - event.maximumCash;
+        if (amountToInvest <= 0) {
+            // console.log(`Year ${currentYear}: Skipping Invest Event ${event.name} - Cash (${cashInvestment.value}) does not exceed maximum buffer (${event.maximumCash}).`);
+            continue;
+        }
+
+        // --- Use pre-fetched allocated investments ---
+        const allocatedInvestmentIds = event.allocatedInvestments;
+        const allocatedInvestments = allocatedInvestmentIds.map(id => allInvestmentsMap.get(id.toString())).filter(Boolean);
+        if (allocatedInvestments.length !== allocatedInvestmentIds.length) {
+            console.warn(`Year ${currentYear}: Invest Event ${event.name} references missing investments.`);
+            // Consider if processing should stop for this event if investments are missing
+        }
+        if (allocatedInvestments.length === 0) {
+            console.warn(`Year ${currentYear}: Invest Event ${event.name} has amount to invest ($${amountToInvest.toFixed(2)}) but no valid allocated investments found.`);
+            continue; // Skip if no valid investments
+        }
+
+
+        // Check if only retirement accounts are targeted
+        let foundNonRetirement = allocatedInvestments.some(inv => inv.taxStatus !== "AFTER_TAX_RETIREMENT");
+
+        // --- Limit amountToInvest based on contribution limits if needed ---
+        if (!foundNonRetirement) {
+            // Only retirement targets, cap by post-tax limit
+            amountToInvest = Math.min(amountToInvest, scenario.annualPostTaxContributionLimit);
+             if (amountToInvest <= 0) {
+                // console.log(`Year ${currentYear}: Skipping Invest Event ${event.name} - Post-tax limit prevents investment.`);
+                continue;
+             }
+        }
+        // Ensure amountToInvest does not exceed available cash after check
+        amountToInvest = Math.min(amountToInvest, cashInvestment.value);
+        if (amountToInvest <= 0) {
+            // console.log(`Year ${currentYear}: Skipping Invest Event ${event.name} - No amount left to invest after checks.`);
+            continue;
+        }
+
+        // --- Update Cash (In Memory + Collect DB Op) ---
+        // Store original value in case redistribution fails later and needs revert
+        const originalCashValue = cashInvestment.value;
+        cashInvestment.value = Math.round((originalCashValue - amountToInvest) * 100) / 100;
+        // Defer adding the DB op until the final amountToInvest is certain (after redistribution)
+
+        // --- Determine percentage to invest in each (Original Logic) ---
+        let proportions = [];
+        if (event.assetAllocationType === "FIXED") {
+            // Assuming percentageAllocations is [[start%, end%], [start%, end%]]
+            // We only need the start% for FIXED allocation
+            proportions = event.percentageAllocations?.map(p => p[0]) ?? [];
+        } else if (event.assetAllocationType === "GLIDE") {
+            const ratio = event.duration > 0 ? Math.max(0, Math.min(1, (realYear + currentYear - event.startYear) / event.duration)) : 0; // Clamp ratio 0-1
+            proportions = event.percentageAllocations?.map(bounds => bounds[1] * ratio + bounds[0] * (1 - ratio)) ?? [];
+        }
+        // Validate and normalize proportions as before
+        if (proportions.length !== allocatedInvestments.length) {
+            console.warn(`Year ${currentYear}: Invest Event ${event.name} proportions/investments mismatch (${proportions.length} vs ${allocatedInvestments.length}). Reverting cash and skipping.`);
+            cashInvestment.value = originalCashValue; // Revert cash change
+            continue;
+        }
+        const propSum = proportions.reduce((sum, p) => sum + p, 0);
+        if (propSum <= 0 && allocatedInvestments.length > 0) {
+            console.warn(`Year ${currentYear}: Proportions sum to zero or less for Invest Event ${event.name}. Reverting cash and skipping.`);
+            cashInvestment.value = originalCashValue; // Revert cash
+            continue;
+        }
+        if (Math.abs(propSum - 1.0) > 0.001) { // Normalize if significantly off
+            console.warn(`Year ${currentYear}: Normalizing proportions for Invest Event ${event.name}. Original sum: ${propSum}`);
+            proportions = proportions.map(p => p / propSum);
+        }
+
+
+        let tentativeInvestmentAmounts = proportions.map(p => p * amountToInvest);
+
+        // --- Check Contribution Limits (Original Logic) ---
+        let b = 0; // Sum of amounts for after-tax retirement
+        allocatedInvestments.forEach((investment, i) => {
+            if (investment.taxStatus === "AFTER_TAX_RETIREMENT") {
+                b += tentativeInvestmentAmounts[i];
+            }
+        });
+
+        let finalAmountInvested = amountToInvest; // Track final amount after adjustments
+
+        if (b > scenario.annualPostTaxContributionLimit) {
+            const original_b = b; // Keep original sum for redistribution calc
+            let lbRatio = scenario.annualPostTaxContributionLimit / b;
+            let totalNonRetirementProportion = 0;
+
+            allocatedInvestments.forEach((investment, i) => {
+                if (investment.taxStatus === "AFTER_TAX_RETIREMENT") {
+                    tentativeInvestmentAmounts[i] *= lbRatio; // Scale down
+                } else {
+                     totalNonRetirementProportion += proportions[i]; // Sum proportion of non-retirement targets
+                }
+            });
+
+            let amountToRedistribute = original_b - scenario.annualPostTaxContributionLimit;
+
+            if (totalNonRetirementProportion > 0 && amountToRedistribute > 0) {
+                // Redistribute proportionally to non-retirement accounts
+                allocatedInvestments.forEach((investment, i) => {
+                    if (investment.taxStatus !== "AFTER_TAX_RETIREMENT") {
+                        let pro = proportions[i] / totalNonRetirementProportion;
+                        tentativeInvestmentAmounts[i] += pro * amountToRedistribute;
+                    }
+                });
+            } else if (amountToRedistribute > 0) {
+                // Cannot redistribute, excess amount is not invested
+                console.warn(`Year ${currentYear}: Invest Event ${event.name} - Cannot redistribute excess after-tax contribution ($${amountToRedistribute.toFixed(2)}). No non-retirement targets.`);
+                // Recalculate the actual total amount invested
+                finalAmountInvested = tentativeInvestmentAmounts.reduce((sum, amount) => sum + amount, 0);
+                // Adjust cash: add back the uninvested amount
+                cashInvestment.value = Math.round((originalCashValue - finalAmountInvested) * 100) / 100;
+
+            }
+        }
+
+         // --- Add final Cash Update Operation ---
+         // Do this now that the final amount invested (and thus final cash value) is known
+         dbUpdateOperations.push({
+            updateOne: {
+                filter: { _id: cashInvestment._id },
+                update: { $set: { value: cashInvestment.value } }
+            }
+        });
+
+
+        // --- Update Investments (In Memory + Collect DB Ops) ---
+        for (let i = 0; i < allocatedInvestments.length; i++) {
+            const investment = allocatedInvestments[i];
+            const finalAmount = Math.round(tentativeInvestmentAmounts[i] * 100) / 100;
+
+            if (finalAmount > 0) {
+                // Modify in-memory object
+                investment.value = Math.round((investment.value + finalAmount) * 100) / 100;
+                investment.purchasePrice = Math.round((investment.purchasePrice + finalAmount) * 100) / 100;
+
+                // Add DB operation
+                dbUpdateOperations.push({
+                    updateOne: {
+                        filter: { _id: investment._id },
+                        update: { $set: { value: investment.value, purchasePrice: investment.purchasePrice } }
+                    }
+                });
+
+                // Logging (using maps passed from simulate)
+                if (logFile !== null && investmentTypesMap && invMap) {
+                    const typeId = invMap.get(investment._id.toString());
+                    const investmentType = typeId ? investmentTypesMap.get(typeId) : null;
+                    const typeName = investmentType?.name ?? 'Unknown Type';
+                    const typeDesc = investmentType?.description ?? '';
+                    const eventDetails = `Year: ${currentYear} - INVEST - Investing $${finalAmount.toFixed(2)} in investment type ${typeName}: ${typeDesc} with tax status ${investment.taxStatus} due to event ${event.name}: ${event.description}.\n`;
+                    updateLog(eventDetails);
+                }
+            }
+        }
+        // Assuming only one INVEST event per year 
+        break;
+    }
+
+    // --- Final Filtering for Overlapping Updates ---
+    // If the same investment (e.g., cash) was touched multiple times, keep only the last update.
+    const finalDbOpsMap = new Map();
+    dbUpdateOperations.forEach(op => {
+        finalDbOpsMap.set(op.updateOne.filter._id.toString(), op);
+    });
+
+    return {
+        dbUpdateOperations: Array.from(finalDbOpsMap.values())
+    };
 }

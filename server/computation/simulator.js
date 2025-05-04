@@ -53,6 +53,7 @@ import {
     processRMDs,
     updateInvestments,
     performRothConversion,
+    processInvestmentEventsOld,
     processInvestmentEvents,
     rebalanceInvestments
 } from "./simulationHelper/investmentHelper.js";
@@ -290,29 +291,8 @@ export async function simulate(
         let nonDiscretionaryExpenses = 0;
 
 
-
-        // const expensesReturn = await processExpenses(scenario, lastYearTaxes, currentYear);
-        // nonDiscretionaryExpenses = expensesReturn.t;
-        // thisYearGains += expensesReturn.capitalGain; //if you sell investments
-		// curYearIncome += expensesReturn.incomeGain;
-        // const expenseBreakdown = expensesReturn.expenseBreakdown;
-		// //console.timeEnd("processExpenses")
-        // lastYearTaxes = thisYearTaxes;
-        // //returns amount not paid, paid, and capital gains
-        // let discretionaryAmountIgnored, discretionaryAmountPaid;
-        // const processDiscretionaryResult = await processDiscretionaryExpenses(
-        //     scenario,
-        //     currentYear
-        // );
-        // discretionaryAmountIgnored = processDiscretionaryResult.np;
-        // discretionaryAmountPaid = processDiscretionaryResult.p;
-        // thisYearGains += processDiscretionaryResult.capitalGain;
-		// curYearIncome += processDiscretionaryResult.incomeGain;
-        // const totalExpenseBreakdown = [...expenseBreakdown, ...processDiscretionaryResult.expenseBreakdown];
-        // let totalExpenses = nonDiscretionaryExpenses + discretionaryAmountPaid;
-
-
         investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
+        let investmentTypesMap = new Map(investmentTypes.map(t => [t._id.toString(), t]));
         investmentIds = investmentTypes.flatMap((type) => type.investments);
         let investmentsArray = await investmentFactory.readMany(investmentIds); // Fetch as Array
         let allInvestmentsMap = new Map(investmentsArray.map(inv => [inv._id.toString(), inv])); // Create Map
@@ -336,22 +316,36 @@ export async function simulate(
         let discretionaryAmountIgnored = expensesResult.discretionaryExpensesIgnored;
         let discretionaryAmountPaid = expensesResult.discretionaryExpensesPaid;
         lastYearTaxes = thisYearTaxes;
-        if (allDbUpdateOps.length > 0) {
-            // console.log(`BULK WRITE (${allDbUpdateOps.length} ops)`); // Optional: logging
+
+
+
+        const investmentEventsResult = processInvestmentEvents( 
+            scenario, currentYear,
+            allEventsMap,
+            allInvestmentsMap, // Pass the map containing the cashInvestment object
+            cashInvestment,    // Pass the specific cashInvestment reference
+            investmentTypesMap // Pass map of types
+        );
+        allDbUpdateOps.push(...investmentEventsResult.dbUpdateOperations);
+    
+        const finalDbOpsMap = new Map();
+        allDbUpdateOps.forEach(op => {
+            if (op?.updateOne?.filter?._id) { // Basic check for valid operation structure
+                finalDbOpsMap.set(op.updateOne.filter._id.toString(), op);
+            }
+        });
+        const finalDbUpdateOps = Array.from(finalDbOpsMap.values());
+
+        if (finalDbUpdateOps.length > 0) {
+            //console.log(`Year ${currentYear}: Bulk writing ${finalDbUpdateOps.length} investment updates.`); // Optional: logging
             try {
-                await mongoose.model('Investment').bulkWrite(allDbUpdateOps, { ordered: false }); // Use unordered for potential speedup
+                await mongoose.model('Investment').bulkWrite(finalDbUpdateOps, { ordered: false });
             } catch (err) {
-                 console.error("Bulk write failed:", err);
-                 // Handle error appropriately - maybe fail the simulation run
-                 throw err; // Re-throw or handle
+                console.error(`Bulk write failed in year ${currentYear}:`, err);
+                throw err; // Halt simulation on DB error
             }
         }
 
-
-		//console.time("processInvestmentEvents")
-        await processInvestmentEvents(scenario, currentYear);
-		//console.timeEnd("processInvestmentEvents")
-		//console.time("rebalanceInvestments")
         thisYearGains += await rebalanceInvestments(scenario, currentYear);
 		//console.timeEnd("rebalanceInvestments")
 		//console.time("results")

@@ -304,6 +304,8 @@ export async function processDiscretionaryExpenses(scenario, currentYear) {
     return toReturn;
 }
 
+
+//Asked Gemini 2.5 Pro to consolidate the previous 2 functions and to remove db reads/writes
 export function processAllExpenses(
     scenario,
     calculatedTaxes, // Renamed from previousYearTaxes for clarity
