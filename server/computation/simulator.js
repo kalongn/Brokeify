@@ -52,6 +52,7 @@ import {
     shouldPerformRMD,
     processRMDs,
     updateInvestments,
+    performRothConversionOld,
     performRothConversion,
     processInvestmentEventsOld,
     processInvestmentEvents,
@@ -151,11 +152,20 @@ export async function simulate(
     let lastYearEarlyWithdrawl = 0;
     while (currentYear <= endYear) {
 		//console.time("loop")
-		//console.time("taxes/initial")
+        let allDbUpdateOps = [];
+        let allDbTypeUpdateOps = [];
         curYearIncome = 0;
         curYearSS = 0;
         thisYearGains = 0;
         thisYearTaxes = 0;
+        investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
+        let investmentTypesMap = new Map(investmentTypes.map(t => [t._id.toString(), t]));
+        let investmentIds = investmentTypes.flatMap((type) => type.investments);
+        let investmentsArray = await investmentFactory.readMany(investmentIds); // Fetch as Array
+        let allInvestmentsMap = new Map(investmentsArray.map(inv => [inv._id.toString(), inv])); // Create Map
+        let allEvents = await eventFactory.readMany(scenario.events);
+        let allEventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
+		let investments = await investmentFactory.readMany(investmentIds);
 
 		let inflationRate = await sample(
             scenario.inflationAssumption,
@@ -169,14 +179,11 @@ export async function simulate(
         cumulativeInflation = ((cumulativeInflation+1) * (1 + inflationRate)) -1;
 
 
-        investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
-		let investmentIds = investmentTypes.flatMap((type) => type.investments);
-		let investments = await investmentFactory.readMany(investmentIds);
 
 		//start events:
 		const events = scenario.events;
 		//fetch all events in one go
-		let allEvents = await eventFactory.readMany(events);
+		allEvents = await eventFactory.readMany(events);
 		let eventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
 
 		//update events
@@ -248,30 +255,33 @@ export async function simulate(
 		const incomeByEvent = adjustEventsAmountReturn.incomeByEvent;
 		cashInvestment = adjustEventsAmountReturn.cashInvestment;
         const reportedIncome = curYearIncome;
+        console.log(curYearIncome)
 		//console.timeEnd("adjustEventsAmount");
 
-
-		//console.time("performRothConversion")
-        let rothConversion = {curYearIncome: 0, curYearEarlyWithdrawals: 0}
-        if(scenario.startYearRothOptimizer!==undefined 
-            && scenario.startYearRothOptimizer<=realYear+currentYear
-            && scenario.endYearRothOptimizer!==undefined
-            && scenario.endYearRothOptimizer>=realYear+currentYear
-        ){
-            rothConversion = await performRothConversion(
-                curYearIncome,
-                curYearSS,
+		
+        let rothConversion = { incomeToAdd: 0, earlyWithdrawalAmountSubjectToPenalty: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [] };
+        if (scenario.startYearRothOptimizer !== undefined &&
+            scenario.startYearRothOptimizer <= realYear + currentYear &&
+            scenario.endYearRothOptimizer !== undefined &&
+            scenario.endYearRothOptimizer >= realYear + currentYear)
+        {
+            rothConversion = await performRothConversion( // await needed for immediate create call within
+                scenario, 
                 federalIncomeTax,
-                currentYear,
+                curYearIncome,
+                curYearSS, 
+                currentYear, 
                 scenario.userBirthYear,
-                scenario.orderedRothStrategy,
-                investmentTypes,
-                scenario.annualPostTaxContributionLimit
+                allInvestmentsMap, // Pass map (will be modified)
+                investmentTypesMap,// Pass map (will be modified if new inv added)
             );
+            console.log(rothConversion)
+            curYearIncome += rothConversion.incomeToAdd; // Add converted amount to income *after* calculation
+            allDbUpdateOps.push(...rothConversion.dbInvestmentOps); // Collect investment updates
+            allDbTypeUpdateOps.push(...rothConversion.dbInvestmentTypeOps); // Collect type updates
         }
-		//console.timeEnd("performRothConversion")
-		//console.time("calculateTaxes")
-        curYearIncome += rothConversion.curYearIncome;
+
+
         let earlyWithdrawalTaxPaid = 0;
         const calcTaxReturn = calculateTaxes(
             federalIncomeTax,
@@ -288,17 +298,8 @@ export async function simulate(
 		//console.time("processExpenses")
         thisYearTaxes = calcTaxReturn.t;
         earlyWithdrawalTaxPaid = calcTaxReturn.e;
-        let nonDiscretionaryExpenses = 0;
+        console.log(calcTaxReturn)
 
-
-        investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
-        let investmentTypesMap = new Map(investmentTypes.map(t => [t._id.toString(), t]));
-        investmentIds = investmentTypes.flatMap((type) => type.investments);
-        let investmentsArray = await investmentFactory.readMany(investmentIds); // Fetch as Array
-        let allInvestmentsMap = new Map(investmentsArray.map(inv => [inv._id.toString(), inv])); // Create Map
-        let allDbUpdateOps = []
-        allEvents = await eventFactory.readMany(scenario.events);
-        let allEventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
         const expensesResult = processAllExpenses(
             scenario, 
             thisYearTaxes, 
@@ -356,6 +357,13 @@ export async function simulate(
                 console.error(`Bulk write failed in year ${currentYear}:`, err);
                 throw err; // Halt simulation on DB error
             }
+        }
+        const finalTypeDbOpsMap = new Map();
+        allDbTypeUpdateOps.forEach(op => { /* ... filter ... */ finalTypeDbOpsMap.set(op.updateOne.filter._id.toString(), op); });
+        const finalTypeDbUpdateOps = Array.from(finalTypeDbOpsMap.values());
+        if (finalTypeDbUpdateOps.length > 0) {
+            //console.log(`Year ${currentYear}: Bulk writing ${finalTypeDbUpdateOps.length} investment type updates.`);
+            await mongoose.model('InvestmentType').bulkWrite(finalTypeDbUpdateOps, { ordered: false });
         }
 
         // thisYearGains += await rebalanceInvestmentsOld(scenario, currentYear);
@@ -427,6 +435,7 @@ export async function simulate(
         lastYearIncome = curYearIncome;
         lastYearSS = curYearSS;
         lastYearEarlyWithdrawl = rothConversion.curYearEarlyWithdrawals;
+        if(typeof lastYearEarlyWithdrawl !== "number") lastYearEarlyWithdrawl = 0;
         //finally, check if spouse has died (sad)
         //if so, update shared thingies, and tax to be paid
         if (scenario.filingStatus === "MARRIEDJOINT") {
