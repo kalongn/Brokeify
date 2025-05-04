@@ -184,9 +184,8 @@ export async function simulate(
     let lastYearSS = 0;
     let lastYearEarlyWithdrawl = 0; // Renamed variable for clarity
     let curYearEarlyWithdrawals = 0; // Track early withdrawals subject to penalty this year
-
     while (currentYear <= endYear) {
-		console.time("loop")
+		//console.time("loop")
         let allDbUpdateOps = [];        // Investment updates
         let allDbTypeUpdateOps = [];    // Investment Type updates
         let allDbEventOps = [];         // Event updates
@@ -476,114 +475,20 @@ export async function simulate(
                 scenario.filingStatus = "SINGLE";
             }
         }
-        // Investment Updates
-        const finalDbOpsMap = new Map();
-        allDbUpdateOps.forEach(op => {
-            if (op?.updateOne?.filter?._id) {
-                finalDbOpsMap.set(op.updateOne.filter._id.toString(), op);
-            }
-        });
-        const finalDbUpdateOps = Array.from(finalDbOpsMap.values());
-        if (finalDbUpdateOps.length > 0) {
-            try {
-                await mongoose.model('Investment').bulkWrite(finalDbUpdateOps, { ordered: false });
-            } catch (err) {
-                console.error(`Bulk write failed for Investments in year ${currentYear}:`, err);
-                // Decide how to handle error - throw? log? continue?
-                throw err; // Halt simulation on DB error
-            }
-        }
-
-        // Investment Type Updates
-        const finalTypeDbOpsMap = new Map();
-        allDbTypeUpdateOps.forEach(op => {
-            if (op?.updateOne?.filter?._id) {
-                finalTypeDbOpsMap.set(op.updateOne.filter._id.toString(), op);
-            }
-         });
-        const finalTypeDbUpdateOps = Array.from(finalTypeDbOpsMap.values());
-        if (finalTypeDbUpdateOps.length > 0) {
-            try {
-                await mongoose.model('InvestmentType').bulkWrite(finalTypeDbUpdateOps, { ordered: false });
-            } catch (err) {
-                console.error(`Bulk write failed for InvestmentTypes in year ${currentYear}:`, err);
-                throw err;
-            }
-        }
-
-        // Event Updates
         
-        const incomeUpdateOps = [];
-        const expenseUpdateOps = [];
-
-        const uniqueEventOpsMap = new Map(); // Ensure only last update per event ID is kept
-         allDbEventOps.forEach(op => {
-             if (op?.updateOne?.filter?._id) {
-                 uniqueEventOpsMap.set(op.updateOne.filter._id.toString(), op);
-             }
-         });
-
-        // Group operations and remove modelName before adding to final lists
-        uniqueEventOpsMap.forEach(op => {
-            const modelNameEnum = op.updateOne.modelName; // 'INCOME' or 'EXPENSE'
-            const updateOp = { // Create the final operation object for bulkWrite
-                 updateOne: {
-                     filter: op.updateOne.filter,
-                     update: op.updateOne.update,
-                     // Remove other properties like modelName if they exist
-                 }
-             };
-
-            if (modelNameEnum === 'INCOME' && updateOp.updateOne.update?.$set) {
-                incomeUpdateOps.push(updateOp);
-            } else if (modelNameEnum === 'EXPENSE' && updateOp.updateOne.update?.$set) {
-                expenseUpdateOps.push(updateOp);
-            } else if (op?.updateOne?.filter?._id) {
-                // Log unexpected operations
-                console.warn(`DEBUG: Grouping - Event operation for ID ${op.updateOne.filter._id} has unexpected modelName ('${modelNameEnum}') or is missing $set operator:`, JSON.stringify(op.updateOne.update));
-            }
-        });
-
-        // Perform separate bulk writes
-        if (incomeUpdateOps.length > 0) {
-            // console.log(`DEBUG: Bulk writing ${incomeUpdateOps.length} updates for model Income`);
-            // console.log(`DEBUG: Income Bulk Write Ops:`, JSON.stringify(incomeUpdateOps, null, 2));
-            try {
-                // Use the capitalized Mongoose model name 'Income'
-                await mongoose.model('Income').bulkWrite(incomeUpdateOps, { ordered: false });
-            } catch (err) {
-                console.error(`Bulk write failed for Income Events in year ${currentYear}:`, err);
-                console.error("Failed Income Operations:", JSON.stringify(incomeUpdateOps, null, 2));
-                throw err;
-            }
-        }
-
-        if (expenseUpdateOps.length > 0) {
-            // console.log(`DEBUG: Bulk writing ${expenseUpdateOps.length} updates for model Expense`);
-            // console.log(`DEBUG: Expense Bulk Write Ops:`, JSON.stringify(expenseUpdateOps, null, 2));
-            try {
-                // Use the capitalized Mongoose model name 'Expense'
-                await mongoose.model('Expense').bulkWrite(expenseUpdateOps, { ordered: false });
-            } catch (err) {
-                console.error(`Bulk write failed for Expense Events in year ${currentYear}:`, err);
-                console.error("Failed Expense Operations:", JSON.stringify(expenseUpdateOps, null, 2));
-                throw err;
-            }
-        }
 
 
         // Re-read scenario at the end to get latest state for the *next* loop iteration
         // This is important especially if filingStatus changed
-        scenario = await scenarioFactory.read(scenario._id); // Use _id
+        // scenario = await scenarioFactory.read(scenario._id); // Use _id
         currentYear++;
-		console.timeEnd("loop")
+		//console.timeEnd("loop")
     } // --- End While Loop ---
 
 	// Final update to the results document with all yearly results
     await resultFactory.update(results._id, {
 		yearlyResults: results.yearlyResults,
 	});
-
     console.log("Simulation complete.");
     return results;
 }
