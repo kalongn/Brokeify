@@ -359,20 +359,21 @@ const EventSeriesForm = () => {
         // Should not happen
         break;
     }
+    // Allow duration to extend past lifetime by treating it as a lifetime event
     switch (duration.type) {
       case "fixed":
         if (duration.value > lifeExpectancy.value) {
-          newErrors.duration = `Duration must be within your lifetime (${birthYear} - ${deathYear})`;
+          distributions.duration = {type: "fixed", value: deathYear-birthYear};
         }
         break;
       case "uniform":
         if (duration.lowerBound < 0 || duration.upperBound > lifeExpectancy.value) {
-          newErrors.duration = `Duration must be within your lifetime (${birthYear} - ${deathYear})`;
+          distributions.duration = {type: "uniform", value: deathYear-birthYear};
         }
         break;
       case "normal":
         if (duration.mean > lifeExpectancy.value) {
-          newErrors.duration = `Duration must be within your lifetime (${birthYear} - ${deathYear})`;
+          distributions.duration = {type: "normal", value: deathYear-birthYear};
         }
         break;
       default:
