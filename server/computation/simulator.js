@@ -52,19 +52,14 @@ import {
     shouldPerformRMD,
     processRMDs,
     updateInvestments,
-    performRothConversionOld,
     performRothConversion,
-    processInvestmentEventsOld,
     processInvestmentEvents,
-    rebalanceInvestmentsOld,
     rebalanceInvestments
 } from "./simulationHelper/investmentHelper.js";
 import { 
     calculateTaxes
 } from "./simulationHelper/taxesHelper.js";
 import {
-    processExpenses,
-    processDiscretionaryExpenses,
     processAllExpenses
 } from "./simulationHelper/expensesHelper.js";
 export let csvFile, logFile;
