@@ -149,7 +149,8 @@ const InvestmentTypesForm = () => {
       if (id) {
         const currentHash = await Axios.get(`/concurrency/${scenarioId}`);
         if (currentHash.data !== scenarioHash) {
-          alert("The scenario has been modified by another user. Please refresh the page.");
+          alert("The scenario has been modified by another user. Redirecting to the investment types page.");
+          handleNavigate();
           return;
         }
         response = await Axios.put(`/investmentType/${scenarioId}/${id}`, data);
