@@ -339,7 +339,6 @@ const EventSeriesForm = () => {
     }
 
     const start = distributions.startYear;
-    const duration = distributions.duration;
     switch (start.type) {
       case "fixed":
         if (start.value < birthYear || start.value > deathYear) {
@@ -354,27 +353,6 @@ const EventSeriesForm = () => {
       case "normal":
         if (start.mean < birthYear || start.mean > deathYear) {
           newErrors.startYear = `Start year must be within your lifetime (${birthYear} - ${deathYear})`;
-        }
-        break;
-      default:
-        // Should not happen
-        break;
-    }
-    // Allow duration to extend past lifetime by treating it as a lifetime event
-    switch (duration.type) {
-      case "fixed":
-        if (duration.value > lifeExpectancy.value) {
-          distributions.duration = {type: "fixed", value: deathYear-birthYear};
-        }
-        break;
-      case "uniform":
-        if (duration.lowerBound < 0 || duration.upperBound > lifeExpectancy.value) {
-          distributions.duration = {type: "uniform", value: deathYear-birthYear};
-        }
-        break;
-      case "normal":
-        if (duration.mean > lifeExpectancy.value) {
-          distributions.duration = {type: "normal", value: deathYear-birthYear};
         }
         break;
       default:
