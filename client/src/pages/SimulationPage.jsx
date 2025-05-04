@@ -165,9 +165,8 @@ const ScenarioSimulation = () => {
   return (
     <Layout>
       <div className={styles.background}>
+        <h3>To run a simulation, a scenario needs at least the Basic Information section completed.</h3>
         <p>
-          <b>To run a simulation, a scenario needs at least the Basic Information section completed.</b>
-          <br /><br />
           <i>
             If the state income tax of the state of residence is not uploaded, the simulation will ignore state tax rate.
             There are 4 state tax files that are uploaded by default: New York, New Jersey, Connecticut, and Washington.
@@ -183,36 +182,28 @@ const ScenarioSimulation = () => {
             setErrors={setErrors}
           />
           <div className={styles.section}>
-            <h2>Results</h2>
-            {!isRunning && previousRun === null && (
-              <p style={{ marginTop: '20px', fontStyle: 'italic' }}>
-                Please select a scenario, enter number of simulations, and run simulation to see results.
-              </p>
-            )}
+            <h2>Most Recent Simulation Results</h2>
+            <p className={styles.disclaimer}>
+              Most recent run stats
+            </p>
             {isRunning ? (
               <p>A simulation is running... Please wait.</p>
             ) : (
               previousRun !== null && (
                 <div>
                   {previousRunSimulationType === "NORMAL" && <>
-                    <h3>Most Recent Run Result (Normal):</h3>
-                    <p className={styles.disclaimer}>
-                      Most recent run stats
-                    </p>
                     <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
                       See Normal Results
                     </Link>
                   </>}
 
                   {previousRunSimulationType === "1D" && <>
-                    <h3>Most Recent Run Result (1D):</h3>
                     <Link className={styles.seeResults} to={`/visualizations/OneDimensional/${previousRun}`}>
                       See 1D Results
                     </Link>
                   </>}
 
                   {previousRunSimulationType === "2D" && <>
-                    <h3>Most Recent Run Result (2D)</h3>
                     <Link className={styles.seeResults} to={`/visualizations/TwoDimensional/${previousRun}`}>
                       See 2D Results
                     </Link>
