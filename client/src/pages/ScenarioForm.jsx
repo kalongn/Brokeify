@@ -89,7 +89,8 @@ const ScenarioForm = () => {
       const upToDateHash = await Axios.get(`/concurrency/${scenarioId}`);
       if (upToDateHash.data !== scenarioHash) {
         setScenarioHash(upToDateHash.data);
-        alert("This scenario has been modified by you on another tab or another user. Please refresh the page.");
+        alert("This scenario has been modified by you on another tab or another user. Will be refreshing the page...");
+        navigate(0);
         return;
       }
     } catch (error) {
