@@ -1,9 +1,9 @@
 import express from 'express';
+import { Event } from '../db/models/Event.js';
 
 import ScenarioController from '../db/controllers/ScenarioController.js';
 import UserController from '../db/controllers/UserController.js';
 import { canView, distributionToString, stateAbbreviationToString, taxStatusToFrontend } from './helper.js';
-
 const router = express.Router();
 const scenarioController = new ScenarioController();
 const userController = new UserController();
@@ -145,6 +145,7 @@ router.get("/scenario-detail/:scenarioId", async (req, res) => {
                         name: investmentType.name,
                         value: investment.value,
                         taxStatus: investment.taxStatus,
+                        expectedAnnualReturnDistribution: distributionToString(investmentType?.expectedAnnualReturnDistribution) || "Unkown",
                     }
                     investmentIdMap[investment._id] = investmentStructure;
                     investments.push(investmentStructure);
@@ -153,10 +154,16 @@ router.get("/scenario-detail/:scenarioId", async (req, res) => {
 
             const events = []
             const eventIdMap = {};
+            
             for (let event of scenario.events) {
+                const eventDistribution = await Event.findById(event._id).populate("expectedAnnualChangeDistribution");
+
                 const eventStructure = {
                     name: event.name,
-                    type: event.eventType
+                    type: event.eventType,
+                    amount: event?.amount || "0",
+                    percentage: distributionToString(eventDistribution?.expectedAnnualChangeDistribution) || "Unknown",
+                    taxability: event?.isinflationAdjusted ? "Affected by Inflation" : "Not Affected by Inflation"
                 }
                 eventIdMap[event._id] = eventStructure;
                 events.push(eventStructure);
