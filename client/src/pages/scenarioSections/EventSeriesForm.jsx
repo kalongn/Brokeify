@@ -224,7 +224,7 @@ const EventSeriesForm = () => {
     setTypeFormData(prev => ({ ...prev, investmentRows: updatedInvestmentRows }));
 
     // Prevent duplicate investment selections by removing the current and adding the previous
-    setInvestments(investments.filter(investment => investment.value != value));
+    setInvestments(investments.filter(investment => investment.value !== value));
     if (prevInvestment !== null) {
       prevInvestment = allInvestments.find(investment => investment.id === prevInvestment);
       setInvestments(prev => [...prev, { value: prevInvestment.id, label: prevInvestment.label + "\n(" + prevInvestment.taxStatus + ")" }]);
