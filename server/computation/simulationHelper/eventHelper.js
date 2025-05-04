@@ -67,14 +67,14 @@ export async function adjustEventsAmount( // Needs async for sample
 
                     // Check if rate is percentage or fixed amount
                     if (changeDist.distributionType.includes("PERCENTAGE")) {
-                         // Apply percentage change to the amount *after* inflation adjustment
+                        // Apply percentage change to the amount *after* inflation adjustment
                         newAmount += newAmount * amountRate;
                     } else {
-                         // Apply fixed amount change
+                        // Apply fixed amount change
                         newAmount += amountRate;
                     }
                 } else {
-                     console.warn(`Year ${currentYear}: Distribution ${event.expectedAnnualChangeDistribution} not found for event ${event.name}.`);
+                    console.warn(`Year ${currentYear}: Distribution ${event.expectedAnnualChangeDistribution} not found for event ${event.name}.`);
                 }
             }
 
@@ -102,19 +102,18 @@ export async function adjustEventsAmount( // Needs async for sample
                 const incomeAmount = event.amount; // Use the final adjusted amount
                 if (incomeAmount > 0) {
                     updateLog(`Year: ${currentYear} - INCOME - ${event.name}: ${event.description} - Amount $${incomeAmount.toFixed(2)}\n`);
-
                     incomeByEvent.push({ name: event.name, value: incomeAmount });
 
                     // --- Modify Cash Investment (In Memory) ---
                     if (cashInvestment) {
-                         cashInvestment.value = Math.round((cashInvestment.value + incomeAmount) * 100) / 100;
-                         // Collect cash operation (will be filtered later if cash updated multiple times)
-                         dbCashOps.push({
-                             updateOne: {
-                                 filter: { _id: cashInvestment._id },
-                                 update: { $set: { value: cashInvestment.value } }
-                             }
-                         });
+                        cashInvestment.value = Math.round((cashInvestment.value + incomeAmount) * 100) / 100;
+                        // Collect cash operation (will be filtered later if cash updated multiple times)
+                        dbCashOps.push({
+                            updateOne: {
+                                filter: { _id: cashInvestment._id },
+                                update: { $set: { value: cashInvestment.value } }
+                            }
+                        });
                     } else {
                         console.error(`Year ${currentYear}: Cannot add income from event ${event.name} - Cash investment reference is missing!`);
                     }
@@ -132,15 +131,15 @@ export async function adjustEventsAmount( // Needs async for sample
     const finalDbEventOpsMap = new Map();
     dbEventOps.forEach(op => {
         if (op?.updateOne?.filter?._id) {
-             finalDbEventOpsMap.set(op.updateOne.filter._id.toString(), op);
+            finalDbEventOpsMap.set(op.updateOne.filter._id.toString(), op);
         }
     });
 
     const finalDbCashOpsMap = new Map();
     dbCashOps.forEach(op => {
-         if (op?.updateOne?.filter?._id) {
-             finalDbCashOpsMap.set(op.updateOne.filter._id.toString(), op);
-         }
+        if (op?.updateOne?.filter?._id) {
+            finalDbCashOpsMap.set(op.updateOne.filter._id.toString(), op);
+        }
     });
 
 
