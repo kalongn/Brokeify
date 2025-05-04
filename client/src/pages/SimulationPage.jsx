@@ -19,6 +19,7 @@ const ScenarioSimulation = () => {
   const [errors, setErrors] = useState({});
   const [isRunning, setIsRunning] = useState(false);
   const [previousRun, setPreviousRun] = useState(null);
+  const [previousRunSimulationType, setPreviousRunSimulationType] = useState(null);
 
   // Co-pilot (Gemini 2.5 pro) assistance:
   // Idea: only user to only run 1 simulation at a time, need a setInterval to check if the simulation is still running
@@ -41,10 +42,12 @@ const ScenarioSimulation = () => {
       const data = response.data;
       setScenarios(data.scenarios);
       setPreviousRun(data.previousRun);
+      setPreviousRunSimulationType(data.previousRunSimulationType);
       setIsRunning(data.isRunning);
 
       if (data.isRunning) {
         setPreviousRun(null);
+        setPreviousRunSimulationType(null);
 
         // Check if button ref is available and start Ladda
         if (runButtonRef.current) {
@@ -69,7 +72,11 @@ const ScenarioSimulation = () => {
                 laddaInstanceRef.current.stop(); // Stop spinner using stored instance
                 laddaInstanceRef.current = null; // Reset Ladda instance ref
               }
-              Axios.get('/runSimulation').then(res => setPreviousRun(res.data.previousRun));
+              Axios.get('/runSimulation').then(res => {
+                const data = res.data;
+                setPreviousRun(data.previousRun);
+                setPreviousRunSimulationType(data.previousRunSimulationType);
+              });
             }
           }).catch((error) => {
             console.error('Error fetching isRunningSimulation:', error);
@@ -138,7 +145,11 @@ const ScenarioSimulation = () => {
           }
         }
       );
-      setPreviousRun(response.data);
+
+      const data = response.data;
+      setPreviousRun(data.previousRun);
+      setPreviousRunSimulationType(data.previousRunSimulationType);
+
     } catch (error) {
       setErrors({ simulation: 'An error occurred during the simulation' });
       console.error('Simulation error:', error);
@@ -175,18 +186,26 @@ const ScenarioSimulation = () => {
             ) : (
               previousRun !== null && (
                 <div>
-                  <h3>Temp: One Dimensional Simulation</h3>
-                  <Link className={styles.seeResults} to={`/visualizations/OneDimensional/${previousRun}`}>
-                    See OneD
-                  </Link>
-                  <h3>Temp: Two Dimensional Simulation</h3>
-                  <Link className={styles.seeResults} to={`/visualizations/TwoDimensional/${previousRun}`}>
-                    See TwoD
-                  </Link>
-                  <p>Most Recent Run Result:</p>
-                  <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
-                    See Results
-                  </Link>
+                  {previousRunSimulationType === "NORMAL" && <>
+                    <h3>Most Recent Run Result (Normal):</h3>
+                    <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
+                      See Normal Results
+                    </Link>
+                  </>}
+
+                  {previousRunSimulationType === "1D" && <>
+                    <h3>Most Recent Run Result (1D):</h3>
+                    <Link className={styles.seeResults} to={`/visualizations/OneDimensional/${previousRun}`}>
+                      See 1D Results
+                    </Link>
+                  </>}
+
+                  {previousRunSimulationType === "2D" && <>
+                    <h3>Most Recent Run Result (2D)</h3>
+                    <Link className={styles.seeResults} to={`/visualizations/TwoDimensional/${previousRun}`}>
+                      See 2D Results
+                    </Link>
+                  </>}
                 </div>
               )
             )}

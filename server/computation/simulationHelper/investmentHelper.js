@@ -601,6 +601,7 @@ export function processInvestmentEvents( // Still async due to potential logging
             const ratio = event.duration > 0 ? Math.max(0, Math.min(1, (realYear + currentYear - event.startYear) / event.duration)) : 0; // Clamp ratio 0-1
             proportions = event.percentageAllocations?.map(bounds => bounds[1] * ratio + bounds[0] * (1 - ratio)) ?? [];
         }
+
         // Validate and normalize proportions as before
         if (proportions.length !== allocatedInvestments.length) {
             console.warn(`Year ${currentYear}: Invest Event ${event.name} proportions/investments mismatch (${proportions.length} vs ${allocatedInvestments.length}). Reverting cash and skipping.`);
@@ -616,6 +617,7 @@ export function processInvestmentEvents( // Still async due to potential logging
         if (Math.abs(propSum - 1.0) > 0.001) { // Normalize if significantly off
             console.warn(`Year ${currentYear}: Normalizing proportions for Invest Event ${event.name}. Original sum: ${propSum}`);
             proportions = proportions.map(p => p / propSum);
+
         }
 
 

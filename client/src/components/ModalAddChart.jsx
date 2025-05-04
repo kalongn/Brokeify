@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import styles from "./ModalAddChart.module.css";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ModalBase from './ModalBase';
 import Select from 'react-select';
 
@@ -25,19 +25,31 @@ const numericQuantities = [
   "Early Withdrawal Tax"
 ];
 
-const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
+const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneType, paramOneName, paramOneSteps, paramTwoType, paramTwoName, paramTwoSteps }) => {
   const [selectedChart, setSelectedChart] = useState(null);
-  // const [formData, setFormData] = useState({});
   const [selectedShadedQuantity, setSelectedShadedQuantity] = useState('');
   const [selectedBarQuantity, setSelectedBarQuantity] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
-
   const isShadedQuantityNumeric = numericQuantities.includes(selectedShadedQuantity);
-  const [parameter, setParameter] = useState("start year");
 
-  const [selectedParameterValue, setSelectedParameterValue] = useState('');
+  const [selectedParameterOneValue, setselectedParameterOneValue] = useState('');
+  const [selectedParameterTwoValue, setselectedParameterTwoValue] = useState('');
 
-  const parameterArray = ["2021", "2022", "2023", "2024"];
+  const [parameterOneArray, setparameterOneArray] = useState([]);
+  const [parameterTwoArray, setparameterTwoArray] = useState([]);
+
+  useEffect(() => {
+    if (paramOneType && paramOneType !== "Disable Roth") {
+      setparameterOneArray(paramOneSteps);
+    } else {
+      setparameterOneArray(["Enabled", "Disabled"]);
+    }
+    if (paramTwoType && paramTwoType !== "Disable Roth") {
+      setparameterTwoArray(paramTwoSteps);
+    } else {
+      setparameterTwoArray(["Enabled", "Disabled"]);
+    }
+  }, [paramOneSteps, paramOneType, paramTwoSteps, paramTwoType]);
 
   const handleChartClick = (chartType) => {
     setSelectedChart(chartType);
@@ -46,8 +58,6 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
       delete newErrors.chartSelection;
       return newErrors;
     });
-    setParameter("Start year"); //ESLint Error Temp Fix 
-
   };
 
   const validateForm = () => {
@@ -56,8 +66,18 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
       errors.chartSelection = 'Please select a chart type.';
     }
     if (hasParameterValue) {
-      if (!selectedParameterValue || selectedParameterValue.trim() === '') {
-        errors.parameterValue = `Please enter a value for ${parameter}.`;
+      if (!selectedParameterOneValue) {
+        if (paramOneType !== "Disable Roth") {
+          errors.parameterValue = `Please enter a value for ${paramOneName}'s ${paramOneType}.`;
+        } else {
+          errors.parameterValue = `Please enter a value for Roth Optimizer.`;
+        }
+      } else if (paramTwoType && !selectedParameterTwoValue) {
+        if (paramTwoType !== "Disable Roth") {
+          errors.parameterValue = `Please enter a value for ${paramTwoName}'s ${paramTwoType}.`;
+        } else {
+          errors.parameterValue = `Please enter a value for Roth Optimizer.`;
+        }
       }
     }
 
@@ -140,6 +160,33 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
       };
     }
 
+    if (hasParameterValue) {
+      if (paramOneType) {
+        if (paramOneType !== "Disable Roth") {
+          cContent.label += `, Parameter One: ${paramOneName}, ${selectedParameterOneValue}`;
+        } else {
+          cContent.label += `, Parameter One: Roth Optimizer, ${selectedParameterOneValue}`;
+        }
+        if (paramOneType !== "Disable Roth") {
+          cContent.paramOne = selectedParameterOneValue;
+        } else {
+          cContent.paramOne = selectedParameterOneValue === "Enabled" ? -1 : -2;
+        }
+      }
+      if (paramTwoType) {
+        if (paramTwoType !== "Disable Roth") {
+          cContent.label += `, Parameter Two: ${paramTwoName}, ${selectedParameterTwoValue}`;
+        } else {
+          cContent.label += `, Parameter Two: Roth Optimizer, ${selectedParameterTwoValue}`;
+        }
+        if (paramTwoType !== "Disable Roth") {
+          cContent.paramTwo = selectedParameterTwoValue;
+        } else {
+          cContent.paramTwo = selectedParameterTwoValue === "Enabled" ? -1 : -2;
+        }
+      }
+    }
+
     setCharts((prevCharts) => {
       const newChart = {
         id: prevCharts.length + 1,
@@ -159,17 +206,34 @@ const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue }) => {
       <h2 className={styles.header}>Select a Chart</h2>
       {hasParameterValue && (
         <div className={styles.parameterSection} >
-          <label>Select a value for {parameter}:</label>
-          <Select
-            options={parameterArray.map(year => ({ value: year, label: year }))}
-            value={
-              parameterArray
-                .map(year => ({ value: year, label: year }))
-                .find(option => option.value === selectedParameterValue)
-            }
-            onChange={(selectedOption) => setSelectedParameterValue(selectedOption.value)}
-            placeholder={`Select ${parameter}`}
-          />
+          <>
+            <label>Select a value for {paramOneType !== "Disable Roth" && <>{paramOneName}&apos;s</>} {paramOneType !== "Disable Roth" ? <>{paramOneType}</> : <>Roth Optimizer</>}:</label>
+            <Select
+              options={parameterOneArray.map(param => ({ value: param, label: param }))}
+              value={
+                parameterOneArray
+                  .map(param => ({ value: param, label: param }))
+                  .find(option => option.value === selectedParameterOneValue)
+              }
+              onChange={(selectedOption) => setselectedParameterOneValue(selectedOption.value)}
+              placeholder={`Select ${paramOneType !== "Disable Roth" ? paramOneType : "Roth Optimizer Status"}`}
+            />
+          </>
+          {paramTwoType && (
+            <>
+              <label>Select a value for {paramTwoName}&apos;s {paramTwoType}:</label>
+              <Select
+                options={parameterTwoArray.map(param => ({ value: param, label: param }))}
+                value={
+                  parameterTwoArray
+                    .map(param => ({ value: param, label: param }))
+                    .find(option => option.value === selectedParameterTwoValue)
+                }
+                onChange={(selectedOption) => setselectedParameterTwoValue(selectedOption.value)}
+                placeholder={`Select ${paramTwoType}`}
+              />
+            </>
+          )}
           {validationErrors.parameterValue && (
             <p className={styles.error}>{validationErrors.parameterValue}</p>
           )}
@@ -318,7 +382,13 @@ AddChart.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   setIsOpen: PropTypes.func.isRequired,
   setCharts: PropTypes.func.isRequired,
-  hasParameterValue: PropTypes.bool.isRequired
+  hasParameterValue: PropTypes.bool.isRequired,
+  paramOneType: PropTypes.string,
+  paramOneName: PropTypes.string,
+  paramOneSteps: PropTypes.array,
+  paramTwoType: PropTypes.string,
+  paramTwoName: PropTypes.string,
+  paramTwoSteps: PropTypes.array,
 };
 
 export default AddChart;

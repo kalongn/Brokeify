@@ -64,9 +64,17 @@ router.get("/runSimulation", async (req, res) => {
                     name: scenario.name + " | created at " + scenario.dateCreated,
                 }
             });
+
+        const previousRun = await simulationController.read(user.previousSimulation);
+        let simulationType = null;
+        if (previousRun) {
+            simulationType = previousRun.simulationType;
+        }
+
         const data = {
             isRunning: user.isRunningSimulation,
             previousRun: user.previousSimulation,
+            previousRunSimulationType: simulationType,
             scenarios: readyScenarios,
         }
         return res.status(200).send(data);
@@ -348,7 +356,13 @@ router.post("/runSimulation", async (req, res) => {
 
         await simulationController.delete(user.previousSimulation);
         await userController.update(userId, { previousSimulation: simulationId, isRunningSimulation: false });
-        return res.status(200).send(simulationId._id);
+
+        const data = {
+            previousRun: simulationId._id,
+            previousRunSimulationType: simulationId.simulationType,
+        }
+
+        return res.status(200).send(data);
     } catch (error) {
         console.error("Error fetching simulation:", error);
         await userController.update(userId, { isRunningSimulation: false });
