@@ -154,10 +154,11 @@ export async function simulate(
         thisYearGains = 0;
         thisYearTaxes = 0;
 
-		const inflationRate = await sample(
+		let inflationRate = await sample(
             scenario.inflationAssumption,
             scenario.inflationAssumptionDistribution
         );
+        inflationRate = Math.max(-1, inflationRate);    //inflation rate should not be less than -100%
         const inflationeEventDetails = `Year: ${currentYear} - INFLATION - ${
             Math.ceil(inflationRate * 1000) / 1000
         }\n`;

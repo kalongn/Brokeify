@@ -44,7 +44,7 @@ export async function adjustEventsAmount(eventsMap, inflationRate, scenario, cur
                 } else {
                     amountRate = (amountRate) * event.amount;
                 }
-                event.amount = Math.round((event.amount + amountRate) * 100) / 100;
+                event.amount = Math.max(0, Math.round((event.amount + amountRate) * 100) / 100);
             }
             const updateOp = {
                 updateOne: {

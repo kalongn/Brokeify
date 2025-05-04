@@ -165,7 +165,7 @@ export async function updateInvestments(investmentTypes) {
 
             //Subtract expenses
             investment.value -= expenses;
-            investment.value = Math.round((investment.value) * 100) / 100;
+            investment.value = Math.max(0, Math.round((investment.value) * 100) / 100);
             //console.log(`New value of investment is ${investment.value}`)
             updates.push({
                 updateOne: {
