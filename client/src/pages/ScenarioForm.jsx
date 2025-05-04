@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Axios from "axios";
 
 import Layout from "../components/Layout";
+import ProgressBar from "../components/ProgressBar";
 import styles from "./ScenarioForm.module.css";
 
 const ScenarioForm = () => {
@@ -116,6 +117,7 @@ const ScenarioForm = () => {
           Loading...
         </div> :
         <div id={styles.formBackground}>
+          <ProgressBar currProgress={(currentSectionIndex+1)/sections.length} />
           <div id={styles.formSection}>
             <Outlet context={{ childRef, scenarioId, scenarioHash, fetchScenarioHash }} />
             {/* Navigation buttons */}

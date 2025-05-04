@@ -1,0 +1,35 @@
+.barContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.bar, .fill {
+  height: 0.5rem;
+}
+
+.bar {
+  background-color: var(--color-primary-muted);
+  width: 90%;
+}
+.fill {
+  background-color: var(--color-primary);
+  border-right: 4px solid var(--color-white);
+}
+
+.nodeContainer {
+  position: relative;
+  top: 0;
+  left: 10rem;
+}
+.node {
+  height: 1rem;
+  width: 1rem;
+  background-color: var(--color-black);
+}
+.nodeText {
+  font-size: 0.8rem;
+  margin: 0;
+}
