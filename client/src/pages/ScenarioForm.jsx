@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation, useParams } from "react-router-dom";
 import { useRef } from "react";
-import Axios from "axios";
 import Layout from "../components/Layout";
 import styles from "./ScenarioForm.module.css";
 
@@ -28,26 +26,6 @@ const ScenarioForm = () => {
     { path: "roth-strategy", label: "Roth Conversion Strategy & Optimizer" },
   ];
 
-  const [lastEdited, setLastEdited] = useState(null);
-  const [pageNumber, setPageNumber] = useState(0);
-
-
-  useEffect(() => {
-    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
-    Axios.defaults.withCredentials = true;
-
-    Axios.get(`/concurrency/${scenarioId}`)
-      .then((response) => {
-        const data = response.data;
-        console.log("Last edited time:", data);
-        setLastEdited(data);
-      })
-      .catch((error) => {
-        console.error('Error fetching last edit time:', error);
-      });
-  }, [scenarioId, pageNumber]);
-
-
   // Determine the current section index based on the URL
   const currentSectionIndex = sections.findIndex(
     (section) => path.endsWith(section.path)
@@ -56,7 +34,6 @@ const ScenarioForm = () => {
   const handleNextSave = () => {
     if (currentSectionIndex < sections.length - 1) {
       navigate(`/ScenarioForm/${scenarioId}/${sections[currentSectionIndex + 1].path}`);
-      setPageNumber(currentSectionIndex + 1);
     }
     else {
       navigate(`/Home`);
@@ -65,19 +42,12 @@ const ScenarioForm = () => {
 
   const handleBack = () => {
     navigate(`/ScenarioForm/${scenarioId}/${sections[currentSectionIndex - 1].path}`);
-    setPageNumber(currentSectionIndex - 1);
   };
 
   // Next/Save button acts as submission button
   // Must const handleSubmit in child component
   const handleSectionSubmit = async () => {
     // console.log(childRef.current);
-    const optimisticTime = await Axios.get(`/concurrency/${scenarioId}`);
-    if (optimisticTime.data !== lastEdited) {
-      alert("This scenario has been edited by another user. Please refresh the page.");
-      return;
-    }
-
     if (childRef.current) {
       if (!await childRef.current.handleSubmit()) {
         // Scroll to the top to show the error message
