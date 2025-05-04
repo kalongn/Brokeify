@@ -503,7 +503,7 @@ const EventSeriesForm = () => {
       if (id) {
         const currentHash = await Axios.get(`/concurrency/${scenarioId}`);
         if (currentHash.data !== scenarioHash) {
-          alert("This scenario has been modified by you or another tab or another user. Redirecting to the event series page.");
+          alert("This scenario has been modified by you on another tab or another user. Redirecting to the event series page.");
           handleNavigate();
           return;
         }
