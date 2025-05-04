@@ -7,6 +7,7 @@ import {
     appendFileSync,
     fstat,
 } from "fs";
+import mongoose from "mongoose";
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
 import InvestmentController from "../db/controllers/InvestmentController.js";
@@ -61,6 +62,7 @@ import {
 import {
     processExpenses,
     processDiscretionaryExpenses,
+    processAllExpenses
 } from "./simulationHelper/expensesHelper.js";
 export let csvFile, logFile;
 import { invMap } from "./simulationHelper/simulationHelper.js";
@@ -286,27 +288,66 @@ export async function simulate(
         thisYearTaxes = calcTaxReturn.t;
         earlyWithdrawalTaxPaid = calcTaxReturn.e;
         let nonDiscretionaryExpenses = 0;
-        const expensesReturn = await processExpenses(scenario, lastYearTaxes, currentYear);
-        nonDiscretionaryExpenses = expensesReturn.t;
-        thisYearGains += expensesReturn.capitalGain; //if you sell investments
-		curYearIncome += expensesReturn.incomeGain;
-        const expenseBreakdown = expensesReturn.expenseBreakdown;
-		//console.timeEnd("processExpenses")
-		//console.time("processDiscretionaryExpenses")
-        lastYearTaxes = thisYearTaxes;
-        //returns amount not paid, paid, and capital gains
-        let discretionaryAmountIgnored, discretionaryAmountPaid;
-        const processDiscretionaryResult = await processDiscretionaryExpenses(
-            scenario,
-            currentYear
+
+
+
+        // const expensesReturn = await processExpenses(scenario, lastYearTaxes, currentYear);
+        // nonDiscretionaryExpenses = expensesReturn.t;
+        // thisYearGains += expensesReturn.capitalGain; //if you sell investments
+		// curYearIncome += expensesReturn.incomeGain;
+        // const expenseBreakdown = expensesReturn.expenseBreakdown;
+		// //console.timeEnd("processExpenses")
+        // lastYearTaxes = thisYearTaxes;
+        // //returns amount not paid, paid, and capital gains
+        // let discretionaryAmountIgnored, discretionaryAmountPaid;
+        // const processDiscretionaryResult = await processDiscretionaryExpenses(
+        //     scenario,
+        //     currentYear
+        // );
+        // discretionaryAmountIgnored = processDiscretionaryResult.np;
+        // discretionaryAmountPaid = processDiscretionaryResult.p;
+        // thisYearGains += processDiscretionaryResult.capitalGain;
+		// curYearIncome += processDiscretionaryResult.incomeGain;
+        // const totalExpenseBreakdown = [...expenseBreakdown, ...processDiscretionaryResult.expenseBreakdown];
+        // let totalExpenses = nonDiscretionaryExpenses + discretionaryAmountPaid;
+
+
+        investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
+        investmentIds = investmentTypes.flatMap((type) => type.investments);
+        let investmentsArray = await investmentFactory.readMany(investmentIds); // Fetch as Array
+        let allInvestmentsMap = new Map(investmentsArray.map(inv => [inv._id.toString(), inv])); // Create Map
+        let allDbUpdateOps = []
+        allEvents = await eventFactory.readMany(scenario.events);
+        let allEventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
+        const expensesResult = processAllExpenses(
+            scenario, 
+            thisYearTaxes, 
+            currentYear,
+            allEventsMap, // Pass fetched map
+            investmentTypes, // Pass fetched types
+            allInvestmentsMap, // Pass map (will be modified)
+            cashInvestment // Pass cash reference (will be modified)
         );
-        discretionaryAmountIgnored = processDiscretionaryResult.np;
-        discretionaryAmountPaid = processDiscretionaryResult.p;
-        thisYearGains += processDiscretionaryResult.capitalGain;
-		curYearIncome += processDiscretionaryResult.incomeGain;
-        const totalExpenseBreakdown = [...expenseBreakdown, ...processDiscretionaryResult.expenseBreakdown];
-        let totalExpenses = nonDiscretionaryExpenses + discretionaryAmountPaid;
-		//console.timeEnd("processDiscretionaryExpenses")
+        thisYearGains += expensesResult.capitalGainFromExpenses;
+        curYearIncome += expensesResult.incomeGainFromExpenses;
+        allDbUpdateOps.push(...expensesResult.dbUpdateOperations);
+        const totalExpenseBreakdown = [...expensesResult.nonDiscretionaryBreakdown, ...expensesResult.discretionaryBreakdown];
+        let totalExpenses = expensesResult.nonDiscretionaryExpensesPaid + expensesResult.discretionaryExpensesPaid;
+        let discretionaryAmountIgnored = expensesResult.discretionaryExpensesIgnored;
+        let discretionaryAmountPaid = expensesResult.discretionaryExpensesPaid;
+        lastYearTaxes = thisYearTaxes;
+        if (allDbUpdateOps.length > 0) {
+            // console.log(`BULK WRITE (${allDbUpdateOps.length} ops)`); // Optional: logging
+            try {
+                await mongoose.model('Investment').bulkWrite(allDbUpdateOps, { ordered: false }); // Use unordered for potential speedup
+            } catch (err) {
+                 console.error("Bulk write failed:", err);
+                 // Handle error appropriately - maybe fail the simulation run
+                 throw err; // Re-throw or handle
+            }
+        }
+
+
 		//console.time("processInvestmentEvents")
         await processInvestmentEvents(scenario, currentYear);
 		//console.timeEnd("processInvestmentEvents")
