@@ -324,7 +324,8 @@ const EventSeriesForm = () => {
     // Validate distributions
     for (const [field, value] of Object.entries(distributions)) {
       // expectedAnnualChange distribution is specific to income and expense event types
-      if (field === "expectedAnnualChange" && (eventType !== "income" && eventType !== "expense")) {
+      if (field === "expectedAnnualChange" && (eventType === "income" || eventType === "expense")) {
+        validateDistribution(newErrors, field, value, true);
         continue;
       }
       validateDistribution(newErrors, field, value);
