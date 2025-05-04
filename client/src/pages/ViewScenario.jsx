@@ -231,8 +231,8 @@ const ViewScenario = () => {
                   <div>
                     <BiCircle /><span> Sample from Uniform Distribution</span>
                   </div>
-                  Mean : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.mean} </div>
-                  Standard Deviation : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.standardDeviation} </div>
+                  Mean : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.mean) * 100} </div>
+                  Standard Deviation : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.standardDeviation)*100} </div>
                 </>
               ) :
 
@@ -247,8 +247,8 @@ const ViewScenario = () => {
                     <div>
                       <BiSolidCircle /><span> Sample from Uniform Distribution</span>
                     </div>
-                    Lower Bound : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.lowerBound}</div>
-                    Upper Bound : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.upperBound}</div>
+                    Lower Bound : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.lowerBound)*100 }</div>
+                    Upper Bound : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.upperBound)*100}</div>
                   </>
                 ) :
                   (
@@ -262,7 +262,7 @@ const ViewScenario = () => {
                       <div>
                         <BiCircle /><span> Sample from Uniform Distribution</span>
                       </div>
-                      Percentage: <div className={styles.textbox}>{scenarioData.inflationAssumptionDistribution?.value}</div>
+                      Percentage: <div className={styles.textbox}>{parseFloat(scenarioData.inflationAssumptionDistribution?.value)*100}</div>
                     </>
                   )
             }
