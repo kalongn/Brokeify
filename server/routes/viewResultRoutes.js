@@ -247,7 +247,7 @@ router.get("/charts/:simulationId", async (req, res) => {
     try {
         const simulationId = req.params.simulationId;
         console.log("Simulation ID:", simulationId);
-        const simulation = await simulationController.read(simulationId);
+        const simulation = await simulationController.readWithNoPopulate(simulationId);
         const scenarioId = simulation.scenario.toString();
 
         if (!await canView(req.session.user, scenarioId)) {

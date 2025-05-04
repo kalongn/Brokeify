@@ -65,7 +65,8 @@ router.get("/runSimulation", async (req, res) => {
                 }
             });
 
-        const previousRun = await simulationController.read(user.previousSimulation);
+        console.log("Speed Test")
+        const previousRun = await simulationController.readWithNoPopulate(user.previousSimulation);
         let simulationType = null;
         if (previousRun) {
             simulationType = previousRun.simulationType;
