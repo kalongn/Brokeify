@@ -221,9 +221,10 @@ const ScenarioSimulation = () => {
         <h3>To run a simulation, a scenario needs at least the Basic Information section completed.</h3>
         <p>
           <i>
-            If the state income tax of the state of residence is not uploaded, the simulation will ignore state tax rate.
-            There are 4 state tax files that are uploaded by default: New York, New Jersey, Connecticut, and Washington.
-            If filing status is married, you need both MARRIEDJOINT and SINGLE state tax files; otherwise, you need only the SINGLE state tax file.
+            If no state income tax file is uploaded for the state of residence, the simulation will ignore state tax.
+            By default, files for NY, NJ, CT, and WA are provided.
+            For married filers, both MARRIEDJOINT and SINGLE files are required;
+            otherwise, only the SINGLE file is needed.
           </i>
         </p>
         <ErrorMessage errors={errors} />
@@ -244,11 +245,10 @@ const ScenarioSimulation = () => {
                   <br /><strong>Number of Simulations: {previousRunSimulationAmount}</strong>
                   {previousRunParamOne && (
                     <>
-                      <br /><strong>Parameter 1:</strong>
-                      <br />- Type: {previousRunParamOne.paramOneType}
+                      <br /><strong>Parameter 1: {previousRunParamOne.paramOneType}</strong>
                       {previousRunParamOne.paramOneType !== "Disable Roth" && (
                         <>
-                          <br />- Parameter: {previousRunParamOne.paramOne}
+                          <br />- Event: {previousRunParamOne.paramOne}
                           <br />- Lower Bound: {previousRunParamOne.paramOneLower}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
                           <br />- Upper Bound: {previousRunParamOne.paramOneUpper}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
                           <br />- Step Size: {previousRunParamOne.paramOneStep}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
