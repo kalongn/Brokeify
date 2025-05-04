@@ -59,10 +59,14 @@ const EventSeriesForm = () => {
         setMaritalStatus(scenarioData.maritalStatus);
         const eventsData = response.data.events;
         const investmentsData = response.data.investments;
-
+        // Prompt to AI (Amazon Q): If eventsData is the same as the current event, skip it
+        // Had to edit the if-statement conditional
         const eventOptions = eventsData.map((event) => {
+          if (id !== undefined && event.id === id) {
+            return null;
+          }
           return { value: event.id, label: event.name };
-        });
+        }).filter(Boolean);
 
         setEvents(eventOptions);
         setAllInvestments(investmentsData);
@@ -80,7 +84,6 @@ const EventSeriesForm = () => {
             duration: eventData.durationTypeDistribution,
             expectedAnnualChange: eventData.expectedAnnualChangeDistribution || { type: "" },
           }));
-          console.log(eventData.startYearTypeDistribution)
           setEventType(eventData.eventType);
 
           switch (eventData.eventType) {
@@ -205,7 +208,10 @@ const EventSeriesForm = () => {
 
   // InvestmentRow functions are for invest and rebalance types
   const handleInvestmentRowChange = (index, field, value) => {
+    let prevInvestment = typeFormData.investmentRows[index].investment;
+    prevInvestment = prevInvestment !== "" ? prevInvestment : null;
     const updatedInvestmentRows = [...typeFormData.investmentRows];
+
     // Check if name is a number field and parse if so
     let processedValue = value;
     if (field !== "investment" && value.length > 0) {
@@ -216,6 +222,13 @@ const EventSeriesForm = () => {
       [field]: processedValue
     };
     setTypeFormData(prev => ({ ...prev, investmentRows: updatedInvestmentRows }));
+
+    // Prevent duplicate investment selections by removing the current and adding the previous
+    setInvestments(investments.filter(investment => investment.value != value));
+    if (prevInvestment !== null) {
+      prevInvestment = allInvestments.find(investment => investment.id === prevInvestment);
+      setInvestments(prev => [...prev, { value: prevInvestment.id, label: prevInvestment.label + "\n(" + prevInvestment.taxStatus + ")" }]);
+    }
   };
 
   const addInvestmentRow = () => {
