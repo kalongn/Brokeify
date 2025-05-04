@@ -460,7 +460,7 @@ export async function processInvestmentEventsOld(scenario, currentYear) {
     }
     return;
 }
-export async function rebalanceInvestments(scenario, currentYear) {
+export async function rebalanceInvestmentsOld(scenario, currentYear) {
     // Returns capitalGains created
 
     const realYear = new Date().getFullYear();
@@ -573,7 +573,6 @@ export async function rebalanceInvestments(scenario, currentYear) {
 
     return totalCapitalGains;
 }
-
 export function processInvestmentEvents( // Still async due to potential logging lookups
     scenario,
     currentYear,
@@ -772,5 +771,176 @@ export function processInvestmentEvents( // Still async due to potential logging
 
     return {
         dbUpdateOperations: Array.from(finalDbOpsMap.values())
+    };
+}
+
+//Asked Gemini 2.5: "I want to update rebalance events in the same way: 
+// ...keep the same logic as exists and change the updates/inputs"
+export async function rebalanceInvestments( // Keep async for potential logging lookups
+    // Data passed down from simulate:
+    scenario,
+    currentYear,
+    allEventsMap,           
+    allInvestmentsMap,      
+    investmentTypesMap,   
+) {
+    const realYear = new Date().getFullYear();
+    const dbUpdateOperations = []; // Collect DB ops generated here
+    let totalCapitalGains = 0;
+    // Note: totalIncomeGains was declared but unused in original, removed here.
+
+    // Filter for active rebalance events using the passed map
+    const activeRebalanceEvents = [];
+    for (const [eventId, event] of allEventsMap.entries()) {
+        if (event.eventType === "REBALANCE" &&
+            event.startYear <= realYear + currentYear &&
+            event.startYear + event.duration >= realYear + currentYear) {
+            activeRebalanceEvents.push(event);
+        }
+    }
+
+    for (const event of activeRebalanceEvents) {
+        // Get investments involved using the pre-fetched map
+        const investmentIds = event.allocatedInvestments;
+        const investments = investmentIds.map(id => allInvestmentsMap.get(id.toString())).filter(Boolean);
+
+        if (investments.length !== investmentIds.length) {
+             console.warn(`Year ${currentYear}: Rebalance Event ${event.name} references missing investments.`);
+        }
+         if (investments.length === 0) {
+             console.warn(`Year ${currentYear}: Rebalance Event ${event.name} has no valid allocated investments.`);
+             continue;
+         }
+
+        // Calculate total value from current in-memory state
+        let totalValue = 0;
+        const actualValues = investments.map(investment => {
+            totalValue += investment.value;
+            return investment.value;
+        });
+
+        if (totalValue <= 0) {
+            // console.log(`Year ${currentYear}: Skipping Rebalance Event ${event.name} - total value is zero.`);
+            continue;
+        }
+
+        // Determine target values (Original Logic)
+        let proportions = [];
+        // Check if event.percentageAllocations exists and is an array
+        if (Array.isArray(event.percentageAllocations)) {
+            if (event.assetAllocationType === "FIXED") {
+                proportions = event.percentageAllocations.map(p => Array.isArray(p) ? p[0] : p); // Get start%
+            } else if (event.assetAllocationType === "GLIDE") {
+                const ratio = event.duration > 0 ? Math.max(0, Math.min(1, (realYear + currentYear - event.startYear) / event.duration)) : 0;
+                proportions = event.percentageAllocations.map(bounds => Array.isArray(bounds) && bounds.length >= 2 ? (bounds[1] * ratio + bounds[0] * (1 - ratio)) : 0);
+            }
+        } else {
+            console.warn(`Year ${currentYear}: Rebalance Event ${event.name} has invalid 'percentageAllocations'. Skipping.`);
+            continue;
+        }
+        // Validate proportions length
+        if (proportions.length !== investments.length) {
+            console.warn(`Year ${currentYear}: Rebalance Event ${event.name} proportions/investments length mismatch (${proportions.length} vs ${investments.length}). Skipping.`);
+            continue;
+        }
+        // Validate proportion sum (optional but good practice)
+        const propSum = proportions.reduce((sum, p) => sum + p, 0);
+        if (Math.abs(propSum - 1.0) > 0.001) {
+            console.warn(`Year ${currentYear}: Rebalance Event ${event.name} proportions sum to ${propSum}. Check config. Skipping.`);
+            continue; // Skip if proportions don't sum to 1
+        }
+
+
+        const targetValues = proportions.map(p => p * totalValue);
+
+        // --- Sell Phase (Modify In Memory + Collect Ops) ---
+        for (let i = 0; i < investments.length; i++) {
+            const investment = investments[i]; // Reference to object in allInvestmentsMap
+            const targetValue = Math.round(targetValues[i] * 100) / 100;
+            const initialActualValue = actualValues[i]; // Use value from start of rebalance step
+
+            if (targetValue < initialActualValue) {
+                const sellValue = Math.round((initialActualValue - targetValue) * 100) / 100;
+                if (sellValue <= 0) continue;
+
+                let capitalGain = 0;
+                if (initialActualValue > 0) { // Avoid division by zero
+                    capitalGain = (sellValue / initialActualValue) * (initialActualValue - investment.purchasePrice);
+                }
+
+                if (investment.taxStatus === "NON_RETIREMENT") {
+                    totalCapitalGains += capitalGain;
+                }
+
+                // Modify in-memory object
+                investment.value = targetValue;
+                // Adjust purchase price proportionally
+                investment.purchasePrice = Math.max(0, initialActualValue > 0 ? investment.purchasePrice * (investment.value / initialActualValue) : 0);
+
+                // Add DB operation reflecting the *final* state after this step
+                dbUpdateOperations.push({
+                    updateOne: {
+                        filter: { _id: investment._id },
+                        update: { $set: { value: investment.value, purchasePrice: investment.purchasePrice } }
+                    }
+                });
+
+                // Logging
+                if (logFile !== null && investmentTypesMap && invMap) {
+                    const typeId = invMap.get(investment._id.toString());
+                    const investmentType = typeId ? investmentTypesMap.get(typeId) : null;
+                    const typeName = investmentType?.name ?? 'Unknown Type';
+                    const typeDesc = investmentType?.description ?? '';
+                    updateLog(`Year: ${currentYear} - REBALANCE - Selling $${sellValue.toFixed(2)} from ${typeName}: ${typeDesc} (${investment.taxStatus}) due to ${event.name}.\n`);
+                }
+            }
+        }
+
+        // --- Buy Phase (Modify In Memory + Collect Ops) ---
+        for (let i = 0; i < investments.length; i++) {
+            const investment = investments[i]; // Reference to object in allInvestmentsMap (possibly updated by sell phase)
+            const targetValue = Math.round(targetValues[i] * 100) / 100;
+            const currentValue = investment.value; // Current in-memory value
+
+            if (targetValue > currentValue) {
+                const buyValue = Math.round((targetValue - currentValue) * 100) / 100;
+                if (buyValue <= 0) continue;
+
+                // Modify in-memory object
+                investment.value = targetValue;
+                investment.purchasePrice = Math.round((investment.purchasePrice + buyValue) * 100) / 100;
+                // Add DB operation reflecting the *final* state after this step
+                // This operation will overwrite the one from the sell phase if the same investment was sold then bought
+                dbUpdateOperations.push({
+                    updateOne: {
+                        filter: { _id: investment._id },
+                        update: { $set: { value: investment.value , purchasePrice: investment.purchasePrice } }
+                    }
+                });
+
+                // Logging
+                if (logFile !== null && investmentTypesMap && invMap) {
+                    const typeId = invMap.get(investment._id.toString());
+                    const investmentType = typeId ? investmentTypesMap.get(typeId) : null;
+                    const typeName = investmentType?.name ?? 'Unknown Type';
+                    const typeDesc = investmentType?.description ?? '';
+                    updateLog(`Year: ${currentYear} - REBALANCE - Buying $${buyValue.toFixed(2)} for ${typeName}: ${typeDesc} (${investment.taxStatus}) due to ${event.name}.\n`);
+                }
+            }
+        }
+    } // End loop over active rebalance events
+
+    // --- Final Filtering for Overlapping Updates ---
+    const finalDbOpsMap = new Map();
+    dbUpdateOperations.forEach(op => {
+        // Ensure op and necessary nested properties exist before accessing
+        if (op?.updateOne?.filter?._id) {
+            finalDbOpsMap.set(op.updateOne.filter._id.toString(), op);
+        }
+    });
+
+    return {
+        capitalGain: totalCapitalGains,
+        dbUpdateOperations: Array.from(finalDbOpsMap.values()) // Return the filtered list of ops
     };
 }

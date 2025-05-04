@@ -55,6 +55,7 @@ import {
     performRothConversion,
     processInvestmentEventsOld,
     processInvestmentEvents,
+    rebalanceInvestmentsOld,
     rebalanceInvestments
 } from "./simulationHelper/investmentHelper.js";
 import { 
@@ -140,7 +141,6 @@ export async function simulate(
 
     await setupMap(scenario._id);
     let cumulativeInflation = 0;
-    let lastYearTaxes = 0;
     let thisYearTaxes = 0;
     let lastYearGains = 0;
     let thisYearGains = 0;
@@ -315,7 +315,6 @@ export async function simulate(
         let totalExpenses = expensesResult.nonDiscretionaryExpensesPaid + expensesResult.discretionaryExpensesPaid;
         let discretionaryAmountIgnored = expensesResult.discretionaryExpensesIgnored;
         let discretionaryAmountPaid = expensesResult.discretionaryExpensesPaid;
-        lastYearTaxes = thisYearTaxes;
 
 
 
@@ -327,7 +326,20 @@ export async function simulate(
             investmentTypesMap // Pass map of types
         );
         allDbUpdateOps.push(...investmentEventsResult.dbUpdateOperations);
-    
+        
+
+
+        const rebalanceResult = await rebalanceInvestments( // await if logging awaits
+            scenario, 
+            currentYear,
+            allEventsMap,
+            allInvestmentsMap, 
+            investmentTypesMap 
+        );
+        thisYearGains += rebalanceResult.capitalGain; // Add calculated gains
+        allDbUpdateOps.push(...rebalanceResult.dbUpdateOperations); 
+
+
         const finalDbOpsMap = new Map();
         allDbUpdateOps.forEach(op => {
             if (op?.updateOne?.filter?._id) { // Basic check for valid operation structure
@@ -346,9 +358,9 @@ export async function simulate(
             }
         }
 
-        thisYearGains += await rebalanceInvestments(scenario, currentYear);
-		//console.timeEnd("rebalanceInvestments")
-		//console.time("results")
+        // thisYearGains += await rebalanceInvestmentsOld(scenario, currentYear);
+
+
         lastYearGains = thisYearGains;
         thisYearGains = 0;
 
@@ -399,7 +411,7 @@ export async function simulate(
             expenseByEvent: totalExpenseBreakdown,
             totalIncome: reportedIncome,
             totalExpense: totalExpenses,
-            totalTax: lastYearTaxes, //actually is this year's taxes, but got updated
+            totalTax: thisYearTaxes, //actually is this year's taxes, but got updated
             earlyWithdrawalTax: earlyWithdrawalTaxPaid,
             totalDiscretionaryExpenses: discretionaryExpensesPercentage,
             isViolated: boolIsViolated,
