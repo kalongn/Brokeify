@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { FaEdit } from "react-icons/fa";
 import ErrorMessage from "../../components/ErrorMessage";
@@ -14,6 +14,8 @@ const EventSeries = () => {
 
   const [events, setEvents] = useState([]);
   const [errors, setErrors] = useState({});
+
+  const { scenarioHash, fetchScenarioHash } = useOutletContext();
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -40,6 +42,12 @@ const EventSeries = () => {
       return;
     }
     try {
+      const currentHash = await Axios.get(`/concurrency/${scenarioId}`);
+      if (currentHash.data !== scenarioHash) {
+        alert("The scenario has been modified by another user. Please refresh the page.");
+        return;
+      }
+
       const response = await Axios.delete(`/event/${scenarioId}/${id}`);
       console.log(response.data);
       const updatedInvestmentTypes = events.filter((event) => event.id !== id);
@@ -51,6 +59,8 @@ const EventSeries = () => {
         setErrors({ deleteEventSeries: "There was an error deleting the event series. Please try again." });
       }
       console.error("Error deleting event series:", error);
+    } finally {
+      await fetchScenarioHash();
     }
   }
 

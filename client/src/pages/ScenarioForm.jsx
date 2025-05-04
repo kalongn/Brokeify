@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Outlet, useNavigate, useLocation, useParams } from "react-router-dom";
 import { useRef } from "react";
 import Axios from "axios";
@@ -29,51 +29,63 @@ const ScenarioForm = () => {
     { path: "roth-strategy", label: "Roth Conversion Strategy & Optimizer" },
   ];
 
-  const [pageNumber, setPageNumber] = useState(0);
   const [scenarioHash, setScenarioHash] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set the base URL for Axios
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
     Axios.defaults.withCredentials = true;
+  }, []);
 
-    Axios.get(`/concurrency/${scenarioId}`).then((response) => {
-      setLoading(false);
+  const fetchScenarioHash = useCallback(async () => {
+    try {
+      const response = await Axios.get(`/concurrency/${scenarioId}`);
       console.log(response.data);
       setScenarioHash(response.data);
-    }).catch((error) => {
-      console.error('Error fetching scenario name:', error);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching scenario hash:', error);
+      alert("Error fetching scenario hash. Please try again.");
+      return null;
+    }
+  }, [scenarioId]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchScenarioHash().then((hash) => {
+      if (hash) {
+        setLoading(false);
+      }
     });
-  }, [scenarioId, pageNumber]);
+  }, [scenarioId, fetchScenarioHash]);
 
   // Determine the current section index based on the URL
   const currentSectionIndex = sections.findIndex(
     (section) => path.endsWith(section.path)
   );
 
-  const handleNextSave = () => {
+  const handleNextSave = async () => {
+    await fetchScenarioHash();
     if (currentSectionIndex < sections.length - 1) {
       navigate(`/ScenarioForm/${scenarioId}/${sections[currentSectionIndex + 1].path}`);
-      setPageNumber(currentSectionIndex + 1);
     }
     else {
       navigate(`/Home`);
     }
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
+    await fetchScenarioHash();
     navigate(`/ScenarioForm/${scenarioId}/${sections[currentSectionIndex - 1].path}`);
-    setPageNumber(currentSectionIndex - 1);
   };
 
   // Next/Save button acts as submission button
   // Must const handleSubmit in child component
   const handleSectionSubmit = async () => {
-    // console.log(childRef.current);
     try {
       const upToDateHash = await Axios.get(`/concurrency/${scenarioId}`);
       if (upToDateHash.data !== scenarioHash) {
+        setScenarioHash(upToDateHash.data);
         alert("This scenario has been modified by another user. Please refresh the page.");
         return;
       }
@@ -101,7 +113,7 @@ const ScenarioForm = () => {
         </div> :
         <div id={styles.formBackground}>
           <div id={styles.formSection}>
-            <Outlet context={{ childRef, scenarioId }} />
+            <Outlet context={{ childRef, scenarioId, scenarioHash, fetchScenarioHash }} />
             {/* Navigation buttons */}
             {/* Only appears if not creating a new investment type or event series */}
             {/* 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { FaEdit } from "react-icons/fa";
 import ErrorMessage from "../../components/ErrorMessage";
@@ -13,6 +13,8 @@ const InvestmentTypes = () => {
   const { scenarioId } = useParams();
   const [investmentTypes, setInvestmentTypes] = useState([]);
   const [errors, setErrors] = useState({});
+
+  const { scenarioHash, fetchScenarioHash } = useOutletContext();
 
   useEffect(() => {
 
@@ -40,7 +42,14 @@ const InvestmentTypes = () => {
     if (!confirm("Are you sure you want to delete this investment type?")) {
       return;
     }
+
     try {
+      const currentHash = await Axios.get(`/concurrency/${scenarioId}`);
+      if (currentHash.data !== scenarioHash) {
+        alert("The scenario has been modified by another user. Please refresh the page.");
+        return;
+      }
+
       const response = await Axios.delete(`/investmentType/${scenarioId}/${id}`);
       console.log(response.data);
       const updatedInvestmentTypes = investmentTypes.filter((invType) => invType.id !== id);
@@ -53,6 +62,8 @@ const InvestmentTypes = () => {
         setErrors({ investmentType: "There was an error deleting the investment type. Please try again." });
       }
       console.error('Error deleting investment type:', error);
+    } finally {
+      await fetchScenarioHash();
     }
   }
 
