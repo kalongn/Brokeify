@@ -1,12 +1,14 @@
 import express from 'express';
-import { Event } from '../db/models/Event.js';
 
 import ScenarioController from '../db/controllers/ScenarioController.js';
 import UserController from '../db/controllers/UserController.js';
+import EventController from '../db/controllers/EventController.js';
 import { canView, distributionToString, stateAbbreviationToString, taxStatusToFrontend } from './helper.js';
+
 const router = express.Router();
 const scenarioController = new ScenarioController();
 const userController = new UserController();
+const eventController = new EventController();
 
 router.get("/scenario/:scenarioId", async (req, res) => {
     if (req.session.user) {
@@ -154,10 +156,9 @@ router.get("/scenario-detail/:scenarioId", async (req, res) => {
 
             const events = []
             const eventIdMap = {};
-            
-            for (let event of scenario.events) {
-                const eventDistribution = await Event.findById(event._id).populate("expectedAnnualChangeDistribution");
 
+            for (let event of scenario.events) {
+                const eventDistribution = await eventController.readWithPopulate(event._id);
                 const eventStructure = {
                     name: event.name,
                     type: event.eventType,
