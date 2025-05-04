@@ -19,7 +19,11 @@ const ScenarioSimulation = () => {
   const [errors, setErrors] = useState({});
   const [isRunning, setIsRunning] = useState(false);
   const [previousRun, setPreviousRun] = useState(null);
+  const [previousRunScenarioName, setPreviousRunScenarioName] = useState(null);
+  const [previousRunSimulationAmount, setPreviousRunSimulationAmount] = useState(null);
   const [previousRunSimulationType, setPreviousRunSimulationType] = useState(null);
+  const [previousRunParamOne, setPreviousRunParamOne] = useState(null);
+  const [previousRunParamTwo, setPreviousRunParamTwo] = useState(null);
 
   // Co-pilot (Gemini 2.5 pro) assistance:
   // Idea: only user to only run 1 simulation at a time, need a setInterval to check if the simulation is still running
@@ -43,10 +47,34 @@ const ScenarioSimulation = () => {
       setScenarios(data.scenarios);
       setPreviousRun(data.previousRun);
       setPreviousRunSimulationType(data.previousRunSimulationType);
+      setPreviousRunSimulationAmount(data.previousRunSimulationAmount);
+      setPreviousRunScenarioName(data.previousRunScenarioName);
+      if (data.previousRunParamOne) {
+        setPreviousRunParamOne({
+          paramOne: data.previousRunParamOne,
+          paramOneType: data.previousRunParamOneType,
+          paramOneLower: data.previousRunParamOneLower,
+          paramOneUpper: data.previousRunParamOneUpper,
+          paramOneStep: data.previousRunParamOneStep,
+        });
+      }
+      if (data.previousRunParamTwo) {
+        setPreviousRunParamTwo({
+          paramTwo: data.previousRunParamTwo,
+          paramTwoType: data.previousRunParamTwoType,
+          paramTwoLower: data.previousRunParamTwoLower,
+          paramTwoUpper: data.previousRunParamTwoUpper,
+          paramTwoStep: data.previousRunParamTwoStep,
+        });
+      }
       setIsRunning(data.isRunning);
 
       if (data.isRunning) {
         setPreviousRun(null);
+        setPreviousRunScenarioName(null);
+        setPreviousRunSimulationAmount(null);
+        setPreviousRunParamOne(null);
+        setPreviousRunParamTwo(null);
         setPreviousRunSimulationType(null);
 
         // Check if button ref is available and start Ladda
@@ -102,6 +130,11 @@ const ScenarioSimulation = () => {
     };
   }, []);
 
+  const simulationTypeMapping = {
+    "NORMAL": "Regular Simulation",
+    "1D": "1D-Exploration Simulation",
+    "2D": "2D-Exploration Simulation"
+  }
 
   const handleRunSimulation = async () => {
     if (!simulationInput.selectedScenario) {
@@ -136,7 +169,7 @@ const ScenarioSimulation = () => {
         exploration = null;
       }
 
-      const response = await Axios.post('/runSimulation', {},
+      await Axios.post('/runSimulation', {},
         {
           params: {
             scenarioId: selectedScenarioId,
@@ -146,10 +179,30 @@ const ScenarioSimulation = () => {
         }
       );
 
+      const response = await Axios.get('/runSimulation');
       const data = response.data;
       setPreviousRun(data.previousRun);
       setPreviousRunSimulationType(data.previousRunSimulationType);
-
+      setPreviousRunSimulationAmount(data.previousRunSimulationAmount);
+      setPreviousRunScenarioName(data.previousRunScenarioName);
+      if (data.previousRunParamOne) {
+        setPreviousRunParamOne({
+          paramOne: data.previousRunParamOne,
+          paramOneType: data.previousRunParamOneType,
+          paramOneLower: data.previousRunParamOneLower,
+          paramOneUpper: data.previousRunParamOneUpper,
+          paramOneStep: data.previousRunParamOneStep,
+        });
+      }
+      if (data.previousRunParamTwo) {
+        setPreviousRunParamTwo({
+          paramTwo: data.previousRunParamTwo,
+          paramTwoType: data.previousRunParamTwoType,
+          paramTwoLower: data.previousRunParamTwoLower,
+          paramTwoUpper: data.previousRunParamTwoUpper,
+          paramTwoStep: data.previousRunParamTwoStep,
+        });
+      }
     } catch (error) {
       setErrors({ simulation: 'An error occurred during the simulation' });
       console.error('Simulation error:', error);
@@ -184,7 +237,45 @@ const ScenarioSimulation = () => {
           <div className={styles.section}>
             <h2>Most Recent Simulation Results</h2>
             <p className={styles.disclaimer}>
-              Most recent run stats
+              {previousRun !== null ? (
+                <span>
+                  <strong>Scenario: {previousRunScenarioName}</strong>
+                  <br /><strong>Simulation Type: {simulationTypeMapping[previousRunSimulationType]}</strong>
+                  <br /><strong>Number of Simulations: {previousRunSimulationAmount}</strong>
+                  {previousRunParamOne && (
+                    <>
+                      <br /><strong>Parameter 1:</strong>
+                      <br />- Type: {previousRunParamOne.paramOneType}
+                      {previousRunParamOne.paramOneType !== "Disable Roth" && (
+                        <>
+                          <br />- Parameter: {previousRunParamOne.paramOne}
+                          <br />- Lower Bound: {previousRunParamOne.paramOneLower}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
+                          <br />- Upper Bound: {previousRunParamOne.paramOneUpper}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
+                          <br />- Step Size: {previousRunParamOne.paramOneStep}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
+                        </>
+                      )}
+                    </>
+                  )}
+                  {previousRunParamTwo && (
+                    <>
+                      <br /><strong>Parameter 2:</strong>
+                      <br />- Type: {previousRunParamTwo.paramTwoType}
+                      {previousRunParamTwo.paramTwoType !== "Disable Roth" && (
+                        <>
+                          <br />- Parameter: {previousRunParamTwo.paramTwo}
+                          <br />- Lower Bound: {previousRunParamTwo.paramTwoLower}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
+                          <br />- Upper Bound: {previousRunParamTwo.paramTwoUpper}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
+                          <br />- Step Size: {previousRunParamTwo.paramTwoStep}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
+                        </>
+                      )}
+                    </>
+                  )}
+                </span>
+              ) : (
+                <span>
+                  No simulation results available. Please run a simulation to see the results.
+                </span>
+              )}
             </p>
             {isRunning ? (
               <p>A simulation is running... Please wait.</p>
