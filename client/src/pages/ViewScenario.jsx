@@ -217,7 +217,7 @@ const ViewScenario = () => {
 
             {/**Inflation and Contribution Limits Section */}
             <h2>Inflation & Contribution Limits</h2>
-            <p className={styles.question}>Inflation Assumption</p>
+            <p className={styles.question}>Inflation Assumption Percentage</p>
 
             {
               scenarioData.inflationAssumptionDistribution?.distributionType === "NORMAL_PERCENTAGE" ? (
@@ -268,9 +268,8 @@ const ViewScenario = () => {
             }
 
 
-            <p className={styles.question}>Retirement Accounts Initial Limit on Annual Contributions</p>
+            <p className={styles.question}> After-Tax Retirement Accounts Initial Limit on Annual Contributions</p>
 
-            <p className={styles.question}>After-Tax</p>
             <div className={styles.textbox}>{scenarioData.annualPostTaxContributionLimit}</div>
 
 
