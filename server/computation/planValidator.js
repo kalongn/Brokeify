@@ -418,7 +418,7 @@ export async function run(
         }
         //modify the scenario according to the step
 
-        if(explorationArray[0].type==="ROTH_BOOLEAN"){
+        if(explorationArray[j].type==="ROTH_BOOLEAN"){
             //0 = off, 1 = on
             trueValues.push(step)
             if(step===-2){  // Roth -> -1 is roth, -2 not roth
@@ -437,7 +437,7 @@ export async function run(
                 
             }
         }
-        else if(explorationArray[0].type==="START_EVENT"){
+        else if(explorationArray[j].type==="START_EVENT"){
             trueValues.push(step+explorationArray[j].lowerBound)
             const diff = step;  //distance from lowerBound
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
@@ -451,7 +451,7 @@ export async function run(
             }
 
         }
-        else if(explorationArray[0].type==="DURATION_EVENT"){
+        else if(explorationArray[j].type==="DURATION_EVENT"){
             trueValues.push(step+explorationArray[j].lowerBound)
             const diff = step;  //distance from lowerBound
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
@@ -464,7 +464,7 @@ export async function run(
                 }
             }
         }
-        else if(explorationArray[0].type==="EVENT_AMOUNT"){
+        else if(explorationArray[j].type==="EVENT_AMOUNT"){
             trueValues.push(step+explorationArray[j].lowerBound)
             const diff = step;  //distance from lowerBound
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
@@ -475,7 +475,7 @@ export async function run(
                 }
             }
         }
-        else if(explorationArray[0].type==="INVEST_PERCENTAGE"){
+        else if(explorationArray[j].type==="INVEST_PERCENTAGE"){
             const firstInitial = ((step)+explorationArray[j].lowerBound)/100;  //distance from lowerBound
             trueValues.push(firstInitial)
             const secondInitial = 1-firstInitial;
