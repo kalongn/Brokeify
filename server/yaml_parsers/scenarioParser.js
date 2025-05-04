@@ -28,7 +28,6 @@ async function createDistribution(dist, returnAmtOrPct, idMap) {
     if (returnAmtOrPct) {
         dist.type += returnAmtOrPct + "";
     }
-    console.log(dist.type)
     const distributionMap = new Map([
         ["fixed", "FIXED_AMOUNT"],
         ["uniform", "UNIFORM_AMOUNT"],
