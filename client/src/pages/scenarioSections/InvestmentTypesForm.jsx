@@ -118,7 +118,7 @@ const InvestmentTypesForm = () => {
       validateRequired(newErrors, field, value);
     }
 
-    validateDistribution(newErrors, "expectedAnnualReturn", distributions.expectedAnnualReturn);
+    validateDistribution(newErrors, "expectedAnnualReturn", distributions.expectedAnnualReturn, true);
     validateDistribution(newErrors, "expectedDividendsInterest", distributions.expectedDividendsInterest);
 
     if (formData.expenseRatio !== null && formData.expenseRatio > 100) {

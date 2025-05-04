@@ -64,8 +64,6 @@ export const validateRequired = (newErrors, field, value) => {
 }
 
 export const validateDistribution = (newErrors, field, dist, canNegative = false) => {
-  console.log(canNegative);
-  console.log("percentage", dist.isPercentage);
   // Check if a type of distribution has been selected
   const type = dist.type;
   const name = field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1');
