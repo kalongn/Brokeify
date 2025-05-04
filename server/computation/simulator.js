@@ -482,8 +482,11 @@ export async function simulate(
         currentYear++;
 		//console.timeEnd("loop")
     } // --- End While Loop ---
-
+    await resultFactory.update(results._id, {
+		yearlyResults: results.yearlyResults,
+	});
 	// Final update to the results document with all yearly results
     console.log("Simulation complete.");
+    console.log(results);
     return results;
 }

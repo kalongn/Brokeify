@@ -506,6 +506,7 @@ export async function run(
         trueValues[1],
         seed,
     );
+    console.log(simulationResult)
     await scenarioFactory.deleteNotDistributions(copiedScenario._id);
     for(const i in newDists){
         if(newDists[i]!==undefined){
@@ -731,85 +732,66 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
     if (1 > parallel) {
         parallel = 2; // have a minimum of 2
     }
+    parallel = Math.min(promiseParameters.length, parallel);
 
-    const resultsAccumulator = []; // To store results as they come in
-    const activeWorkers = []; // To track active worker promises
 
-    console.log(`Running simulations with up to ${parallel} parallel workers...`);
-
-    for (let i = 0; i < promiseParameters.length; i++) {
-        const data = promiseParameters[i];
-        const workerPromise = runInWorker({
-                scenarioID: data.scenarioID,
-                fedIncome: data.fedIncome,
-                capitalGains: data.capitalGains,
-                fedDeduction: data.fedDeduction,
-                stateTax: data.stateTax,
-                rmdTable: data.rmdTable,
-                csvFile: data.csvFile,
-                logFile: data.logFile,
-                explorationArray: data.explorationArray,
-                step1: data.step1,
-                step2: data.step2,
-                seed: data.seed,
-            })
-            .then(result => {
-                if (result.error) {
-                    // Propagate error to be caught by Promise.all later
-                    throw new Error(result.error);
-                }
-                resultsAccumulator.push(result);
-                // Find and remove the completed promise from activeWorkers
-                const index = activeWorkers.findIndex(p => p === wrappedPromise);
-                if (index > -1) {
-                    activeWorkers.splice(index, 1);
-                }
-                //console.log(`Worker ${i+1} finished. Active: ${activeWorkers.length}`);
-                return result; // Pass the result along if needed elsewhere
-            })
-            .catch(error => {
-                // Handle potential errors during worker execution or result processing
-                console.error(`Error in worker for simulation ${i+1}:`, error);
-                // Ensure promise is removed even on error
-                const index = activeWorkers.findIndex(p => p === wrappedPromise);
-                if (index > -1) {
-                    activeWorkers.splice(index, 1);
-                }
-                throw error; // Re-throw the error to be caught by Promise.all
-            });
-
-        // Wrap the promise to easily find it later for removal
-        const wrappedPromise = workerPromise;
-        activeWorkers.push(wrappedPromise);
-        //console.log(`Worker ${i+1} started. Active: ${activeWorkers.length}`);
-
-        // If we've reached the parallel limit, wait for at least one worker to finish
-        if (activeWorkers.length >= parallel) {
-            //console.log(`Reached parallel limit (${parallel}). Waiting for a worker to finish...`);
-            try {
-                await Promise.race(activeWorkers);
-            } catch (error) {
-                // Error already logged in the .catch block,
-                // Promise.race rejects if any promise in the iterable rejects.
-                // We continue the loop as the specific promise is removed in its catch handler.
-                // console.log("Caught error via Promise.race, continuing...");
-            }
+    const tasksPerWorker = Math.ceil(promiseParameters.length / parallel);
+    const taskBatches = [];
+    for (let i = 0; i < parallel; i++) {
+        const start = i * tasksPerWorker;
+        const end = start + tasksPerWorker;
+        const batch = promiseParameters.slice(start, end);
+        if (batch.length > 0) {
+            taskBatches.push(batch);
         }
     }
+    console.log(taskBatches)
+    parallel = taskBatches.length;
 
-    // Wait for all remaining workers to complete
-    console.log("All simulations dispatched. Waiting for remaining workers to finish...");
-    try {
-        await Promise.all(activeWorkers); // Wait for any remaining promises
-    } catch(error) {
-         console.error("Error occurred while waiting for final workers:", error);
-         // Decide how to handle final errors, maybe throw or just log.
-         // Note: Individual errors were likely already logged by the .catch handler.
+
+    console.log(`Dividing ${promiseParameters.length} tasks into ${parallel} batches for parallel execution.`);
+
+    const allWorkerPromises = [];
+
+    for (let i = 0; i < parallel; i++) {
+        const batch = taskBatches[i];
+        const workerIndex = i;
+
+        const workerPromise = runInWorker({
+            tasksBatch: batch,      
+            workerIndex: workerIndex 
+        })
+        .then(batchResults => {
+            // Worker should return an array of results, one per task in its batch
+            if (!Array.isArray(batchResults)) {
+                // Handle case where worker returned an error object instead of array
+                if (batchResults && batchResults.error) {
+                    throw new Error(`Worker ${workerIndex} execution failed: ${batchResults.error}`);
+                } else {
+                    throw new Error(`Worker ${workerIndex} returned invalid data type: ${typeof batchResults}`);
+                }
+            }
+            console.log(`Worker ${workerIndex} finished processing batch of ${batch.length} tasks.`);
+            return batchResults; // Return the array of results from this batch
+        })
+        .catch(error => {
+            console.error(`Error processing batch in worker ${workerIndex}:`, error);
+            // Return an array containing error placeholders for this batch's results
+            // Or re-throw if you want Promise.all to reject immediately
+            return batch.map(task => ({ error: `Worker failed: ${error.message}` })); // Match result structure potentially
+        });
+        allWorkerPromises.push(workerPromise);
     }
 
-
+    // Wait for all workers (batches) to complete
+    console.log("All workers launched. Waiting for all batches to complete...");
+    const resultsFromAllBatches = await Promise.all(allWorkerPromises);
     console.log("All workers finished.");
 
+    // Flatten the results from all batches into a single array
+    const resultsAccumulator = resultsFromAllBatches.flat();
+    console.log(`Collected ${resultsAccumulator.length} total results from ${parallel} workers.`);
+    console.log(resultsAccumulator)
     // Update compiled results with the accumulated results
     compiledResults.results = resultsAccumulator; // Assign the collected results
 
