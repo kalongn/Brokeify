@@ -338,19 +338,6 @@ const ViewScenario = () => {
               Specify the order in which investments should be transferred from pre-tax to after-tax retirement accounts when a conversion is triggered.
             </p>
 
-            {orderedRothStrategy?.map((strategy, index) => (
-              <div key={index} className={styles.draggableItem}>
-              <CgMenuGridO size={20} className={styles.icon} />
-              <div className={styles.draggableText}>
-                <span className={styles.draggableItemText}>{strategy.name}</span>
-                <div>
-                <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
-                </div>
-              </div>
-             
-            </div>
-            ))}
-
             <p className={styles.question}>Roth Conversion Optimizer</p>
             {(scenarioData.startYearRothOptimizer !== undefined) ? (
               <div>
@@ -367,12 +354,28 @@ const ViewScenario = () => {
                     <div className={styles.textbox}>{scenarioData.endYearRothOptimizer}</div>
                   </div>
                 </div>
+                <p className={styles.question}>Roth Conversion Strategy</p>
+                 {/* Roth Listing - only displayed when roth is on**/}
+                 {orderedRothStrategy?.map((strategy, index) => (
+                  <div key={index} className={styles.draggableItem}>
+                  <CgMenuGridO size={20} className={styles.icon} />
+                  <div className={styles.draggableText}>
+                    <span className={styles.draggableItemText}>{strategy.name}</span>
+                    <div>
+                    <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
+                    </div>
+                  </div>
+                
+                </div>
+                ))}
 
               </div>
             ) : (
-              <div className={styles.icon}>
-                <BsToggleOff size={30} /><p className={styles.iconText}>Disabled</p>
-              </div>
+
+              <div className ={styles.roth}>
+                  <BsToggleOff size={30}  className={styles.icon}/><p className={styles.rothText}>Disabled</p>
+                </div>
+           
             )}
           </div>
         }
