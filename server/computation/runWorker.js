@@ -21,10 +21,10 @@ async function main() {
         );
         
         parentPort.postMessage(JSON.parse(JSON.stringify(result)));
-        await mongoose.disconnect();
+        mongoose.disconnect();
     } catch (err) {
         parentPort.postMessage({ error: err.message });
     }
 }
   
-await main();
+main();

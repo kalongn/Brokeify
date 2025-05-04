@@ -727,7 +727,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
 
     //Figure out how many worker threads to run at once:
     const cpuCount = os.cpus().length;
-    let parallel = cpuCount - 2;
+    let parallel = cpuCount - 4;
     if (1 > parallel) {
         parallel = 2; // have a minimum of 2
     }

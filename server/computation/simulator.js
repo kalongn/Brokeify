@@ -469,8 +469,6 @@ export async function simulate(
                 }
 
 
-                // Update scenario filing status in DB
-                await scenarioFactory.update(scenario._id, { filingStatus: "SINGLE" });
                 // Update scenario object in memory for the *next* iteration (will be re-read anyway)
                 scenario.filingStatus = "SINGLE";
             }
@@ -486,9 +484,6 @@ export async function simulate(
     } // --- End While Loop ---
 
 	// Final update to the results document with all yearly results
-    await resultFactory.update(results._id, {
-		yearlyResults: results.yearlyResults,
-	});
     console.log("Simulation complete.");
     return results;
 }
