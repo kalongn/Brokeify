@@ -506,7 +506,6 @@ export async function run(
         trueValues[1],
         seed,
     );
-    console.log(simulationResult)
     await scenarioFactory.deleteNotDistributions(copiedScenario._id);
     for(const i in newDists){
         if(newDists[i]!==undefined){
@@ -745,7 +744,6 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
             taskBatches.push(batch);
         }
     }
-    console.log(taskBatches)
     parallel = taskBatches.length;
 
 
@@ -791,7 +789,6 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
     // Flatten the results from all batches into a single array
     const resultsAccumulator = resultsFromAllBatches.flat();
     console.log(`Collected ${resultsAccumulator.length} total results from ${parallel} workers.`);
-    console.log(resultsAccumulator)
     // Update compiled results with the accumulated results
     compiledResults.results = resultsAccumulator; // Assign the collected results
 

@@ -487,6 +487,5 @@ export async function simulate(
 	});
 	// Final update to the results document with all yearly results
     console.log("Simulation complete.");
-    console.log(results);
     return results;
 }
