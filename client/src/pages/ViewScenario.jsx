@@ -283,11 +283,14 @@ const ViewScenario = () => {
             <div className={styles.listBox}>
               {orderedSpendingStrategy.map((strategy, index) => (
                 <div key={index} className={styles.draggableItem}>
-                  <div className={styles.icon}>
-                    <CgMenuGridO size={20} />
+                  <CgMenuGridO size={20} className={styles.icon} />
+                  <div className={styles.draggableText}>
                     <span className={styles.draggableItemText}>{strategy.name}</span>
-                  </div>
+                    <p className={ styles.lightText}>
+                    ${strategy.amount} – {strategy.percentage} -  {strategy.taxability}
+                  </p>
                 </div>
+              </div>
               ))}
             </div>
 
@@ -300,18 +303,17 @@ const ViewScenario = () => {
             <div className={styles.listBox}>
               {orderedExpenseWithdrawalStrategy.map((strategy, index) => (
                 <div key={index} className={styles.draggableItem}>
-                  <div className={styles.icon}>
-                    <CgMenuGridO size={20} />
-                    <p className={styles.draggableItemText}>{strategy.name}</p>
+                  <CgMenuGridO size={20} className={styles.icon} />
+                  <div className={styles.draggableText}>
+                    <span className={styles.draggableItemText}>{strategy.name}</span>
+                    <div>
+                    <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
+                    </div>
                   </div>
-                  <p className={styles.lightText}> Value: {strategy.value} </p>
-                  <p className={styles.lightText}> Tax Status: {strategy.taxStatus} </p>
-
-
+                 
                 </div>
               ))}
             </div>
-
 
             {/**RMD Stategy Section */}
             <h2>Required Minimum Distribution Strategy</h2>
@@ -321,14 +323,13 @@ const ViewScenario = () => {
 
             {orderedRMDStrategy?.map((strategy, index) => (
               <div key={index} className={styles.draggableItem}>
-                <div className={styles.icon}>
-                  <CgMenuGridO size={20} />
-                  <p className={styles.draggableItemText}>{strategy.name}</p>
+                <CgMenuGridO size={20} className={styles.icon} />
+                <div className={styles.draggableText}>
+                  <span className={styles.draggableItemText}>{strategy.name}</span>
+                    <div>
+                    <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
+                    </div>
                 </div>
-                <p className={styles.lightText}> Value: {strategy.value} </p>
-                <p className={styles.lightText}> Tax Status: {strategy.taxStatus} </p>
-
-
               </div>
             ))}
 
@@ -340,21 +341,22 @@ const ViewScenario = () => {
 
             {orderedRothStrategy?.map((strategy, index) => (
               <div key={index} className={styles.draggableItem}>
-                <div className={styles.icon}>
-                  <CgMenuGridO size={20} />
-                  <p className={styles.draggableItemText}>{strategy.name}</p>
+              <CgMenuGridO size={20} className={styles.icon} />
+              <div className={styles.draggableText}>
+                <span className={styles.draggableItemText}>{strategy.name}</span>
+                <div>
+                <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
                 </div>
-                <p className={styles.lightText}> Value: {strategy.value} </p>
-                <p className={styles.lightText}> Tax Status: {strategy.taxStatus} </p>
-
               </div>
+             
+            </div>
             ))}
 
             <p className={styles.question}>Roth Conversion Optimizer</p>
             {(scenarioData.startYearRothOptimizer !== undefined) ? (
               <div>
-                <div className={styles.icon}>
-                  <BsToggleOn size={30} /><p className={styles.iconText}>Enabled</p>
+                <div className ={styles.roth}>
+                  <BsToggleOn size={30}  className={styles.icon}/><p className={styles.rothText}>Enabled</p>
                 </div>
                 <div className={styles.columns}>
                   <div className={styles.columnsp1}>

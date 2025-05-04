@@ -78,24 +78,37 @@
     color: #333;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
 
 
-}
-
-.icon {
+  }
+  
+  .iconWrapper {
     display: flex;
     align-items: center;
-    align-self: start;
-
-
-}
-
-.draggableItemText {
-    margin: 0rem;
-    margin-left: 1rem;
-}
-
+    justify-content: center;
+    padding-right: 1rem;
+  }
+  
+  .icon {
+    justify-content: center;
+    margin-right: 1rem;
+  }
+  .roth{
+    display: flex;
+    align-items: center;
+  }
+  .draggableContent {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .draggableItemText {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-black);
+    margin-bottom: 0.25rem;
+  }
 
 .lightText {
     color: var(--color-silver);
@@ -140,8 +153,7 @@
 
 
 
-.iconText {
+.rothText {
     margin: 0rem;
     padding: 0rem;
-    margin-left: 1rem;
 }

@@ -90,10 +90,7 @@ const ModalTwoD = ({ isOpen, setIsOpen, setCharts }) => {
           onClick={() => handleChartClick('surface')}
         >
           <h3>Surface Plot</h3>
-<<<<<<< HEAD
-=======
           <p>Selected Quantity as a Function of Parameter Values</p>
->>>>>>> a9bcddf1779d95541559abc35fd38f4f8a231539
           <div className={styles.chartPreview}>
             <img src="/src/assets/surfacePlotEx.png" alt="Surface Plot Preview" />
           </div>
@@ -121,10 +118,7 @@ const ModalTwoD = ({ isOpen, setIsOpen, setCharts }) => {
           onClick={() => handleChartClick('contour')}
         >
           <h3>Contour Plot</h3>
-<<<<<<< HEAD
-=======
           <p>Selected Quantity as a Function of Parameter Values</p>
->>>>>>> a9bcddf1779d95541559abc35fd38f4f8a231539
           <div className={styles.chartPreview}>
             <img src="/src/assets/contourPlotEx.png" alt="Contour Plot Preview" />
           </div>
