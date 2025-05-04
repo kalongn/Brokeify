@@ -11,6 +11,7 @@ import Axios from "axios";
 
 import Layout from "../components/Layout";
 import styles from "./ViewScenario.module.css";
+import AccordionMini from "../components/AccordionMini";
 
 const ViewScenario = () => {
 
@@ -187,13 +188,34 @@ const ViewScenario = () => {
               <div className={styles.question}>Tax Status</div>
             </div>
             <div className={styles.investmentTable}>
-              {investments.map((investment, index) => (
+            {investments.map((investment, index) => (
+            <div key={index} className={styles.investmentWrapper}>
+              <div className={styles.investmentRowWithHover}>
+                <div className={styles.textbox}>{investment.name}</div>
+                <div className={styles.textbox}>{investment.value.toLocaleString()}</div>
+                <div className={styles.textbox}>{investment.taxStatus}</div>
+              </div>
+              <div className={styles.hoverInlineDetails}>
+                <p className={styles.lightText}>Taxability: {investment.taxability ? "Taxable" : "Tax-exempt"}</p>
+                <p className={styles.lightText}>Expected Annual Return: {investment.expectedAnnualReturnDistribution}</p>
+                <p className={styles.lightText}>Expense Ratio: {investment.expenseRatio}</p>
+                <p className={styles.lightText}>Expected Annual Income from Dividends or Interests: {investment.expectedAnnualIncomeDistribution}</p>
+              </div>
+            </div>
+))}
+
+                {/*
                 <div key={index} className={styles.investmentRow}>
+                  <div className={styles.textbox}>
+                  <AccordionMini title={investment.name} />
+                  </div>
                   <div className={styles.textbox}>{investment.name}</div>
                   <div className={styles.textbox}>{investment.value.toLocaleString()}</div>
                   <div className={styles.textbox}>{investment.taxStatus}</div>
                 </div>
+                
               ))}
+                */}
             </div>
 
             {/**Event Series Section */}
