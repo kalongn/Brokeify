@@ -16,7 +16,7 @@ const EventSeriesForm = () => {
 
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
-  const { childRef } = useOutletContext();
+  const { childRef, scenarioHash, fetchScenarioHash } = useOutletContext();
   const { scenarioId, id } = useParams();
 
   const [allInvestments, setAllInvestments] = useState([]); // as needed to populate the actual investments option differently
@@ -299,7 +299,8 @@ const EventSeriesForm = () => {
     }
   };
 
-  const handleNavigate = () => {
+  const handleNavigate = async () => {
+    await fetchScenarioHash();
     navigate(`/ScenarioForm/${scenarioId}/event-series`);
   };
 
@@ -498,7 +499,18 @@ const EventSeriesForm = () => {
     }
     event.name = event.name.trim();
     try {
-      const response = id ? await Axios.put(`/event/${scenarioId}/${id}`, event) : await Axios.post(`/event/${scenarioId}`, event);
+      let response = null;
+      if (id) {
+        const currentHash = await Axios.get(`/concurrency/${scenarioId}`);
+        if (currentHash.data !== scenarioHash) {
+          alert("This scenario has been modified by you on another tab or another user. Redirecting to the event series page...");
+          handleNavigate();
+          return;
+        }
+        response = await Axios.put(`/event/${scenarioId}/${id}`, event);
+      } else {
+        response = await Axios.post(`/event/${scenarioId}`, event);
+      }
       console.log(response.data);
       handleNavigate();
     } catch (error) {
@@ -508,6 +520,9 @@ const EventSeriesForm = () => {
         setErrors({ name: "An unknown error occurred" });
       }
       console.error("Error creating event series:", error);
+      return false;
+    } finally {
+      await fetchScenarioHash();
     }
   }
 

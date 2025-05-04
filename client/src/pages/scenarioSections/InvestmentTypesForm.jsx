@@ -13,7 +13,7 @@ import buttonStyles from "../ScenarioForm.module.css";
 const InvestmentTypesForm = () => {
   const navigate = useNavigate();
 
-  const { childRef } = useOutletContext();
+  const { childRef, scenarioHash, fetchScenarioHash } = useOutletContext();
   const { scenarioId, id } = useParams();
 
   const [loading, setLoading] = useState(true);
@@ -103,7 +103,8 @@ const InvestmentTypesForm = () => {
     clearErrors(setErrors, name);
   };
 
-  const handleNavigate = () => {
+  const handleNavigate = async () => {
+    await fetchScenarioHash();
     navigate(`/ScenarioForm/${scenarioId}/investment-types`);
   };
 
@@ -144,7 +145,18 @@ const InvestmentTypesForm = () => {
     };
 
     try {
-      const response = id ? await Axios.put(`/investmentType/${scenarioId}/${id}`, data) : await Axios.post(`/investmentType/${scenarioId}`, data);
+      let response = null;
+      if (id) {
+        const currentHash = await Axios.get(`/concurrency/${scenarioId}`);
+        if (currentHash.data !== scenarioHash) {
+          alert("This scenario has been modified by you on another tab or another user. Redirecting to the Investment Type page...");
+          handleNavigate();
+          return;
+        }
+        response = await Axios.put(`/investmentType/${scenarioId}/${id}`, data);
+      } else {
+        response = await Axios.post(`/investmentType/${scenarioId}`, data);
+      }
       console.log(response.data);
       handleNavigate();
     } catch (error) {
@@ -157,6 +169,8 @@ const InvestmentTypesForm = () => {
       }
       console.error('Error creating investment type:', error);
       return false;
+    } finally {
+      await fetchScenarioHash();
     }
   }
 
