@@ -40,7 +40,6 @@ const ScenarioForm = () => {
   const fetchScenarioHash = useCallback(async () => {
     try {
       const response = await Axios.get(`/concurrency/${scenarioId}`);
-      console.log(response.data);
       setScenarioHash(response.data);
       return response.data;
     } catch (error) {
@@ -58,6 +57,10 @@ const ScenarioForm = () => {
       }
     });
   }, [scenarioId, fetchScenarioHash]);
+
+  useEffect(() => {
+    console.log("Scenario Hash:", scenarioHash);
+  }, [scenarioHash]);
 
   // Determine the current section index based on the URL
   const currentSectionIndex = sections.findIndex(
