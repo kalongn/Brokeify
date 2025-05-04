@@ -19,10 +19,10 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     setActiveTab(tab);
     setSimulationInput(() => ({
       numSimulations: simulationInput.numSimulations,
-      selectedScenario: simulationInput.selectedScenario 
+      selectedScenario: simulationInput.selectedScenario
     }));
     setSelectRemount((prevKey) => prevKey + 1);
-  }  
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,8 +67,8 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
               id="numSimulations"
               type="number"
               min="10"
-              max="100"
-              step="1"
+              max="1000"
+              step="10"
               name="numSimulations"
               defaultValue={simulationInput.numSimulations !== undefined ? simulationInput.numSimulations : 10}
               onChange={handleChange}
@@ -79,7 +79,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
           [...Array(chartParametersCount)].map((_, index) => (
             <ChartParameters
               key={index}
-              parameterIndex={index+1}
+              parameterIndex={index + 1}
               selectRemount={selectRemount}
               simulationInput={simulationInput}
               handleChange={handleChange}
