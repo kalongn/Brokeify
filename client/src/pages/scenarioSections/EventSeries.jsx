@@ -44,7 +44,7 @@ const EventSeries = () => {
     try {
       const currentHash = await Axios.get(`/concurrency/${scenarioId}`);
       if (currentHash.data !== scenarioHash) {
-        alert("The scenario has been modified by another user. Please refresh the page.");
+        alert("This scenario has been modified by you or another tab or another user. Please refresh the page.");
         return;
       }
 
