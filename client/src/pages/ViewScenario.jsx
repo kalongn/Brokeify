@@ -11,7 +11,6 @@ import Axios from "axios";
 
 import Layout from "../components/Layout";
 import styles from "./ViewScenario.module.css";
-import AccordionMini from "../components/AccordionMini";
 
 const ViewScenario = () => {
 
@@ -188,34 +187,22 @@ const ViewScenario = () => {
               <div className={styles.question}>Tax Status</div>
             </div>
             <div className={styles.investmentTable}>
-            {investments.map((investment, index) => (
-            <div key={index} className={styles.investmentWrapper}>
-              <div className={styles.investmentRowWithHover}>
-                <div className={styles.textbox}>{investment.name}</div>
-                <div className={styles.textbox}>{investment.value.toLocaleString()}</div>
-                <div className={styles.textbox}>{investment.taxStatus}</div>
-              </div>
-              <div className={styles.hoverInlineDetails}>
-                <p className={styles.lightText}>Taxability: {investment.taxability ? "Taxable" : "Tax-exempt"}</p>
-                <p className={styles.lightText}>Expected Annual Return: {investment.expectedAnnualReturnDistribution}</p>
-                <p className={styles.lightText}>Expense Ratio: {investment.expenseRatio}</p>
-                <p className={styles.lightText}>Expected Annual Income from Dividends or Interests: {investment.expectedAnnualIncomeDistribution}</p>
-              </div>
-            </div>
-))}
-
-                {/*
-                <div key={index} className={styles.investmentRow}>
-                  <div className={styles.textbox}>
-                  <AccordionMini title={investment.name} />
+              {investments.map((investment, index) => (
+                <div key={index} className={styles.investmentWrapper}>
+                  <div className={styles.investmentRowWithHover}>
+                    <div className={styles.textbox}>{investment.name}</div>
+                    <div className={styles.textbox}>{investment.value.toLocaleString()}</div>
+                    <div className={styles.textbox}>{investment.taxStatus}</div>
                   </div>
-                  <div className={styles.textbox}>{investment.name}</div>
-                  <div className={styles.textbox}>{investment.value.toLocaleString()}</div>
-                  <div className={styles.textbox}>{investment.taxStatus}</div>
+                  <div className={styles.hoverInlineDetails}>
+                    <p className={styles.lightText}>Taxability: {investment.taxability ? "Taxable" : "Tax-exempt"}</p>
+                    <p className={styles.lightText}>Expected Annual Return: {investment.expectedAnnualReturnDistribution}</p>
+                    <p className={styles.lightText}>Expense Ratio: {investment.expenseRatio}</p>
+                    <p className={styles.lightText}>Expected Annual Income from Dividends or Interests: {investment.expectedAnnualIncomeDistribution}</p>
+                  </div>
                 </div>
-                
               ))}
-                */}
+
             </div>
 
             {/**Event Series Section */}
@@ -254,7 +241,7 @@ const ViewScenario = () => {
                     <BiCircle /><span> Sample from Uniform Distribution</span>
                   </div>
                   Mean : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.mean) * 100} </div>
-                  Standard Deviation : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.standardDeviation)*100} </div>
+                  Standard Deviation : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.standardDeviation) * 100} </div>
                 </>
               ) :
 
@@ -269,8 +256,8 @@ const ViewScenario = () => {
                     <div>
                       <BiSolidCircle /><span> Sample from Uniform Distribution</span>
                     </div>
-                    Lower Bound : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.lowerBound)*100 }</div>
-                    Upper Bound : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.upperBound)*100}</div>
+                    Lower Bound : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.lowerBound) * 100}</div>
+                    Upper Bound : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.upperBound) * 100}</div>
                   </>
                 ) :
                   (
@@ -284,7 +271,7 @@ const ViewScenario = () => {
                       <div>
                         <BiCircle /><span> Sample from Uniform Distribution</span>
                       </div>
-                      Percentage: <div className={styles.textbox}>{parseFloat(scenarioData.inflationAssumptionDistribution?.value)*100}</div>
+                      Percentage: <div className={styles.textbox}>{parseFloat(scenarioData.inflationAssumptionDistribution?.value) * 100}</div>
                     </>
                   )
             }
@@ -307,11 +294,11 @@ const ViewScenario = () => {
                   <CgMenuGridO size={20} className={styles.icon} />
                   <div className={styles.draggableText}>
                     <span className={styles.draggableItemText}>{strategy.name}</span>
-                    <p className={ styles.lightText}>
-                    ${strategy.amount} – {strategy.percentage} -  {strategy.taxability}
-                  </p>
+                    <p className={styles.lightText}>
+                      ${strategy.amount} – {strategy.percentage} -  {strategy.taxability}
+                    </p>
+                  </div>
                 </div>
-              </div>
               ))}
             </div>
 
@@ -328,10 +315,10 @@ const ViewScenario = () => {
                   <div className={styles.draggableText}>
                     <span className={styles.draggableItemText}>{strategy.name}</span>
                     <div>
-                    <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
+                      <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
                     </div>
                   </div>
-                 
+
                 </div>
               ))}
             </div>
@@ -347,9 +334,9 @@ const ViewScenario = () => {
                 <CgMenuGridO size={20} className={styles.icon} />
                 <div className={styles.draggableText}>
                   <span className={styles.draggableItemText}>{strategy.name}</span>
-                    <div>
+                  <div>
                     <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
-                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -363,8 +350,8 @@ const ViewScenario = () => {
             <p className={styles.question}>Roth Conversion Optimizer</p>
             {(scenarioData.startYearRothOptimizer !== undefined) ? (
               <div>
-                <div className ={styles.roth}>
-                  <BsToggleOn size={30}  className={styles.icon}/><p className={styles.rothText}>Enabled</p>
+                <div className={styles.roth}>
+                  <BsToggleOn size={30} className={styles.icon} /><p className={styles.rothText}>Enabled</p>
                 </div>
                 <div className={styles.columns}>
                   <div className={styles.columnsp1}>
@@ -377,27 +364,27 @@ const ViewScenario = () => {
                   </div>
                 </div>
                 <p className={styles.question}>Roth Conversion Strategy</p>
-                 {/* Roth Listing - only displayed when roth is on**/}
-                 {orderedRothStrategy?.map((strategy, index) => (
+                {/* Roth Listing - only displayed when roth is on**/}
+                {orderedRothStrategy?.map((strategy, index) => (
                   <div key={index} className={styles.draggableItem}>
-                  <CgMenuGridO size={20} className={styles.icon} />
-                  <div className={styles.draggableText}>
-                    <span className={styles.draggableItemText}>{strategy.name}</span>
-                    <div>
-                    <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
+                    <CgMenuGridO size={20} className={styles.icon} />
+                    <div className={styles.draggableText}>
+                      <span className={styles.draggableItemText}>{strategy.name}</span>
+                      <div>
+                        <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
+                      </div>
                     </div>
+
                   </div>
-                
-                </div>
                 ))}
 
               </div>
             ) : (
 
-              <div className ={styles.roth}>
-                  <BsToggleOff size={30}  className={styles.icon}/><p className={styles.rothText}>Disabled</p>
-                </div>
-           
+              <div className={styles.roth}>
+                <BsToggleOff size={30} className={styles.icon} /><p className={styles.rothText}>Disabled</p>
+              </div>
+
             )}
           </div>
         }
