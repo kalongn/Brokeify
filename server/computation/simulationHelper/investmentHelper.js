@@ -721,7 +721,7 @@ export function processInvestmentEvents( // Still async due to potential logging
 }
 //Asked Gemini 2.5: "I want to update rebalance events in the same way: 
 // ...keep the same logic as exists and change the updates/inputs"
-export async function rebalanceInvestments( // Keep async for potential logging lookups
+export function rebalanceInvestments( // Keep async for potential logging lookups
     // Data passed down from simulate:
     scenario,
     currentYear,
@@ -750,11 +750,11 @@ export async function rebalanceInvestments( // Keep async for potential logging 
         const investments = investmentIds.map(id => allInvestmentsMap.get(id.toString())).filter(Boolean);
 
         if (investments.length !== investmentIds.length) {
-             console.warn(`Year ${currentYear}: Rebalance Event ${event.name} references missing investments.`);
+            console.warn(`Year ${currentYear}: Rebalance Event ${event.name} references missing investments.`);
         }
          if (investments.length === 0) {
-             console.warn(`Year ${currentYear}: Rebalance Event ${event.name} has no valid allocated investments.`);
-             continue;
+            console.warn(`Year ${currentYear}: Rebalance Event ${event.name} has no valid allocated investments.`);
+            continue;
          }
 
         // Calculate total value from current in-memory state

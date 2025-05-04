@@ -149,6 +149,7 @@ export async function simulate(
 		console.time("loop")
         let allDbUpdateOps = [];
         let allDbTypeUpdateOps = [];
+        let allDbEventOps = [];
         curYearIncome = 0;
         curYearSS = 0;
         thisYearGains = 0;
@@ -167,9 +168,22 @@ export async function simulate(
             type.expectedAnnualReturnDistribution
             // Add other distribution IDs if used elsewhere (e.g., events)
         ]).filter(id => id); // Filter out null/undefined IDs
+        allEvents.forEach(event => {
+            if (event.expectedAnnualChangeDistribution) {
+                allDistributionIds.push(event.expectedAnnualChangeDistribution);
+            }
+            // Add other event distribution fields here if they exist (e.g., startYearTypeDistribution, durationTypeDistribution if variable)
+            if (event.startYearTypeDistribution) { // If start year uses a distribution
+                allDistributionIds.push(event.startYearTypeDistribution);
+            }
+            if (event.durationTypeDistribution) { // If duration uses a distribution
+                allDistributionIds.push(event.durationTypeDistribution);
+            }
+        });
+
         // Fetch unique distributions
-        const uniqueDistIds = [...new Set(allDistributionIds.map(id => id.toString()))];
-        const distributions = await distributionFactory.readMany(uniqueDistIds);
+        const uniqueDistIds = [...new Set(allDistributionIds.filter(id => id).map(id => id.toString()))];
+        const distributions = uniqueDistIds.length > 0 ? await distributionFactory.readMany(uniqueDistIds) : [];
         const distributionMap = new Map(distributions.map(dist => [dist._id.toString(), dist]));
 
 		let inflationRate = await sample(
@@ -184,7 +198,12 @@ export async function simulate(
         cumulativeInflation = ((cumulativeInflation+1) * (1 + inflationRate)) -1;
 
 		//update events
-		const adjustEventsAmountReturnPromise = adjustEventsAmount(allEventsMap, inflationRate, scenario, currentYear, cashInvestment);
+		const adjustEventsResultPromise = adjustEventsAmount(
+            scenario, inflationRate, currentYear,
+            allEventsMap,       // Pass map (will be modified)
+            cashInvestment,     // Pass cash reference (will be modified)
+            distributionMap     // Pass distributions
+        );
 
 
 		//start RMDs:
@@ -252,11 +271,13 @@ export async function simulate(
 
 
 		//console.time("adjustEventsAmount");
-        const adjustEventsAmountReturn = await adjustEventsAmountReturnPromise;
-		curYearIncome += adjustEventsAmountReturn.curYearIncome;
-		curYearSS += adjustEventsAmountReturn.curYearSS;
-		const incomeByEvent = adjustEventsAmountReturn.incomeByEvent;
-		cashInvestment = adjustEventsAmountReturn.cashInvestment;
+        const adjustEventsResult = await adjustEventsResultPromise; // Contains { income, ss, incomeBreakdown, dbEventOps, dbCashOps }
+        curYearIncome += adjustEventsResult.income;
+        curYearSS += adjustEventsResult.ss;
+        const incomeByEvent = adjustEventsResult.incomeBreakdown;
+        // Add event and cash operations to respective lists
+        allDbEventOps.push(...adjustEventsResult.dbEventOps);
+        allDbUpdateOps.push(...adjustEventsResult.dbCashOps); // Cash ops go with Investment ops
         const reportedIncome = curYearIncome;
 		//console.timeEnd("adjustEventsAmount");
 
@@ -330,7 +351,7 @@ export async function simulate(
         
 
 
-        const rebalanceResult = await rebalanceInvestments( // await if logging awaits
+        const rebalanceResult = rebalanceInvestments(
             scenario, 
             currentYear,
             allEventsMap,
