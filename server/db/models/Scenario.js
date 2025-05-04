@@ -37,7 +37,19 @@ const ScenarioSchema = new mongoose.Schema({
             return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}, ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
         }
     },
+    lastEdited: { type: Date, default: Date.now },
 });
+
+function setLastEdited(next) {
+    this.set({ lastEdited: Date.now() });
+    next();
+}
+
+ScenarioSchema.pre('save', setLastEdited);
+ScenarioSchema.pre('findOneAndUpdate', setLastEdited);
+ScenarioSchema.pre('updateOne', setLastEdited);
+ScenarioSchema.pre('updateMany', setLastEdited);
+ScenarioSchema.pre('update', setLastEdited);
 
 const Scenario = mongoose.model('Scenario', ScenarioSchema);
 
