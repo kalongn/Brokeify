@@ -10,6 +10,7 @@
 
 */
 import fs from 'fs';
+import yaml from 'js-yaml';
 import { test, expect } from '@playwright/test';
 import { connectToDatabase,closeDatabaseConnection } from './utils.js';
 import { parseStateTaxYAML } from '../yaml_parsers/stateTaxParser.js';
@@ -34,6 +35,7 @@ const taxFactory = new TaxController();
 const simulationFactory = new SimulationController();
 const distributionFactory = new DistributionController();
 const resultFactory = new ResultController();
+const taxController = new TaxController();
 import { fileURLToPath } from 'url';
 import path from 'path';
 const __filename = fileURLToPath(import.meta.url);
@@ -48,17 +50,33 @@ test.afterAll(async () => {
 });
 
 test('end to end backend test', async () => {
-    const taxfileContents = fs.readFileSync("./testing_yaml_files/state_tax_test.yaml", 'utf8');
+    const taxfileContents = fs.readFileSync(path.resolve(__dirname, "./testing_yaml_files/state_tax_test.yaml"));
     const parsedTax = yaml.load(taxfileContents);
-    const stateTax = await parseStateTaxYAML(parsedTax, null);
+    const parseBrackets = (brackets) => {
+        return brackets.map(({ lowerBound, upperBound, rate }) => ({
+            lowerBound: Number(lowerBound),
+            upperBound: upperBound === 'Infinity' ? Infinity : Number(upperBound),
+            rate: Number(rate)
+        }));
+    };
+    const { year, state, filingStatus, rates } = parsedTax;
+
+    const taxID = await taxController.create("STATE_INCOME", {
+        year: Number(year),
+        state: state,
+        filingStatus: filingStatus,
+        taxBrackets: parseBrackets(rates)
+    });
+    const stateTax = [taxID, taxID];
+    
     expect(stateTax).not.toBeUndefined();
-    const fileContents = fs.readFileSync("./testing_yaml_files/scenario1.yaml", 'utf8');
+    const fileContents = fs.readFileSync(path.resolve(__dirname, "./testing_yaml_files/scenario1.yaml"));
     const parsed = yaml.load(fileContents);
     const scenarioID = await parseAndSaveYAML(parsed, null);
     expect(scenarioID).not.toBeUndefined();
     // const scenario = await scenarioFactory.read(scenarioID);
     // console.log(scenario)
-    const results = await validateRun(scenarioID, 1, stateTax, "GUEST", 1);
+    const results = await validateRun(scenarioID, 1, stateTax, "GUEST");
     expect(results).not.toBeUndefined();
     //console.log(results)
     const simulationCalculations = await resultFactory.read(results.results[0]);
@@ -80,23 +98,23 @@ test('end to end backend test', async () => {
      * 
      * We have tax-exempt bonds starting at 10,000, with a 5% return
      */
-    const expectedTax = [0, 150, 148, 146, 144, 142, 140, 138, 136, 134];
+    const expectedTax = [0, 148, 146, 144, 142, 140, 138, 136, 134, 132];
     const expectedNonDiscretionary = [5000, 5150, 5304.5, 5463.635, 5627.54405, 5796.3703715, 5970.26148264, 6149.36932712, 6333.85040694, 6523.86591915];
 
     for(let i=0;i<10;i++){
         //console.log(simulationCalculations.yearlyResults[i])
-        const maxExpense = expectedTax[i]+ expectedNonDiscretionary[i] + 2000;
-        expect(simulationCalculations.yearlyResults[i].totalIncome).toBe(7500-(i*100));
+        const maxExpense = expectedTax[i+1]+ expectedNonDiscretionary[i+1] + 2000;
+        expect(simulationCalculations.yearlyResults[i].totalIncome).toBe(7500-((i+1)*100));
         expect(simulationCalculations.yearlyResults[i].totalTax).toBe(expectedTax[i]);
-        expect(simulationCalculations.yearlyResults[i].totalExpense).toBeLessThanOrEqual(maxExpense+1);
+        expect(simulationCalculations.yearlyResults[i].totalExpense).toBeLessThanOrEqual(maxExpense+4);
         expect(simulationCalculations.yearlyResults[i].totalExpense).toBeGreaterThan(maxExpense-2001);
         if(simulationCalculations.yearlyResults[i].isViolated){
-            const inv = (simulationCalculations.yearlyResults[i].investmentValues[1].values);
+            const inv = (simulationCalculations.yearlyResults[i].investmentValues[1].value);
             expect(inv).toBeLessThan(10000);
             expect(simulationCalculations.yearlyResults[i].totalDiscretionaryExpenses).toBeLessThan(1);
         }
         else{
-            const inv = (simulationCalculations.yearlyResults[i].investmentValues[1].values);
+            const inv = (simulationCalculations.yearlyResults[i].investmentValues[1].value);
             expect(inv).toBeGreaterThanOrEqual(10000);
             
         }

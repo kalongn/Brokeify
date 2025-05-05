@@ -48,7 +48,7 @@ eventSeries:
     socialSecurity: false  # boolean
 
   - name: food
-    start: {type: startWith, eventSeries: salary}  # starts in same year as salary
+    start: {type: startsWith, eventSeries: salary}  # starts in same year as salary
     duration: {type: fixed, value: 200}  # lasts for the rest of the user's life
     type: expense
     initialAmount: 5000
@@ -59,7 +59,7 @@ eventSeries:
     discretionary: false
 
   - name: vacation
-    start: {type: startWith, eventSeries: salary}  # starts in same year as salary
+    start: {type: startsWith, eventSeries: salary}  # starts in same year as salary
     duration: {type: fixed, value: 40}
     type: expense
     initialAmount: 2000
@@ -77,4 +77,4 @@ RMDStrategy: [] # list of pre-tax investments, identified by id
 RothConversionOpt: false   # boolean indicating whether the Roth Conversion optimizer is enabled
 RothConversionStrategy: []  # list of pre-tax investments, identified by id
 financialGoal: 10000
-residenceState: NY  # states are identified by standard 2-letter abbreviations
+residenceState: CA  # states are identified by standard 2-letter abbreviations
