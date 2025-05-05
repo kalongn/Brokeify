@@ -280,14 +280,20 @@ const ScenarioSimulation = () => {
                   )}
                 </span>
               ) : (
-                <span>
-                  No simulation results available. Please run a simulation to see the results.
-                </span>
+                isRunning ? (
+                  <span>
+                    Simulation is running... Please wait.
+                  </span>
+                )
+                  :
+                  (
+                    <span>
+                      No simulation results available. Please run a simulation to see the results.
+                    </span>
+                  )
               )}
             </p>
-            {isRunning ? (
-              <p>A simulation is running... Please wait.</p>
-            ) : (
+            {
               previousRun !== null && (
                 <div>
                   {previousRunSimulationType === "NORMAL" && <>
@@ -309,7 +315,7 @@ const ScenarioSimulation = () => {
                   </>}
                 </div>
               )
-            )}
+            }
             <div className={styles.buttonBox}>
               <div className={styles.buttons}>
                 <button
