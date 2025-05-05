@@ -49,7 +49,7 @@ const ScenarioSimulation = () => {
       setPreviousRunSimulationType(data.previousRunSimulationType);
       setPreviousRunSimulationAmount(data.previousRunSimulationAmount);
       setPreviousRunScenarioName(data.previousRunScenarioName);
-      if (data.previousRunParamOne) {
+      if (data.previousRunParamOneType) {
         setPreviousRunParamOne({
           paramOne: data.previousRunParamOne,
           paramOneType: data.previousRunParamOneType,
@@ -57,8 +57,10 @@ const ScenarioSimulation = () => {
           paramOneUpper: data.previousRunParamOneUpper,
           paramOneStep: data.previousRunParamOneStep,
         });
+      } else {
+        setPreviousRunParamOne(null);
       }
-      if (data.previousRunParamTwo) {
+      if (data.previousRunParamTwoType) {
         setPreviousRunParamTwo({
           paramTwo: data.previousRunParamTwo,
           paramTwoType: data.previousRunParamTwoType,
@@ -66,6 +68,8 @@ const ScenarioSimulation = () => {
           paramTwoUpper: data.previousRunParamTwoUpper,
           paramTwoStep: data.previousRunParamTwoStep,
         });
+      } else {
+        setPreviousRunParamTwo(null);
       }
       setIsRunning(data.isRunning);
 
@@ -185,7 +189,7 @@ const ScenarioSimulation = () => {
       setPreviousRunSimulationType(data.previousRunSimulationType);
       setPreviousRunSimulationAmount(data.previousRunSimulationAmount);
       setPreviousRunScenarioName(data.previousRunScenarioName);
-      if (data.previousRunParamOne) {
+      if (data.previousRunParamOneType) {
         setPreviousRunParamOne({
           paramOne: data.previousRunParamOne,
           paramOneType: data.previousRunParamOneType,
@@ -193,8 +197,10 @@ const ScenarioSimulation = () => {
           paramOneUpper: data.previousRunParamOneUpper,
           paramOneStep: data.previousRunParamOneStep,
         });
+      } else {
+        setPreviousRunParamOne(null);
       }
-      if (data.previousRunParamTwo) {
+      if (data.previousRunParamTwoType) {
         setPreviousRunParamTwo({
           paramTwo: data.previousRunParamTwo,
           paramTwoType: data.previousRunParamTwoType,
@@ -202,6 +208,8 @@ const ScenarioSimulation = () => {
           paramTwoUpper: data.previousRunParamTwoUpper,
           paramTwoStep: data.previousRunParamTwoStep,
         });
+      } else {
+        setPreviousRunParamTwo(null);
       }
     } catch (error) {
       setErrors({ simulation: 'An error occurred during the simulation' });
@@ -245,29 +253,29 @@ const ScenarioSimulation = () => {
                   <br /><strong>Number of Simulations: {previousRunSimulationAmount}</strong>
                   {previousRunParamOne && (
                     <>
-                      <br /><strong>Parameter 1: {previousRunParamOne.paramOneType}</strong>
-                      {previousRunParamOne.paramOneType !== "Disable Roth" && (
+                      <br /><strong>Parameter 1: {previousRunParamOne.paramOneType === "Disable Roth" ? "Roth Optimizer" : previousRunParamOne.paramOneType}</strong>
+                      {previousRunParamOne.paramOneType !== "Disable Roth" ? (
                         <>
                           <br />- Event: {previousRunParamOne.paramOne}
                           <br />- Lower Bound: {previousRunParamOne.paramOneLower}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
                           <br />- Upper Bound: {previousRunParamOne.paramOneUpper}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
                           <br />- Step Size: {previousRunParamOne.paramOneStep}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
                         </>
-                      )}
+                      ) :
+                        <>
+                          <br />- Enable versus Disable Roth
+                        </>
+                      }
                     </>
                   )}
                   {previousRunParamTwo && (
                     <>
                       <br /><strong>Parameter 2:</strong>
                       <br />- Type: {previousRunParamTwo.paramTwoType}
-                      {previousRunParamTwo.paramTwoType !== "Disable Roth" && (
-                        <>
-                          <br />- Parameter: {previousRunParamTwo.paramTwo}
-                          <br />- Lower Bound: {previousRunParamTwo.paramTwoLower}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
-                          <br />- Upper Bound: {previousRunParamTwo.paramTwoUpper}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
-                          <br />- Step Size: {previousRunParamTwo.paramTwoStep}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
-                        </>
-                      )}
+                      <br />- Parameter: {previousRunParamTwo.paramTwo}
+                      <br />- Lower Bound: {previousRunParamTwo.paramTwoLower}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
+                      <br />- Upper Bound: {previousRunParamTwo.paramTwoUpper}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
+                      <br />- Step Size: {previousRunParamTwo.paramTwoStep}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
                     </>
                   )}
                 </span>

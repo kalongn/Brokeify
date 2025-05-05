@@ -79,16 +79,15 @@ const TwoD = () => {
             <h2>{scenarioName} 2D Results</h2>
             {paramsType.map((paramType, index) => (
               <h4 key={index}>
-                Type: {paramType}, Event: {paramsName[index]}
+                Parameter {index + 1}: {paramType}
                 <br />
-                From: {paramsSteps[index][0]}
-                {paramType === "First of Two Investments" && "%"}
+                - Event: {paramsName[index]}
                 <br />
-                To: {paramsSteps[index][paramsSteps[index].length - 1]}
-                {paramType === "First of Two Investments" && "%"}
+                - Lower Bound: {paramsSteps[index][0]}{paramType === "First of Two Investments" && "%"}
                 <br />
-                Step: {paramsSteps[index][1] - paramsSteps[index][0]}
-                {paramType === "First of Two Investments" && "%"}
+                - Upper Bound: {paramsSteps[index][paramsSteps[index].length - 1]}{paramType === "First of Two Investments" && "%"}
+                <br />
+                - Step Size: {paramsSteps[index][1] - paramsSteps[index][0]}{paramType === "First of Two Investments" && "%"}
               </h4>
             ))}
             <div className={styles.buttonGroup}>
