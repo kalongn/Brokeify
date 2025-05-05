@@ -48,16 +48,16 @@ export async function chooseEventTimeframe(scenario) {
             const eventID = scenario.events[eventIDIndex];
             const event = await eventFactory.read(eventID);
             
-            if(!(event.startsWith!==undefined||event.startsAfter!==undefined)){
+            if(!(event.startsWith!=null||event.startsAfter!=null)){
                 continue;
             }
             //starts with or starts after
-            if(event.startsWith!==undefined){
+            if(event.startsWith!=null){
                 const refedEvent = await eventFactory.read(event.startsWith);
                 const duration  = await sample(0, event.durationTypeDistribution);
                 await eventFactory.update(event._id, {startYear: refedEvent.startYear, duration: duration});
             }
-            else if(event.startsAfter!==undefined){
+            else if(event.startsAfter!=null){
                 const refedEvent = await eventFactory.read(event.startsAfter);
                 const duration  = await sample(0, event.durationTypeDistribution);
                 await eventFactory.update(event._id, {startYear: refedEvent.startYear+refedEvent.duration+1, duration: duration});
