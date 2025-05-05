@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 import Select from 'react-select';
-import ChartParameters from './ChartParameters';
+import Axios from 'axios';
 
 import { clearErrors } from "../utils/ScenarioHelper";
 import sectionStyles from '../pages/SimulationPage.module.css';
+import styles from './ChartTabs.module.css';
 
 const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }) => {
   const [activeTab, setActiveTab] = useState("Charts");
@@ -15,6 +16,14 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   const [inputRemounts, setInputRemounts] = useState([0, 0, 0]);
   // Used to map ChartParameters
   const chartParametersCount = Number(activeTab[0]);
+  const [parameterOptions, setparameterOptions] = useState([]);
+  const [parameterIndex, setParameterIndex] = useState(0);
+
+  const [events, setEvents] = useState([]);
+  const [incomeExpenseEvents, setincomeExpenseEvents] = useState([]);
+  const [investEvents, setInvestEvents] = useState([]);
+  const [displayedEvents, setdisplayedEvents] = useState([]);
+  const isTwoD= activeTab === "2-D Exploration";
 
   // Prompt to AI: Plugged in Copilot's review about making remount keys flexible
   // Needed to adjust the indices
@@ -29,6 +38,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   // Only number of simulations and the selected scenario inputs are shared across all tabs
   const changeTab = (tab) => {
     setActiveTab(tab);
+    setParameterIndex(Number(tab.at(0)));
     setSimulationInput(() => ({
       numSimulations: simulationInput.numSimulations,
       selectedScenario: simulationInput.selectedScenario
@@ -54,6 +64,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     // Needed to adjust for prevSelection
     setSimulationInput((prev) => {
       const newState = { ...prev, [field]: selectedOption.value };
+      // If the parameter field is changed, clear the associated fields unless it is changed to its previous value (essentially no change)
       if (field.startsWith("parameter") && prevSelection !== selectedOption.value) {
         const parameterCount = field.at(-1);
         const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
@@ -67,6 +78,85 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     // Clear errors when user makes changes
     clearErrors(setErrors, field);
   };
+
+  useEffect(() => {
+    if (!simulationInput.selectedScenario) {
+      return;
+    }
+
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+
+    Axios.get("/runSimulation/exploration", {
+      params: {
+        scenarioId: simulationInput.selectedScenario,
+      }
+    }).then((response) => {
+      const data = response.data;
+      const isRothEnabled = data.isRothEnabled;
+      const allEvents = data.events.map((event) => {
+        return {
+          name: event.name,
+          id: event.id,
+        }
+      });
+
+      const allIncomeExpenseEvents = data.incomeExpenseEvents.map((event) => {
+        return {
+          name: event.name,
+          id: event.id,
+        }
+      });
+
+      const allInvestEvents = data.investEvents.map((event) => {
+        return {
+          name: event.name,
+          id: event.id,
+        }
+      });
+
+      setparameterOptions(() => {
+        const options = []
+        if (allEvents.length > 0) {
+          options.push({ value: "START_EVENT", label: "Start Year" }, { value: "DURATION_EVENT", label: "Duration" },)
+        }
+        if (allIncomeExpenseEvents.length > 0) {
+          options.push({ value: "EVENT_AMOUNT", label: "Initial Amount" })
+        }
+        if (allInvestEvents.length > 0) {
+          options.push({ value: "INVEST_PERCENTAGE", label: "First of Two Investments" })
+        }
+        if (isRothEnabled && !isTwoD) {
+          options.push({ value: "ROTH_BOOLEAN", label: "Disable Roth Optimizer" });
+        }
+        return options;
+      })
+      setEvents(allEvents);
+      setincomeExpenseEvents(allIncomeExpenseEvents);
+      setInvestEvents(allInvestEvents);
+    }).catch((error) => {
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        alert("You do not have permission to view this scenario.");
+      } else {
+        alert("Error fetching scenario name. Please try again.");
+      }
+      console.error('Error fetching scenario name:', error);
+    });
+  }, [simulationInput.selectedScenario, simulationInput.numSimulations, setSimulationInput, isTwoD]);
+
+  useEffect(() => {
+    const parameterValue = simulationInput[`parameter${parameterIndex}`];
+    if (parameterValue === "START_EVENT" || parameterValue === "DURATION_EVENT") {
+      setdisplayedEvents(events);
+    } else if (parameterValue === "EVENT_AMOUNT") {
+      setdisplayedEvents(incomeExpenseEvents);
+    } else if (parameterValue === "INVEST_PERCENTAGE") {
+      setdisplayedEvents(investEvents);
+    } else {
+      setdisplayedEvents([]);
+    }
+  }, [parameterIndex, simulationInput, events, incomeExpenseEvents, investEvents]);
+
 
   return (
     <div>
@@ -100,16 +190,63 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
         </div>
         {activeTab !== "Charts" && (
           [...Array(chartParametersCount)].map((_, index) => (
-            <ChartParameters
-              key={index}
-              parameterIndex={index + 1}
-              inputRemounts={inputRemounts}
-              simulationInput={simulationInput}
-              handleChange={handleChange}
-              handleSelectChange={handleSelectChange}
-              setSimulationInput={setSimulationInput}
-              isTwoD={activeTab === "2-D Exploration"}
-            />
+            <div key={index}>
+              <label>
+                Select Parameter {index + 1}
+                <div className={`${styles.selectWrapper} ${simulationInput.selectedScenario === undefined ? styles.disabled : ''}`}>
+                  <Select
+                    key={inputRemounts[0]}
+                    options={parameterOptions}
+                    onChange={(option) => handleSelectChange(option, `parameter${index + 1}`)}
+                    className="select"
+                    isDisabled={simulationInput.selectedScenario === undefined}
+                  />
+                </div>
+              </label>
+              {simulationInput[`parameter${index + 1}`] !== undefined && simulationInput[`parameter${index + 1}`] !== "ROTH_BOOLEAN" && (
+                <>
+                  <label>
+                    Select Event Series {}
+                    <Select
+                      key={inputRemounts[index + 1]}
+                      options={displayedEvents.map((event) => ({ value: event.id, label: event.name }))}
+                      onChange={(option) => handleSelectChange(option, `displayedEvents${index + 1}`)}
+                      className="select"
+                    />
+                  </label>
+
+                  <div className={styles.parameterBounds}>
+                    <label>
+                      Lower Bound
+                      <input
+                        type="number"
+                        key={inputRemounts[index + 1]}
+                        name={`lowerBound${index + 1}`}
+                        onChange={handleChange}
+                      />
+                    </label>
+                    <label>
+                      Upper Bound
+                      <input
+                        type="number"
+                        key={inputRemounts[index + 1]}
+                        name={`upperBound${index + 1}`}
+                        onChange={handleChange}
+                      />
+                    </label>
+                    <label>
+                      Step Size
+                      <input
+                        type="number"
+                        key={inputRemounts[index + 1]}
+                        name={`stepSize${index + 1}`}
+                        onChange={handleChange}
+                      />
+                    </label>
+                  </div>
+                </>
+              )}
+            </div>
           ))
         )}
       </div>
