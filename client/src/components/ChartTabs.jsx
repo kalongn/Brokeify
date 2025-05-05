@@ -229,12 +229,12 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
     const newErrors = {};
     let lowerBoundRestriction = -1;
     let upperBoundRestriction = -1;
-    // parameterIndex 0 is normal Charts fields, which are checked in SimulationPage
-    if (parameterIndex === 0) {
+    // Normal Charts fields are checked in SimulationPage
+    if (activeTab === "Charts") {
       return true;
     }
-    // parameterIndex is >= 1 at this point
-    const requiredParams = parameterIndex === 2 ? [1, 2] : [1];
+    
+    const requiredParams = activeTab === "2-D Exploration" ? [1, 2] : [1];
     for (const num of requiredParams) {
       const paramName = `parameter${num}`;
       if (simulationInput[paramName] === undefined) {
@@ -266,7 +266,6 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
         const upper = simulationInput[`upperBound${num}`];
         const step = simulationInput[`stepSize${num}`];
         const diff = upper - lower;
-        console.log(simulationInput);
         // Check all required fields are filled
         if (simulationInput[`displayedEvents${num}`] === undefined) {
           newErrors[`event${num}`] = `Event ${num} is required`;
