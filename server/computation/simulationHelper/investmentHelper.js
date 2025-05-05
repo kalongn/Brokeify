@@ -178,7 +178,7 @@ export async function processRMDs(
                         update: { $set: { investments: investmentType.investments } }
                     }
                 });
-                 console.log(`Year ${currentYear}: Created new RMD destination investment ${createdInvestment._id} for type ${investmentType.name}`);
+                //console.log(`Year ${currentYear}: Created new RMD destination investment ${createdInvestment._id} for type ${investmentType.name}`);
 
             } catch (error) {
                  console.error(`Year ${currentYear}: Failed to create new RMD destination investment for type ${investmentType.name}. Error: ${error}`);
@@ -468,7 +468,7 @@ export async function performRothConversion(
                 });
                 // No immediate investment update op needed, as it was just created with the correct value.
                 // It will be included in the final bulkWrite if modified further *this year*.
-                console.log(`Year ${currentYear}: Created new Roth destination investment ${createdInvestment._id} for type ${investmentType.name}`);
+                // console.log(`Year ${currentYear}: Created new Roth destination investment ${createdInvestment._id} for type ${investmentType.name}`);
 
             } catch (error) {
                 console.error(`Year ${currentYear}: Failed to create new Roth destination investment for type ${investmentType.name}. Error: ${error}`);
