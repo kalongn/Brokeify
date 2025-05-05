@@ -662,7 +662,7 @@ const EventSeriesForm = () => {
                   className={errors.expectedAnnualChange ? errorStyles.highlight : ""}
                 />
                 {maritalStatus === "MARRIEDJOINT" && <label>
-                  Specific Percentage Increase <Tooltip text="This is the set percentage increase in a value over time, like a 3% annual raise." />
+                  Specific Percentage Increase <Tooltip text="This is the portion of income/expense attributed to the user when married. When single or when spouse reaches life expectancy, this is assumed to be 100%. Please input a number between 0-100." />
                   <input
                     type="number"
                     name="percentageIncrease"
