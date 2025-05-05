@@ -2,11 +2,13 @@ import express from 'express';
 
 import ScenarioController from '../db/controllers/ScenarioController.js';
 import UserController from '../db/controllers/UserController.js';
+import EventController from '../db/controllers/EventController.js';
 import { canView, distributionToString, stateAbbreviationToString, taxStatusToFrontend } from './helper.js';
 
 const router = express.Router();
 const scenarioController = new ScenarioController();
 const userController = new UserController();
+const eventController = new EventController();
 
 router.get("/scenario/:scenarioId", async (req, res) => {
     if (req.session.user) {
@@ -145,6 +147,11 @@ router.get("/scenario-detail/:scenarioId", async (req, res) => {
                         name: investmentType.name,
                         value: investment.value,
                         taxStatus: investment.taxStatus,
+                        expectedAnnualReturnDistribution: distributionToString(investmentType?.expectedAnnualReturnDistribution) || "Unknown",
+                        taxability: investmentType.taxability,
+                        expenseRatio: investmentType.expenseRatio,
+                        expectedAnnualIncomeDistribution: distributionToString(investmentType?.expectedAnnualIncomeDistribution) || "Unknown"
+
                     }
                     investmentIdMap[investment._id] = investmentStructure;
                     investments.push(investmentStructure);
@@ -153,13 +160,42 @@ router.get("/scenario-detail/:scenarioId", async (req, res) => {
 
             const events = []
             const eventIdMap = {};
+
             for (let event of scenario.events) {
+                const eventDistribution = await eventController.readWithPopulate(event._id);
+                //console.log("\n\nEVENT: ",eventDistribution);
                 const eventStructure = {
                     name: event.name,
-                    type: event.eventType
+                    type: event.eventType,
+                    amount: event?.amount || "0",
+                    percentage: distributionToString(eventDistribution?.expectedAnnualChangeDistribution) || "Unknown",
+                    startYearTypeDistribution: eventDistribution?.startYearTypeDistribution,
+                    startsWith: eventDistribution?.startsWith,
+                    startsAfter: eventDistribution?.startsAfter,
+                    discretionary: event?.isDiscretionary ? "Is Discretionary" : "Not Discretionary",
+                    investmentAllocationMethod: eventDistribution?.assetAllocationType,
+                    maximumCash: event?.maximumCash,
+                    rebalanceTaxStatus: event?.taxStatus,
+                    taxability: event?.isinflationAdjusted ? "Affected by Inflation" : "Not Affected by Inflation"
+
                 }
                 eventIdMap[event._id] = eventStructure;
                 events.push(eventStructure);
+            }
+
+            for (let event of events) {
+                if (event.startsWith) {
+                    event.startYear = `Starts with event: ${eventIdMap[event.startsWith]?.name || "Unnamed Event"}`;
+                } else if (event.startsAfter) {
+                    event.startYear = `Starts after event: ${eventIdMap[event.startsAfter]?.name || "Unnamed Event"}`;
+                } else if (event.startYearTypeDistribution) {
+                    event.startYear = distributionToString(event.startYearTypeDistribution) + " years";
+                } else {
+                    event.startYear = "N/A";
+                }
+                delete event.startYearTypeDistribution;
+                delete event.startsWith;
+                delete event.startsAfter;
             }
 
             const spendingStrategy = scenario.orderedSpendingStrategy.map(eventId => {
