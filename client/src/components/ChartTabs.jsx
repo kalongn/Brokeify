@@ -86,8 +86,8 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     // Needed to adjust for prevSelection
     setSimulationInput((prev) => {
       const newState = { ...prev, [field]: selectedOption.value };
-      // If the parameter field is changed, clear the associated fields unless it is changed to its previous value (essentially no change)
-      if (field.startsWith("parameter") && prevSelection !== selectedOption.value) {
+      // If the parameter field is changed, clear the associated fields
+      if (field.startsWith("parameter")) {
         const parameterCount = field.at(-1);
         const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
         if (fieldsToRemove.some(f => prev[f] !== undefined)) {
