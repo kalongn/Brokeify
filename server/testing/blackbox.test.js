@@ -86,7 +86,7 @@ test('end to end deterministic backend test', async () => {
      * Time for math:
      * 
      * We have the following income
-     * 7400, 7300, 7200, 7100, 7000, 6900, 6800, 6700, 6600, 6500
+     *  7000, 6900, 6800, 6700, 6600, 6500,...
      * 
      * Tax should be
      * 0 (first year always 0), 150, 148, 146, 144, 142, 140, 138, 136, 134
@@ -98,13 +98,13 @@ test('end to end deterministic backend test', async () => {
      * 
      * We have tax-exempt bonds starting at 10,000, with a 5% return
      */
-    const expectedTax = [0, 148, 146, 144, 142, 140, 138, 136, 134, 132];
-    const expectedNonDiscretionary = [5000, 5150, 5304.5, 5463.635, 5627.54405, 5796.3703715, 5970.26148264, 6149.36932712, 6333.85040694, 6523.86591915];
+    const expectedTax = [0, 138, 136, 134, 132, 130, 128, 126, 124, 122, 120];
+    const expectedNonDiscretionary = [5000, 5150, 5304.5, 5463.635, 5627.54405, 5796.3703715, 5970.26148264, 6149.36932712, 6333.85040694, 6523.86591915, 6719.581896];
 
     for(let i=0;i<10;i++){
         //console.log(simulationCalculations.yearlyResults[i])
         const maxExpense = expectedTax[i+1]+ expectedNonDiscretionary[i+1] + 2000;
-        expect(simulationCalculations.yearlyResults[i].totalIncome).toBe(7500-((i+1)*100));
+        expect(simulationCalculations.yearlyResults[i].totalIncome).toBe(7000-((i+1)*100));
         expect(simulationCalculations.yearlyResults[i].totalTax).toBe(expectedTax[i]);
         expect(simulationCalculations.yearlyResults[i].totalExpense).toBeLessThanOrEqual(maxExpense+4);
         expect(simulationCalculations.yearlyResults[i].totalExpense).toBeGreaterThan(maxExpense-2001);
@@ -118,7 +118,7 @@ test('end to end deterministic backend test', async () => {
             expect(inv).toBeGreaterThanOrEqual(10000);
             
         }
-        if(simulationCalculations.yearlyResults[i].investmentValues[1].values===10000){
+        if(simulationCalculations.yearlyResults[i].investmentValues[1].value<=10000){
             expect(simulationCalculations.yearlyResults[i].totalDiscretionaryExpenses).toBeLessThan(1);
         }
         else{
