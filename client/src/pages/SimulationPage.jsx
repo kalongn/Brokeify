@@ -331,7 +331,7 @@ const ScenarioSimulation = () => {
               <li>The system assumes all users are US citizens.</li>
               <li>The system does not account for state income tax unless a file of the matching state of residence is uploaded.
                 <ul>
-                  <li>By default, files for NY, NJ, CT, and WA are provided.</li>
+                  <li>By default, files for NY, NJ, CT, and WA of year 2024 are provided.</li>
                   <li>For married filers, both MARRIEDJOINT and SINGLE files are required; otherwise, only the SINGLE file is needed.</li>
                 </ul>
               </li>
