@@ -152,7 +152,7 @@ async function validate(scenarioID, explorationArray) {
                     //throw("Lower Bound of scenario exploration must be Integer");
                 }
                 if(!Number.isInteger(explorationValue.step)){
-                    throw("Step of scenario exploration must be Integer");
+                    //throw("Step of scenario exploration must be Integer");
                 }
                 if(explorationValue.upperBound<=explorationValue.lowerBound){
                     throw("Upper bound of scenario exploration must be strictly larger than lower bound");
