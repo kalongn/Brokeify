@@ -24,6 +24,7 @@ const OneD = () => {
   const { simulationId } = useParams();
 
   const [loading, setLoading] = useState(true);
+  const [loadingCharts, setLoadingCharts] = useState(false);
 
   const [scenarioName, setScenarioName] = useState("Unknown Scenario");
   const [paramOneType, setParamOneType] = useState(null);
@@ -60,6 +61,8 @@ const OneD = () => {
 
   const handleGenerateCharts = async () => {
     try {
+      setLoadingCharts(true);
+      setShowCharts(false);
       const response = await Axios.post(`/charts/${simulationId}`, charts);
       const generatedCharts = response.data;
       setCharts(generatedCharts);
@@ -72,6 +75,8 @@ const OneD = () => {
         alert("Error fetching Graph Result. Please try again.");
       }
       setShowCharts(false);
+    } finally {
+      setLoadingCharts(false);
     }
   };
 
@@ -146,12 +151,25 @@ const OneD = () => {
           </div>
 
           <div className={styles.rightSide}>
-            {!showCharts && <div className={styles.chartCount}>No Charts Generated Yet...</div>}
+
+            {!showCharts && (
+              loadingCharts ? (
+                <div className={styles.chartCount}>
+                  <h4>Loading Charts...</h4>
+                </div>
+              ) : (
+                <div className={styles.chartCount}>
+                  <h4>Please add charts and then generate.</h4>
+                </div>
+              )
+            )}
+
             {showCharts && charts.length === 0 && (
               <div className={styles.noChartsMessage}>
-                Please add a selection of charts, and then generate.
+                <h4>Please add a selection of charts, and then generate.</h4>
               </div>
             )}
+
             {showCharts && charts.length > 0 && charts.map((chart) => (
               <div key={chart.id} className={styles.chart}>
                 <h3>{chart.label}</h3>
