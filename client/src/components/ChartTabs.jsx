@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 
 import Select from 'react-select';
@@ -24,6 +24,14 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   const [investEvents, setInvestEvents] = useState([]);
   const [displayedEvents, setdisplayedEvents] = useState([]);
   const isTwoD = activeTab === "2-D Exploration";
+
+  const allParameterOptions = useMemo(() => [
+    { value: "START_EVENT", label: "Start Year" },
+    { value: "DURATION_EVENT", label: "Duration" },
+    { value: "EVENT_AMOUNT", label: "Initial Amount" },
+    { value: "INVEST_PERCENTAGE", label: "First of Two Investments" },
+    { value: "ROTH_BOOLEAN", label: "Disable Roth Optimizer" }
+  ], []);
 
   // Prompt to AI: Plugged in Copilot's review about making remount keys flexible
   // Needed to adjust the indices
@@ -61,9 +69,9 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   };
 
   const handleSelectChange = (selectedOption, field) => {
-    const prevSelection = simulationInput[field] !== undefined ? simulationInput[field] : null;
+    let prevSelection = simulationInput[field] !== undefined ? simulationInput[field] : null;
+    // Clear parameter associated fields when the scenario is changed
     if (field === "selectedScenario" && prevSelection !== null && prevSelection !== selectedOption.value) {
-      // Clear parameter associated fields when the scenario is changed
       setSimulationInput(() => ({
         numSimulations: simulationInput.numSimulations,
         selectedScenario: selectedOption.value
@@ -73,6 +81,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       clearErrors(setErrors, field);
       return;
     }
+
     // Prompt to AI (Amazon Q): Make this highlighted code more concise
     // Needed to adjust for prevSelection
     setSimulationInput((prev) => {
@@ -88,6 +97,11 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       }
       return newState;
     });
+    setparameterOptions(prev => prev.filter(param => param.value !== selectedOption.value));
+    if (prevSelection !== null) {
+      prevSelection = allParameterOptions.find(option => option.value === prevSelection);
+      setparameterOptions(prev => [...prev, prevSelection]);
+    }
     // Clear errors when user makes changes
     clearErrors(setErrors, field);
   };
@@ -131,16 +145,16 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       setparameterOptions(() => {
         const options = []
         if (allEvents.length > 0) {
-          options.push({ value: "START_EVENT", label: "Start Year" }, { value: "DURATION_EVENT", label: "Duration" },)
+          options.push(allParameterOptions[0], allParameterOptions[1],)
         }
         if (allIncomeExpenseEvents.length > 0) {
-          options.push({ value: "EVENT_AMOUNT", label: "Initial Amount" })
+          options.push(allParameterOptions[2])
         }
         if (allInvestEvents.length > 0) {
-          options.push({ value: "INVEST_PERCENTAGE", label: "First of Two Investments" })
+          options.push(allParameterOptions[3])
         }
         if (isRothEnabled && !isTwoD) {
-          options.push({ value: "ROTH_BOOLEAN", label: "Disable Roth Optimizer" });
+          options.push(allParameterOptions[4]);
         }
         return options;
       })
@@ -155,7 +169,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       }
       console.error('Error fetching scenario name:', error);
     });
-  }, [simulationInput.selectedScenario, simulationInput.numSimulations, setSimulationInput, isTwoD]);
+  }, [allParameterOptions, simulationInput.selectedScenario, simulationInput.numSimulations, setSimulationInput, isTwoD]);
 
   useEffect(() => {
     const parameterValue = simulationInput[`parameter${parameterIndex}`];
