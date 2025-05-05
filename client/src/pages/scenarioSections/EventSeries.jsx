@@ -6,7 +6,7 @@ import ErrorMessage from "../../components/ErrorMessage";
 import Axios from 'axios';
 
 import styles from "./Form.module.css";
-
+import Tooltip from "../../components/Tooltip";
 // This page does not submit any data, so childRef is not used
 const EventSeries = () => {
   const navigate = useNavigate();

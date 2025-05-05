@@ -4,7 +4,7 @@ import Axios from "axios";
 
 import SortableList from "../../components/SortableList";
 import styles from "./Form.module.css";
-
+import Tooltip from "../../components/Tooltip";
 const RMDStrategy = () => {
 
   const { scenarioId } = useParams();
@@ -67,11 +67,11 @@ const RMDStrategy = () => {
 
   return (
     <div>
-      <h2 id={styles.heading}>Required Minimum Distribution Strategy</h2>
+      <h2 id={styles.heading}>Required Minimum Distribution Strategy </h2>
       <p>
         Specify the order in which investments should be transferred
         from pre-tax retirement accounts to non-retirement accounts
-        when a Required Minimum Distribution (RMD) is triggered.
+        when a Required Minimum Distribution (RMD) is triggered. <Tooltip orientation = "below" text={"RMD is the minimum amount that must be withdrawn annually from certain retirement accounts starting at a specific age, as mandated by the IRS."}/>
       </p>
       {loading ?
         <p>Loading...</p>
