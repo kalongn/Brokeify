@@ -510,8 +510,8 @@ const twoDChartData = (chart, stepToStepToYearToResults) => {
         }
     }
     return {
-        x: x,
-        y: y,
+        x: y,
+        y: x,
         z: z,
     }
 };
