@@ -158,7 +158,7 @@ export async function getCashInvestment(investmentTypes) {
     if (cashInvestmentType) {
         //found, return its associated investment
         const res =  await investmentFactory.read(cashInvestmentType.investments[0]); //assuming it has only one investment
-        return res;
+        return {cashInvestment: res, investmentTypes: investmentTypes};
     }
     //not found, create new Cash investment and investment type
     const newCashInvestment = await investmentFactory.create({
@@ -166,24 +166,26 @@ export async function getCashInvestment(investmentTypes) {
         purchasePrice: 0,
         taxStatus: "CASH"
     });
+    const d1 = await distributionFactory.create("FIXED_PERCENTAGE", { value: 0 });
+    const d2 = await distributionFactory.create("FIXED_AMOUNT", { value: 0 });
 
     const newCashInvestmentType = await investmentTypeFactory.create({
         name: cashName,
         description: "Cash holdings",
         expectedAnnualReturn: 0,
-        expectedAnnualReturnDistribution: await distributionFactory.create("FIXED_PERCENTAGE", { value: 0 }),
+        expectedAnnualReturnDistribution: d1._id,
         expenseRatio: 0,
         expectedAnnualIncome: 0,
-        expectedAnnualIncomeDistribution: await distributionFactory.create("FIXED_AMOUNT", { value: 0 }),
+        expectedAnnualIncomeDistribution: d2._id,
         taxability: false,
-        investments: [newCashInvestment]
+        investments: [newCashInvestment._id]
     });
 
 
 
     investmentTypes.push(newCashInvestmentType);
 
-    return newCashInvestment;
+    return {cashInvestment: newCashInvestment, investmentTypes: investmentTypes};
 }
 export async function setupMap(scenarioID){
     const scenario = await scenarioFactory.read(scenarioID);

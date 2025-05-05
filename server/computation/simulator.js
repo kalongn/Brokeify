@@ -133,7 +133,9 @@ export async function simulate(
 
     // --- Fetch initial data before the loop ---
     let investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
-    let cashInvestment = await getCashInvestment(investmentTypes); // Finds or creates Cash
+    let getCashInvestmentReturn = await getCashInvestment(investmentTypes); // Finds or creates Cash
+    let cashInvestment = getCashInvestmentReturn.cashInvestment;
+    investmentTypes = getCashInvestmentReturn.investmentTypes;
     // Update scenario's investmentTypes if cash was newly created and added
     scenario.investmentTypes = investmentTypes.map((type) => type._id);
     await scenarioFactory.update(scenario._id, { investmentTypes: scenario.investmentTypes });
