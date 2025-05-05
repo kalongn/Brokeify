@@ -64,8 +64,6 @@ router.get("/runSimulation", async (req, res) => {
                     name: scenario.name + " | created at " + scenario.dateCreated,
                 }
             });
-
-        console.log("Speed Test")
         const previousRun = await simulationController.readWithNoPopulate(user.previousSimulation);
         let simulationType = null;
         if (previousRun) {
