@@ -135,12 +135,37 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
 
   // Only number of simulations and the selected scenario inputs are shared across all tabs
   const changeTab = (tab) => {
+    
+    if (tab === activeTab) {
+      return;
+    }
     setActiveTab(tab);
-    setSimulationInput(() => ({
-      numSimulations: simulationInput.numSimulations,
-      selectedScenario: simulationInput.selectedScenario
-    }));
-    setInputRemounts(prev => prev.map(val => val + 1));
+    // Navigating from 2-D to 1-D clears parameter 2 and associated values
+    if (tab === "1-D Exploration" && activeTab === "2-D Exploration") {
+      // Prompt to AI (Amazon Q): Delete any simulationInput with a key with 2
+      // Worked as intended
+      setSimulationInput(prev => {
+        const newState = { ...prev };
+        Object.keys(newState).forEach(key => {
+          if (key.includes("2")) {
+            delete newState[key];
+          }
+        });
+        return newState;
+      });
+      // Clears all 2-D associated values
+      updateRemount([2]);
+    }
+
+    // Navigating to Charts clears all 1-D and 2-D associated values
+    if (tab === "Charts") {
+      setSimulationInput(() => ({
+        numSimulations: simulationInput.numSimulations,
+        selectedScenario: simulationInput.selectedScenario
+      }));
+      // Clears all 1-D and 2-D associated values
+      updateRemount([1, 2]);
+    }
   }
 
   const handleChange = (e) => {
@@ -175,21 +200,14 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       const newState = { ...prev, [field]: selectedOption.value };
       // If the parameter field is changed, clear the associated fields
       if (field.startsWith("parameter")) {
-        const parameterCount = field.at(-1);
-        const fieldsToRemove = [ `displayedEvents${parameterCount}`, `lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
+        const fieldsToRemove = [ `displayedEvents${parameterIndex}`, `lowerBound${parameterIndex}`, `upperBound${parameterIndex}`, `stepSize${parameterIndex}`];
         if (fieldsToRemove.some(f => prev[f] !== undefined)) {
           fieldsToRemove.forEach(f => delete newState[f]);
-          updateRemount([Number(parameterCount)]);
+          updateRemount([Number(parameterIndex)]);
         }
       }
       return newState;
     });
-    // Clear current selection and add back in previous selection
-    setparameterOptions(prev => prev.filter(param => param.value !== selectedOption.value));
-    if (prevSelection !== null) {
-      prevSelection = allParameterOptions.find(option => option.value === prevSelection);
-      setparameterOptions(prev => [...prev, prevSelection]);
-    }
     // Clear errors when user makes changes
     clearErrors(setErrors, field);
   };
