@@ -1,5 +1,8 @@
+import { useState, useEffect, useCallback } from "react";
 import { Outlet, useNavigate, useLocation, useParams } from "react-router-dom";
 import { useRef } from "react";
+import Axios from "axios";
+
 import Layout from "../components/Layout";
 import styles from "./ScenarioForm.module.css";
 
@@ -26,12 +29,46 @@ const ScenarioForm = () => {
     { path: "roth-strategy", label: "Roth Conversion Strategy & Optimizer" },
   ];
 
+  const [scenarioHash, setScenarioHash] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
+    Axios.defaults.withCredentials = true;
+  }, []);
+
+  const fetchScenarioHash = useCallback(async () => {
+    try {
+      const response = await Axios.get(`/concurrency/${scenarioId}`);
+      setScenarioHash(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching scenario hash:', error);
+      alert("Error fetching scenario hash. Please try again.");
+      return null;
+    }
+  }, [scenarioId]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchScenarioHash().then((hash) => {
+      if (hash) {
+        setLoading(false);
+      }
+    });
+  }, [scenarioId, fetchScenarioHash]);
+
+  useEffect(() => {
+    console.log("Scenario Hash:", scenarioHash);
+  }, [scenarioHash]);
+
   // Determine the current section index based on the URL
   const currentSectionIndex = sections.findIndex(
     (section) => path.endsWith(section.path)
   );
 
-  const handleNextSave = () => {
+  const handleNextSave = async () => {
+    await fetchScenarioHash();
     if (currentSectionIndex < sections.length - 1) {
       navigate(`/ScenarioForm/${scenarioId}/${sections[currentSectionIndex + 1].path}`);
     }
@@ -40,16 +77,31 @@ const ScenarioForm = () => {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
+    await fetchScenarioHash();
     navigate(`/ScenarioForm/${scenarioId}/${sections[currentSectionIndex - 1].path}`);
   };
 
   // Next/Save button acts as submission button
   // Must const handleSubmit in child component
   const handleSectionSubmit = async () => {
-    // console.log(childRef.current);
+    try {
+      const upToDateHash = await Axios.get(`/concurrency/${scenarioId}`);
+      if (upToDateHash.data !== scenarioHash) {
+        setScenarioHash(upToDateHash.data);
+        alert("This scenario has been modified by you on another tab or another user. Will be refreshing the page...");
+        navigate(0);
+        return;
+      }
+    } catch (error) {
+      console.error('Error fetching scenario hash:', error);
+      alert("Error fetching scenario hash. Please try again.");
+      return;
+    }
     if (childRef.current) {
       if (!await childRef.current.handleSubmit()) {
+        // Scroll to the top to show the error message
+        window.scrollTo(0, 0);
         return;
       }
     }
@@ -59,30 +111,36 @@ const ScenarioForm = () => {
 
   return (
     <Layout>
-      <div id={styles.formBackground}>
-        <div id={styles.formSection}>
-          <Outlet context={{ childRef, scenarioId }} />
-          {/* Navigation buttons */}
-          {/* Only appears if not creating a new investment type or event series */}
-          {/* 
+      {loading ?
+        <div>
+          Loading...
+        </div> :
+        <div id={styles.formBackground}>
+          <div id={styles.formSection}>
+            <Outlet context={{ childRef, scenarioId, scenarioHash, fetchScenarioHash }} />
+            {/* Navigation buttons */}
+            {/* Only appears if not creating a new investment type or event series */}
+            {/* 
             Prompt to AI (Copilot): Create navigation buttons to go between sections
             Generated code worked and only condensed Next and Save & Close buttons code
            */}
-          {!(path.includes("new") || path.includes("edit")) && <div id={styles.navButtons}>
-            <button
-              className={styles.deemphasizedButton}
-              onClick={handleBack}
-              disabled={currentSectionIndex === 0}
-            >
-              Back
-            </button>
-            {/* On the last section, next replaced by save & close */}
-            <button type="submit" className={styles.emphasizedButton} onClick={handleSectionSubmit}>
-              {currentSectionIndex !== sections.length - 1 ? "Next" : "Save & Close"}
-            </button>
-          </div>}
+            {!(path.includes("new") || path.includes("edit")) && <div id={styles.navButtons}>
+              <button
+                className={styles.deemphasizedButton}
+                onClick={handleBack}
+                disabled={currentSectionIndex === 0}
+              >
+                Back
+              </button>
+              {/* On the last section, next replaced by save & close */}
+              <button type="submit" className={styles.emphasizedButton} onClick={handleSectionSubmit}>
+                {currentSectionIndex !== sections.length - 1 ? "Next" : "Save & Close"}
+              </button>
+            </div>}
+          </div>
         </div>
-      </div>
+      }
+
     </Layout>
   );
 };

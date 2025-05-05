@@ -19,6 +19,7 @@ const Distributions = ({
   onChange, // Change handler function
   defaultValue = {}, // Default value for the select input (if any)
   showCheckbox = true, // Checkbox is not needed when it's only percentage (Limits.jsx)
+  className // Style for error indication
 }) => {
 
   const [isChecked, setIsChecked] = useState(false);
@@ -63,7 +64,7 @@ const Distributions = ({
   };
 
   return (
-    <div>
+    <div data-testid={`distributions-${name}`} className={className}>
       {options.includes("fixed") && (
         <>
           <label>
@@ -144,6 +145,7 @@ Distributions.propTypes = {
   onChange: PropTypes.func.isRequired,
   defaultValue: PropTypes.object,
   showCheckbox: PropTypes.bool,
+  className: PropTypes.string
 };
 
 export default Distributions;

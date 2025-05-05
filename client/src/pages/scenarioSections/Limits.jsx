@@ -2,10 +2,13 @@ import { useState, useEffect, useImperativeHandle } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
 import Axios from "axios";
 
-import { validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
+import { validateRequired, validateDistribution, clearErrors } from "../../utils/ScenarioHelper";
 import Distributions from "../../components/Distributions";
-import styles from "./Form.module.css";
+import ErrorMessage from "../../components/ErrorMessage";
 
+import styles from "./Form.module.css";
+import errorStyles from "../../components/ErrorMessage.module.css";
+import Tooltip from "../../components/Tooltip";
 const Limits = () => {
   // useOutletContext and useImperativeHandle were AI-generated solutions as stated in BasicInfo.jsx
   // Get ref from the context 
@@ -75,7 +78,7 @@ const Limits = () => {
       return updatedDistributions;
     });
     // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
+    clearErrors(setErrors, name);
   };
 
   // Below handlers copied and pasted from AI code generation from BasicInfo.jsx
@@ -84,14 +87,15 @@ const Limits = () => {
     const processedValue = name === "initialLimit" ? Number(value) : value;
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
+    clearErrors(setErrors, name);
   };
 
   const validateFields = () => {
     const newErrors = {};
     const infDist = distributions.inflationAssumption;
     validateRequired(newErrors, "initialLimit", formData.initialLimit);
-    validateDistribution(newErrors, "inflationAssumption", infDist);
+    // Last argument is to indicate inflation values can be negative
+    validateDistribution(newErrors, "inflationAssumption", infDist, true);
 
     // Set all errors at once
     setErrors(newErrors);
@@ -127,8 +131,9 @@ const Limits = () => {
   return (
     <div>
       <h2 id={styles.heading}>Inflation & Contribution Limits</h2>
+      <ErrorMessage errors={errors} />
       <form>
-        <label>Inflation Assumption Percentage</label>
+        <label id="inflationAssumption">Inflation Assumption Percentage  <Tooltip orientation="below" text="This is the projected rate at which prices will increase over time"></Tooltip></label>
         <Distributions
           options={["fixed", "uniform", "normal"]}
           name="inflationAssumption"
@@ -136,19 +141,20 @@ const Limits = () => {
           onChange={handleDistributionsChange}
           defaultValue={distributions.inflationAssumption}
           showCheckbox={false}
+          className={errors.inflationAssumption ? errorStyles.highlight : ""}
         />
-        {errors.inflationAssumption && <span className={styles.error}>{errors.inflationAssumption}</span>}
         <hr />
-        <label>
+        <label id="initialLimit">
           After-Tax Retirement Accounts Initial Limit on Annual Contributions
+          <Tooltip text=" This is the maximum amount an individual can contribute each year, based on tax rules for such accounts like Roth IRAs." />
           <br />
           <input
             type="number"
             name="initialLimit"
             onChange={handleChange}
             defaultValue={formData.initialLimit}
+            className={errors.initialLimit ? errorStyles.errorInput : ""}
           />
-          {errors.initialLimit && <span className={styles.error}>{errors.initialLimit}</span>}
         </label>
       </form>
     </div>

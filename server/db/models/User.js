@@ -16,7 +16,8 @@ const UserSchema = new mongoose.Schema({
     editorScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     viewerScenarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Scenario' }],
     userSpecificTaxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tax' }],
-    userSimulations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Simulation' }],
+    isRunningSimulation: { type: Boolean, default: false },
+    previousSimulation: { type: mongoose.Schema.Types.ObjectId, ref: 'Simulation', default: null },
 });
 
 export default mongoose.model('User', UserSchema);

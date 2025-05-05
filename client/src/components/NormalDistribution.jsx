@@ -10,6 +10,7 @@ const NormalDistribution = ({ handleChange, defaultValue }) => {
         <br />
         <input
           type="number"
+          data-testid="normalMean"
           defaultValue={defaultValue.mean}
           onChange={(e) => handleChange("mean", e.target.value)}
         />
@@ -19,6 +20,7 @@ const NormalDistribution = ({ handleChange, defaultValue }) => {
         <br />
         <input
           type="number"
+          data-testid="normalStandardDeviation"
           defaultValue={defaultValue.standardDeviation}
           onChange={(e) => handleChange("standardDeviation", e.target.value)}
         />

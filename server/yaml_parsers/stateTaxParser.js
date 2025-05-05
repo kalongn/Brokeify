@@ -2,6 +2,8 @@ import yaml from 'js-yaml';
 import TaxController from "../db/controllers/TaxController.js";
 import UserController from "../db/controllers/UserController.js";
 
+import { stateMap } from '../routes/helper.js';
+
 const taxController = new TaxController()
 const userController = new UserController();
 
@@ -20,7 +22,32 @@ And use controllwers from:
 
 export async function parseStateTaxYAML(yamlStr, userId) {
     try {
+        const verifyRates = (rates) => {
+            return rates.every(({ lowerBound, upperBound, rate }) => {
+                return (
+                    typeof lowerBound === 'number' &&
+                    (upperBound === 'Infinity' || typeof upperBound === 'number') &&
+                    typeof rate === 'number' && Number(rate) >= 0 && Number(rate) <= 1
+                );
+            });
+        }
+
         const { year, state, filingStatus, rates } = yamlStr;
+
+        if (!year || !state || !filingStatus || !rates) {
+            return -1; // Invalid YAML format
+        }
+        if (verifyRates(rates) === false) {
+            return -1; // Invalid rates format
+        }
+        if (year > new Date().getFullYear() || (filingStatus !== 'SINGLE' && filingStatus !== 'MARRIEDJOINT')) {
+            return -1; // Invalid year or filing status
+        }
+        if (stateMap[state] === undefined) {
+            return -1; // Invalid state
+        }
+
+
         const parseBrackets = (brackets) => {
             return brackets.map(({ lowerBound, upperBound, rate }) => ({
                 lowerBound: Number(lowerBound),

@@ -64,6 +64,23 @@ export default class InvestmentController {
     }
 
     /**
+     * Reads multiple Investments with the given array of IDs
+     * @param {mongoose.Types.ObjectId[]} ids An array of Investments IDs
+     * @returns {Promise<Array<Event>>} A Promise that resolves to an array of Investments objects
+     */
+    async readMany(ids) {
+        try {
+            if (!Array.isArray(ids) || ids.length === 0) {
+                return [];
+            }
+            const investments = await mongoose.model('Investment').find({ _id: { $in: ids } }).exec();
+            return investments;
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    /**
      * This function updates the Investment with the given id with the given data
      * @param {mongoose.Types.ObjectId} id 
      *      Id of the Investment to be updated
@@ -107,6 +124,7 @@ export default class InvestmentController {
 
             const clonedInvestment = await this.create({
                 value: investment.value,
+                purchasePrice: investment.value,   //initially, purchase price = value
                 taxStatus: investment.taxStatus,
             });
             return clonedInvestment.id;

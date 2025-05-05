@@ -23,13 +23,16 @@ import ExpenseStrategy from './pages/scenarioSections/ExpenseStrategy.jsx';
 import RMDStrategy from './pages/scenarioSections/RMDStrategy.jsx';
 import RothStrategy from './pages/scenarioSections/RothStrategy.jsx';
 import Charts from './pages/visualizations/Charts.jsx';
-
+import OneD from './pages/visualizations/OneD.jsx';
 import RouteTesting from './pages/RouteTesting.jsx';
 import ScenarioSimulation from './pages/ScenarioSimulation.jsx';
 import ViewScenario from './pages/ViewScenario.jsx';
 import Sharing from './pages/Sharing.jsx';
 import SimulationPage from './pages/SimulationPage.jsx';
+import TwoD from './pages/visualizations/TwoD.jsx';
 const App = () => {
+  console.log('COVERAGE OBJECT:', window.__coverage__);
+
   const [verified, setVerified] = useState(false);
   const navigate = useNavigate();
 
@@ -91,7 +94,11 @@ const App = () => {
         <Route path="/Simulation" element={<SimulationPage />} />
         
         <Route path="/RouteTesting" element={<RouteTesting />} />
-        <Route path="/Visualizations/Charts/:scenarioId" element={<Charts />} />        
+        <Route path="/Visualizations/Charts/:simulationId" element={<Charts />} />
+        
+        <Route path="/Visualizations/OneDimensional/:simulationId" element={<OneD />} />  
+        
+        <Route path="/Visualizations/TwoDimensional/:simulationId" element={<TwoD />} />               
       </Routes>
     </>
   )

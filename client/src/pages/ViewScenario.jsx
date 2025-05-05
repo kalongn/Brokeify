@@ -188,12 +188,21 @@ const ViewScenario = () => {
             </div>
             <div className={styles.investmentTable}>
               {investments.map((investment, index) => (
-                <div key={index} className={styles.investmentRow}>
-                  <div className={styles.textbox}>{investment.name}</div>
-                  <div className={styles.textbox}>{investment.value.toLocaleString()}</div>
-                  <div className={styles.textbox}>{investment.taxStatus}</div>
+                <div key={index} className={styles.investmentWrapper}>
+                  <div className={styles.investmentRowWithHover}>
+                    <div className={styles.textbox}>{investment.name}</div>
+                    <div className={styles.textbox}>{investment.value.toLocaleString()}</div>
+                    <div className={styles.textbox}>{investment.taxStatus}</div>
+                  </div>
+                  <div className={styles.hoverInlineDetails}>
+                    <p className={styles.lightText}>Taxability: {investment.taxability ? "Taxable" : "Tax-exempt"}</p>
+                    <p className={styles.lightText}>Expected Annual Return: {investment.expectedAnnualReturnDistribution}</p>
+                    <p className={styles.lightText}>Expense Ratio: {investment.expenseRatio}</p>
+                    <p className={styles.lightText}>Expected Annual Income from Dividends or Interests: {investment.expectedAnnualIncomeDistribution}</p>
+                  </div>
                 </div>
               ))}
+
             </div>
 
             {/**Event Series Section */}
@@ -208,16 +217,55 @@ const ViewScenario = () => {
 
             <div className={styles.eventTable}>
               {events.map((event, index) => (
-                <div key={index} className={styles.eventRow}>
-                  <div className={`${styles.textbox} ${styles.eventRow1}`}>{event.name}</div>
-                  <div className={`${styles.textbox} ${styles.eventRow2}`}>{event.type}</div>
+                <div key={index} className={styles.eventWrapper}>
+                  <div key={index} className={styles.eventRow}>
+                    <div className={`${styles.textbox} ${styles.eventRow1}`}>{event.name}</div>
+                    <div className={`${styles.textbox} ${styles.eventRow2}`}>{event.type}</div>
+                  </div>
+                  <div className={styles.hoverInlineDetails}>
+                    <p className={styles.lightText}>Start Year: {event.startYear}</p>
+                    {(event.duration !== undefined && event.duration !== null) && (
+                      <p className={styles.lightText}>Duration: {event.duration}</p>
+                    )}
+
+                    {(event.amount !== undefined && event.amount !== null) && (
+                      <p className={styles.lightText}>Amount: {event.amount}</p>
+                    )}
+
+                    {(event.type === "INVEST") && (
+                      <div>
+                        <p className={styles.lightText}>Investment Allocation Method: {event.investmentAllocationMethod}</p>
+                        <p className={styles.lightText}>Maximum Cash: {event.maximumCash}</p>
+                      </div>
+                    )}
+                    {(event.type === "REBALANCE") && (
+                      <div>
+                        <p className={styles.lightText}>Investment Allocation Method: {event.investmentAllocationMethod}</p>
+                        <p className={styles.lightText}>Tax Status: {event.rebalanceTaxStatus}</p>
+                      </div>
+                    )}
+
+                    {(event.type === "EXPENSE") && (
+                      <p className={styles.lightText}> Discretionary: {event.discretionary}</p>
+                    )}
+                    {((event.type === "INCOME" || event.type === "EXPENSE")) && (
+                      <div>
+
+                        <p className={styles.lightText}>Expected Annual Change Distribution: {event.percentage}</p>
+                        <p className={styles.lightText}>Taxability: {event.taxability}</p>
+                      </div>
+
+                    )}
+
+
+                  </div>
                 </div>
               ))}
             </div>
 
             {/**Inflation and Contribution Limits Section */}
             <h2>Inflation & Contribution Limits</h2>
-            <p className={styles.question}>Inflation Assumption</p>
+            <p className={styles.question}>Inflation Assumption Percentage</p>
 
             {
               scenarioData.inflationAssumptionDistribution?.distributionType === "NORMAL_PERCENTAGE" ? (
@@ -231,8 +279,8 @@ const ViewScenario = () => {
                   <div>
                     <BiCircle /><span> Sample from Uniform Distribution</span>
                   </div>
-                  Mean : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.mean} </div>
-                  Standard Deviation : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.standardDeviation} </div>
+                  Mean : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.mean) * 100} </div>
+                  Standard Deviation : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.standardDeviation) * 100} </div>
                 </>
               ) :
 
@@ -247,8 +295,8 @@ const ViewScenario = () => {
                     <div>
                       <BiSolidCircle /><span> Sample from Uniform Distribution</span>
                     </div>
-                    Lower Bound : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.lowerBound}</div>
-                    Upper Bound : <div className={styles.textbox}> {scenarioData.inflationAssumptionDistribution.upperBound}</div>
+                    Lower Bound : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.lowerBound) * 100}</div>
+                    Upper Bound : <div className={styles.textbox}> {parseFloat(scenarioData.inflationAssumptionDistribution.upperBound) * 100}</div>
                   </>
                 ) :
                   (
@@ -262,15 +310,14 @@ const ViewScenario = () => {
                       <div>
                         <BiCircle /><span> Sample from Uniform Distribution</span>
                       </div>
-                      Percentage: <div className={styles.textbox}>{scenarioData.inflationAssumptionDistribution?.value}</div>
+                      Percentage: <div className={styles.textbox}>{parseFloat(scenarioData.inflationAssumptionDistribution?.value) * 100}</div>
                     </>
                   )
             }
 
 
-            <p className={styles.question}>Retirement Accounts Initial Limit on Annual Contributions</p>
+            <p className={styles.question}> After-Tax Retirement Accounts Initial Limit on Annual Contributions</p>
 
-            <p className={styles.question}>After-Tax</p>
             <div className={styles.textbox}>{scenarioData.annualPostTaxContributionLimit}</div>
 
 
@@ -283,9 +330,12 @@ const ViewScenario = () => {
             <div className={styles.listBox}>
               {orderedSpendingStrategy.map((strategy, index) => (
                 <div key={index} className={styles.draggableItem}>
-                  <div className={styles.icon}>
-                    <CgMenuGridO size={20} />
+                  <CgMenuGridO size={20} className={styles.icon} />
+                  <div className={styles.draggableText}>
                     <span className={styles.draggableItemText}>{strategy.name}</span>
+                    <p className={styles.lightText}>
+                      ${strategy.amount} – {strategy.percentage} -  {strategy.taxability}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -300,18 +350,17 @@ const ViewScenario = () => {
             <div className={styles.listBox}>
               {orderedExpenseWithdrawalStrategy.map((strategy, index) => (
                 <div key={index} className={styles.draggableItem}>
-                  <div className={styles.icon}>
-                    <CgMenuGridO size={20} />
-                    <p className={styles.draggableItemText}>{strategy.name}</p>
+                  <CgMenuGridO size={20} className={styles.icon} />
+                  <div className={styles.draggableText}>
+                    <span className={styles.draggableItemText}>{strategy.name}</span>
+                    <div>
+                      <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
+                    </div>
                   </div>
-                  <p className={styles.lightText}> Value: {strategy.value} </p>
-                  <p className={styles.lightText}> Tax Status: {strategy.taxStatus} </p>
-
 
                 </div>
               ))}
             </div>
-
 
             {/**RMD Stategy Section */}
             <h2>Required Minimum Distribution Strategy</h2>
@@ -321,14 +370,13 @@ const ViewScenario = () => {
 
             {orderedRMDStrategy?.map((strategy, index) => (
               <div key={index} className={styles.draggableItem}>
-                <div className={styles.icon}>
-                  <CgMenuGridO size={20} />
-                  <p className={styles.draggableItemText}>{strategy.name}</p>
+                <CgMenuGridO size={20} className={styles.icon} />
+                <div className={styles.draggableText}>
+                  <span className={styles.draggableItemText}>{strategy.name}</span>
+                  <div>
+                    <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
+                  </div>
                 </div>
-                <p className={styles.lightText}> Value: {strategy.value} </p>
-                <p className={styles.lightText}> Tax Status: {strategy.taxStatus} </p>
-
-
               </div>
             ))}
 
@@ -338,23 +386,11 @@ const ViewScenario = () => {
               Specify the order in which investments should be transferred from pre-tax to after-tax retirement accounts when a conversion is triggered.
             </p>
 
-            {orderedRothStrategy?.map((strategy, index) => (
-              <div key={index} className={styles.draggableItem}>
-                <div className={styles.icon}>
-                  <CgMenuGridO size={20} />
-                  <p className={styles.draggableItemText}>{strategy.name}</p>
-                </div>
-                <p className={styles.lightText}> Value: {strategy.value} </p>
-                <p className={styles.lightText}> Tax Status: {strategy.taxStatus} </p>
-
-              </div>
-            ))}
-
             <p className={styles.question}>Roth Conversion Optimizer</p>
             {(scenarioData.startYearRothOptimizer !== undefined) ? (
               <div>
-                <div className={styles.icon}>
-                  <BsToggleOn size={30} /><p className={styles.iconText}>Enabled</p>
+                <div className={styles.roth}>
+                  <BsToggleOn size={30} className={styles.icon} /><p className={styles.rothText}>Enabled</p>
                 </div>
                 <div className={styles.columns}>
                   <div className={styles.columnsp1}>
@@ -366,12 +402,28 @@ const ViewScenario = () => {
                     <div className={styles.textbox}>{scenarioData.endYearRothOptimizer}</div>
                   </div>
                 </div>
+                <p className={styles.question}>Roth Conversion Strategy</p>
+                {/* Roth Listing - only displayed when roth is on**/}
+                {orderedRothStrategy?.map((strategy, index) => (
+                  <div key={index} className={styles.draggableItem}>
+                    <CgMenuGridO size={20} className={styles.icon} />
+                    <div className={styles.draggableText}>
+                      <span className={styles.draggableItemText}>{strategy.name}</span>
+                      <div>
+                        <p className={styles.lightText}>${strategy.value}  – {strategy.expectedAnnualReturnDistribution} – {strategy.taxStatus} </p>
+                      </div>
+                    </div>
+
+                  </div>
+                ))}
 
               </div>
             ) : (
-              <div className={styles.icon}>
-                <BsToggleOff size={30} /><p className={styles.iconText}>Disabled</p>
+
+              <div className={styles.roth}>
+                <BsToggleOff size={30} className={styles.icon} /><p className={styles.rothText}>Disabled</p>
               </div>
+
             )}
           </div>
         }

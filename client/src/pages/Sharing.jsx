@@ -3,9 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FaTimes } from 'react-icons/fa';
 import Select from 'react-select';
 import Axios from "axios";
+import { clearErrors } from "../utils/ScenarioHelper";
 
-import styles from "./scenarioSections/Form.module.css";
 import Layout from "../components/Layout";
+import ErrorMessage from "../components/ErrorMessage";
+import styles from "./Sharing.module.css";
+import buttonStyles from './scenarioSections/Form.module.css';
 
 const Sharing = () => {
 
@@ -27,6 +30,7 @@ const Sharing = () => {
     { value: 'Viewer', label: 'Viewer' },
     { value: 'Editor', label: 'Editor' },
   ];
+   
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -49,7 +53,7 @@ const Sharing = () => {
   const handleEmailChange = (e) => {
     const value = e.target.value;
     setEmail(value);
-    setErrors("");
+    clearErrors(setErrors, "email");
   };
 
   // For changing an added user's permissions
@@ -68,7 +72,7 @@ const Sharing = () => {
       console.log(reponse.data);
     } catch (error) {
       console.error("Error updating user permissions:", error);
-      setErrors("An Unknown error occurred while updating the user permissions");
+      setErrors({ email: "An Unknown error occurred while updating the user permissions" });
       return;
     }
 
@@ -84,7 +88,7 @@ const Sharing = () => {
   const addUser = async (e) => {
     e.preventDefault();
     if (!email) {
-      setErrors("Email cannot be empty");
+      setErrors({ email: "Email cannot be empty" });
       return;
     }
 
@@ -92,21 +96,21 @@ const Sharing = () => {
     // The regex did not need any changes
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setErrors("Invalid email format");
+      setErrors({ email: "Invalid email format" });
       return;
     }
 
     const trimEmail = email.trim();
 
     if (trimEmail.toLowerCase() === ownerEmail.toLowerCase()) {
-      setErrors("You cannot add yourself");
+      setErrors({ email: "You cannot add yourself" });
       return;
     }
 
     if (sharedUsers.some((user) => {
       return user.email.toLowerCase() === trimEmail.toLowerCase();
     })) {
-      setErrors("User already added");
+      setErrors({ email: "User already added" });
       return;
     }
 
@@ -120,15 +124,15 @@ const Sharing = () => {
       const correctedEmail = response.data.email;
       setSharedUsers([...sharedUsers, { email: correctedEmail, permissions: permissions }]);
       setEmail("");
-      setErrors("");
+      clearErrors(setErrors, "email");
       e.target.form.querySelector('input[type="email"]').value = "";
     } catch (error) {
       if (error.response?.status === 404 || error.response?.status === 400) {
-        setErrors("Input email incorrect or does not have an account");
+        setErrors({ email: "Input email incorrect or does not have an account" });
         return;
       }
       console.error("Error adding user:", error);
-      setErrors("An Unknown error occurred while adding the user");
+      setErrors({ email: "An Unknown error occurred while adding the user" });
     }
   };
 
@@ -142,7 +146,7 @@ const Sharing = () => {
       console.log(response.data);
     } catch (error) {
       console.error("Error removing user:", error);
-      setErrors("An Unknown error occurred while removing the user");
+      setErrors({ email: "An Unknown error occurred while removing the user" });
       return;
     }
     setSharedUsers(sharedUsers.filter((user) => user.email !== targetUserEmail));
@@ -160,8 +164,28 @@ const Sharing = () => {
               Specify the users you would like to share this scenario with,
               and define their access to this scenario.
             </p>
+            <ErrorMessage errors={errors} />
+            <form id={styles.addEmailSection}>
+              <input
+                type="email"
+                id="email"
+                className={styles.email}
+                placeholder="Enter email address"
+                onChange={handleEmailChange}
+              />
+              <Select
+                options={permissionOptions}
+                defaultValue={permissionOptions[0]}
+                onChange={(selectedOption) => setPermissions(selectedOption.value)}
+                className="select"
+                id={styles.selectPermissions}
+              />
+              <button id={styles.addButton} onClick={addUser}>
+                Add
+              </button>
+            </form>
             <h3>People with access</h3>
-            <div id={styles.newItemContainer} style={{ backgroundColor: 'var(--color-white)' }} >
+            <div className={styles.usersList} >
               <table>
                 <tbody>
                   <tr>
@@ -179,14 +203,14 @@ const Sharing = () => {
                           options={permissionOptions}
                           onChange={(selectedOption) => handlePermissionsChange(user.email, selectedOption.value)}
                           defaultValue={permissionOptions.find((option) => option.value === user.permissions)}
-                          className={styles.select}
+                          className="select"
                         />
                       </td>
                       <td style={{ padding: 0, width: 1 }}>
                         <button
                           type="button"
                           onClick={() => removeUser(user.email)}
-                          className={styles.tableButton}
+                          className={buttonStyles.tableButton}
                           style={{ margin: 0 }}
                         >
                           <FaTimes />
@@ -197,25 +221,6 @@ const Sharing = () => {
                 </tbody>
               </table>
             </div>
-            <form id={styles.addEmailSection}>
-              <label>
-                <input
-                  type="email"
-                  placeholder="Enter email address"
-                  onChange={handleEmailChange}
-                />
-              </label>
-              <Select
-                options={permissionOptions}
-                defaultValue={permissionOptions[0]}
-                onChange={(selectedOption) => setPermissions(selectedOption.value)}
-                className={styles.select}
-              />
-              <button id={styles.addButton} style={{ width: "10%" }} onClick={addUser}>
-                Add
-              </button>
-            </form>
-            {errors && <span className={styles.error}>{errors}</span>}
           </>
         }
       </div>

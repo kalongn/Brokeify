@@ -18,7 +18,7 @@ const Header = ({ setVerified }) => {
     }
 
     if (path.startsWith('/Scenario')) {
-      return 'Scenario Simulation';
+      return 'Scenario Overview';
     }
 
     if (path.startsWith('/ViewScenario')) {
@@ -29,7 +29,7 @@ const Header = ({ setVerified }) => {
       return 'Sharing Settings';
     }
 
-    if (path.startsWith('/Visualizations/Charts')) {
+    if (path.startsWith('/visualizations/charts')) {
       return 'Visualization: Charts';
     }
 
@@ -40,6 +40,8 @@ const Header = ({ setVerified }) => {
         return 'Shared Scenarios';
       case '/Profile':
         return 'My Profile';
+      case '/Simulation':
+        return 'Scenario Simulation';
       default:
         return 'Brokeify';
     }
@@ -49,7 +51,7 @@ const Header = ({ setVerified }) => {
     // Scenario simulation page
     if (path.startsWith('/Scenario/')) {
       return (
-        <button className={styles.buttonGroupSimulation} onClick={async () => {
+        <button className={styles.headerButton} onClick={async () => {
           const pathParts = path.split('/');
           const id = pathParts[pathParts.length - 1];
           try {
@@ -73,10 +75,18 @@ const Header = ({ setVerified }) => {
             a.click();
             a.remove();
           } catch (error) {
-            console.error('Error downloading file:', error);
-            alert('Error downloading file. Please try again.');
+            if (error.response?.status === 409) {
+              console.error('Scenario not filled out up to basic requirements.');
+              alert('Scenario not filled out up to basic requirements.');
+            } else if (error.response?.status === 403) {
+              console.error('You do not have permission to access this scenario.');
+              alert('You do not have permission to access this scenario.');
+            } else {
+              console.error('Error downloading file:', error);
+              alert('Error downloading file. Please try again.');
+            }
           }
-        }}>Export</button>
+        }}>Export Scenario</button>
       );
     }
     // View scenario page
@@ -96,7 +106,7 @@ const Header = ({ setVerified }) => {
       );
     }
     // Charts page
-    if (path.startsWith('/Visualizations/Charts')) {
+    if (path.startsWith('/visualizations/charts')) {
       const pathParts = path.split('/');
       const id = pathParts[pathParts.length - 1];
       return (
@@ -108,13 +118,13 @@ const Header = ({ setVerified }) => {
       case '/Home':
         return (
           <>
-            <button onClick={() => setShowImportModal(true)}>Import Scenario</button>
+            <button className={styles.headerButton} onClick={() => setShowImportModal(true)}>Import Scenario</button>
             <ModalImport isOpen={showImportModal} onClose={setShowImportModal} />
           </>
         );
       case '/Profile':
         return (
-          <Link onClick={() => setVerified(false)} className={styles.linkButton} to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Logout</Link>
+          <Link onClick={() => setVerified(false)} className={styles.logout} to={`${import.meta.env.VITE_SERVER_ADDRESS}/logout`}>Logout</Link>
         );
       default:
         return null;

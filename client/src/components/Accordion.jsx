@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 const Accordion = ({ title, content }) => {
   const [isActive, setIsActive] = useState(false);
 
+  
   return (
     <div className={styles.accordion}>
       <div className={styles.accordionTitle} onClick={() => setIsActive(!isActive)}>

@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import styles from "./ModalAddChart.module.css";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ModalBase from './ModalBase';
+import Select from 'react-select';
 
 const shadedLineQuantities = [
   "Total Investments",
@@ -12,9 +13,9 @@ const shadedLineQuantities = [
 ];
 
 const stackedBarQuantities = [
-  "Total Investments by Investments",
-  "Income",
-  "Expenses"
+  "Investments Breakdown",
+  "Incomes Breakdown",
+  "Expenses Breakdown",
 ];
 
 const numericQuantities = [
@@ -24,14 +25,31 @@ const numericQuantities = [
   "Early Withdrawal Tax"
 ];
 
-const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
+const AddChart = ({ isOpen, setIsOpen, setCharts, hasParameterValue, paramOneType, paramOneName, paramOneSteps, paramTwoType, paramTwoName, paramTwoSteps }) => {
   const [selectedChart, setSelectedChart] = useState(null);
-  // const [formData, setFormData] = useState({});
   const [selectedShadedQuantity, setSelectedShadedQuantity] = useState('');
   const [selectedBarQuantity, setSelectedBarQuantity] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
-
   const isShadedQuantityNumeric = numericQuantities.includes(selectedShadedQuantity);
+
+  const [selectedParameterOneValue, setselectedParameterOneValue] = useState('');
+  const [selectedParameterTwoValue, setselectedParameterTwoValue] = useState('');
+
+  const [parameterOneArray, setparameterOneArray] = useState([]);
+  const [parameterTwoArray, setparameterTwoArray] = useState([]);
+
+  useEffect(() => {
+    if (paramOneType && paramOneType !== "Disable Roth") {
+      setparameterOneArray(paramOneSteps);
+    } else {
+      setparameterOneArray(["Enabled", "Disabled"]);
+    }
+    if (paramTwoType && paramTwoType !== "Disable Roth") {
+      setparameterTwoArray(paramTwoSteps);
+    } else {
+      setparameterTwoArray(["Enabled", "Disabled"]);
+    }
+  }, [paramOneSteps, paramOneType, paramTwoSteps, paramTwoType]);
 
   const handleChartClick = (chartType) => {
     setSelectedChart(chartType);
@@ -47,6 +65,22 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
     if (!selectedChart) {
       errors.chartSelection = 'Please select a chart type.';
     }
+    if (hasParameterValue) {
+      if (!selectedParameterOneValue) {
+        if (paramOneType !== "Disable Roth") {
+          errors.parameterValue = `Please enter a value for ${paramOneName}'s ${paramOneType}.`;
+        } else {
+          errors.parameterValue = `Please enter a value for Roth Optimizer.`;
+        }
+      } else if (paramTwoType && !selectedParameterTwoValue) {
+        if (paramTwoType !== "Disable Roth") {
+          errors.parameterValue = `Please enter a value for ${paramTwoName}'s ${paramTwoType}.`;
+        } else {
+          errors.parameterValue = `Please enter a value for Roth Optimizer.`;
+        }
+      }
+    }
+
     if (selectedChart === 'shaded') {
       if (!selectedShadedQuantity) errors.shadedQuantity = 'Please select a quantity.';
       if (isShadedQuantityNumeric) {
@@ -87,53 +121,125 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
       return;
     }
 
-    {/* Note: I used chatGPT to get the consts in this specific function. Used that output to create cContent for each chart.*/}
+    {/* Note: I used chatGPT to get the consts in this specific function. Used that output to create cContent for each chart.*/ }
     let cType = {};
     let cContent = {};
     if (selectedChart === 'line') {
       cType = 'Line Chart';
-      cContent = { label: "Probability of Success over Time"};
+      cContent = { label: "Probability of Success over Time" };
     }
     if (selectedChart === 'shaded') {
       cType = 'Shaded Line Chart';
       const dollarRadios = document.getElementsByName('shadedDollar');
       const dollarValue = [...dollarRadios].find(r => r.checked)?.value;
-      
+
       cContent = {
         quantity: selectedShadedQuantity,
         dollarValue: isShadedQuantityNumeric ? dollarValue : null,
-        label: `Quantity: ${selectedShadedQuantity}` +  (dollarValue ? `, Dollar Value: ${dollarValue}` : '')
+        label: `Quantity: ${selectedShadedQuantity}` + (dollarValue ? `, Dollar Value: ${dollarValue}` : '')
       };
       console.log(cContent);
     }
-  
+
     if (selectedChart === 'stacked') {
       cType = 'Stacked Bar Chart';
       const barRadios = document.getElementsByName('barValueType');
       const valueType = [...barRadios].find(r => r.checked)?.nextSibling?.nodeValue.trim();
-  
+
       const thresholdInput = document.querySelector('input[type="number"]');
       const dollarRadios = document.getElementsByName('stackedDollar');
       const dollarValue = [...dollarRadios].find(r => r.checked)?.nextSibling?.nodeValue.trim();
-  
+
       cContent = {
         quantity: selectedBarQuantity,
         valueType: valueType,
         threshold: parseFloat(thresholdInput.value),
         dollarValue: dollarValue,
         label: `Quantity: ${selectedBarQuantity}, Value Type: ${valueType}, Threshold: ${thresholdInput.value}`
-      + (dollarValue ? `, Dollar Value: ${dollarValue}` : '')
+          + (dollarValue ? `, Dollar Value: ${dollarValue}` : '')
       };
     }
 
-    {/*Middleware/Backend TODO: Get appropriate data from database*/}
-    setCharts((prevCharts) => [...prevCharts, { type: cType, content: cContent, label: cContent.label, data: {} }]);
+    if (hasParameterValue) {
+      if (paramOneType) {
+        if (paramOneType !== "Disable Roth") {
+          cContent.label += `, Parameter One: ${paramOneName}, ${selectedParameterOneValue}`;
+        } else {
+          cContent.label += `, Parameter One: Roth Optimizer, ${selectedParameterOneValue}`;
+        }
+        if (paramOneType !== "Disable Roth") {
+          cContent.paramOne = selectedParameterOneValue;
+        } else {
+          cContent.paramOne = selectedParameterOneValue === "Enabled" ? -1 : -2;
+        }
+      }
+      if (paramTwoType) {
+        if (paramTwoType !== "Disable Roth") {
+          cContent.label += `, Parameter Two: ${paramTwoName}, ${selectedParameterTwoValue}`;
+        } else {
+          cContent.label += `, Parameter Two: Roth Optimizer, ${selectedParameterTwoValue}`;
+        }
+        if (paramTwoType !== "Disable Roth") {
+          cContent.paramTwo = selectedParameterTwoValue;
+        } else {
+          cContent.paramTwo = selectedParameterTwoValue === "Enabled" ? -1 : -2;
+        }
+      }
+    }
+
+    setCharts((prevCharts) => {
+      const newChart = {
+        id: prevCharts.length + 1,
+        type: cType,
+        content: cContent,
+        label: cContent.label,
+        data: {}
+      };
+      return [...prevCharts, newChart];
+    });
+
     setIsOpen(false);
   }
 
   return (
     <ModalBase isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <h2 className={styles.header}>Select a Chart</h2>
+      {hasParameterValue && (
+        <div className={styles.parameterSection} >
+          <>
+            <label>Select a value for {paramOneType !== "Disable Roth" && <>{paramOneName}&apos;s</>} {paramOneType !== "Disable Roth" ? <>{paramOneType}</> : <>Roth Optimizer</>}:</label>
+            <Select
+              options={parameterOneArray.map(param => ({ value: param, label: param }))}
+              value={
+                parameterOneArray
+                  .map(param => ({ value: param, label: param }))
+                  .find(option => option.value === selectedParameterOneValue)
+              }
+              onChange={(selectedOption) => setselectedParameterOneValue(selectedOption.value)}
+              placeholder={`Select ${paramOneType !== "Disable Roth" ? paramOneType : "Roth Optimizer Status"}`}
+            />
+          </>
+          {paramTwoType && (
+            <>
+              <label>Select a value for {paramTwoName}&apos;s {paramTwoType}:</label>
+              <Select
+                options={parameterTwoArray.map(param => ({ value: param, label: param }))}
+                value={
+                  parameterTwoArray
+                    .map(param => ({ value: param, label: param }))
+                    .find(option => option.value === selectedParameterTwoValue)
+                }
+                onChange={(selectedOption) => setselectedParameterTwoValue(selectedOption.value)}
+                placeholder={`Select ${paramTwoType}`}
+              />
+            </>
+          )}
+          {validationErrors.parameterValue && (
+            <p className={styles.error}>{validationErrors.parameterValue}</p>
+          )}
+        </div>
+      )}
+
 
       <div className={styles.chartOptions}>
         {/* Line Chart */}
@@ -166,15 +272,17 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
           </div>
           {selectedChart === 'shaded' && (
             <div className={styles.chartSettings}>
-              <select
-                value={selectedShadedQuantity}
-                onChange={(e) => setSelectedShadedQuantity(e.target.value)}
-              >
-                <option value="" disabled hidden>Select Quantity</option>
-                {shadedLineQuantities.map((q) => (
-                  <option key={q} value={q}>{q}</option>
-                ))}
-              </select>
+              {/*Note: Used AI here. Prompted to ChatGPT: please replace this section of code with React Select.
+             Performance: Did well! */}
+              <Select
+                options={shadedLineQuantities.map(q => ({ value: q, label: q }))}
+                value={shadedLineQuantities
+                  .map(q => ({ value: q, label: q }))
+                  .find(option => option.value === selectedShadedQuantity)}
+                onChange={(selected) => setSelectedShadedQuantity(selected.value)}
+                placeholder="Select Quantity"
+              />
+
               {validationErrors.shadedQuantity && (
                 <p className={styles.error}>{validationErrors.shadedQuantity}</p>
               )}
@@ -182,7 +290,7 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
                 <div className={styles.numericSettings}>
                   <p>Dollar Value</p>
                   <div className={styles.radioGroup}>
-                    <label><input type="radio" name="shadedDollar" value ="Today" /> Today</label>
+                    <label><input type="radio" name="shadedDollar" value="Today" /> Today</label>
                     <label><input type="radio" name="shadedDollar" value="Future" /> Future</label>
                   </div>
                   {validationErrors.dollarValue && (
@@ -207,29 +315,31 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
           {selectedChart === 'stacked' && (
             <div className={styles.chartSettings}>
               <div className={styles.radioGroup}>
-                <label><input type="radio" name="barValueType" value="Median" /> Median</label>
-                <label><input type="radio" name="barValueType" value="Average"/> Average</label>
+                <p><input type="radio" name="barValueType" value="Median" /> Median</p>
+                <p><input type="radio" name="barValueType" value="Average" /> Average</p>
               </div>
               {validationErrors.barType && (
                 <p className={styles.error}>{validationErrors.barType}</p>
               )}
               <div className={styles.selectContainer}>
-                <select
-                  value={selectedBarQuantity}
-                  onChange={(e) => setSelectedBarQuantity(e.target.value)}
-                >
-                  <option value="" disabled hidden>Select Quantity</option>
-                  {stackedBarQuantities.map((quantity) => (
-                    <option key={quantity} value={quantity}>{quantity}</option>
-                  ))}
-                </select>
+                {/*Note: Used AI here. Prompted to ChatGPT: please replace this section of code with React Select.
+             Performance: Did well! */}
+                <Select
+                  options={stackedBarQuantities.map(q => ({ value: q, label: q }))}
+                  value={stackedBarQuantities
+                    .map(q => ({ value: q, label: q }))
+                    .find(option => option.value === selectedBarQuantity)}
+                  onChange={(selected) => setSelectedBarQuantity(selected.value)}
+                  placeholder="Select Quantity"
+                />
+
                 {validationErrors.barQuantity && (
                   <p className={styles.error}>{validationErrors.barQuantity}</p>
                 )}
               </div>
 
               <p className={styles.thresholdLabel}>
-                Aggregation Threshold
+                <p>Aggregation Threshold </p>
                 <input type="number" />
                 {/*TOD0: Get and add the questionmark icon to reflect like below*/}
                 {/* <span className={styles.tooltip} title="Categories with values less than this threshold will be combined into an 'Other' category.">?</span>*/}
@@ -241,8 +351,8 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
               <div className={styles.numericSettings}>
                 <p>Dollar Value</p>
                 <div className={styles.radioGroup}>
-                  <p><input type="radio" name="stackedDollar" value = "Today"/> Today</p>
-                  <p><input type="radio" name="stackedDollar" value = "Future"/> Future</p>
+                  <p><input type="radio" name="stackedDollar" value="Today" /> Today</p>
+                  <p><input type="radio" name="stackedDollar" value="Future" /> Future</p>
                 </div>
                 {validationErrors.dollarValue && (
                   <p className={styles.error}>{validationErrors.dollarValue}</p>
@@ -271,7 +381,14 @@ const AddChart = ({ isOpen, setIsOpen, setCharts }) => {
 AddChart.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   setIsOpen: PropTypes.func.isRequired,
-  setCharts: PropTypes.func.isRequired
+  setCharts: PropTypes.func.isRequired,
+  hasParameterValue: PropTypes.bool.isRequired,
+  paramOneType: PropTypes.string,
+  paramOneName: PropTypes.string,
+  paramOneSteps: PropTypes.array,
+  paramTwoType: PropTypes.string,
+  paramTwoName: PropTypes.string,
+  paramTwoSteps: PropTypes.array,
 };
 
 export default AddChart;

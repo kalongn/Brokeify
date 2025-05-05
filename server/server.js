@@ -44,8 +44,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(urlencoded({ extended: false }));
-app.use(json());
+app.use(urlencoded({ extended: false, limit: '50mb' }));
+app.use(json({limit: '50mb'}));
 
 const dayInSeconds = 24 * 60 * 60; // 1 day in seconds
 

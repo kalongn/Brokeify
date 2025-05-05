@@ -4,7 +4,8 @@
 
 import mongoose from "mongoose";
 import 'dotenv/config'
-
+import fs from 'fs';
+import yaml from 'js-yaml';
 import DistributionController from "../db/controllers/DistributionController.js";
 import InvestmentTypeController from "../db/controllers/InvestmentTypeController.js";
 import InvestmentController from "../db/controllers/InvestmentController.js";
@@ -22,6 +23,7 @@ import { validateRun } from "./planValidator.js";
 import { parseAndSaveYAML } from "../yaml_parsers/scenarioParser.js";
 import { parseStateTaxYAML } from "../yaml_parsers/stateTaxParser.js";
 import { exportScenarioAsYAML } from "../yaml_parsers/scenarioExporter.js";
+
 // Connect to MongoDB
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
 
@@ -40,203 +42,7 @@ connection.once('open', async () => {
 });
 
 
-const testScenario = async () => {
 
-    const factory = new ScenarioController();
-    const DistributionFactory = new DistributionController();
-    const InvestmentFactory = new InvestmentController();
-    const InvestmentTypeFactory = new InvestmentTypeController();
-    const EventFactory = new EventController();
-
-    try {
-
-        const testInvestment1 = await InvestmentFactory.create({
-            value: 10000,
-            taxStatus: "NON_RETIREMENT"
-        });
-
-        
-        const testInvestment2 = await InvestmentFactory.create({
-            value: 40000,
-            taxStatus: "PRE_TAX_RETIREMENT"
-        });
-        const testInvestment3 = await InvestmentFactory.create({
-            value: 50000,
-            taxStatus: "AFTER_TAX_RETIREMENT"
-        });
-
-        const testInvestmentType = await InvestmentTypeFactory.create({
-            name: "Fixed Income",
-            description: "Fixed income investments pay a fixed rate of return on a fixed schedule.",
-            expectedAnnualReturn: 0.05,
-            expectedAnnualReturnDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
-            expenseRatio: 0.01,
-            expectedAnnualIncome: 1000,
-            expectedAnnualIncomeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1000 }),
-            taxability: true,
-            investments: [testInvestment1, testInvestment2, testInvestment3]
-        });
-
-        const RebalanceEvent = await EventFactory.create("REBALANCE", {
-            name: "Rebalance",
-            description: "Rebalance the portfolio",
-            startYear: 2021,
-            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
-            duration: 100,
-            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
-            assetAllocationType: "GLIDE",
-            percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
-            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
-            taxStatus: "NON_RETIREMENT"
-        });
-
-        const InvestEvent = await EventFactory.create("INVEST", {
-            name: "Invest",
-            description: "Invest in the portfolio",
-            
-            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
-            duration: 100,
-            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", {
-                value:
-                    100
-            }),
-            assetAllocationType: "GLIDE",
-            percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
-            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
-            maximumCash: 1000,
-        });
-        const OverlappingInvestEvent = await EventFactory.create("INVEST", {
-            name: "Invest OVERLAP",
-            description: "Invest in the portfolio OVERLAP",
-            duration: 100,
-            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", {
-                value:
-                    100
-            }),
-            startsWith: InvestEvent._id,
-            assetAllocationType: "GLIDE",
-            percentageAllocations: [[0.3, 0.2], [0.5, 0.5], [0.2, 0.3]],
-            allocatedInvestments: [testInvestment1, testInvestment2, testInvestment3],
-            maximumCash: 1000,
-            
-        });
-        
-        
-
-        const IncomeEvent = await EventFactory.create("INCOME", {
-            name: "Income",
-            description: "Income from the portfolio",
-            startYear: 2021,
-            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
-            duration: 1,
-            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
-            amount: 10000,
-            expectedAnnualChange: 0.05,
-            expectedAnnualChangeDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
-            isinflationAdjusted: true,
-            userContributions: 100,
-            spouseContributions: 0,
-            isSocialSecurity: true
-        });
-
-        const ExpenseEvent = await EventFactory.create("EXPENSE", {
-            name: "Expense",
-            description: "Expense from the portfolio",
-            startYear: 2021,
-            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
-            duration: 100,
-            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
-            amount: 1000,
-            expectedAnnualChange: 0.05,
-            expectedAnnualChangeDistribution: await DistributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
-            isinflationAdjusted: true,
-            userContributions: 100,
-            spouseContributions: 0,
-            isDiscretionary: true
-        });
-        const ExpenseEvent2 = await EventFactory.create("EXPENSE", {
-            name: "Expense2",
-            description: "Expense from the portfolio",
-            startYear: 2021,
-            startYearTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 2021 }),
-            duration: 100,
-            durationTypeDistribution: await DistributionFactory.create("FIXED_AMOUNT", { value: 1 }),
-            amount: 10,
-            expectedAnnualChange: .05,
-            expectedAnnualChangeDistribution: await DistributionFactory.create("NORMAL_PERCENTAGE", { mean: 0.05, standardDeviation: 0.02 }),
-            isinflationAdjusted: true,
-            userContributions: 100,
-            spouseContributions: 0,
-            isDiscretionary: false
-        });
-        
-
-        const testScenario = await factory.create({
-            name: "Test Scenario 222",
-            filingStatus: "SINGLE",
-            userBirthYear: 1990,
-            spouseBirthYear: 1990,
-            userLifeExpectancy: 50,
-            spouseLifeExpectancy: 50,
-            investmentTypes: [testInvestmentType],
-            events: [InvestEvent, ExpenseEvent2, ExpenseEvent, RebalanceEvent, IncomeEvent],
-            inflationAssumption: 0.02,
-            inflationAssumptionDistribution: await DistributionFactory.create("UNIFORM_PERCENTAGE", { lowerBound: 0.01, upperBound: 0.03 }),
-            annualPreTaxContributionLimit: 19500,
-            annualPostTaxContributionLimit: 100,
-            financialGoal: 1000000,
-            orderedSpendingStrategy: [IncomeEvent, ExpenseEvent],
-            orderedExpenseWithdrawalStrategy: [testInvestment1, testInvestment2, testInvestment3],
-            orderedRMDStrategy: [testInvestment1, testInvestment2, testInvestment3],
-            orderedRothStrategy: [testInvestment1, testInvestment2, testInvestment3],
-            startYearRothOptimizer: 2021,
-            endYearRothOptimizer: 2070
-        });
-        //console.log(testScenario);
-
-        const scenarios = await factory.readAll();
-        //console.log(scenarios);
-
-        const scenario = await factory.read(testScenario._id);
-        
-        return scenario;
-        // 
-
-        // await factory.update(scenario._id, { name: "New Scenario" });
-        // const updatedScenario = await factory.read(scenario._id);
-        // console.log(updatedScenario);
-
-        // await factory.delete(updatedScenario._id);
-        // const deletedScenario = await factory.read(updatedScenario._id);
-        // console.log(deletedScenario);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-
-
-const testRMDTable = async () => {
-
-    const factory = new RMDTableController();
-
-    try {
-        const rmd = await factory.create({
-            year: 2024,
-            ages: [70, 71, 72, 73, 74, 75, 76, 77, 78, 79],
-            distributionPeriods: [27.4, 26.5, 25.6, 24.7, 23.8, 22.9, 22.0, 21.2, 20.3, 19.5]
-        });
-        //console.log(rmd);
-
-        let oneRmd = await factory.read();
-        //console.log(oneRmd);
-        return oneRmd;
-
-
-    } catch (error) {
-        console.error(error);
-    }
-}
 
 const testTax = async (i) => {
 
@@ -264,6 +70,7 @@ const testTax = async (i) => {
             const stateIncomeTax = await factory.create("STATE_INCOME", {
                 filingStatus: "SINGLE",
                 state: "CA",
+                year: 2024,
                 taxBrackets: [
                     { lowerBound: 0, upperBound: 8544, rate: 0.01 },
                     { lowerBound: 8545, upperBound: 20255, rate: 0.02 },
@@ -316,37 +123,53 @@ const testTax = async (i) => {
 const populateDB = async () => {
     const factory = new ScenarioController();
     const taxfactory = new TaxController();
-    const stateTax = await parseStateTaxYAML("../yaml_files/state_taxes/state_tax_NY.yaml")
+    const eventFactory = new EventController();
+    //const stateTax = await parseStateTaxYAML("../yaml_files/state_taxes/state_tax_NY.yaml")
     //console.log(stateTax)
-    const s = await taxfactory.read(stateTax[0]);
+    //const s = await taxfactory.read(stateTax[0]);
+    const fileContents = fs.readFileSync("../yaml_files/scenarios/testScenario4.yaml", 'utf8');
+    const parsed = yaml.load(fileContents);
     
-    
-    const scenarioID = await parseAndSaveYAML("../yaml_files/scenarios/testScenario.yaml");
+    const scenarioID = await parseAndSaveYAML(parsed, null);
     const scenario = await factory.read(scenarioID);
     //console.log(scenario1);
     
     
-    const RMDTable = await testRMDTable();
+    //const RMDTable = await testRMDTable();
 
 
     //const federalIncomeTax = await testTax(1);
-    //const stateIncomeTax = await testTax(2);
+    const stateIncomeTax = await testTax(2);
     //const federalStandardDeduction = await testTax(3);
     //const capitalGainTax = await testTax(5);
     // const scenario = await testScenario();
     //const scenario = await testScenario();
-
+    //const s = await eventFactory.create("INCOME", {name: "t"});
+    const explorationArray = [
+        {
+            type: "ROTH_BOOLEAN",
+            lowerBound: 11,
+            upperBound: 100,
+        },
+        {
+            type: "START_EVENT",
+            eventID: scenario.events[0],
+            lowerBound: 15,
+            upperBound: 100,
+            step: 10,
+        }
+    ]
     console.log('====================== Simulation Test =====================');
     //await simulate(scenario, federalIncomeTax, stateIncomeTax, federalStandardDeduction, stateStandardDeduction, capitalGainTax, RMDTable);
     try {
-        const r = await validateRun(scenario._id, 1, [stateIncomeTax._id, stateIncomeTax._id], "GUEST");
-        console.log(r);
+        const r = await validateRun(scenario._id, 2, [stateIncomeTax._id, stateIncomeTax._id], "GUEST");
+        console.log(r.results);
     }
     catch (err) {
         const res = await connection.dropDatabase();
         throw (err);
     }
     //drop all objects in database
-    const res = await connection.dropDatabase();
+    //const res = await connection.dropDatabase();
     //console.log(res);
 };

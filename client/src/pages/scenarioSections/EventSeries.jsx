@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 import { FaTimes } from 'react-icons/fa';
 import { FaEdit } from "react-icons/fa";
+import ErrorMessage from "../../components/ErrorMessage";
 import Axios from 'axios';
 
 import styles from "./Form.module.css";
-
-
 // This page does not submit any data, so childRef is not used
 const EventSeries = () => {
   const navigate = useNavigate();
   const { scenarioId } = useParams();
 
   const [events, setEvents] = useState([]);
+  const [errors, setErrors] = useState({});
+
+  const { scenarioHash, fetchScenarioHash } = useOutletContext();
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -35,18 +37,30 @@ const EventSeries = () => {
   };
 
   const removeEventSeries = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this event series?")) {
+      return;
+    }
     try {
+      const currentHash = await Axios.get(`/concurrency/${scenarioId}`);
+      if (currentHash.data !== scenarioHash) {
+        alert("This scenario has been modified by you on another tab or another user. Will be refreshing the page...");
+        navigate(0);
+        return;
+      }
+
       const response = await Axios.delete(`/event/${scenarioId}/${id}`);
       console.log(response.data);
       const updatedInvestmentTypes = events.filter((event) => event.id !== id);
       setEvents(updatedInvestmentTypes);
     } catch (error) {
       if (error.response?.status === 409) {
-        alert("Cannot delete event series. It is being referenced in other event (starts with / starts after).");
+        setErrors({ deleteEventSeries: "Cannot delete event series. Another event series's start year depends on it." });
       } else {
-        alert("Unknown Error deleting event series. Please try again.");
+        setErrors({ deleteEventSeries: "There was an error deleting the event series. Please try again." });
       }
       console.error("Error deleting event series:", error);
+    } finally {
+      await fetchScenarioHash();
     }
   }
 
@@ -58,8 +72,9 @@ const EventSeries = () => {
         (income, expense, investment, or rebalancing) over a defined period.
         Only one asset allocation can be rebalanced in a scenario.
       </p>
+      <ErrorMessage errors={errors} />
       <table id={styles.inputTable}>
-        <thead>
+        <thead id="deleteEventSeries">
           <tr>
             <th>Event Series Name</th>
             <th>Type</th>

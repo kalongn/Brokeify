@@ -62,6 +62,8 @@ const ModalImport = ({ isOpen, onClose }) => {
       } catch (error) {
         if (path === "/Profile" && error.response?.status === 409) {
           setStatus("A tax of the same state, same year, same filing status already exists.");
+        } else if (location.pathname === "/Profile" && error.response?.status === 400) {
+          setStatus("Invalid tax data.");
         } else {
           setStatus("File upload failed");
         }

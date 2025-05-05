@@ -2,9 +2,13 @@ import { useState, useEffect, useImperativeHandle } from "react";
 import { useParams, useOutletContext } from "react-router-dom";
 import Axios from "axios";
 
+import { clearErrors } from "../../utils/ScenarioHelper";
 import SortableList from "../../components/SortableList";
-import styles from "./Form.module.css";
+import ErrorMessage from "../../components/ErrorMessage";
 
+import styles from "./Form.module.css";
+import errorStyles from "../../components/ErrorMessage.module.css";
+import Tooltip from "../../components/Tooltip";
 const RothStrategy = () => {
 
   const { scenarioId } = useParams();
@@ -19,6 +23,11 @@ const RothStrategy = () => {
   });
   const [userBirthYear, setUserBirthYear] = useState(null);
   const [errors, setErrors] = useState({});
+
+  // Expose the validateFields function to the parent component
+  useImperativeHandle(childRef, () => ({
+    handleSubmit,
+  }));
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -72,7 +81,7 @@ const RothStrategy = () => {
     }
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
+    clearErrors(setErrors, name);
   };
 
   const validateFields = () => {
@@ -80,16 +89,19 @@ const RothStrategy = () => {
     const birthYear = userBirthYear || new Date().getFullYear();
     const start = formData.startYearRothOptimizer;
     const end = formData.endYearRothOptimizer;
+    // TODO: Check start year and end year against lifeExpectancy.value or lifeExpectancy.mean
     if (optimized) {
       if (!start) {
-        newErrors.startYearRothOptimizer = "This field is required";
+        newErrors.startYearRothOptimizer = "Start Year field is required";
       } else if (start < birthYear || start > birthYear + 122) {
-        newErrors.startYearRothOptimizer = "Start year must be within your lifetime";
+        newErrors.startYearRothOptimizer = "Start Year must be within your lifetime";
       }
       if (!end) {
-        newErrors.endYearRothOptimizer = "This field is required";
-      } else if (end < start || end > birthYear + 122) {
-        newErrors.endYearRothOptimizer = "End year be within your lifetime";
+        newErrors.endYearRothOptimizer = "End Year field is required";
+      } else if (end > birthYear + 122) {
+        newErrors.endYearRothOptimizer = "End Year must be within your lifetime";
+      } else if (end < start) {
+        newErrors.endYearRothOptimizer = "End Year must be after Start Year";
       }
     }
 
@@ -98,10 +110,6 @@ const RothStrategy = () => {
     // Everything is valid if there are no error messages
     return Object.keys(newErrors).length === 0;
   };
-
-  useImperativeHandle(childRef, () => ({
-    handleSubmit,
-  }));
 
   const uploadToBackend = async () => {
     const updatedStrategy = strategy.map((investment) => ({
@@ -136,7 +144,7 @@ const RothStrategy = () => {
 
   return (
     <div>
-      <h2 id={styles.heading}>Roth Conversion Strategy & Optimizer</h2>
+      <h2 id={styles.heading}>Roth Conversion Strategy & Optimizer <Tooltip orientation="below" text="A Roth conversion is a transfer from pre-tax to after-tax retirement accounts, and the Roth conversion optimizer helps assess if and when such conversions can reduce lifetime taxes." /></h2>
       <p>
         Specify the order in which investments should be transferred from
         pre-tax to after-tax retirement accounts when triggering a conversion.
@@ -144,6 +152,7 @@ const RothStrategy = () => {
         whose amount increases your income to the upper limit of your current
         federal income tax bracket.
       </p>
+      <ErrorMessage errors={errors} />
       {loading ?
         <p>Loading...</p>
         :
@@ -180,8 +189,9 @@ const RothStrategy = () => {
                   defaultValue={formData.startYearRothOptimizer}
                   onChange={handleChange}
                   disabled={!optimized}
+                  id="startYearRothOptimizer"
+                  className={errors.startYearRothOptimizer ? errorStyles.errorInput : ""}
                 />
-                {errors.startYearRothOptimizer && (<span className={styles.error}>{errors.startYearRothOptimizer}</span>)}
               </label>
               <label>
                 End Year
@@ -192,8 +202,9 @@ const RothStrategy = () => {
                   defaultValue={formData.endYearRothOptimizer}
                   onChange={handleChange}
                   disabled={!optimized}
+                  id="endYearRothOptimizer"
+                  className={errors.endYearRothOptimizer ? errorStyles.errorInput : ""}
                 />
-                {errors.endYearRothOptimizer && (<span className={styles.error}>{errors.endYearRothOptimizer}</span>)}
               </label>
             </div>
 

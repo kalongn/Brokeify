@@ -170,11 +170,11 @@ export async function exportScenarioAsYAML(scenarioID) {
             let start;
             if (event.startsWith) {
                 const reffedEvent = await eventFactory.read(event.startsWith);
-                start = { type: "startWith", eventSeries: reffedEvent.name };
+                start = { type: "startsWith", eventSeries: reffedEvent.name };
             }
             else if (event.startsAfter) {
                 const reffedEvent = await eventFactory.read(event.startsAfter);
-                start = { type: "startAfter", eventSeries: reffedEvent.name };
+                start = { type: "startsAfter", eventSeries: reffedEvent.name };
             }
             else {
                 start = await distributionToObject(event.startYearTypeDistribution);

@@ -13,6 +13,7 @@ import Layout from "../components/Layout";
 import Accordion from "../components/Accordion";
 
 
+
 const ScenarioSimulation = () => {
 
   const { scenarioId } = useParams(); // Get the scenario ID from the URL params

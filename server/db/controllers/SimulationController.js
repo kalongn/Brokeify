@@ -33,6 +33,35 @@ export default class SimulationController {
         }
     }
 
+    async readWithNoPopulate(id) {
+        try {
+            const simulation = await Simulation.findById(id);
+            return simulation;
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    async read(id) {
+        try {
+            const simulation = await Simulation.findById(id).populate("results");
+            return simulation;
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    async readWithPopulate(id) {
+        try {
+            const simulation = await Simulation.findById(id).populate("scenario results paramOne paramTwo paramOneSteps paramTwoSteps");
+            return simulation;
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
     /**
      * This function delete the Simulation with the given id
      * @note
@@ -48,6 +77,9 @@ export default class SimulationController {
         const resultController = new ResultController();
         try {
             const simulation = await Simulation.findById(id);
+            if (!simulation) {
+                return;
+            }
             for (const result of simulation.results) {
                 await resultController.delete(result);
             }
@@ -57,7 +89,7 @@ export default class SimulationController {
             throw new Error(error);
         }
     }
-    
+
     /**
      * This function deletes a Simulation with the given id
      * @param {mongoose.Types.ObjectId} id 

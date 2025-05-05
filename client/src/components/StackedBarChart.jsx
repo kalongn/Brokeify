@@ -24,26 +24,64 @@ import PropTypes from 'prop-types';
     */}
 
 const StackedBarChart = ({ data }) => {
-    
-    const investmentKeys = Object.keys(data).filter(key => key !== 'labels');
 
-    const plotData = investmentKeys.map((key) => ({
-        x: data.labels,
+    const investmentKeys = Object.keys(data).filter(key => key !== 'labels');
+    const labels = data.labels ? data.labels : [];
+
+    const barTraces = investmentKeys.map((key) => ({
+        x: labels,
         y: data[key],
         type: 'bar',
         name: key,
+        hoverinfo: 'x+y+name',
     }));
+
+    const totals = labels.map((_, i) =>
+        investmentKeys.reduce((sum, key) => sum + (data[key][i] || 0), 0)
+    );
+
+    const totalTextTrace = {
+        x: labels,
+        y: totals,
+        mode: 'marker',
+        type: 'scatter',
+        showlegend: false,
+        hoverinfo: 'x+y',
+        marker: { color: 'rgba(0,0,0,0)' },
+    };
+
+
+    const plotData = [...barTraces, totalTextTrace];
 
     return (
         <Plot
             data={plotData}
             layout={{
-                title: 'Stacked Bar Chart',
+                title: 'Stacked Bar Chart with Totals',
                 barmode: 'stack',
                 xaxis: { title: 'Time' },
                 yaxis: { title: 'Amount' },
+                showlegend: true,
+                margin: { t: 50 },
+                annotations: [
+                    {
+                        text: 'Disclaimer: Label "Other" might include other legend values',
+                        xref: 'paper',
+                        yref: 'paper',
+                        x: 0,
+                        y: -0.25,
+                        showarrow: false,
+                        font: {
+                            size: 12,
+                            color: 'gray'
+                        },
+                        align: 'left'
+                    }
+                ]
             }}
+            config={{ responsive: true }}
         />
+        // (AI) Annotation above is inspired by ChatGPT response on how to add annotation to plotly.js
     );
 };
 

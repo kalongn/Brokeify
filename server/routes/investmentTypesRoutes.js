@@ -88,7 +88,7 @@ router.post("/investmentType/:scenarioId", async (req, res) => {
         const currentInvestmentType = scenario.investmentTypes;
         for (let type of currentInvestmentType) {
             if (type.name === name) {
-                return res.status(400).send("Investment type already exists.");
+                return res.status(409).send("Investment type already exists.");
             }
         }
 
@@ -136,8 +136,17 @@ router.put("/investmentType/:scenarioId/:investmentTypeId", async (req, res) => 
         const investmentTypeId = req.params.investmentTypeId;
 
         const { name, description, expectedAnnualReturn, expenseRatio, expectedDividendsInterest, taxability } = req.body;
-
         const investmentType = await investmentTypeController.read(investmentTypeId);
+
+        if (investmentType.name !== name) {
+            const scenario = await scenarioController.readWithPopulate(id);
+            const currentInvestmentType = scenario.investmentTypes;
+            for (let type of currentInvestmentType) {
+                if (type.name === name) {
+                    return res.status(409).send("Investment type already exists.");
+                }
+            }
+        }
 
         const requestExpectedAnnualReturn = distributionToBackend(expectedAnnualReturn);
         const requestExpectedDividendsInterest = distributionToBackend(expectedDividendsInterest);

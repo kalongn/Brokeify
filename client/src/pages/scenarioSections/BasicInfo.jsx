@@ -1,14 +1,16 @@
 import { useState, useImperativeHandle, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
-import { stateMap, validateRequired, validateDistribution } from "../../utils/ScenarioHelper";
+import { stateMap, validateRequired, validateDistribution, clearErrors } from "../../utils/ScenarioHelper";
 import Axios from "axios";
 
 import Select from "react-select";
 import Distributions from "../../components/Distributions";
 import ModalImport from "../../components/ModalImport";
+import ErrorMessage from "../../components/ErrorMessage";
 
 import styles from "./Form.module.css";
-
+import errorStyles from "../../components/ErrorMessage.module.css";
+import Tooltip from "../../components/Tooltip";
 const BasicInfo = () => {
   // Prompt to AI (Amazon Q): I want field validation in the children and the submit button is in the parent
   // It took multiple rounds of prompts and adding context to get the solution with useOutletContext and useImperativeHandler
@@ -103,7 +105,7 @@ const BasicInfo = () => {
       return updatedDistributions;
     });
     // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
+    clearErrors(setErrors, name);
   };
 
   // Prompt to AI (Amazon Q): How do I get the form fields for the fields to be saved? Number fields should be parsed to numbers
@@ -117,13 +119,13 @@ const BasicInfo = () => {
     }
     setFormData((prev) => ({ ...prev, [name]: processedValue }));
     // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, [name]: "" }));
+    clearErrors(setErrors, name);
   };
 
   const handleSelectChange = (selectedOption) => {
     setFormData((prev) => ({ ...prev, state: selectedOption.value }));
     // Clear errors when user makes changes
-    setErrors(prev => ({ ...prev, state: "" }));
+    clearErrors(setErrors, "selectInput");
   };
 
   const validateFields = () => {
@@ -145,34 +147,41 @@ const BasicInfo = () => {
     }
 
     // Validate birth year
-    if (formData.birthYear !== undefined) {
+    if (formData.birthYear !== undefined && newErrors.birthYear === undefined) {
       if (formData.birthYear < 1900 || formData.birthYear > currentYear) {
-        newErrors.birthYear = `Birth year must be between 1900 and ${currentYear}`;
+        newErrors.birthYear = `Birth Year must be between 1900 and ${currentYear}`;
       }
       // Validate life expectancy distribution
-      if (distributions.lifeExpectancy.value !== undefined && distributions.lifeExpectancy.value !== null) {
-        if (formData.birthYear + distributions.lifeExpectancy.value < currentYear) {
-          newErrors.lifeExpectancy = "Life expectancy cannot result in a death year in the past";
+      // Account for fixed and normal distribution
+      const lifeExpectancyNum = distributions.lifeExpectancy.value !== undefined && distributions.lifeExpectancy.value !== null ?
+        distributions.lifeExpectancy.value : distributions.lifeExpectancy.mean;
+
+      if (lifeExpectancyNum !== undefined && lifeExpectancyNum !== null) {
+        if (formData.birthYear + lifeExpectancyNum < currentYear) {
+          newErrors.lifeExpectancy = "Life Expectancy cannot result in a death year in the past";
         }
-        else if (distributions.lifeExpectancy.value > 122) {
-          newErrors.lifeExpectancy = "Life expectancy cannot reasonably exceed 122";
+        else if (lifeExpectancyNum > 122) {
+          newErrors.lifeExpectancy = "Life Expectancy cannot reasonably exceed 122";
         }
       }
     }
 
     // Validate spouse birth year
-    if (formData.spouseBirthYear !== undefined && formData.maritalStatus === "MARRIEDJOINT") {
+    if (formData.spouseBirthYear !== undefined && newErrors.spouseBirthYear === undefined && formData.maritalStatus === "MARRIEDJOINT") {
       if ((formData.spouseBirthYear < 1900 || formData.spouseBirthYear > currentYear)) {
-        newErrors.spouseBirthYear = `Birth year must be between 1900 and ${currentYear}`;
+        newErrors.spouseBirthYear = `Spouse Birth Year must be between 1900 and ${currentYear}`;
       }
       // Validate spouse life expectancy distribution
-      if (distributions.spouseLifeExpectancy.value !== undefined && distributions.spouseLifeExpectancy.value !== null) {
+      // Account for fixed and normal distribution
+      const spouseLifeExpectancyNum = distributions.spouseLifeExpectancy.value !== undefined && distributions.spouseLifeExpectancy.value !== null ?
+        distributions.spouseLifeExpectancy.value : distributions.spouseLifeExpectancy.mean;
 
-        if (formData.spouseBirthYear + distributions.spouseLifeExpectancy.value < currentYear) {
-          newErrors.spouseLifeExpectancy = "Life expectancy cannot result in death in the past";
+      if (spouseLifeExpectancyNum !== undefined && spouseLifeExpectancyNum !== null) {
+        if (formData.spouseBirthYear + spouseLifeExpectancyNum < currentYear) {
+          newErrors.spouseLifeExpectancy = "Spouse Life Expectancy cannot result in death in the past";
         }
-        else if (distributions.spouseLifeExpectancy.value > 122) {
-          newErrors.spouseLifeExpectancy = "Life expectancy cannot reasonably exceed 122";
+        else if (spouseLifeExpectancyNum > 122) {
+          newErrors.spouseLifeExpectancy = "Spouse Life Expectancy cannot reasonably exceed 122";
         }
       }
     }
@@ -228,103 +237,122 @@ const BasicInfo = () => {
       <h2 id={styles.heading}>Basic Information</h2>
       <ModalImport isOpen={showImportModal} onClose={setShowImportModal} />
       {loading ? <div> Loading...</div> :
-        <form>
-          <label>
-            Scenario Name
-            <input
-              type="text"
-              name="name"
-              className={styles.newline}
-              onChange={handleTextChange}
-              defaultValue={formData.name || undefined}
-              required
-            />
-            {errors.name && <span className={styles.error}>{errors.name}</span>}
-          </label>
-          <label>
-            Financial Goal
-            <p className={styles.description}>
-              Specify a non-negative number representing the desired yearly
-              minimum total value of your investments.
-            </p>
-            <div className={`${styles.moneyInputContainer} ${styles.shortInput}`}>
-              <input type="number" name="financialGoal" min="0"
-                defaultValue={formData.financialGoal || undefined} onChange={handleTextChange} />
-            </div>
-            {errors.financialGoal && <span className={styles.error}>{errors.financialGoal}</span>}
-          </label>
-          <label className={styles.newline}>
-            State of Residence
-            {/* 
+        <>
+          <ErrorMessage errors={errors} />
+          <form>
+            <label>
+              Scenario Name
+              <input
+                type="text"
+                name="name"
+                className={errors.name ? errorStyles.errorInput : ""}
+                onChange={handleTextChange}
+                defaultValue={formData.name || undefined}
+              />
+            </label>
+            <label>
+              Financial Goal
+              <p className={styles.description}>
+                Specify a non-negative number representing the desired yearly
+                minimum total value of your investments.
+              </p>
+              <div className={`${styles.moneyInputContainer} ${styles.shortInput}`}>
+                <input
+                  type="number"
+                  name="financialGoal"
+                  id="financialGoal"
+                  className={errors.financialGoal ? errorStyles.errorInput : ""}
+                  defaultValue={formData.financialGoal || undefined} onChange={handleTextChange} />
+              </div>
+            </label>
+            <label className={styles.newline}>
+              <div className={styles.groupIcon}>
+                <span>State of Residence</span>
+                <Tooltip text={"If state income tax data for your residence is missing, upload a YAML file or tax will be ignored. Brackets/deductions adjust for inflation."} />
+              </div>
+              {/* 
               Prompt to AI (Amazon Q): Rewrite the highlighted code to account for the structure
               of stateMap in the utility file: <PASTED_UTILITY_FILE_CODE>
             */}
-            <Select
-              options={Object.entries(stateMap).map(([value, label]) => ({ value, label }))}
-              className={`${styles.shortInput} ${styles.select}`}
-              onChange={handleSelectChange}
-              value={formData.state ? { value: formData.state, label: stateMap[formData.state] } : undefined}
-            />
+              <Select
+                options={Object.entries(stateMap).map(([value, label]) => ({ value, label }))}
+                id="state"
+                className={`${styles.shortInput} select ${errors.state ? errorStyles.errorInput : ""}`}
+                onChange={handleSelectChange}
+                value={formData.state ? { value: formData.state, label: stateMap[formData.state] } : undefined}
+              />
+            </label>
+            <label className={styles.newline}>
+              Martial Status
+            </label>
+            <div id="maritalStatus" className={styles.radioButtonContainer}>
+              <label className={`${styles.radioButton} ${errors.maritalStatus ? errorStyles.highlight : ""}`}>
+                <input
+                  type="radio"
+                  checked={formData.maritalStatus === "SINGLE"}
+                  onChange={() => { setFormData((prev) => ({ ...prev, maritalStatus: "SINGLE" })); clearErrors(setErrors, "maritalStatus"); }}
+                />
+                Single
+              </label>
+              <label className={`${styles.radioButton} ${errors.maritalStatus ? errorStyles.highlight : ""}`}>
+                <input
+                  type="radio"
+                  checked={formData.maritalStatus === "MARRIEDJOINT"}
+                  onChange={() => { setFormData((prev) => ({ ...prev, maritalStatus: "MARRIEDJOINT" })); clearErrors(setErrors, "maritalStatus"); }}
+                />
+                Married
+              </label>
+            </div>
+            <div className={styles.columns}>
+              <div>
+                <label className={styles.newline}>
+                  Your Birth Year
+                  <input
+                    type="number"
+                    name="birthYear"
+                    id="birthYear"
+                    className={errors.birthYear ? errorStyles.errorInput : ""}
+                    onChange={handleTextChange} defaultValue={formData.birthYear}
+                  />
+                </label>
+                <label id="lifeExpectancy">Your Life Expectancy</label>
+                <span><Tooltip text={"Note: A simultion of a scenario starts in current year and ends when user reaches this life expenectancy."}></Tooltip>
+                </span>
 
-            {errors.state && <span className={styles.error}>{errors.state}</span>}
-          </label>
-          <label className={styles.newline}>
-            Martial Status
-          </label>
-          <div className={styles.radioButtonContainer}>
-            <label className={styles.radioButton}>
-              <input
-                type="radio"
-                checked={formData.maritalStatus === "SINGLE"}
-                onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "SINGLE" }))}
-              />
-              Single
-            </label>
-            <label className={styles.radioButton}>
-              <input
-                type="radio"
-                checked={formData.maritalStatus === "MARRIEDJOINT"}
-                onChange={() => setFormData((prev) => ({ ...prev, maritalStatus: "MARRIEDJOINT" }))}
-              />
-              Married
-            </label>
-            {errors.maritalStatus && <span className={styles.error}>{errors.maritalStatus}</span>}
-          </div>
-          <div className={styles.columns}>
-            <div>
-              <label className={styles.newline}>
-                Your Birth Year
-                <input type="number" name="birthYear" onChange={handleTextChange} defaultValue={formData.birthYear} />
-                {errors.birthYear && <span className={styles.error}>{errors.birthYear}</span>}
-              </label>
-              <label>Your Life Expectancy</label>
-              <Distributions
-                options={["fixed", "normal"]}
-                name="lifeExpectancy"
-                onChange={handleDistributionsChange}
-                defaultValue={distributions.lifeExpectancy}
-              />
-              {errors.lifeExpectancy && <span className={styles.error}>{errors.lifeExpectancy}</span>}
+                <Distributions
+                  options={["fixed", "normal"]}
+                  name="lifeExpectancy"
+                  onChange={handleDistributionsChange}
+                  defaultValue={distributions.lifeExpectancy}
+                  className={errors.lifeExpectancy ? errorStyles.highlight : ""}
+                />
+              </div>
+              {formData.maritalStatus === "MARRIEDJOINT" && <div>
+                <label id="spouseBirthYear" className={styles.newline}>
+                  Spouse Birth Year
+                  <input
+                    type="number"
+                    name="spouseBirthYear"
+                    onChange={handleTextChange}
+                    defaultValue={formData.spouseBirthYear}
+                    className={errors.spouseBirthYear ? errorStyles.errorInput : ""}
+                  />
+                </label>
+                <label id="spouseLifeExpectancy">Spouse Life Expectancy</label>
+                <span><Tooltip text={"The system assumes joint investment ownership, and upon one spouse’s death, the survivor’s tax status changes to single, excluding the deceased's income and expenses from future transactions."}></Tooltip> </span>
+                <Distributions
+                  options={["fixed", "normal"]}
+                  name="spouseLifeExpectancy"
+                  onChange={handleDistributionsChange}
+                  defaultValue={distributions.spouseLifeExpectancy}
+                  className={errors.spouseLifeExpectancy ? errorStyles.highlight : ""}
+                />
+              </div>
+              }
             </div>
-            {formData.maritalStatus === "MARRIEDJOINT" && <div>
-              <label className={styles.newline}>
-                Spouse Birth Year
-                <input type="number" name="spouseBirthYear" onChange={handleTextChange} defaultValue={formData.spouseBirthYear} />
-                {errors.spouseBirthYear && <span className={styles.error}>{errors.spouseBirthYear}</span>}
-              </label>
-              <label>Spouse Life Expectancy</label>
-              <Distributions
-                options={["fixed", "normal"]}
-                name="spouseLifeExpectancy"
-                onChange={handleDistributionsChange}
-                defaultValue={distributions.spouseLifeExpectancy}
-              />
-              {errors.spouseLifeExpectancy && <span className={styles.error}>{errors.spouseLifeExpectancy}</span>}
-            </div>
-            }
-          </div>
-          <br />
-        </form>}
+            <br />
+          </form>
+        </>}
     </div>
   );
 };
