@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useImperativeHandle, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 
 import Select from 'react-select';
@@ -8,7 +8,10 @@ import { clearErrors } from "../utils/ScenarioHelper";
 import sectionStyles from '../pages/SimulationPage.module.css';
 import styles from './ChartTabs.module.css';
 
-const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }) => {
+// Prompt to AI (Amazon Q): Expose validateFields to the parent component SimulationPage
+// Needed to re-prompt to add displayName
+
+const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, setErrors }, ref) => {
   const [activeTab, setActiveTab] = useState("Charts");
   // Keys used to force remount and clear inputs when the tab is changed
   // Need separate key management between parameters
@@ -32,6 +35,11 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     { value: "INVEST_PERCENTAGE", label: "First of Two Investments" },
     { value: "ROTH_BOOLEAN", label: "Disable Roth Optimizer" }
   ], []);
+
+  // Expose the validateFields function to the parent component
+  useImperativeHandle(ref, () => ({
+    validateFields,
+  }));
 
   useEffect(() => {
     if (!simulationInput.selectedScenario) {
@@ -183,7 +191,84 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     // Clear errors when user makes changes
     clearErrors(setErrors, field);
   };
-  
+
+  const validateFields = () => {
+    const newErrors = {};
+    let lowerBoundRestriction = -1;
+    let upperBoundRestriction = -1;
+    // parameterIndex 0 is normal Charts fields, which are checked in SimulationPage
+    if (parameterIndex === 0) {
+      return true;
+    }
+    // parameterIndex is >= 1 at this point
+    const requiredParams = parameterIndex === 2 ? [1, 2] : [1];
+    for (const num of requiredParams) {
+      const paramName = `parameter${num}`;
+      if (simulationInput[paramName] === undefined) {
+        newErrors[paramName] = `Parameter ${num} is required`;
+      } else {
+        // Set the acceptable range for values
+        switch (simulationInput[paramName]) {
+          case "ROTH_BOOLEAN":
+            // No event nor numeric input checks if Roth is selected
+            continue;
+          case "START_EVENT":
+            lowerBoundRestriction = new Date().getFullYear();
+            break;
+          case "DURATION_EVENT":
+            lowerBoundRestriction = 1;
+            break;
+          case "EVENT_AMOUNT":
+            lowerBoundRestriction = 0;
+            break;
+          case "INVEST_PERCENTAGE":
+            lowerBoundRestriction = 0;
+            upperBoundRestriction = 100;
+            break;
+          // Should not happen
+          default:
+            break;
+        }
+        const lower = simulationInput[`lowerBound${num}`];
+        const upper = simulationInput[`upperBound${num}`];
+        const step = simulationInput[`stepSize${num}`];
+        const diff = upper - lower;
+        console.log(simulationInput);
+        // Check all required fields are filled
+        if (simulationInput[`displayedEvents${num}`] === undefined) {
+          newErrors[`event${num}`] = `Event ${num} is required`;
+        }
+        if (lower === undefined) {
+          newErrors[`lowerBound${num}`] = `Lower Bound ${num} is required`;
+        }
+        if (upper === undefined) {
+          newErrors[`upperBound${num}`] = `Upper Bound ${num} is required`;
+        }
+        if (simulationInput[`stepSize${num}`] === undefined) {
+          newErrors[`stepSize${num}`] = `Step Size ${num} is required`;
+        }
+        // Check if values fall within acceptable ranges
+        // lower should never be its initial value of -1
+        if (lower < lowerBoundRestriction) {
+          newErrors[`lowerBound${num}`] = `Lower Bound ${num} must be greater than or equal to ${lowerBoundRestriction}`;
+        }
+        if (upperBoundRestriction !== -1 && upper > upperBoundRestriction) {
+          newErrors[`upperBound${num}`] = `Upper Bound ${num} must be less than or equal to ${upperBoundRestriction}`;
+        }
+        if (lower > upper) {
+          newErrors[`lowerBound${num}`] = `Lower Bound ${num} must be less than Upper Bound ${num}`;
+        }
+        if (newErrors[`lowerBound${num}`] === undefined && newErrors[`upperBound${num}`] === undefined && step > diff) {
+          newErrors[`stepSize${num}`] = `Step Size ${num} must be within the bounds (${lower} - ${upper})`;
+        }
+      }
+    }
+    // Set all errors at once
+    setErrors(newErrors);
+    // Everything is valid if there are no error messages
+    return Object.keys(newErrors).length === 0;
+  }
+
   return (
     <div>
       <button onClick={() => changeTab("Charts")}>Charts</button>
@@ -278,7 +363,9 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       </div>
     </div>
   )
-}
+});
+
+ChartTabs.displayName = 'ChartTabs';
 
 ChartTabs.propTypes = {
   scenarios: PropTypes.object.isRequired,
