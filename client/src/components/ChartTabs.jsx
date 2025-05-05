@@ -48,9 +48,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       const newState = { ...prev, [field]: selectedOption.value };
       if (field.startsWith("parameter")) {
         const parameterCount = field.at(-1);
-        console.log(parameterCount);
         const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
-        console.log(fieldsToRemove);
         if (fieldsToRemove.some(f => prev[f] !== undefined)) {
           fieldsToRemove.forEach(f => delete newState[f]);
           if(parameterCount === "1") {
