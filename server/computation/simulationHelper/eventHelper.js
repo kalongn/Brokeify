@@ -81,21 +81,9 @@ export async function adjustEventsAmount( // Needs async for sample
             // Round the final amount
             newAmount = Math.max(0, Math.round(newAmount * 100) / 100); // Ensure non-negative
 
-            // If the amount changed, update the event object in memory and collect DB op
-            if (Math.abs(newAmount - originalAmount) > 0.001) {
-                event.amount = newAmount;
-                dbEventOps.push({
-                    updateOne: {
-                        filter: { _id: event._id },
-                        // Decide model based on type for bulkWrite later if needed
-                        // Or use a generic event update if models are unified
-                        // For now, assume separate Income/Expense models might be needed
-                        // Alternatively, update the base 'Event' model if amount is there
-                        update: { $set: { amount: event.amount } },
-                        modelName: event.eventType // Store model name for later bulkWrite grouping
-                    }
-                });
-            }
+            
+            event.amount = newAmount;
+            
 
             // If it's an active INCOME event this year, process income
             if (event.eventType === "INCOME" && isActive) {
