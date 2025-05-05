@@ -292,7 +292,7 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
         const diff = upper - lower;
         // Check all required fields are filled
         if (simulationInput[`displayedEvents${num}`] === undefined) {
-          newErrors[`event${num}`] = `Event ${num} is required`;
+          newErrors[`displayedEvents${num}`] = `Event ${num} is required`;
         }
         if (lower === undefined) {
           newErrors[`lowerBound${num}`] = `Lower Bound ${num} is required`;
@@ -343,6 +343,7 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
               options={scenarios.map((scenario) => ({ value: scenario.id, label: scenario.name }))}
               onChange={(option) => handleSelectChange(option, "selectedScenario")}
               className="select"
+              id="scenario"
             />
           </label>
         </div>
@@ -374,6 +375,7 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
                     options={parameterOptions}
                     onChange={(option) => handleSelectChange(option, `parameter${index + 1}`)}
                     className="select"
+                    id={`parameter${index + 1}`}
                     isDisabled={simulationInput.selectedScenario === undefined}
                   />
                 </div>
@@ -387,6 +389,7 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
                       options={(displayedEvents[index + 1] || []).map((event) => ({ value: event.id, label: event.name }))}
                       onChange={(option) => handleSelectChange(option, `displayedEvents${index + 1}`)}
                       className="select"
+                      id={`displayedEvents${index + 1}`}
                     />
                   </label>
 
@@ -395,6 +398,7 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
                       Lower Bound
                       <input
                         type="number"
+                        id={`lowerBound${index + 1}`}
                         min={lowerBoundRestriction}
                         step="1"
                         key={inputRemounts[index + 1]}
@@ -406,6 +410,7 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
                       Upper Bound
                       <input
                         type="number"
+                        id={`upperBound${index + 1}`}
                         min={simulationInput[`lowerBound${index + 1}`] !== undefined ? simulationInput[`lowerBound${index + 1}`] : 0}
                         max={upperBoundRestriction !== -1 ? upperBoundRestriction : ""}
                         step="1"
@@ -418,6 +423,7 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
                       Step Size
                       <input
                         type="number"
+                        id={`stepSize${index + 1}`}
                         min="1"
                         step="1"
                         key={inputRemounts[index + 1]}

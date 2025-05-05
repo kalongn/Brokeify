@@ -149,7 +149,7 @@ const ScenarioSimulation = () => {
     }
     const num = simulationInput.numSimulations;
     if (isNaN(num) || num < 10 || num > 1000) {
-      setErrors({ simulation: 'Number of simulation runs must be between 10 and 1000' });
+      setErrors({ numSimulations: 'Number of simulation runs must be between 10 and 1000' });
       return;
     }
     if (chartTabsRef.current && !chartTabsRef.current.validateFields()) {
@@ -227,7 +227,6 @@ const ScenarioSimulation = () => {
       }
     }
   };
-  console.log(errors);
 
   return (
     <Layout>
