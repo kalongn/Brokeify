@@ -30,6 +30,8 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
     2: []
   });  
   const isTwoD = activeTab === "2-D Exploration";
+  let lowerBoundRestriction = 0;
+  let upperBoundRestriction = -1;
 
   const allParameterOptions = useMemo(() => [
     { value: "START_EVENT", label: "Start Year" },
@@ -227,8 +229,6 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
 
   const validateFields = () => {
     const newErrors = {};
-    let lowerBoundRestriction = -1;
-    let upperBoundRestriction = -1;
     // Normal Charts fields are checked in SimulationPage
     if (activeTab === "Charts") {
       return true;
@@ -371,6 +371,8 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
                       Lower Bound
                       <input
                         type="number"
+                        min={lowerBoundRestriction}
+                        step="1"
                         key={inputRemounts[index + 1]}
                         name={`lowerBound${index + 1}`}
                         onChange={handleChange}
@@ -380,6 +382,9 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
                       Upper Bound
                       <input
                         type="number"
+                        min={simulationInput[`lowerBound${index + 1}`] !== undefined ? simulationInput[`lowerBound${index + 1}`] : 0}
+                        max={upperBoundRestriction !== -1 ? upperBoundRestriction : ""}
+                        step="1"
                         key={inputRemounts[index + 1]}
                         name={`upperBound${index + 1}`}
                         onChange={handleChange}
@@ -389,6 +394,8 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
                       Step Size
                       <input
                         type="number"
+                        min="1"
+                        step="1"
                         key={inputRemounts[index + 1]}
                         name={`stepSize${index + 1}`}
                         onChange={handleChange}
