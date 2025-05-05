@@ -40,7 +40,7 @@ eventSeries:
     start: {type: fixed, value: 2025} # a fixed, normal, or uniform distribution (as above) or a map with the form {type: startWith, eventSeries: <name>} or {type: startAfter, eventSeries: <name>}
     duration: {type: fixed, value: 70}
     type: income # "income", "expense", "invest", or "rebalance"
-    initialAmount: 7500
+    initialAmount: 7000
     changeAmtOrPct: amount
     changeDistribution: {type: fixed, value: -100}
     inflationAdjusted: false # boolean

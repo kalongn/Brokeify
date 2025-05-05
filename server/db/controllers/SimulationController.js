@@ -53,6 +53,15 @@ export default class SimulationController {
         }
     }
 
+    async readWithPopulate(id) {
+        try {
+            const simulation = await Simulation.findById(id).populate("scenario results paramOne paramTwo paramOneSteps paramTwoSteps");
+            return simulation;
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
     /**
      * This function delete the Simulation with the given id
      * @note
