@@ -194,9 +194,9 @@ const BasicInfo = () => {
 
   // Check if state tax data is in database
   const validateStateFile = () => {
-    const stateFile = `${formData.state}_${formData.maritalStatus}_`;
+    const stateFile = `${formData.state}_${formData.maritalStatus}`;
     // TODO: fix this arbitrary if statement
-    if (stateFile !== "NY_MARRIEDJOINT") {
+    if (stateFile !== "NY_MARRIEDJOINT" && Object.keys(errors).length === 0) {
       setShowStateModal(true);
       return false;
     }
@@ -235,7 +235,7 @@ const BasicInfo = () => {
   return (
     <div id={styles.formSection}>
       <h2 id={styles.heading}>Basic Information</h2>
-      <ModalState isOpen={showStateModal} onClose={setShowStateModal} />
+      <ModalState isOpen={showStateModal} onClose={setShowStateModal} uploadToBackend={uploadToBackend} />
       {loading ? <div> Loading...</div> :
         <>
           <ErrorMessage errors={errors} />

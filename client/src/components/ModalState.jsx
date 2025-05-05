@@ -5,11 +5,15 @@ import ModalBase from "./ModalBase";
 import styles from "./ModalImport.module.css";
 import buttonStyles from "../pages/ScenarioForm.module.css";
 
-const ModalState = ({ isOpen, onClose }) => {
+const ModalState = ({ isOpen, onClose, uploadToBackend }) => {
   const { scenarioId } = useParams(); // Get the scenario ID from the URL params
   const navigate = useNavigate();
   const handleClose = () => {
     onClose(false);
+  };
+  const handleContinue = async (file) => {
+    await uploadToBackend(file);
+    navigate(`/ScenarioForm/${scenarioId}/investment-types`)
   };
 
   return (
@@ -22,7 +26,7 @@ const ModalState = ({ isOpen, onClose }) => {
         If you receive social security benefits and live in a state that taxes them, the tax will be ignored for financial projections regardless.
       </p>
       <div id={buttonStyles.navButtons}>
-          <button onClick={() => navigate(`/ScenarioForm/${scenarioId}/investment-types`)} className={buttonStyles.deemphasizedButton}>Ignore & Continue</button>
+          <button onClick={handleContinue} className={buttonStyles.deemphasizedButton}>Ignore & Continue</button>
         <button onClick={() => navigate("/Profile")} className={`${buttonStyles.emphasizedButton} ${styles.uploadButton}`}>Upload in Profile</button>
       </div>
     </ModalBase>
@@ -32,6 +36,7 @@ const ModalState = ({ isOpen, onClose }) => {
 ModalState.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  uploadToBackend: PropTypes.func.isRequired
 };
 
 export default ModalState;
