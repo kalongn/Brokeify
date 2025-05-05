@@ -115,7 +115,7 @@ export function processAllExpenses(
         });
 
 
-        let amountCanAfford = Math.max(0, Math.max(currentTotalValue - scenario.financialGoal, currentTotalInStrategy));
+        let amountCanAfford = Math.max(0, Math.min(currentTotalValue - scenario.financialGoal, currentTotalInStrategy));
         let amountToPay = Math.min(discretionaryTotalToPay, amountCanAfford);
         discretionaryAmountPaid = amountToPay;
         discretionaryAmountIgnored = discretionaryTotalToPay - amountToPay;
