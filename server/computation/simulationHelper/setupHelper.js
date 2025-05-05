@@ -157,12 +157,13 @@ export async function getCashInvestment(investmentTypes) {
 
     if (cashInvestmentType) {
         //found, return its associated investment
-        return cashInvestmentType.investments[0]; //assuming it has only one investment
+        const res =  await investmentFactory.read(cashInvestmentType.investments[0]); //assuming it has only one investment
+        return res;
     }
-
     //not found, create new Cash investment and investment type
     const newCashInvestment = await investmentFactory.create({
         value: 0,
+        purchasePrice: 0,
         taxStatus: "CASH"
     });
 

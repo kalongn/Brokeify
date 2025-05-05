@@ -149,7 +149,7 @@ export async function adjustEventsAmount( // Needs async for sample
         ss: curYearSS,
         incomeBreakdown: incomeByEvent,
         dbEventOps: Array.from(finalDbEventOpsMap.values()),
-        dbCashOps: Array.from(finalDbCashOpsMap.values())
-        // We don't return cashInvestment object itself, as it was modified in place
+        dbCashOps: Array.from(finalDbCashOpsMap.values()),
+        cashInvestment: cashInvestment
     };
 }

@@ -532,7 +532,7 @@ export function processInvestmentEvents( // Still async due to potential logging
 
     if (!cashInvestment) {
         console.error("CRITICAL ERROR: processInvestmentEvents received invalid cashInvestment reference!");
-        return { dbUpdateOperations: [] };
+        return { dbUpdateOperations: [], cashInvestment: cashInvestment };
     }
 
     
@@ -718,7 +718,7 @@ export function processInvestmentEvents( // Still async due to potential logging
     });
 
     return {
-        dbUpdateOperations: Array.from(finalDbOpsMap.values())
+        dbUpdateOperations: Array.from(finalDbOpsMap.values()), cashInvestment: cashInvestment
     };
 }
 //Asked Gemini 2.5: "I want to update rebalance events in the same way: 
@@ -888,6 +888,6 @@ export function rebalanceInvestments( // Keep async for potential logging lookup
 
     return {
         capitalGain: totalCapitalGains,
-        dbUpdateOperations: Array.from(finalDbOpsMap.values()) // Return the filtered list of ops
+        dbUpdateOperations: Array.from(finalDbOpsMap.values()),
     };
 }

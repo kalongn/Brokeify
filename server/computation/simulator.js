@@ -132,7 +132,6 @@ export async function simulate(
         scenario.userBirthYear + scenario.userLifeExpectancy - realYear;
 
     // --- Fetch initial data before the loop ---
-    console.log("Fetching initial data before simulation loop...");
     let investmentTypes = await investmentTypeFactory.readMany(scenario.investmentTypes);
     let cashInvestment = await getCashInvestment(investmentTypes); // Finds or creates Cash
     // Update scenario's investmentTypes if cash was newly created and added
@@ -143,6 +142,7 @@ export async function simulate(
     let investmentIds = investmentTypes.flatMap((type) => type.investments);
     let investmentsArray = await investmentFactory.readMany(investmentIds);
     let allInvestmentsMap = new Map(investmentsArray.map(inv => [inv._id.toString(), inv]));
+    allInvestmentsMap.set(cashInvestment._id.toString(), cashInvestment);
 
     let allEvents = await eventFactory.readMany(scenario.events);
     let allEventsMap = new Map(allEvents.map(event => [event._id.toString(), event]));
@@ -280,6 +280,7 @@ export async function simulate(
 
         // Process income/SS from adjusted events (await the promise)
         const adjustEventsResult = await adjustEventsResultPromise;
+        cashInvestment = adjustEventsResult.cashInvestment;
         curYearIncome += adjustEventsResult.income;
         curYearSS += adjustEventsResult.ss;
         const incomeByEvent = adjustEventsResult.incomeBreakdown;
@@ -338,6 +339,7 @@ export async function simulate(
             cashInvestment,
             distributionMap // Pass distributions if needed
         );
+        cashInvestment = expensesResult.cashInvestment;
         thisYearGains += expensesResult.capitalGainFromExpenses; // Gains realized *this year* from selling for expenses
         curYearIncome += expensesResult.incomeGainFromExpenses; // Income realized *this year* (e.g., selling pre-tax)
         allDbUpdateOps.push(...expensesResult.dbUpdateOperations);
@@ -356,6 +358,7 @@ export async function simulate(
             investmentTypesMap,
             distributionMap // Pass distributions if needed
         );
+        cashInvestment =  investmentEventsResult.cashInvestment
         allDbUpdateOps.push(...investmentEventsResult.dbUpdateOperations);
 
         // Rebalance Investments (Modifies allInvestmentsMap, investmentTypesMap)
@@ -389,15 +392,15 @@ export async function simulate(
 
         const investmentValuesArray = [];
         investmentTypes.forEach(investmentType => { // Use the pre-fetched array
-             investmentType.investments.forEach(investmentId => {
-                 const inv = allInvestmentsMap.get(investmentId.toString());
-                 if (inv) {
-                      investmentValuesArray.push({
-                          name: `${investmentType.name} ${inv.taxStatus}`,
-                          value: inv.value,
-                      });
-                 }
-             });
+            investmentType.investments.forEach(investmentId => {
+                const inv = allInvestmentsMap.get(investmentId.toString());
+                if (inv) {
+                    investmentValuesArray.push({
+                        name: `${investmentType.name} ${inv.taxStatus}`,
+                        value: inv.value,
+                    });
+                }
+            });
         });
 
         // Calculate discretionary percentage
@@ -429,7 +432,7 @@ export async function simulate(
         // Update CSV log if enabled
 		if (csvFile !== null && csvFile !== undefined) {
             // Pass the current state of the investments map to updateCSV
-			await updateCSV(currentYear, Array.from(allInvestmentsMap.values()), scenario);
+			updateCSV(currentYear, allInvestmentsMap, investmentTypesMap, invMap, csvFile);
 		}
 
         // --- Handle Spouse Death ---

@@ -211,6 +211,7 @@ export function processAllExpenses(
         incomeGainFromExpenses: incomeGain,
         nonDiscretionaryBreakdown: nonDiscretionaryBreakdown,
         discretionaryBreakdown: discretionaryBreakdown,
-        dbUpdateOperations: investmentUpdates // List of operations for bulkWrite
+        dbUpdateOperations: investmentUpdates, // List of operations for bulkWrite
+        cashInvestment: cashInvestment
     };
 }
