@@ -242,11 +242,6 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
       }
       return newState;
     });
-    setparameterOptions(prev => prev.filter(param => param.value !== selectedOption.value));
-    if (prevSelection !== null) {
-      prevSelection = allParameterOptions.find(option => option.value === prevSelection);
-      setparameterOptions(prev => [...prev, prevSelection]);
-    }
     // Clear errors when user makes changes
     clearErrors(setErrors, field);
   };
@@ -323,6 +318,11 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
           newErrors[`parameter${num}Simulation`] = "Insufficient number of simulations to be distributed across parameters. Increase number of simulations, decrease bounds, or increase step size";
         }
       }
+    }
+    // Prevent user from selecting same event for the same parameter for 2d
+    console.log(simulationInput);
+    if (isTwoD && simulationInput.parameter1 !== undefined && simulationInput.parameter1 === simulationInput.parameter2 && simulationInput.displayedEvents1 === simulationInput.displayedEvents2) {
+      newErrors[`displayedEvents2`] = "Same parameters must have different events";
     }
     // Set all errors at once
     setErrors(newErrors);
