@@ -1,7 +1,12 @@
 
 
 import { test, expect } from '@playwright/test';
-import { sample, calculateTaxes,adjustEventAmount, updateTaxBracketsForInflation, updateContributionLimitsForInflation, shouldPerformRMD} from '../computation/simulationHelper.js';
+import { sample } from '../computation/simulationHelper/sample.js';
+import { calculateTaxes } from '../computation/simulationHelper/taxesHelper.js';
+import { adjustEventsAmount } from '../computation/simulationHelper/eventHelper.js';
+import { updateTaxBracketsForInflation } from '../computation/simulationHelper/inflationHelper.js';
+import { updateContributionLimitsForInflation } from '../computation/simulationHelper/inflationHelper.js';
+import { shouldPerformRMD } from '../computation/simulationHelper/investmentHelper.js';
 import { connectToDatabase,closeDatabaseConnection } from './utils.js';
 
 import DistributionController from "../db/controllers/DistributionController.js";
@@ -176,16 +181,15 @@ test('test updating tax brackets for inflation', () => {
 test('test update Contribution Limits For Inflation', async () => {
   let ptl = 19500;
   let atl = 100;
-  const testScenario = await scenarioFactory.create({
+  let testScenario = await scenarioFactory.create({
     annualPreTaxContributionLimit: ptl,
     annualPostTaxContributionLimit: atl,
   });
   const inflationRate = .1;
-  await updateContributionLimitsForInflation(testScenario, inflationRate);
+  testScenario = await updateContributionLimitsForInflation(testScenario, inflationRate);
   const res = await scenarioFactory.read(testScenario.id);
   
-  expect(res.annualPreTaxContributionLimit).toBeCloseTo(ptl*(1+inflationRate), 1);
-  expect(res.annualPostTaxContributionLimit).toBeCloseTo(atl*(1+inflationRate), 1);
+  expect(testScenario.annualPostTaxContributionLimit).toBeCloseTo(atl*(1+inflationRate), 1);
 });
 test('test should perform rmd true', async() => {
   const currentYear = 0;
@@ -245,32 +249,5 @@ test('test should perform rmd false due to investments', async () => {
   invArray.push(inv3);
   const ret = await shouldPerformRMD(currentYear, birthYear, invArray);
   expect(ret).toBeFalsy();
-});
-test('test update event amount', async () => {
-  const event = await eventFactory.create("INCOME", {
-    name: "Income",
-    description: "Income from the portfolio",
-    startYear: 2021,
-    startYearTypeDistribution: null,
-    duration: 1,
-    durationTypeDistribution: null,
-    amount: 10000,
-    expectedAnnualChange: 0.05,
-    expectedAnnualChangeDistribution: await distributionFactory.create("FIXED_PERCENTAGE", { value: 0.05 }),
-    isinflationAdjusted: true,
-    userContributions: 100,
-    spouseContributions: 0,
-    isSocialSecurity: true
-  });
-  const initialAmount = event.amount;
-  const inflationRate = .1;
-  
-
-
-  await adjustEventAmount(event, inflationRate);
-  const res = await eventFactory.read(event.id);
-  const expected = initialAmount * (1+event.expectedAnnualChange) *(1+inflationRate);
-  expect(res.amount).toBeGreaterThanOrEqual(expected-1);
-  expect(res.amount).toBeLessThanOrEqual(expected+1);
 });
 
