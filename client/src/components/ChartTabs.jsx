@@ -49,11 +49,12 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   };
 
   const handleSelectChange = (selectedOption, field) => {
+    const prevSelection = simulationInput[field] !== undefined ? simulationInput[field] : null;
     // Prompt to AI (Amazon Q): Make this highlighted code more concise
-    // Works as intended
+    // Needed to adjust for prevSelection
     setSimulationInput((prev) => {
       const newState = { ...prev, [field]: selectedOption.value };
-      if (field.startsWith("parameter")) {
+      if (field.startsWith("parameter") && prevSelection !== selectedOption.value) {
         const parameterCount = field.at(-1);
         const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
         if (fieldsToRemove.some(f => prev[f] !== undefined)) {
