@@ -163,12 +163,21 @@ router.get("/scenario-detail/:scenarioId", async (req, res) => {
 
             for (let event of scenario.events) {
                 const eventDistribution = await eventController.readWithPopulate(event._id);
+                //console.log("\n\nEVENT: ",eventDistribution);
                 const eventStructure = {
                     name: event.name,
                     type: event.eventType,
                     amount: event?.amount || "0",
                     percentage: distributionToString(eventDistribution?.expectedAnnualChangeDistribution) || "Unknown",
+                    startYearTypeDistribution: distributionToString(eventDistribution?.startYearTypeDistribution),
+                    startsWith: eventDistribution?.startsWith,
+                    startsAfter:eventDistribution?.startsAfter,
+                    discretionary:  event?.isDiscretionary ? "Is Discretionary" : "Not Discretionary",
+                    investmentAllocationMethod: eventDistribution?.assetAllocationType ,
+                    maximumCash: event?.maximumCash, 
+                    rebalanceTaxStatus: event?.taxStatus,
                     taxability: event?.isinflationAdjusted ? "Affected by Inflation" : "Not Affected by Inflation"
+                    
                 }
                 eventIdMap[event._id] = eventStructure;
                 events.push(eventStructure);
