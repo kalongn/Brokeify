@@ -64,11 +64,10 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     const prevSelection = simulationInput[field] !== undefined ? simulationInput[field] : null;
     if (field === "selectedScenario" && prevSelection !== null && prevSelection !== selectedOption.value) {
       // Clear parameter associated fields when the scenario is changed
-      const { numSimulations = 10 } = simulationInput;
-      setSimulationInput({
-        numSimulations,
+      setSimulationInput(() => ({
+        numSimulations: simulationInput.numSimulations,
         selectedScenario: selectedOption.value
-      });
+      }));
       updateRemount([0, 1, 2]);
       // Clear errors when user makes changes
       clearErrors(setErrors, field);
