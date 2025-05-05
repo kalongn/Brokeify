@@ -98,20 +98,22 @@ const OneD = () => {
           <div className={styles.leftSide}>
             <h2>{scenarioName} 1D Results</h2>
             <h4>
-              Type: {paramOneType !== "Disable Roth" ? <>{paramOneType}</> : <>Roth Optimizer</>}
+              Parameter 1: {paramOneType !== "Disable Roth" ? <>{paramOneType}</> : <>Roth Optimizer</>}
               {paramOneType !== "Disable Roth" ? (
                 <>
-                  , Event: {paramOneName}
                   <br />
-                  From: {paramOneSteps[0]}{paramOneType === "First of Two Investments" && "%"}
+                  - Event: {paramOneName}
                   <br />
-                  To: {paramOneSteps[paramOneSteps.length - 1]}{paramOneType === "First of Two Investments" && "%"}
+                  - Lower Bound: {paramOneSteps[0]}{paramOneType === "First of Two Investments" && "%"}
                   <br />
-                  Step: {paramOneSteps[1] - paramOneSteps[0]}{paramOneType === "First of Two Investments" && "%"}
+                  - Upper Bound: {paramOneSteps[paramOneSteps.length - 1]}{paramOneType === "First of Two Investments" && "%"}
+                  <br />
+                  - Step Size: {paramOneSteps[1] - paramOneSteps[0]}{paramOneType === "First of Two Investments" && "%"}
                 </>
               ) : (
                 <>
-                  , Enabled versus Disabled Roth
+                  <br />
+                  - Enable versus Disable Roth
                 </>
               )}
             </h4>

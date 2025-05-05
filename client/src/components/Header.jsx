@@ -40,6 +40,8 @@ const Header = ({ setVerified }) => {
         return 'Shared Scenarios';
       case '/Profile':
         return 'My Profile';
+      case '/Simulation':
+        return 'Scenario Simulation';
       default:
         return 'Brokeify';
     }
