@@ -29,6 +29,7 @@ const ScenarioForm = () => {
     { path: "rmd-strategy", label: "RMD Strategy" },
     { path: "roth-strategy", label: "Roth Strategy" },
   ];
+  const onCreationForm = path.includes("new") || path.includes("edit");
 
   const [scenarioHash, setScenarioHash] = useState("");
   const [loading, setLoading] = useState(true);
@@ -117,8 +118,10 @@ const ScenarioForm = () => {
           Loading...
         </div> :
         <div id={styles.formBackground}>
-          <ProgressBar currProgress={(currentSectionIndex+1)/sections.length} sections={sections}  />
-          <div id={styles.formSection}>
+          {!onCreationForm &&
+            <ProgressBar currProgress={(currentSectionIndex + 1) / sections.length} sections={sections} />
+          }
+          <div id={styles.formSection} style={onCreationForm ? { marginTop: "4rem" } : {}}>
             <Outlet context={{ childRef, scenarioId, scenarioHash, fetchScenarioHash }} />
             {/* Navigation buttons */}
             {/* Only appears if not creating a new investment type or event series */}
@@ -126,7 +129,7 @@ const ScenarioForm = () => {
             Prompt to AI (Copilot): Create navigation buttons to go between sections
             Generated code worked and only condensed Next and Save & Close buttons code
            */}
-            {!(path.includes("new") || path.includes("edit")) && <div id={styles.navButtons}>
+            {!onCreationForm && <div id={styles.navButtons}>
               <button
                 className={styles.deemphasizedButton}
                 onClick={handleBack}
