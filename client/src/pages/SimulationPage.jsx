@@ -153,7 +153,6 @@ const ScenarioSimulation = () => {
       return;
     }
     if (chartTabsRef.current && !chartTabsRef.current.validateFields()) {
-      console.log("chartTabsRef.current.validateFields() is false");
       return;
     }
 

@@ -294,6 +294,11 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
         if (newErrors[`lowerBound${num}`] === undefined && newErrors[`upperBound${num}`] === undefined && step > diff) {
           newErrors[`stepSize${num}`] = `Step Size ${num} must be within the bounds (${lower} - ${upper})`;
         }
+        // Check enough simulation runs allotted
+        const simulationsPerStep = simulationInput.numSimulations/(diff/step);
+        if (simulationsPerStep < 1) {
+          newErrors[`parameter${num}Simulation`] = "Insufficient number of simulations to be distributed across parameters. Increase number of simulations, decrease bounds, or increase step size";
+        }
       }
     }
     // Set all errors at once
