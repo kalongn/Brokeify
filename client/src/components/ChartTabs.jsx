@@ -102,6 +102,9 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   }, [allParameterOptions, simulationInput.selectedScenario, simulationInput.numSimulations, setSimulationInput, isTwoD]);
 
   useEffect(() => {
+    if (parameterIndex !== 1 && parameterIndex !== 2) {
+      return;
+    }
     const parameterValue = simulationInput[`parameter${parameterIndex}`];
     let eventsToDisplay = [];
     if (parameterValue === "START_EVENT" || parameterValue === "DURATION_EVENT") {
@@ -173,7 +176,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       // If the parameter field is changed, clear the associated fields
       if (field.startsWith("parameter")) {
         const parameterCount = field.at(-1);
-        const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
+        const fieldsToRemove = [ `displayedEvents${parameterCount}`, `lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
         if (fieldsToRemove.some(f => prev[f] !== undefined)) {
           fieldsToRemove.forEach(f => delete newState[f]);
           updateRemount([Number(parameterCount)]);
@@ -242,7 +245,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
                     Select Event Series {index + 1}
                     <Select
                       key={inputRemounts[index + 1]}
-                      options={displayedEvents[index + 1].map((event) => ({ value: event.id, label: event.name }))}
+                      options={(displayedEvents[index + 1] || []).map((event) => ({ value: event.id, label: event.name }))}
                       onChange={(option) => handleSelectChange(option, `displayedEvents${index + 1}`)}
                       className="select"
                     />
