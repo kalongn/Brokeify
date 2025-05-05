@@ -18,7 +18,12 @@ import ModalAddChart from "../../components/ModalAddChart";
 
 {/*Note: We need charts from charts.jsx too I believe, which is why
   we have "Add Chart" button here.The logic for that is the same. 
-  "Add 1D Chart" is the new functionality. */}
+    Updated Note: Add Chart also has values for the scenario parameter!
+
+  "Add 1D Chart" is the new functionality. 
+
+  
+  */}
 
 const OneD = () => {
   const { simulationId } = useParams();

@@ -7,6 +7,18 @@
   font-size: 1.7em;
 }
 
+.groupIcon {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+
+}
+
+.tooltipText {
+  font-weight: normal;
+}
+
 textarea {
   font-size: 1rem;
   width: 100%;
@@ -118,10 +130,10 @@ input:disabled {
   width: 10%;
 }
 
-.groupButtons{
+.groupButtons {
   display: flex;
   justify-content: end;
- 
+
 }
 
 .tableButton {
@@ -158,6 +170,7 @@ input:disabled {
   box-shadow: 0 0 10px var(--color-silver);
   margin-bottom: 4rem;
 }
+
 .error {
   color: #dc3545;
   font-size: 0.8em;
