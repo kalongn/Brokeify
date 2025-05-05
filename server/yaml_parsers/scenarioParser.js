@@ -446,9 +446,9 @@ export async function parseAndSaveYAML(yamlStr, userId) {
 
         const user = await userController.read(userId);
 
-        const firstName = user.firstName;
-        const lastName = user.lastName;
-        const email = user.email;
+        const firstName = user != null ? user.firstName : "GUEST";
+        const lastName = user != null ? user.lastName : "GUEST";
+        const email = user != null ? user.email : "GUEST";
 
         // Save Scenario
         const scenario = await scenarioFactory.create({
