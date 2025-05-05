@@ -23,11 +23,11 @@ const ScenarioForm = () => {
     { path: "investment-types", label: "Investment Types" },
     { path: "investments", label: "Investments" },
     { path: "event-series", label: "Event Series" },
-    { path: "limits", label: "Inflation & Contribution Limits" },
+    { path: "limits", label: "Inflation & Limits" },
     { path: "spending-strategy", label: "Spending Strategy" },
-    { path: "expense-strategy", label: "Expense Withdrawal Strategy" },
-    { path: "rmd-strategy", label: "Required Minimum Distribution Strategy" },
-    { path: "roth-strategy", label: "Roth Conversion Strategy & Optimizer" },
+    { path: "expense-strategy", label: "Expense Strategy" },
+    { path: "rmd-strategy", label: "RMD Strategy" },
+    { path: "roth-strategy", label: "Roth Strategy" },
   ];
 
   const [scenarioHash, setScenarioHash] = useState("");
@@ -117,7 +117,7 @@ const ScenarioForm = () => {
           Loading...
         </div> :
         <div id={styles.formBackground}>
-          <ProgressBar currProgress={(currentSectionIndex+1)/sections.length} />
+          <ProgressBar currProgress={(currentSectionIndex+1)/sections.length} sections={sections}  />
           <div id={styles.formSection}>
             <Outlet context={{ childRef, scenarioId, scenarioHash, fetchScenarioHash }} />
             {/* Navigation buttons */}

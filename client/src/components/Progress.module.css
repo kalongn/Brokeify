@@ -3,7 +3,7 @@
   justify-content: center;
   align-items: center;
   margin-top: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 }
 
 .bar, .fill {
@@ -11,25 +11,33 @@
 }
 
 .bar {
-  background-color: var(--color-primary-muted);
+  display: flex;
+  flex-direction: row;
+  height: 0.5rem;
+  padding: 0;
+  border: none;
+  outline: none;
+  border-radius: 0;
+  font-size: 0;
   width: 90%;
 }
+
 .fill {
   background-color: var(--color-primary);
-  border-right: 4px solid var(--color-white);
+  border: none;
 }
 
-.nodeContainer {
-  position: relative;
-  top: 0;
-  left: 10rem;
-}
 .node {
-  height: 1rem;
+  display: flex;
+  justify-self: center;
+  position: relative;
+  top: -0.25rem;
   width: 1rem;
-  background-color: var(--color-black);
+  height: 1rem;
+  background-color: var(--color-silver);
+  border-radius: 0.3rem;
 }
 .nodeText {
-  font-size: 0.8rem;
   margin: 0;
+  font-size: 0.7rem;
 }

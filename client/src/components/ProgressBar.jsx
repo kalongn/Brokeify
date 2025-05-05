@@ -1,28 +1,33 @@
 import PropTypes from "prop-types";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import styles from "./Progress.module.css";
 
-const ProgressBar = ({ currProgress }) => {
-  console.log("currProgress", currProgress);
-  const sections = [
-    "Basic Information",
-    "Investment Types",
-    "Investments",
-    "Event Series",
-    "Inflation & Contribution Limits",
-    "Spending Strategy",
-    "Expense Withdrawal Strategy",
-    "Required Minimum Distribution Strategy",
-    "Roth Conversion Strategy & Optimizer"
-  ];
+const ProgressBar = ({ currProgress, sections }) => {
+  const path = useLocation().pathname;
+  const navigate = useNavigate();
+
+  const handleClick = (index) => {
+    const pathSegments = path.split("/").filter(Boolean);
+    pathSegments.pop();
+    pathSegments.push(sections[index].path);
+    navigate(`/${pathSegments.join("/")}`);
+  }
+
   return (
     <div className={styles.barContainer}>
-      {/* Left value is an approximate centering */}
-      <div className={styles.nodeContainer} style={{ left: `${(currProgress * 100) / 2 + 0.5}%` }}>
-        <div className={styles.node} ></div>
-        {/* <p className={styles.nodeText}>{sections[0]}</p> */}
-      </div>
       <div className={styles.bar}>
-        <div style={{ width: `${currProgress * 100}%` }} className={styles.fill}></div>
+        {sections.map((section, index) => (
+          <button
+            key={index}
+            style={{ width: `${currProgress * 100}%` }}
+            className={styles.fill}
+            onClick={() => handleClick(index)}
+          >
+            <div className={styles.node} ></div>
+            <p className={styles.nodeText}>{section.label}</p>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -30,6 +35,7 @@ const ProgressBar = ({ currProgress }) => {
 
 ProgressBar.propTypes = {
   currProgress: PropTypes.number.isRequired,
+  sections: PropTypes.array.isRequired
 };
 
 export default ProgressBar;
