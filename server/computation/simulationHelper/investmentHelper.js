@@ -363,20 +363,20 @@ export async function performRothConversion(
 
     // If no bracket found or already in highest bracket with no upper bound, cannot optimize further this way
     if (!taxBracket || taxBracket.upperBound === Infinity || taxBracket.upperBound === null || taxBracket.upperBound === undefined) {
-        return { incomeToAdd: 0, earlyWithdrawal: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [] };
+        return { incomeToAdd: 0, earlyWithdrawal: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [], curYearEarlyWithdrawals: 0 };
     }
 
 
     // Calculate room left in the current bracket
     const roomInBracket = taxBracket.upperBound - curYearFedTaxableIncome;
     if (roomInBracket <= 0) {
-        return { incomeToAdd: 0, earlyWithdrawal: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [] };
+        return { incomeToAdd: 0, earlyWithdrawal: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [], curYearEarlyWithdrawals: 0 };
     }
 
     // Determine amount to convert: minimum of room in bracket and annual limit
     let amountToConvert = Math.min(roomInBracket, scenario.annualPostTaxContributionLimit);
     if (amountToConvert <= 0) {
-        return { incomeToAdd: 0, earlyWithdrawal: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [] };
+        return { incomeToAdd: 0, earlyWithdrawal: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [], curYearEarlyWithdrawals: 0 };
     }
 
     let remainingAmountToConvert = amountToConvert;
