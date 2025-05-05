@@ -6,6 +6,13 @@
 #heading {
   font-size: 1.7em;
 }
+.groupIcon{
+  display: flex;
+  align-items: center;  
+  justify-content: flex-start;  
+  position: relative;
+ 
+}
 
 textarea {
   font-size: 1rem;

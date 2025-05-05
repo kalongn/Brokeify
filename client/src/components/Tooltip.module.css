@@ -1,0 +1,50 @@
+/* tooltip.module.css */
+/*NOte: I used ChatGPT to generate this CSS*/
+/*prompt: Please design CSS for a tooltip icon. White text over black squarish text bubble that displays 
+over hover.  **/
+.tooltipWrapper {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    overflow: visible; /* Allow tooltip to escape */
+    max-width: none;   /* Prevent unintentional constraint */
+  }
+  
+  
+  .tooltipWrapper {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+  }
+  .tooltipText {
+    visibility: hidden;
+    background-color: var(--color-black);
+    color: var(--color-white);
+    text-align: center;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 0.8rem;
+    position: absolute;
+    z-index: 10;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: normal; /* Allow text to wrap */
+    word-wrap: break-word; /* Ensure words break correctly */
+    overflow-wrap: break-word; /* Handle long words */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for better visibility */
+
+}
+
+ 
+  
+  .tooltipWrapper:hover .tooltipText {
+    visibility: visible;
+  }
+  
+  .icon {
+    color: var(--color-black);
+    padding: 5px;
+    font-size: 1.2rem;
+  }
+  
