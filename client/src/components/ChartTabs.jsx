@@ -12,7 +12,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   const [activeTab, setActiveTab] = useState("Charts");
   // Keys used to force remount and clear inputs when the tab is changed
   // Need separate key management between parameters
-  // [0] = parameters [1] = 1D fields [2] = 2D fields
+  // [0] = parameter1 and parameter2 [1] = 1D associated fields [2] = 2D associated fields
   const [inputRemounts, setInputRemounts] = useState([0, 0, 0]);
   // Used to map ChartParameters
   const chartParametersCount = Number(activeTab[0]);
@@ -23,14 +23,16 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   const [incomeExpenseEvents, setincomeExpenseEvents] = useState([]);
   const [investEvents, setInvestEvents] = useState([]);
   const [displayedEvents, setdisplayedEvents] = useState([]);
-  const isTwoD= activeTab === "2-D Exploration";
+  const isTwoD = activeTab === "2-D Exploration";
 
   // Prompt to AI: Plugged in Copilot's review about making remount keys flexible
   // Needed to adjust the indices
-  const updateRemount = (remountKey) => {
+  const updateRemount = (remountKeys) => {
     setInputRemounts(prev => {
       const newRemounts = [...prev];
-      newRemounts[remountKey] = prev[remountKey] + 1;
+      remountKeys.forEach(key => {
+        newRemounts[key] = prev[key] + 1;
+      });
       return newRemounts;
     });
   };
@@ -60,6 +62,18 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
 
   const handleSelectChange = (selectedOption, field) => {
     const prevSelection = simulationInput[field] !== undefined ? simulationInput[field] : null;
+    if (field === "selectedScenario" && prevSelection !== null && prevSelection !== selectedOption.value) {
+      // Clear parameter associated fields when the scenario is changed
+      const { numSimulations = 10 } = simulationInput;
+      setSimulationInput({
+        numSimulations,
+        selectedScenario: selectedOption.value
+      });
+      updateRemount([0, 1, 2]);
+      // Clear errors when user makes changes
+      clearErrors(setErrors, field);
+      return;
+    }
     // Prompt to AI (Amazon Q): Make this highlighted code more concise
     // Needed to adjust for prevSelection
     setSimulationInput((prev) => {
@@ -70,7 +84,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
         const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
         if (fieldsToRemove.some(f => prev[f] !== undefined)) {
           fieldsToRemove.forEach(f => delete newState[f]);
-          updateRemount(Number(parameterCount));
+          updateRemount([Number(parameterCount)]);
         }
       }
       return newState;
@@ -157,7 +171,6 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     }
   }, [parameterIndex, simulationInput, events, incomeExpenseEvents, investEvents]);
 
-
   return (
     <div>
       <button onClick={() => changeTab("Charts")}>Charts</button>
@@ -206,7 +219,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
               {simulationInput[`parameter${index + 1}`] !== undefined && simulationInput[`parameter${index + 1}`] !== "ROTH_BOOLEAN" && (
                 <>
                   <label>
-                    Select Event Series {}
+                    Select Event Series {index + 1}
                     <Select
                       key={inputRemounts[index + 1]}
                       options={displayedEvents.map((event) => ({ value: event.id, label: event.name }))}
