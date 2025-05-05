@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import './App.css'
-import 'react-tooltip/dist/react-tooltip.css';
 
 import Login from './pages/Login.jsx';
 import Home from './pages/Home.jsx';

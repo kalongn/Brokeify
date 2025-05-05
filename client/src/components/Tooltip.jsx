@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styles from './tooltip.module.css';
 import { IoInformationCircleOutline } from "react-icons/io5";
 
@@ -28,6 +28,14 @@ const Tooltip = ({ text, orientation = 'above' }) => {
       </div>
     </div>
   );
+};
+Tooltip.propTypes = {
+  text: PropTypes.string.isRequired,  
+  orientation: PropTypes.oneOf(['above', 'below']),
+};
+
+Tooltip.defaultProps = {
+  orientation: 'above', 
 };
 
 export default Tooltip;
