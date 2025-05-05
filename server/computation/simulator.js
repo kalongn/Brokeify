@@ -291,9 +291,9 @@ export async function simulate(
 
         // Roth Conversions (Modifies allInvestmentsMap, investmentTypesMap)
         let rothConversion = { incomeToAdd: 0, curYearEarlyWithdrawals: 0, dbInvestmentOps: [], dbInvestmentTypeOps: [] };
-        if (scenario.startYearRothOptimizer !== undefined &&
+        if (scenario.startYearRothOptimizer != null &&
             scenario.startYearRothOptimizer <= realYear + currentYear &&
-            scenario.endYearRothOptimizer !== undefined &&
+            scenario.endYearRothOptimizer != null &&
             scenario.endYearRothOptimizer >= realYear + currentYear)
         {
             rothConversion = await performRothConversion(
