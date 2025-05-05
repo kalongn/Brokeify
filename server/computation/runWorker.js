@@ -39,7 +39,7 @@ async function main() {
             }
         }
         parentPort.postMessage(batchResults);
-        mongoose.disconnect();
+        await mongoose.disconnect();
     } catch (err) {
         parentPort.postMessage({ error: err.message });
     }
