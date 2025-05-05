@@ -223,48 +223,38 @@ const ViewScenario = () => {
                     <div className={`${styles.textbox} ${styles.eventRow2}`}>{event.type}</div>
                   </div>
                   <div className={styles.hoverInlineDetails}>
-                    {event.startYearTypeDistribution && (
-                      <p className={styles.lightText}>Start Year: {event.startYearTypeDistribution}</p>
-                    )}
-                    {/*TODO: Note: I'm only getting IDs here so not displaying this right now 
-                    {event.startsWith && (
-                      <p className={styles.lightText}>Starts With: {event.startsWith?.name}</p>
-                    )}
-                       {event.startsAfter && (
-                      <p className={styles.lightText}>Starts After: {event.startsAfter?.name}</p>
-                    )}
-                    */}
+                    <p className={styles.lightText}>Start Year: {event.startYear}</p>
                     {(event.duration !== undefined && event.duration !== null) && (
                       <p className={styles.lightText}>Duration: {event.duration}</p>
                     )}
-                   
+
                     {(event.amount !== undefined && event.amount !== null) && (
                       <p className={styles.lightText}>Amount: {event.amount}</p>
                     )}
-  
-                    {(event.type === "INVEST" ) && (
+
+                    {(event.type === "INVEST") && (
                       <div>
-                      <p className={styles.lightText}>Investment Allocation Method: {event.investmentAllocationMethod}</p>
-                      <p className={styles.lightText}>Maximum Cash: {event.maximumCash}</p>
+                        <p className={styles.lightText}>Investment Allocation Method: {event.investmentAllocationMethod}</p>
+                        <p className={styles.lightText}>Maximum Cash: {event.maximumCash}</p>
                       </div>
                     )}
-                    {(event.type === "REBALANCE" ) && (
+                    {(event.type === "REBALANCE") && (
                       <div>
-                      <p className={styles.lightText}>Investment Allocation Method: {event.investmentAllocationMethod}</p>
-                      <p className={styles.lightText}>Tax Status: {event.rebalanceTaxStatus}</p>
+                        <p className={styles.lightText}>Investment Allocation Method: {event.investmentAllocationMethod}</p>
+                        <p className={styles.lightText}>Tax Status: {event.rebalanceTaxStatus}</p>
                       </div>
                     )}
-                    
+
                     {(event.type === "EXPENSE") && (
-                        <p className={styles.lightText}> Discretionary: {event.discretionary}</p>
+                      <p className={styles.lightText}> Discretionary: {event.discretionary}</p>
                     )}
                     {((event.type === "INCOME" || event.type === "EXPENSE")) && (
                       <div>
-                     
-                      <p className={styles.lightText}>Expected Annual Change Distribution: {event.percentage}</p> 
-                      <p className={styles.lightText}>Taxability: {event.taxability}</p>
+
+                        <p className={styles.lightText}>Expected Annual Change Distribution: {event.percentage}</p>
+                        <p className={styles.lightText}>Taxability: {event.taxability}</p>
                       </div>
-              
+
                     )}
 
 

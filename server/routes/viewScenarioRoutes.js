@@ -150,7 +150,7 @@ router.get("/scenario-detail/:scenarioId", async (req, res) => {
                         expectedAnnualReturnDistribution: distributionToString(investmentType?.expectedAnnualReturnDistribution) || "Unknown",
                         taxability: investmentType.taxability,
                         expenseRatio: investmentType.expenseRatio,
-                        expectedAnnualIncomeDistribution:distributionToString(investmentType?.expectedAnnualIncomeDistribution) || "Unknown"
+                        expectedAnnualIncomeDistribution: distributionToString(investmentType?.expectedAnnualIncomeDistribution) || "Unknown"
 
                     }
                     investmentIdMap[investment._id] = investmentStructure;
@@ -169,18 +169,33 @@ router.get("/scenario-detail/:scenarioId", async (req, res) => {
                     type: event.eventType,
                     amount: event?.amount || "0",
                     percentage: distributionToString(eventDistribution?.expectedAnnualChangeDistribution) || "Unknown",
-                    startYearTypeDistribution: distributionToString(eventDistribution?.startYearTypeDistribution),
+                    startYearTypeDistribution: eventDistribution?.startYearTypeDistribution,
                     startsWith: eventDistribution?.startsWith,
-                    startsAfter:eventDistribution?.startsAfter,
-                    discretionary:  event?.isDiscretionary ? "Is Discretionary" : "Not Discretionary",
-                    investmentAllocationMethod: eventDistribution?.assetAllocationType ,
-                    maximumCash: event?.maximumCash, 
+                    startsAfter: eventDistribution?.startsAfter,
+                    discretionary: event?.isDiscretionary ? "Is Discretionary" : "Not Discretionary",
+                    investmentAllocationMethod: eventDistribution?.assetAllocationType,
+                    maximumCash: event?.maximumCash,
                     rebalanceTaxStatus: event?.taxStatus,
                     taxability: event?.isinflationAdjusted ? "Affected by Inflation" : "Not Affected by Inflation"
-                    
+
                 }
                 eventIdMap[event._id] = eventStructure;
                 events.push(eventStructure);
+            }
+
+            for (let event of events) {
+                if (event.startsWith) {
+                    event.startYear = `Starts with event: ${eventIdMap[event.startsWith]?.name || "Unnamed Event"}`;
+                } else if (event.startsAfter) {
+                    event.startYear = `Starts after event: ${eventIdMap[event.startsAfter]?.name || "Unnamed Event"}`;
+                } else if (event.startYearTypeDistribution) {
+                    event.startYear = distributionToString(event.startYearTypeDistribution) + " years";
+                } else {
+                    event.startYear = "N/A";
+                }
+                delete event.startYearTypeDistribution;
+                delete event.startsWith;
+                delete event.startsAfter;
             }
 
             const spendingStrategy = scenario.orderedSpendingStrategy.map(eventId => {

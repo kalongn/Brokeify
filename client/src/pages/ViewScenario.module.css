@@ -56,7 +56,7 @@
     color: #333;
     overflow: auto;
     white-space: nowrap;
-    scrollbar-width: none; 
+    scrollbar-width: none;
 
 }
 
@@ -84,34 +84,36 @@
     justify-content: flex-start;
 
 
-  }
-  
-  .iconWrapper {
+}
+
+.iconWrapper {
     display: flex;
     align-items: center;
     justify-content: center;
     padding-right: 1rem;
-  }
-  
-  .icon {
+}
+
+.icon {
     justify-content: center;
     margin-right: 1rem;
-  }
-  .roth{
+}
+
+.roth {
     display: flex;
     align-items: center;
-  }
-  .draggableContent {
+}
+
+.draggableContent {
     display: flex;
     flex-direction: column;
-  }
-  
-  .draggableItemText {
+}
+
+.draggableItemText {
     font-size: 1rem;
     font-weight: 500;
     color: var(--color-black);
     margin-bottom: 0.25rem;
-  }
+}
 
 .lightText {
     color: var(--color-silver);
@@ -164,16 +166,16 @@
 .investmentWrapper {
     margin-bottom: 1rem;
     position: relative;
-  }
-  
-  .investmentRowWithHover {
+}
+
+.investmentRowWithHover {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
     cursor: pointer;
-  }
-  
-  .hoverInlineDetails {
+}
+
+.hoverInlineDetails {
     display: none;
     background-color: #f8f8f8;
     padding: 0.75rem 1rem;
@@ -182,33 +184,17 @@
     font-size: 0.9rem;
     color: var(--color-black);
     border-radius: 4px;
-  }
-  
-  .investmentWrapper:hover .hoverInlineDetails {
+}
+
+.investmentWrapper:hover .hoverInlineDetails {
     display: block;
-  }
-  
-  .eventWrapper {
+}
+
+.eventWrapper {
     margin-bottom: 1rem;
     position: relative;
-  }
-  
-  .hoverInlineDetails {
-    display: none;
-    margin-top: 0.5rem;
-    background-color: #f8f8f8;
-    padding: 0.75rem 1rem;
-    border-left: 3px solid #ccc;
-    font-size: 0.9rem;
-    color: #444;
-    border-radius: 4px;
-  }
-  
-  .eventWrapper:hover .hoverInlineDetails {
+}
+
+.eventWrapper:hover .hoverInlineDetails {
     display: block;
-  }
-  
- 
-  
-  
-  
+}
