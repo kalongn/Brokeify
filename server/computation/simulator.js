@@ -119,7 +119,6 @@ export async function simulate(
     }
     // Refresh scenario after initial setup potentially modified it
     scenario = await scenarioFactory.read(scenario._id);
-
     const results = await resultFactory.create({
         resultStatus: "SUCCESS",
         yearlyResults: [],
