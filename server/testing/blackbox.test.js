@@ -49,7 +49,7 @@ test.afterAll(async () => {
     await closeDatabaseConnection();
 });
 
-test('end to end backend test', async () => {
+test('end to end deterministic backend test', async () => {
     const taxfileContents = fs.readFileSync(path.resolve(__dirname, "./testing_yaml_files/state_tax_test.yaml"));
     const parsedTax = yaml.load(taxfileContents);
     const parseBrackets = (brackets) => {
@@ -125,5 +125,149 @@ test('end to end backend test', async () => {
             expect(simulationCalculations.yearlyResults[i].totalDiscretionaryExpenses).toBe(1);
         }
     }
+
+});
+//Asked Gemini 2.5 Pro to create this test based on previous one
+test('end to end touch everything test', async () => {
+    // --- Configuration ---
+    const scenarioFilePath = path.resolve(__dirname, "./testing_yaml_files/scenario2.yaml");
+    const numberOfRuns = 1;
+    const testUsername = "GUEST_MULTI_RUN";
+    const taxfileContents = fs.readFileSync(path.resolve(__dirname, "./testing_yaml_files/state_tax_test.yaml"), 'utf8');
+    const parsedTax = yaml.load(taxfileContents);
+    const parseBrackets = (brackets) => {
+        return brackets.map(({ lowerBound, upperBound, rate }) => ({
+            lowerBound: Number(lowerBound),
+            upperBound: upperBound === 'Infinity' ? Infinity : Number(upperBound),
+            rate: Number(rate)
+        }));
+    };
+    const { year, state, filingStatus, rates } = parsedTax;
+    const taxID = await taxController.create("STATE_INCOME", {
+        year: Number(year),
+        state: state,
+        filingStatus: filingStatus,
+        taxBrackets: parseBrackets(rates)
+    });
+    // Ensure stateTax is an array of two IDs
+    const stateTax = [taxID, taxID]; // Use the same ID for both single and married for this test setup
+
+    expect(stateTax).not.toBeUndefined();
+    expect(stateTax.length).toBe(2); // Verify it's an array of two
+
+    if (!fs.existsSync(scenarioFilePath)) {
+        throw new Error(`Scenario file not found at: ${scenarioFilePath}. Please provide the correct path.`);
+    }
+    const fileContents = fs.readFileSync(scenarioFilePath, 'utf8');
+    const parsedScenario = yaml.load(fileContents);
+    const scenarioID = await parseAndSaveYAML(parsedScenario, null); 
+    expect(scenarioID).not.toBeUndefined();
+
+    // --- Run Simulation Multiple Times ---
+    console.log(`Starting ${numberOfRuns} simulation runs for scenario: ${scenarioID}`);
+    // validateRun handles running the simulation, potentially using worker threads
+    const compiledResults = await validateRun(scenarioID, numberOfRuns, stateTax, testUsername);
+    expect(compiledResults).not.toBeUndefined();
+
+    // --- Assertions (Invariants) ---
+
+    // 1. Check Number of Results
+    expect(compiledResults.results).toBeInstanceOf(Array);
+    expect(compiledResults.results.length).toBe(numberOfRuns); // Ensure we got exactly 100 results
+    console.log(`Received ${compiledResults.results.length} results.`);
+
+    // 2. Check Result Structure (Basic)
+    // Check the first result as a sample
+    if (compiledResults.results.length > 0) {
+        const firstResultId = compiledResults.results[0];
+        expect(firstResultId).not.toBeNull(); // Ensure the ID is valid
+        // Optionally read the full result object if needed for deeper checks
+        // const firstResultData = await resultFactory.read(firstResultId);
+        // expect(firstResultData).toHaveProperty('yearlyResults');
+        // expect(firstResultData.yearlyResults).toBeInstanceOf(Array);
+    }
+
+    // 3. Check Results "Make Sense" (Add specific invariant checks here)
+    // This is highly dependent on YOUR scenario and expected outcomes.
+    // Example Invariant: Check if 'isViolated' flag behaves consistently or within expected bounds across runs.
+    let violationCount = 0;
+    let successfulRunsData = []; // Store data from non-error runs if needed
+    for (const resultId of compiledResults.results) {
+        const resultData = await resultFactory.read(resultId);
+        expect(resultData).not.toBeNull(); // Ensure result exists in DB
+
+        // Check for simulation errors first
+        expect(resultData.resultStatus).toBe("SUCCESS");
+        
+        successfulRunsData.push(resultData); // Keep track of successful ones
+        // Example: Check if the 'isViolated' flag exists in the last year's result
+        if (resultData.yearlyResults && resultData.yearlyResults.length > 0) {
+            const lastYearResult = resultData.yearlyResults[resultData.yearlyResults.length - 1];
+            expect(lastYearResult).toHaveProperty('isViolated'); // Basic structure check
+            if (lastYearResult.isViolated) {
+                violationCount++;
+            }  
+            // - Is the final total value always positive?
+            const finalValue = lastYearResult.investmentValues.reduce((sum, inv) => sum + inv.value, 0);
+            expect(finalValue).toBeGreaterThanOrEqual(0);
+            
+        } else {
+            console.warn(`Simulation run ${resultId} was successful but had no yearly results.`);
+        }
+         
+    }
+
+
+    console.log(`Found ${violationCount} runs ending in violation out of ${successfulRunsData.length} successful runs.`);
+    // Add assertions based on expected violation counts/ratios if applicable
+    // expect(violationCount).toBeLessThan(numberOfRuns * 0.1); // Example: Less than 10% violations expected
+
+    let logContent = '';
+    let foundRothKeyword = false;
+    let latestLogFile = null;
+
+    try {
+        // Define the logs directory relative to the current test file's directory
+        const logsDir = path.resolve(__dirname, '../../logs'); 
+        console.log(`Looking for logs in: ${logsDir}`);
+
+        if (!fs.existsSync(logsDir)) {
+            throw new Error(`Logs directory not found: ${logsDir}`);
+        }
+
+        const logFiles = fs.readdirSync(logsDir)
+                           .filter(file => file.endsWith('.log')); // Get only .log files
+
+        if (logFiles.length === 0) {
+            throw new Error(`No .log files found in ${logsDir}`);
+        }
+
+        // Find the most recently modified log file
+        latestLogFile = logFiles.reduce((latest, current) => {
+            const latestPath = path.join(logsDir, latest);
+            const currentPath = path.join(logsDir, current);
+            const latestStat = fs.statSync(latestPath);
+            const currentStat = fs.statSync(currentPath);
+            return currentStat.mtimeMs > latestStat.mtimeMs ? current : latest;
+        });
+
+        const latestLogPath = path.join(logsDir, latestLogFile);
+        console.log(`Most recent log file found: ${latestLogPath}`);
+
+        logContent = fs.readFileSync(latestLogPath, 'utf8');
+        foundRothKeyword = logContent.includes('- ROTH -'); // Check for the specific keyword format
+
+        console.log(`Keyword "- ROTH -" ${foundRothKeyword ? 'found' : 'not found'} in log file.`);
+
+    } catch (error) {
+        console.error(`Error finding or checking log file:`, error);
+        // Fail the test if finding/reading the log file fails
+        expect(false, `Failed to find or check log file: ${error.message}`).toBe(true);
+    }
+
+    // Add an assertion based on whether you expect "ROTH" to be in the log.
+    // Adjust this expectation based on the scenario you are testing.
+    expect(latestLogFile).not.toBeNull(); // Ensure a log file was actually found
+    expect(foundRothKeyword, `Expected "- ROTH -" keyword to be present in the log file: ${latestLogFile}`).toBe(true);
 
 });

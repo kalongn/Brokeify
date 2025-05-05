@@ -749,35 +749,67 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
     console.log(`Dividing ${promiseParameters.length} tasks into ${parallel} batches for parallel execution.`);
 
     const allWorkerPromises = [];
+    let resultsAccumulator;
+    if (promiseParameters.length === 1) {
+        console.log("Running a single simulation task directly in the main process.");
+        const taskData = promiseParameters[0]; // Get the single task's data
 
-    for (let i = 0; i < parallel; i++) {
-        const batch = taskBatches[i];
-        const workerIndex = i;
+        try {
+            // Call the 'run' function directly (it's already imported/available)
+            const singleResult = await run(
+                taskData.scenarioID,
+                taskData.fedIncome,
+                taskData.capitalGains,
+                taskData.fedDeduction,
+                taskData.stateTax,
+                taskData.rmdTable,
+                taskData.csvFile,     // Pass the potentially non-null csv/log paths
+                taskData.logFile,
+                taskData.explorationArray,
+                taskData.step1,
+                taskData.step2,
+                taskData.seed,
+            );
+            // Place the single result into an array to match the structure expected later
+            // Use JSON methods to mimic worker behavior and avoid potential Mongoose object issues
+            resultsAccumulator = [JSON.parse(JSON.stringify(singleResult))];
 
-        const workerPromise = runInWorker({
-            tasksBatch: batch,      
-            workerIndex: workerIndex 
-        })
-        .then(batchResults => {
-            // Worker should return an array of results, one per task in its batch
-            if (!Array.isArray(batchResults)) {
-                // Handle case where worker returned an error object instead of array
-                if (batchResults && batchResults.error) {
-                    throw new Error(`Worker ${workerIndex} execution failed: ${batchResults.error}`);
-                } else {
-                    throw new Error(`Worker ${workerIndex} returned invalid data type: ${typeof batchResults}`);
+        } catch (error) {
+            console.error(`Error running single task directly (Scenario: ${taskData.scenarioID}):`, error);
+            // Handle the error, perhaps by adding an error object to the results
+            resultsAccumulator = [{ error: `Direct run failed: ${error.message}` }];
+        }
+    }
+    else{
+        for (let i = 0; i < parallel; i++) {
+            const batch = taskBatches[i];
+            const workerIndex = i;
+
+            const workerPromise = runInWorker({
+                tasksBatch: batch,      
+                workerIndex: workerIndex 
+            })
+            .then(batchResults => {
+                // Worker should return an array of results, one per task in its batch
+                if (!Array.isArray(batchResults)) {
+                    // Handle case where worker returned an error object instead of array
+                    if (batchResults && batchResults.error) {
+                        throw new Error(`Worker ${workerIndex} execution failed: ${batchResults.error}`);
+                    } else {
+                        throw new Error(`Worker ${workerIndex} returned invalid data type: ${typeof batchResults}`);
+                    }
                 }
-            }
-            console.log(`Worker ${workerIndex} finished processing batch of ${batch.length} tasks.`);
-            return batchResults; // Return the array of results from this batch
-        })
-        .catch(error => {
-            console.error(`Error processing batch in worker ${workerIndex}:`, error);
-            // Return an array containing error placeholders for this batch's results
-            // Or re-throw if you want Promise.all to reject immediately
-            return batch.map(task => ({ error: `Worker failed: ${error.message}` })); // Match result structure potentially
-        });
-        allWorkerPromises.push(workerPromise);
+                console.log(`Worker ${workerIndex} finished processing batch of ${batch.length} tasks.`);
+                return batchResults; // Return the array of results from this batch
+            })
+            .catch(error => {
+                console.error(`Error processing batch in worker ${workerIndex}:`, error);
+                // Return an array containing error placeholders for this batch's results
+                // Or re-throw if you want Promise.all to reject immediately
+                return batch.map(task => ({ error: `Worker failed: ${error.message}` })); // Match result structure potentially
+            });
+            allWorkerPromises.push(workerPromise);
+        }
     }
 
     // Wait for all workers (batches) to complete
@@ -786,7 +818,7 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
     console.log("All workers finished.");
 
     // Flatten the results from all batches into a single array
-    const resultsAccumulator = resultsFromAllBatches.flat();
+    if(!resultsAccumulator) resultsAccumulator = resultsFromAllBatches.flat();
     console.log(`Collected ${resultsAccumulator.length} total results from ${parallel} workers.`);
     // Update compiled results with the accumulated results
     compiledResults.results = resultsAccumulator; // Assign the collected results
