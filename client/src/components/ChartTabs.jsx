@@ -22,7 +22,10 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   const [events, setEvents] = useState([]);
   const [incomeExpenseEvents, setincomeExpenseEvents] = useState([]);
   const [investEvents, setInvestEvents] = useState([]);
-  const [displayedEvents, setdisplayedEvents] = useState([]);
+  const [displayedEvents, setDisplayedEvents] = useState({
+    1: [],
+    2: []
+  });  
   const isTwoD = activeTab === "2-D Exploration";
 
   const allParameterOptions = useMemo(() => [
@@ -100,15 +103,19 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
 
   useEffect(() => {
     const parameterValue = simulationInput[`parameter${parameterIndex}`];
+    let eventsToDisplay = [];
     if (parameterValue === "START_EVENT" || parameterValue === "DURATION_EVENT") {
-      setdisplayedEvents(events);
+      eventsToDisplay = events;
     } else if (parameterValue === "EVENT_AMOUNT") {
-      setdisplayedEvents(incomeExpenseEvents);
+      eventsToDisplay = incomeExpenseEvents;
     } else if (parameterValue === "INVEST_PERCENTAGE") {
-      setdisplayedEvents(investEvents);
-    } else {
-      setdisplayedEvents([]);
+      eventsToDisplay = investEvents;
     }
+    // set the displayedEvent by the parameter
+    setDisplayedEvents(prev => ({
+      ...prev,
+      [parameterIndex]: eventsToDisplay
+    }));
   }, [parameterIndex, simulationInput, events, incomeExpenseEvents, investEvents]);
 
   // Prompt to AI: Plugged in Copilot's review about making remount keys flexible
@@ -126,7 +133,6 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   // Only number of simulations and the selected scenario inputs are shared across all tabs
   const changeTab = (tab) => {
     setActiveTab(tab);
-    setParameterIndex(Number(tab.at(0)));
     setSimulationInput(() => ({
       numSimulations: simulationInput.numSimulations,
       selectedScenario: simulationInput.selectedScenario
@@ -159,7 +165,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       clearErrors(setErrors, field);
       return;
     }
-
+    setParameterIndex(Number(field.at(-1)));
     // Prompt to AI (Amazon Q): Make this highlighted code more concise
     // Needed to adjust for prevSelection
     setSimulationInput((prev) => {
@@ -175,6 +181,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       }
       return newState;
     });
+    // Clear current selection and add back in previous selection
     setparameterOptions(prev => prev.filter(param => param.value !== selectedOption.value));
     if (prevSelection !== null) {
       prevSelection = allParameterOptions.find(option => option.value === prevSelection);
@@ -235,7 +242,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
                     Select Event Series {index + 1}
                     <Select
                       key={inputRemounts[index + 1]}
-                      options={displayedEvents.map((event) => ({ value: event.id, label: event.name }))}
+                      options={displayedEvents[index + 1].map((event) => ({ value: event.id, label: event.name }))}
                       onChange={(option) => handleSelectChange(option, `displayedEvents${index + 1}`)}
                       className="select"
                     />
