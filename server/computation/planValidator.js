@@ -165,7 +165,7 @@ async function validate(scenarioID, explorationArray) {
                         throw("Bounds of invest percentage must be between 0-100");
                     }
                     //make sure event is only among 2 investments
-                    const originalEvent = await eventFactory.read(explorationArray[0].eventID);
+                    const originalEvent = await eventFactory.read(explorationArray[i].eventID);
                     if(originalEvent.allocatedInvestments.length!==2){
                         throw("Number of investments in invest scenario exploration must be 2");
                     }
