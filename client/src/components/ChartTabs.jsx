@@ -41,7 +41,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     // Clear errors when user makes changes
     clearErrors(setErrors, field);
   };
-  console.log(simulationInput);
+
   return (
     <div>
       <button onClick={() => changeTab("Charts")}>Charts</button>
@@ -66,9 +66,6 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
             <input
               id="numSimulations"
               type="number"
-              min="10"
-              max="100"
-              step="1"
               name="numSimulations"
               defaultValue={simulationInput.numSimulations !== undefined ? simulationInput.numSimulations : 10}
               onChange={handleChange}

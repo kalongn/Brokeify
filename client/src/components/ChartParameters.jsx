@@ -69,11 +69,6 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
       setEvents(allEvents);
       setincomeExpenseEvents(allIncomeExpenseEvents);
       setInvestEvents(allInvestEvents);
-      setSimulationInput(() => ({
-        numSimulations: simulationInput.numSimulations,
-        selectedScenario: simulationInput.selectedScenario
-      }));
-      setSelectRemount((prevKey) => prevKey + 1);
     }).catch((error) => {
       if (error.response?.status === 403 || error.response?.status === 401) {
         alert("You do not have permission to view this scenario.");
