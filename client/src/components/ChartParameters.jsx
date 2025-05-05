@@ -5,15 +5,13 @@ import Axios from 'axios';
 
 import styles from './ChartTabs.module.css';
 
-const ChartParameters = ({ parameterIndex, inputRemount1, inputRemount2, parameterRemount, simulationInput, handleChange, handleSelectChange, setSimulationInput, isTwoD }) => {
+const ChartParameters = ({ parameterIndex, inputRemounts, simulationInput, handleChange, handleSelectChange, setSimulationInput, isTwoD }) => {
   const [parameterOptions, setparameterOptions] = useState([]);
 
   const [events, setEvents] = useState([]);
   const [incomeExpenseEvents, setincomeExpenseEvents] = useState([]);
   const [investEvents, setInvestEvents] = useState([]);
   const [displayedEvents, setdisplayedEvents] = useState([]);
-
-  const inputRemount = parameterIndex === 1 ? inputRemount1 : inputRemount2;
 
   useEffect(() => {
     if (!simulationInput.selectedScenario) {
@@ -99,7 +97,7 @@ const ChartParameters = ({ parameterIndex, inputRemount1, inputRemount2, paramet
         Select Parameter {parameterIndex}
         <div className={`${styles.selectWrapper} ${simulationInput.selectedScenario === undefined ? styles.disabled : ''}`}>
           <Select
-            key={parameterRemount}
+            key={inputRemounts[0]}
             options={parameterOptions}
             onChange={(option) => handleSelectChange(option, `parameter${parameterIndex}`)}
             className="select"
@@ -112,7 +110,7 @@ const ChartParameters = ({ parameterIndex, inputRemount1, inputRemount2, paramet
           <label>
             Select Event Series {parameterIndex}
             <Select
-              key={inputRemount}
+              key={inputRemounts[parameterIndex]}
               options={displayedEvents.map((event) => ({ value: event.id, label: event.name }))}
               onChange={(option) => handleSelectChange(option, `displayedEvents${parameterIndex}`)}
               className="select"
@@ -124,7 +122,7 @@ const ChartParameters = ({ parameterIndex, inputRemount1, inputRemount2, paramet
               Lower Bound
               <input
                 type="number"
-                key={inputRemount}
+                key={inputRemounts[parameterIndex]}
                 name={`lowerBound${parameterIndex}`}
                 onChange={handleChange}
               />
@@ -133,7 +131,7 @@ const ChartParameters = ({ parameterIndex, inputRemount1, inputRemount2, paramet
               Upper Bound
               <input
                 type="number"
-                key={inputRemount}
+                key={inputRemounts[parameterIndex]}
                 name={`upperBound${parameterIndex}`}
                 onChange={handleChange}
               />
@@ -142,7 +140,7 @@ const ChartParameters = ({ parameterIndex, inputRemount1, inputRemount2, paramet
               Step Size
               <input
                 type="number"
-                key={inputRemount}
+                key={inputRemounts[parameterIndex]}
                 name={`stepSize${parameterIndex}`}
                 onChange={handleChange}
               />
@@ -156,9 +154,7 @@ const ChartParameters = ({ parameterIndex, inputRemount1, inputRemount2, paramet
 
 ChartParameters.propTypes = {
   parameterIndex: PropTypes.number.isRequired,
-  inputRemount1: PropTypes.number.isRequired,
-  inputRemount2: PropTypes.number.isRequired,
-  parameterRemount: PropTypes.number.isRequired,
+  inputRemounts: PropTypes.array.isRequired,
   simulationInput: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   handleSelectChange: PropTypes.func.isRequired,

@@ -11,11 +11,20 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   const [activeTab, setActiveTab] = useState("Charts");
   // Keys used to force remount and clear inputs when the tab is changed
   // Need separate key management between parameters
-  const [inputRemount1, setInputRemount1] = useState(0);
-  const [inputRemount2, setInputRemount2] = useState(0);
-  const [parameterRemount, setParameterRemount] = useState(0);
+  // [0] = parameters [1] = 1D fields [2] = 2D fields
+  const [inputRemounts, setInputRemounts] = useState([0, 0, 0]);
   // Used to map ChartParameters
   const chartParametersCount = Number(activeTab[0]);
+
+  // Prompt to AI: Plugged in Copilot's review about making remount keys flexible
+  // Needed to adjust the indices
+  const updateRemount = (remountKey) => {
+    setInputRemounts(prev => {
+      const newRemounts = [...prev];
+      newRemounts[remountKey] = prev[remountKey] + 1;
+      return newRemounts;
+    });
+  };
 
   // Only number of simulations and the selected scenario inputs are shared across all tabs
   const changeTab = (tab) => {
@@ -24,9 +33,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       numSimulations: simulationInput.numSimulations,
       selectedScenario: simulationInput.selectedScenario
     }));
-    setInputRemount1((prevKey) => prevKey + 1);
-    setInputRemount2((prevKey) => prevKey + 1);
-    setParameterRemount((prevKey) => prevKey + 1);
+    setInputRemounts(prev => prev.map(val => val + 1));
   }
 
   const handleChange = (e) => {
@@ -51,12 +58,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
         const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
         if (fieldsToRemove.some(f => prev[f] !== undefined)) {
           fieldsToRemove.forEach(f => delete newState[f]);
-          if(parameterCount === "1") {
-            setInputRemount1((prevKey) => prevKey + 1);
-          }
-          else {
-            setInputRemount2((prevKey) => prevKey + 1);
-          }
+          updateRemount(Number(parameterCount));
         }
       }
       return newState;
@@ -100,9 +102,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
             <ChartParameters
               key={index}
               parameterIndex={index + 1}
-              inputRemount1={inputRemount1}
-              inputRemount2={inputRemount2}
-              parameterRemount={parameterRemount}
+              inputRemounts={inputRemounts}
               simulationInput={simulationInput}
               handleChange={handleChange}
               handleSelectChange={handleSelectChange}
