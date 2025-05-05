@@ -9,7 +9,7 @@
  npx c8 report --reporter=text
 
 */
-
+import fs from 'fs';
 import { test, expect } from '@playwright/test';
 import { connectToDatabase,closeDatabaseConnection } from './utils.js';
 import { parseStateTaxYAML } from '../yaml_parsers/stateTaxParser.js';
@@ -48,11 +48,13 @@ test.afterAll(async () => {
 });
 
 test('end to end backend test', async () => {
-    const stateTax = await parseStateTaxYAML(path.resolve(__dirname, 'testing_yaml_files/state_tax_test.yaml'));
+    const taxfileContents = fs.readFileSync("./testing_yaml_files/state_tax_test.yaml", 'utf8');
+    const parsedTax = yaml.load(taxfileContents);
+    const stateTax = await parseStateTaxYAML(parsedTax, null);
     expect(stateTax).not.toBeUndefined();
-    // const sT = await taxFactory.read(stateTax[0]);
-    // console.log(sT)
-    const scenarioID = await parseAndSaveYAML(path.resolve(__dirname, './testing_yaml_files/scenario1.yaml'));
+    const fileContents = fs.readFileSync("./testing_yaml_files/scenario1.yaml", 'utf8');
+    const parsed = yaml.load(fileContents);
+    const scenarioID = await parseAndSaveYAML(parsed, null);
     expect(scenarioID).not.toBeUndefined();
     // const scenario = await scenarioFactory.read(scenarioID);
     // console.log(scenario)
