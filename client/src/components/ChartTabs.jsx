@@ -135,11 +135,9 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
 
   // Only number of simulations and the selected scenario inputs are shared across all tabs
   const changeTab = (tab) => {
-    
     if (tab === activeTab) {
       return;
     }
-    setActiveTab(tab);
     // Navigating from 2-D to 1-D clears parameter 2 and associated values
     if (tab === "1-D Exploration" && activeTab === "2-D Exploration") {
       // Prompt to AI (Amazon Q): Delete any simulationInput with a key with 2
@@ -166,6 +164,7 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       // Clears all 1-D and 2-D associated values
       updateRemount([1, 2]);
     }
+    setActiveTab(tab);
   }
 
   const handleChange = (e) => {
@@ -193,17 +192,18 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
       clearErrors(setErrors, field);
       return;
     }
-    setParameterIndex(Number(field.at(-1)));
+    const paramCount = Number(field.at(-1));
+    setParameterIndex(paramCount); // Doesn't update immediately
     // Prompt to AI (Amazon Q): Make this highlighted code more concise
     // Needed to adjust for prevSelection
     setSimulationInput((prev) => {
       const newState = { ...prev, [field]: selectedOption.value };
       // If the parameter field is changed, clear the associated fields
       if (field.startsWith("parameter")) {
-        const fieldsToRemove = [ `displayedEvents${parameterIndex}`, `lowerBound${parameterIndex}`, `upperBound${parameterIndex}`, `stepSize${parameterIndex}`];
+        const fieldsToRemove = [ `displayedEvents${paramCount}`, `lowerBound${paramCount}`, `upperBound${paramCount}`, `stepSize${paramCount}`];
         if (fieldsToRemove.some(f => prev[f] !== undefined)) {
           fieldsToRemove.forEach(f => delete newState[f]);
-          updateRemount([Number(parameterIndex)]);
+          updateRemount([Number(paramCount)]);
         }
       }
       return newState;
