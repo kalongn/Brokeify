@@ -5,7 +5,7 @@ import Axios from "axios";
 
 import Select from "react-select";
 import Distributions from "../../components/Distributions";
-import ModalImport from "../../components/ModalImport";
+import ModalState from "../../components/ModalState";
 import ErrorMessage from "../../components/ErrorMessage";
 
 import styles from "./Form.module.css";
@@ -18,7 +18,7 @@ const BasicInfo = () => {
   // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
 
-  const [showImportModal, setShowImportModal] = useState(false);
+  const [showStateModal, setShowStateModal] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   // Determine if what distribution fields are shown and contain values for backend
@@ -197,7 +197,7 @@ const BasicInfo = () => {
     const stateFile = `${formData.state}_${formData.maritalStatus}_`;
     // TODO: fix this arbitrary if statement
     if (stateFile !== "NY_MARRIEDJOINT") {
-      setShowImportModal(true);
+      setShowStateModal(true);
       return false;
     }
     return true;
@@ -235,7 +235,7 @@ const BasicInfo = () => {
   return (
     <div id={styles.formSection}>
       <h2 id={styles.heading}>Basic Information</h2>
-      <ModalImport isOpen={showImportModal} onClose={setShowImportModal} />
+      <ModalState isOpen={showStateModal} onClose={setShowStateModal} />
       {loading ? <div> Loading...</div> :
         <>
           <ErrorMessage errors={errors} />
