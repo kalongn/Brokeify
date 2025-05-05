@@ -5,7 +5,7 @@ import Axios from 'axios';
 
 import styles from './ChartTabs.module.css';
 
-const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handleChange, handleSelectChange, setSelectRemount, setSimulationInput, isTwoD }) => {
+const ChartParameters = ({ parameterIndex, inputRemount1, inputRemount2, parameterRemount, simulationInput, handleChange, handleSelectChange, setSimulationInput, isTwoD }) => {
   const [parameterOptions, setparameterOptions] = useState([]);
 
   const [events, setEvents] = useState([]);
@@ -13,6 +13,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
   const [investEvents, setInvestEvents] = useState([]);
   const [displayedEvents, setdisplayedEvents] = useState([]);
 
+  const inputRemount = parameterIndex === 1 ? inputRemount1 : inputRemount2;
 
   useEffect(() => {
     if (!simulationInput.selectedScenario) {
@@ -77,7 +78,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
       }
       console.error('Error fetching scenario name:', error);
     });
-  }, [simulationInput.selectedScenario, simulationInput.numSimulations, setSelectRemount, setSimulationInput, isTwoD]);
+  }, [simulationInput.selectedScenario, simulationInput.numSimulations, setSimulationInput, isTwoD]);
 
   useEffect(() => {
     const parameterValue = simulationInput[`parameter${parameterIndex}`];
@@ -98,7 +99,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
         Select Parameter {parameterIndex}
         <div className={`${styles.selectWrapper} ${simulationInput.selectedScenario === undefined ? styles.disabled : ''}`}>
           <Select
-            key={selectRemount}
+            key={parameterRemount}
             options={parameterOptions}
             onChange={(option) => handleSelectChange(option, `parameter${parameterIndex}`)}
             className="select"
@@ -111,7 +112,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
           <label>
             Select Event Series {parameterIndex}
             <Select
-              key={selectRemount}
+              key={inputRemount}
               options={displayedEvents.map((event) => ({ value: event.id, label: event.name }))}
               onChange={(option) => handleSelectChange(option, `displayedEvents${parameterIndex}`)}
               className="select"
@@ -123,6 +124,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
               Lower Bound
               <input
                 type="number"
+                key={inputRemount}
                 name={`lowerBound${parameterIndex}`}
                 onChange={handleChange}
               />
@@ -131,6 +133,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
               Upper Bound
               <input
                 type="number"
+                key={inputRemount}
                 name={`upperBound${parameterIndex}`}
                 onChange={handleChange}
               />
@@ -139,6 +142,7 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
               Step Size
               <input
                 type="number"
+                key={inputRemount}
                 name={`stepSize${parameterIndex}`}
                 onChange={handleChange}
               />
@@ -152,11 +156,12 @@ const ChartParameters = ({ parameterIndex, selectRemount, simulationInput, handl
 
 ChartParameters.propTypes = {
   parameterIndex: PropTypes.number.isRequired,
-  selectRemount: PropTypes.number.isRequired,
+  inputRemount1: PropTypes.number.isRequired,
+  inputRemount2: PropTypes.number.isRequired,
+  parameterRemount: PropTypes.number.isRequired,
   simulationInput: PropTypes.object.isRequired,
   handleChange: PropTypes.func.isRequired,
   handleSelectChange: PropTypes.func.isRequired,
-  setSelectRemount: PropTypes.func.isRequired,
   setSimulationInput: PropTypes.func.isRequired,
   isTwoD: PropTypes.bool,
 };

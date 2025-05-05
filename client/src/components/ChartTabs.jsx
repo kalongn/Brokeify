@@ -9,8 +9,11 @@ import sectionStyles from '../pages/SimulationPage.module.css';
 
 const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }) => {
   const [activeTab, setActiveTab] = useState("Charts");
-  // Key used to force remount and clear Select component inputs when the tab is changed
-  const [selectRemount, setSelectRemount] = useState(0);
+  // Keys used to force remount and clear inputs when the tab is changed
+  // Need separate key management between parameters
+  const [inputRemount1, setInputRemount1] = useState(0);
+  const [inputRemount2, setInputRemount2] = useState(0);
+  const [parameterRemount, setParameterRemount] = useState(0);
   // Used to map ChartParameters
   const chartParametersCount = Number(activeTab[0]);
 
@@ -19,10 +22,12 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     setActiveTab(tab);
     setSimulationInput(() => ({
       numSimulations: simulationInput.numSimulations,
-      selectedScenario: simulationInput.selectedScenario 
+      selectedScenario: simulationInput.selectedScenario
     }));
-    setSelectRemount((prevKey) => prevKey + 1);
-  }  
+    setInputRemount1((prevKey) => prevKey + 1);
+    setInputRemount2((prevKey) => prevKey + 1);
+    setParameterRemount((prevKey) => prevKey + 1);
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,7 +42,27 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
   };
 
   const handleSelectChange = (selectedOption, field) => {
-    setSimulationInput((prev) => ({ ...prev, [field]: selectedOption.value }));
+    // Prompt to AI (Amazon Q): Make this highlighted code more concise
+    // Works as intended
+    setSimulationInput((prev) => {
+      const newState = { ...prev, [field]: selectedOption.value };
+      if (field.startsWith("parameter")) {
+        const parameterCount = field.at(-1);
+        console.log(parameterCount);
+        const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
+        console.log(fieldsToRemove);
+        if (fieldsToRemove.some(f => prev[f] !== undefined)) {
+          fieldsToRemove.forEach(f => delete newState[f]);
+          if(parameterCount === "1") {
+            setInputRemount1((prevKey) => prevKey + 1);
+          }
+          else {
+            setInputRemount2((prevKey) => prevKey + 1);
+          }
+        }
+      }
+      return newState;
+    });
     // Clear errors when user makes changes
     clearErrors(setErrors, field);
   };
@@ -76,12 +101,13 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
           [...Array(chartParametersCount)].map((_, index) => (
             <ChartParameters
               key={index}
-              parameterIndex={index+1}
-              selectRemount={selectRemount}
+              parameterIndex={index + 1}
+              inputRemount1={inputRemount1}
+              inputRemount2={inputRemount2}
+              parameterRemount={parameterRemount}
               simulationInput={simulationInput}
               handleChange={handleChange}
               handleSelectChange={handleSelectChange}
-              setSelectRemount={setSelectRemount}
               setSimulationInput={setSimulationInput}
               isTwoD={activeTab === "2-D Exploration"}
             />
