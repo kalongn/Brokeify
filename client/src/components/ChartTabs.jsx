@@ -33,79 +33,6 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     { value: "ROTH_BOOLEAN", label: "Disable Roth Optimizer" }
   ], []);
 
-  // Prompt to AI: Plugged in Copilot's review about making remount keys flexible
-  // Needed to adjust the indices
-  const updateRemount = (remountKeys) => {
-    setInputRemounts(prev => {
-      const newRemounts = [...prev];
-      remountKeys.forEach(key => {
-        newRemounts[key] = prev[key] + 1;
-      });
-      return newRemounts;
-    });
-  };
-
-  // Only number of simulations and the selected scenario inputs are shared across all tabs
-  const changeTab = (tab) => {
-    setActiveTab(tab);
-    setParameterIndex(Number(tab.at(0)));
-    setSimulationInput(() => ({
-      numSimulations: simulationInput.numSimulations,
-      selectedScenario: simulationInput.selectedScenario
-    }));
-    setInputRemounts(prev => prev.map(val => val + 1));
-  }
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    let processedValue = value;
-    // Match to names with numbers since ChartParameter inputs are named as such: lowerBound1
-    if (name.match(/\d/) || name === "numSimulations") {
-      processedValue = Number(value);
-    }
-    setSimulationInput((prev) => ({ ...prev, [name]: processedValue }));
-    // Clear errors when user makes changes
-    clearErrors(setErrors, name);
-  };
-
-  const handleSelectChange = (selectedOption, field) => {
-    let prevSelection = simulationInput[field] !== undefined ? simulationInput[field] : null;
-    // Clear parameter associated fields when the scenario is changed
-    if (field === "selectedScenario" && prevSelection !== null && prevSelection !== selectedOption.value) {
-      setSimulationInput(() => ({
-        numSimulations: simulationInput.numSimulations,
-        selectedScenario: selectedOption.value
-      }));
-      updateRemount([0, 1, 2]);
-      // Clear errors when user makes changes
-      clearErrors(setErrors, field);
-      return;
-    }
-
-    // Prompt to AI (Amazon Q): Make this highlighted code more concise
-    // Needed to adjust for prevSelection
-    setSimulationInput((prev) => {
-      const newState = { ...prev, [field]: selectedOption.value };
-      // If the parameter field is changed, clear the associated fields
-      if (field.startsWith("parameter")) {
-        const parameterCount = field.at(-1);
-        const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
-        if (fieldsToRemove.some(f => prev[f] !== undefined)) {
-          fieldsToRemove.forEach(f => delete newState[f]);
-          updateRemount([Number(parameterCount)]);
-        }
-      }
-      return newState;
-    });
-    setparameterOptions(prev => prev.filter(param => param.value !== selectedOption.value));
-    if (prevSelection !== null) {
-      prevSelection = allParameterOptions.find(option => option.value === prevSelection);
-      setparameterOptions(prev => [...prev, prevSelection]);
-    }
-    // Clear errors when user makes changes
-    clearErrors(setErrors, field);
-  };
-
   useEffect(() => {
     if (!simulationInput.selectedScenario) {
       return;
@@ -184,6 +111,79 @@ const ChartTabs = ({ scenarios, simulationInput, setSimulationInput, setErrors }
     }
   }, [parameterIndex, simulationInput, events, incomeExpenseEvents, investEvents]);
 
+  // Prompt to AI: Plugged in Copilot's review about making remount keys flexible
+  // Needed to adjust the indices
+  const updateRemount = (remountKeys) => {
+    setInputRemounts(prev => {
+      const newRemounts = [...prev];
+      remountKeys.forEach(key => {
+        newRemounts[key] = prev[key] + 1;
+      });
+      return newRemounts;
+    });
+  };
+
+  // Only number of simulations and the selected scenario inputs are shared across all tabs
+  const changeTab = (tab) => {
+    setActiveTab(tab);
+    setParameterIndex(Number(tab.at(0)));
+    setSimulationInput(() => ({
+      numSimulations: simulationInput.numSimulations,
+      selectedScenario: simulationInput.selectedScenario
+    }));
+    setInputRemounts(prev => prev.map(val => val + 1));
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let processedValue = value;
+    // Match to names with numbers since ChartParameter inputs are named as such: lowerBound1
+    if (name.match(/\d/) || name === "numSimulations") {
+      processedValue = Number(value);
+    }
+    setSimulationInput((prev) => ({ ...prev, [name]: processedValue }));
+    // Clear errors when user makes changes
+    clearErrors(setErrors, name);
+  };
+
+  const handleSelectChange = (selectedOption, field) => {
+    let prevSelection = simulationInput[field] !== undefined ? simulationInput[field] : null;
+    // Clear parameter associated fields when the scenario is changed
+    if (field === "selectedScenario" && prevSelection !== null && prevSelection !== selectedOption.value) {
+      setSimulationInput(() => ({
+        numSimulations: simulationInput.numSimulations,
+        selectedScenario: selectedOption.value
+      }));
+      updateRemount([0, 1, 2]);
+      // Clear errors when user makes changes
+      clearErrors(setErrors, field);
+      return;
+    }
+
+    // Prompt to AI (Amazon Q): Make this highlighted code more concise
+    // Needed to adjust for prevSelection
+    setSimulationInput((prev) => {
+      const newState = { ...prev, [field]: selectedOption.value };
+      // If the parameter field is changed, clear the associated fields
+      if (field.startsWith("parameter")) {
+        const parameterCount = field.at(-1);
+        const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
+        if (fieldsToRemove.some(f => prev[f] !== undefined)) {
+          fieldsToRemove.forEach(f => delete newState[f]);
+          updateRemount([Number(parameterCount)]);
+        }
+      }
+      return newState;
+    });
+    setparameterOptions(prev => prev.filter(param => param.value !== selectedOption.value));
+    if (prevSelection !== null) {
+      prevSelection = allParameterOptions.find(option => option.value === prevSelection);
+      setparameterOptions(prev => [...prev, prevSelection]);
+    }
+    // Clear errors when user makes changes
+    clearErrors(setErrors, field);
+  };
+  
   return (
     <div>
       <button onClick={() => changeTab("Charts")}>Charts</button>
