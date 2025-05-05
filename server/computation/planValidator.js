@@ -157,7 +157,7 @@ async function validate(scenarioID, explorationArray) {
                 if(explorationValue.upperBound<=explorationValue.lowerBound){
                     throw("Upper bound of scenario exploration must be strictly larger than lower bound");
                 }
-                if(explorationValue.step>=explorationValue.upperBound-explorationValue.lowerBound){
+                if(explorationValue.step>explorationValue.upperBound-explorationValue.lowerBound){
                     throw("Step size of scenario exploration is too large given bounds");
                 }
                 if(explorationValue.type === "INVEST_PERCENTAGE"){
