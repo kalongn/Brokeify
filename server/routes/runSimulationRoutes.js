@@ -322,9 +322,9 @@ router.post("/runSimulation", async (req, res) => {
                         param2 = {
                             type: exploration.parameter2,
                             eventID: exploration.displayedEvents2,
-                            lowerBound: Number(exploration.lowerBound2) / 100,
-                            upperBound: Number(exploration.upperBound2) / 100,
-                            step: Number(exploration.stepSize2) / 100,
+                            lowerBound: Number(exploration.lowerBound2),
+                            upperBound: Number(exploration.upperBound2),
+                            step: Number(exploration.stepSize2),
                         };
                         break;
                     case "ROTH_BOOLEAN":
