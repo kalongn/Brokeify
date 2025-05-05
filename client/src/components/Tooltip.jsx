@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import styles from './tooltip.module.css';
+import styles from './Tooltip.module.css';
 import { IoInformationCircleOutline } from "react-icons/io5";
 import { PropTypes } from 'prop-types';
 /* NOte: I used ChatGPT to generate overall. Modified it slightly - specifically the icon used */
