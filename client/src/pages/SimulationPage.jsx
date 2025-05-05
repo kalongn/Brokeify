@@ -227,14 +227,6 @@ const ScenarioSimulation = () => {
     <Layout>
       <div className={styles.background}>
         <h3>To run a simulation, a scenario needs at least the Basic Information section completed.</h3>
-        <p>
-          <i>
-            If no state income tax file is uploaded for the state of residence, the simulation will ignore state tax.
-            By default, files for NY, NJ, CT, and WA are provided.
-            For married filers, both MARRIEDJOINT and SINGLE files are required;
-            otherwise, only the SINGLE file is needed.
-          </i>
-        </p>
         <ErrorMessage errors={errors} />
         <div className={styles.columns}>
           <ChartTabs
@@ -331,6 +323,46 @@ const ScenarioSimulation = () => {
             </div>
           </div>
         </div>
+        <p>
+          <i>
+            <strong>Disclaimer:</strong>
+            <ul>
+              <li>The system expect the starting year of everything to be at minimum the current year.</li>
+              <li>The system assumes all users are US citizens.</li>
+              <li>The system does not account for state income tax unless a file of the matching state of residence is uploaded.
+                <ul>
+                  <li>By default, files for NY, NJ, CT, and WA are provided.</li>
+                  <li>For married filers, both MARRIEDJOINT and SINGLE files are required; otherwise, only the SINGLE file is needed.</li>
+                </ul>
+              </li>
+              <li>The system will fetch the latest version of state tax brackets available, federal tax brackets and RMD table.
+                <ul>
+                  <li>If the year the computation is earlier then the latest version of informations, we will still just use the latest version and does not calculate reverse inflation.</li>
+                </ul>
+              </li>
+              <li>All taxes are adjusted toward the inflation rate.</li>
+              <li>The system assumes all users take the federal standard deduction.</li>
+              <li>The system assumes that the user satisfies the conditions to use the standard deductions in <a className={styles.specialLink} href="https://www.irs.gov/publications/p17">Table 10-1</a></li>
+              <li>The system assumes the user satisfies satisfy the conditions for using <a className={styles.specialLink} href="https://www.irs.gov/publications/p590b">IRS Publication 590-B Table III</a></li>
+              <li>The system assumes all capital gains are long-term.</li>
+              <li>The system assumes that states tax capital gains the same way as other income. This is reasonable because most states tax them the same way.</li>
+              <li>The system assumes that state income tax can be computed in a similar manner as federal income tax, using a table of tax rates and brackets for each filing status, and ignores any deviations from this.</li>
+              <li>The system also ignores any deductions or exemptions for state income tax.</li>
+              <li>The system assumes that 85% of social security benefits are subject to federal income tax.</li>
+              <li>When part of an investment is sold, the system use the average cost basis method to compute the capital gains.</li>
+              <li>The system ignore capital gains tax related to the cash investment.</li>
+              <li>The system ran inflation on an annual basis.</li>
+              <li>The system assume the IRS annual contribution limits for retirement accounts adjust smoothly with inflation.</li>
+              <li>The system assume that investments have no capital gains at the start of the simulation.</li>
+              <li>For married couples, the system assumes that all investments are jointly owned, and the beneficiary is the surviving spouse. When the user or the spouse reaches their life expectancy (death), the percentages of income and expense transactions associated with the deceased spouse are omitted from transaction amounts for future years, and the survivor&apos;s tax filing status changes from married filing jointly to single.</li>
+              <li>The system assumes that no tax needs to be paid in the starting year of the simulation.</li>
+              <li>The system assumes all simulations start in the current actual year.</li>
+
+
+              <li>The system result maybe inaccurate and does not nesscary reflect to real life.</li>
+            </ul>
+          </i>
+        </p>
       </div>
     </Layout>
   );
