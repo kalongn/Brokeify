@@ -207,7 +207,7 @@ const InvestmentTypesForm = () => {
               Description
               <textarea name="description" defaultValue={formData.description} onChange={handleChange} />
             </label>
-            <label id="expectedAnnualReturn">Expected Annual Return <Tooltip text ="This is the anticipated yearly gain or loss from an investment."/></label>
+            <label id="expectedAnnualReturn">Expected Annual Return <Tooltip text="This is the anticipated yearly gain or loss from an investment." /></label>
             <Distributions
               name="expectedAnnualReturn"
               options={["fixed", "normal"]}
@@ -217,7 +217,7 @@ const InvestmentTypesForm = () => {
               className={errors.expectedAnnualReturn ? errorStyles.highlight : ""}
             />
             <label className={styles.newline}>
-              Expense Ratio <Tooltip text = "This is the annual fee a fund charges to manage investments, expressed as a percentage. Input a number between 0-100."/>
+              Expense Ratio <Tooltip text="This is the annual fee a fund charges to manage investments, expressed as a percentage. Input a number between 0-100." />
               <input
                 type="number"
                 name="expenseRatio"
@@ -227,7 +227,7 @@ const InvestmentTypesForm = () => {
                 onChange={handleChange}
               />
             </label>
-            <label id="expectedDividendsInterest">Expected Annual Income from Dividends or Interests <Tooltip text = " The estimated yearly income earned from holding investments like stocks (dividends) or bonds (interest)." /></label>
+            <label id="expectedDividendsInterest">Expected Annual Income from Dividends or Interests <Tooltip text=" The estimated yearly income earned from holding investments like stocks (dividends) or bonds (interest)." /></label>
             <Distributions
               name="expectedDividendsInterest"
               options={["fixed", "normal"]}

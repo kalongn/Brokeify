@@ -301,10 +301,10 @@ const BasicInfo = () => {
                     onChange={handleTextChange} defaultValue={formData.birthYear}
                   />
                 </label>
-                <label id="lifeExpectancy">Your Life Expectancy</label>  
-                  <span><Tooltip text={"Note: A simultion of a scenario starts in current year and ends when user reaches this life expenectancy."}></Tooltip>
-                  </span>
-          
+                <label id="lifeExpectancy">Your Life Expectancy</label>
+                <span><Tooltip text={"Note: A simultion of a scenario starts in current year and ends when user reaches this life expenectancy."}></Tooltip>
+                </span>
+
                 <Distributions
                   options={["fixed", "normal"]}
                   name="lifeExpectancy"
@@ -324,9 +324,9 @@ const BasicInfo = () => {
                     className={errors.spouseBirthYear ? errorStyles.errorInput : ""}
                   />
                 </label>
-                  <label id="spouseLifeExpectancy">Spouse Life Expectancy</label>
-                  <span><Tooltip text={"The system assumes joint investment ownership, and upon one spouse’s death, the survivor’s tax status changes to single, excluding the deceased's income and expenses from future transactions."}></Tooltip> </span>
-                 <Distributions
+                <label id="spouseLifeExpectancy">Spouse Life Expectancy</label>
+                <span><Tooltip text={"The system assumes joint investment ownership, and upon one spouse’s death, the survivor’s tax status changes to single, excluding the deceased's income and expenses from future transactions."}></Tooltip> </span>
+                <Distributions
                   options={["fixed", "normal"]}
                   name="spouseLifeExpectancy"
                   onChange={handleDistributionsChange}

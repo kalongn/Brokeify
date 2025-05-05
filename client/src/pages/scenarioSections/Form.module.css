@@ -6,15 +6,16 @@
 #heading {
   font-size: 1.7em;
 }
-.groupIcon{
+
+.groupIcon {
   display: flex;
-  align-items: center;  
-  justify-content: flex-start;  
+  align-items: center;
+  justify-content: flex-start;
   position: relative;
- 
+
 }
 
-.tooltipText{
+.tooltipText {
   font-weight: normal;
 }
 
@@ -129,10 +130,10 @@ input:disabled {
   width: 10%;
 }
 
-.groupButtons{
+.groupButtons {
   display: flex;
   justify-content: end;
- 
+
 }
 
 .tableButton {
@@ -169,6 +170,7 @@ input:disabled {
   box-shadow: 0 0 10px var(--color-silver);
   margin-bottom: 4rem;
 }
+
 .error {
   color: #dc3545;
   font-size: 0.8em;

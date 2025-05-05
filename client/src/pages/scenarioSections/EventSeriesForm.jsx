@@ -601,7 +601,7 @@ const EventSeriesForm = () => {
               className={errors.duration ? errorStyles.highlight : ""}
             />
             <label id="eventType" className={styles.newline}>
-              Type <Tooltip text ="Income refers to money received, such as dividends or interest. Expense is money spent, including fees, taxes, or withdrawals. Invest involves allocating funds to assets like stocks or bonds to earn returns. 
+              Type <Tooltip text="Income refers to money received, such as dividends or interest. Expense is money spent, including fees, taxes, or withdrawals. Invest involves allocating funds to assets like stocks or bonds to earn returns. 
               Rebalance means adjusting your portfolio to maintain the desired mix of assets." />
             </label>
             <div>
@@ -642,7 +642,7 @@ const EventSeriesForm = () => {
                   </label>
                 )}
                 <label className={styles.newline}>
-                  Initial Value <Tooltip text = "This is the starting value of this income/expense event type"/>
+                  Initial Value <Tooltip text="This is the starting value of this income/expense event type" />
                   <input
                     type="number"
                     name="initialValue"
@@ -652,7 +652,7 @@ const EventSeriesForm = () => {
                     value={typeFormData.initialValue}
                   />
                 </label>
-                <label id="expectedAnnualChange">Expected Annual Change <Tooltip text = "This is the anticipated yearly increase or decrease in value" /></label>
+                <label id="expectedAnnualChange">Expected Annual Change <Tooltip text="This is the anticipated yearly increase or decrease in value" /></label>
                 <Distributions
                   options={["fixed", "uniform", "normal"]}
                   name="expectedAnnualChange"
@@ -662,7 +662,7 @@ const EventSeriesForm = () => {
                   className={errors.expectedAnnualChange ? errorStyles.highlight : ""}
                 />
                 {maritalStatus === "MARRIEDJOINT" && <label>
-                  Specific Percentage Increase <Tooltip text = "This is the set percentage increase in a value over time, like a 3% annual raise." />
+                  Specific Percentage Increase <Tooltip text="This is the set percentage increase in a value over time, like a 3% annual raise." />
                   <input
                     type="number"
                     name="percentageIncrease"
@@ -681,7 +681,7 @@ const EventSeriesForm = () => {
             {(eventType === "invest" || eventType === "rebalance") && (
               <div>
                 <label id="allocationMethod" className={styles.newline}>
-                  Investment Allocation Method <Tooltip text = "Fixed percentages maintain a constant allocation across asset classes without adjustments. In contrast, a glide path gradually shifts the allocation to more conservative investments (ex: more bonds, fewer stocks) as the target date nears (ex: retirement)."/>
+                  Investment Allocation Method <Tooltip text="Fixed percentages maintain a constant allocation across asset classes without adjustments. In contrast, a glide path gradually shifts the allocation to more conservative investments (ex: more bonds, fewer stocks) as the target date nears (ex: retirement)." />
                 </label>
                 <label className={`${styles.radioButton} ${errors.allocationMethod ? errorStyles.highlight : ""}`}>
                   <input
@@ -855,7 +855,7 @@ const EventSeriesForm = () => {
                 {eventType === "invest" && (
                   <label className={styles.newline}>
                     Maximum Cash (in pre-defined cash investment)
-                    <Tooltip text = "This is a limit on the amount of cash in a portfolio to prevent excessive holdings in low-return cash investments as part of a predefined strategy."/>
+                    <Tooltip text="This is a limit on the amount of cash in a portfolio to prevent excessive holdings in low-return cash investments as part of a predefined strategy." />
                     <input
                       type="number"
                       name="maximumCash"

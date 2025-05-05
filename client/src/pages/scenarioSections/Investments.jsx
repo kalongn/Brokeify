@@ -166,7 +166,7 @@ const Investments = () => {
           <tr>
             <th>Investment Type</th>
             <th>Dollar Value</th>
-            <th>Tax Status  <Tooltip  orientation="below" text="Non-retirement accounts are taxed annually, pre-tax retirement accounts are taxed upon withdrawal, and after-tax retirement accounts offer tax-free withdrawals." />
+            <th>Tax Status  <Tooltip orientation="below" text="Non-retirement accounts are taxed annually, pre-tax retirement accounts are taxed upon withdrawal, and after-tax retirement accounts offer tax-free withdrawals." />
             </th>
             <th></th>
           </tr>
@@ -183,10 +183,10 @@ const Investments = () => {
             <tr
               key={investment.uuid}
               className={
-                ( errors.investmentRow !== undefined &&
-                ((!investment.typeId || investment.dollarValue === undefined || investment.dollarValue < 0 || !investment.taxStatus))) ||
-                (duplicates.includes(`${investment.typeId}-${investment.taxStatus}`))
-                ? errorStyles.highlight : ""
+                (errors.investmentRow !== undefined &&
+                  ((!investment.typeId || investment.dollarValue === undefined || investment.dollarValue < 0 || !investment.taxStatus))) ||
+                  (duplicates.includes(`${investment.typeId}-${investment.taxStatus}`))
+                  ? errorStyles.highlight : ""
               }
             >
               <td>

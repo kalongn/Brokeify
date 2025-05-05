@@ -133,7 +133,7 @@ const Limits = () => {
       <h2 id={styles.heading}>Inflation & Contribution Limits</h2>
       <ErrorMessage errors={errors} />
       <form>
-        <label id="inflationAssumption">Inflation Assumption Percentage  <Tooltip orientation="below" text = "This is the projected rate at which prices will increase over time"></Tooltip></label>
+        <label id="inflationAssumption">Inflation Assumption Percentage  <Tooltip orientation="below" text="This is the projected rate at which prices will increase over time"></Tooltip></label>
         <Distributions
           options={["fixed", "uniform", "normal"]}
           name="inflationAssumption"
@@ -146,7 +146,7 @@ const Limits = () => {
         <hr />
         <label id="initialLimit">
           After-Tax Retirement Accounts Initial Limit on Annual Contributions
-          <Tooltip  text =" This is the maximum amount an individual can contribute each year, based on tax rules for such accounts like Roth IRAs."/>
+          <Tooltip text=" This is the maximum amount an individual can contribute each year, based on tax rules for such accounts like Roth IRAs." />
           <br />
           <input
             type="number"

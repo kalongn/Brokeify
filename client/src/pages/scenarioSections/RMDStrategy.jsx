@@ -71,7 +71,7 @@ const RMDStrategy = () => {
       <p>
         Specify the order in which investments should be transferred
         from pre-tax retirement accounts to non-retirement accounts
-        when a Required Minimum Distribution (RMD) is triggered. <Tooltip orientation = "below" text={"RMD is the minimum amount that must be withdrawn annually from certain retirement accounts starting at a specific age, as mandated by the IRS."}/>
+        when a Required Minimum Distribution (RMD) is triggered. <Tooltip orientation="below" text={"RMD is the minimum amount that must be withdrawn annually from certain retirement accounts starting at a specific age, as mandated by the IRS."} />
       </p>
       {loading ?
         <p>Loading...</p>

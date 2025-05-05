@@ -6,11 +6,13 @@
     position: relative;
     display: inline-block;
     cursor: pointer;
-    overflow: visible; /* Allow tooltip to escape */
-    max-width: none;   /* Prevent unintentional constraint */
-  }
-  
-  .tooltipText {
+    overflow: visible;
+    /* Allow tooltip to escape */
+    max-width: none;
+    /* Prevent unintentional constraint */
+}
+
+.tooltipText {
     visibility: hidden;
     background-color: var(--color-black);
     color: var(--color-white);
@@ -25,31 +27,36 @@
     font-weight: normal;
     left: 50%;
     transform: translateX(-50%);
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for better visibility */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    /* Optional: Add shadow for better visibility */
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
-  }
-  
-  /* Tooltip position when it's above */
-  .tooltipText.above {
-    bottom: 100%; /* Position above the icon */
-    margin-bottom: 10px; /* Space between icon and tooltip */
-  }
-  
-  /* Tooltip position when it's below */
-  .tooltipText.below {
-    top: 100%; /* Position below the icon */
-    margin-top: 10px; /* Space between icon and tooltip */
-  }
-  
-  .tooltipWrapper:hover .tooltipText {
+}
+
+/* Tooltip position when it's above */
+.tooltipText.above {
+    bottom: 100%;
+    /* Position above the icon */
+    margin-bottom: 10px;
+    /* Space between icon and tooltip */
+}
+
+/* Tooltip position when it's below */
+.tooltipText.below {
+    top: 100%;
+    /* Position below the icon */
+    margin-top: 10px;
+    /* Space between icon and tooltip */
+}
+
+.tooltipWrapper:hover .tooltipText {
     visibility: visible;
-    opacity: 1; /* Fade in the tooltip */
-  }
-  
-  .icon {
+    opacity: 1;
+    /* Fade in the tooltip */
+}
+
+.icon {
     color: var(--color-black);
     padding: 5px;
     font-size: 1rem;
-  }
-  
+}
