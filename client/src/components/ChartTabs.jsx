@@ -161,6 +161,19 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
         });
         return newState;
       });
+      // Prompt to AI (Amazon Q): Clear all errors with 1 or 2 in the keys
+      // Works as intended
+      // Clears all errors for 2-D associated values
+      setErrors(prev => {
+        const newErrors = {};
+        Object.keys(prev).forEach(key => {
+          // Keep errors that don't contain 2
+          if (!key.includes('2')) {
+            newErrors[key] = prev[key];
+          }
+        });
+        return newErrors;
+      });
       // Clears all 2-D associated values
       updateRemount([2]);
     }
@@ -173,6 +186,17 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
       }));
       // Clears all 1-D and 2-D associated values
       updateRemount([1, 2]);
+      // Copied from prompt as mentioned above in this function
+      setErrors(prev => {
+        const newErrors = {};
+        Object.keys(prev).forEach(key => {
+          // Keep errors that don't contain 1 or 2
+          if (!key.includes('1') && !key.includes('2')) {
+            newErrors[key] = prev[key];
+          }
+        });
+        return newErrors;
+      });
     }
     setActiveTab(tab);
   }

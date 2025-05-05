@@ -227,6 +227,7 @@ const ScenarioSimulation = () => {
       }
     }
   };
+  console.log(errors);
 
   return (
     <Layout>
