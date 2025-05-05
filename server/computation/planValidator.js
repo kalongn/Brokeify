@@ -422,9 +422,8 @@ export async function run(
             //0 = off, 1 = on
             trueValues.push(step)
             if(step===-2){  // Roth -> -1 is roth, -2 not roth
+                copiedScenario = await scenarioFactory.update(copiedScenario._id, {startYearRothOptimizer: null});
                 copiedScenario.startYearRothOptimizer=undefined;
-                await scenarioFactory.update(copiedScenario._id, {startYearRothOptimizer: undefined});
-
             }
             else{
                 // Should already be in the scenario

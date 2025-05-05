@@ -371,10 +371,6 @@ export async function simulate(
         allDbUpdateOps.push(...rebalanceResult.dbUpdateOperations);
 
 
-        // --- Database Writes ---
-        // Consolidate operations for each model to perform bulk writes
-
-
 
         // --- Prepare for Next Year ---
         lastYearGains = thisYearGains; // This year's gains become next year's taxable gains
