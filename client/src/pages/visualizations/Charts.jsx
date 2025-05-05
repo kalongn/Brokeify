@@ -18,6 +18,8 @@ const Charts = () => {
   const [scenarioName, setScenarioName] = useState("Unknown Scenario");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingCharts, setLoadingCharts] = useState(false);
 
   useEffect(() => {
     Axios.defaults.baseURL = import.meta.env.VITE_SERVER_ADDRESS;
@@ -26,6 +28,7 @@ const Charts = () => {
     Axios.get(`/charts/${simulationId}`).then((response) => {
       const data = response.data;
       setScenarioName(data.scenarioName);
+      setLoading(false);
     }).catch((error) => {
       if (error.response?.status === 403 || error.response?.status === 401) {
         alert("You do not have permission to view this scenario.");
@@ -44,6 +47,8 @@ const Charts = () => {
 
   const handleGenerateCharts = async () => {
     try {
+      setLoadingCharts(true);
+      setShowCharts(false);
       const response = await Axios.post(`/charts/${simulationId}`, charts);
       const generatedCharts = response.data;
       setCharts(generatedCharts);
@@ -56,58 +61,74 @@ const Charts = () => {
         alert("Error fetching Graph Result. Please try again.");
       }
       setShowCharts(false);
+    } finally {
+      setLoadingCharts(false);
     }
   };
- 
+
   return (
     <Layout>
-      <div className={styles.content}>
-        <div className={styles.leftSide}>
-          <h2>{scenarioName} Result</h2>
-          <div className={styles.buttonGroup}>
-            <button className={styles.addChart} onClick={() => setShowAddModal(true)}>
-              Add Charts
-            </button>
-            <button onClick={handleGenerateCharts}>Generate Charts</button>
+      {
+        loading ? (
+          <div className={styles.loading}>
+            <h2>Loading...</h2>
           </div>
-          <ModalAddChart isOpen={showAddModal} setIsOpen={setShowAddModal} setCharts={setCharts} hasParameterValue={false}/>
-
-          <h3>Added Charts</h3>
-          <div className={styles.chartList}>
-            {charts.map((chart) => (
-              <div key={chart.id} className={styles.chartItem}>
-                <Accordion key={chart.id} title={chart.type} content={chart.label} />
+        ) : (
+          <div className={styles.content}>
+            <div className={styles.leftSide}>
+              <h2>{scenarioName} Result</h2>
+              <div className={styles.buttonGroup}>
+                <button className={styles.addChart} onClick={() => setShowAddModal(true)}>
+                  Add Charts
+                </button>
+                <button onClick={handleGenerateCharts}>Generate Charts</button>
               </div>
-            ))}
+              <ModalAddChart isOpen={showAddModal} setIsOpen={setShowAddModal} setCharts={setCharts} hasParameterValue={false} />
+
+              <h3>Added Charts</h3>
+              <div className={styles.chartList}>
+                {charts.map((chart) => (
+                  <div key={chart.id} className={styles.chartItem}>
+                    <Accordion key={chart.id} title={chart.type} content={chart.label} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className={styles.rightSide}>
+              {/* If showCharts is true but no charts exist, show the message */}
+              {!showCharts && (
+                loadingCharts ? (
+                  <div className={styles.chartCount}>
+                    <h4>Loading Charts...</h4>
+                  </div>
+                ) : (
+                  <div className={styles.chartCount}>
+                    <h4>Please add charts and then generate.</h4>
+                  </div>
+                )
+              )}
+
+              {/* If showCharts is true and there are no charts, show the 'Please add charts' message */}
+              {showCharts && charts.length === 0 && (
+                <div className={styles.noChartsMessage}>
+                  <h4>Please add a selection of charts, and then generate.</h4>
+                </div>
+              )}
+
+              {/*After user taps on "Generate Charts", charts will show*/}
+              {showCharts && charts.length > 0 && charts.map((chart) => (
+                <div key={chart.id} className={styles.chart}>
+                  <h3>{chart.type}</h3>
+                  {/* Charts will show depending on type */}
+                  {chart.type === "Shaded Line Chart" && Object.keys(chart.data).length !== 0 && <ShadedLineChart data={chart.data} />}
+                  {chart.type === "Line Chart" && Object.keys(chart.data).length !== 0 && <LineChart data={chart.data} />}
+                  {chart.type === "Stacked Bar Chart" && Object.keys(chart.data).length !== 0 && <StackedBarChart data={chart.data} />}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className={styles.rightSide}>
-          {/* If showCharts is true but no charts exist, show the message */}
-          {!showCharts && (
-            <div className={styles.chartCount}>
-              No Charts Generated Yet...
-            </div>
-          )}
-
-          {/* If showCharts is true and there are no charts, show the 'Please add charts' message */}
-          {showCharts && charts.length === 0 && (
-            <div className={styles.noChartsMessage}>
-              Please add a selection of charts, and then generate.
-            </div>
-          )}
-
-          {/*After user taps on "Generate Charts", charts will show*/}
-          {showCharts && charts.length > 0 && charts.map((chart) => (
-            <div key={chart.id} className={styles.chart}>
-              <h3>{chart.type}</h3>
-              {/* Charts will show depending on type */}
-              {chart.type === "Shaded Line Chart" && Object.keys(chart.data).length !== 0 && <ShadedLineChart data={chart.data} />}
-              {chart.type === "Line Chart" && Object.keys(chart.data).length !== 0 && <LineChart data={chart.data} />}
-              {chart.type === "Stacked Bar Chart" && Object.keys(chart.data).length !== 0 && <StackedBarChart data={chart.data} />}
-            </div>
-          ))}
-        </div>
-      </div>
+        )
+      }
     </Layout>
   );
 };

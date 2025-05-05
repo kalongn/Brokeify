@@ -17,6 +17,7 @@ const TwoD = () => {
   const { simulationId } = useParams();
 
   const [loading, setLoading] = useState(true);
+  const [loadingCharts, setLoadingCharts] = useState(false);
   const [scenarioName, setScenarioName] = useState("Unknown Scenario");
 
   const [paramsType, setParamsType] = useState([]); // [0] = paramOneType, [1] = paramTwoType
@@ -52,6 +53,8 @@ const TwoD = () => {
 
   const handleGenerateCharts = async () => {
     try {
+      setLoadingCharts(true);
+      setShowCharts(false);
       const response = await Axios.post(`/charts/${simulationId}`, charts);
       const generatedCharts = response.data;
       setCharts(generatedCharts);
@@ -64,6 +67,8 @@ const TwoD = () => {
         alert("Error fetching Graph Result. Please try again.");
       }
       setShowCharts(false);
+    } finally {
+      setLoadingCharts(false);
     }
   };
 
@@ -79,16 +84,15 @@ const TwoD = () => {
             <h2>{scenarioName} 2D Results</h2>
             {paramsType.map((paramType, index) => (
               <h4 key={index}>
-                Type: {paramType}, Event: {paramsName[index]}
+                Parameter {index + 1}: {paramType}
                 <br />
-                From: {paramsSteps[index][0]}
-                {paramType === "First of Two Investments" && "%"}
+                - Event: {paramsName[index]}
                 <br />
-                To: {paramsSteps[index][paramsSteps[index].length - 1]}
-                {paramType === "First of Two Investments" && "%"}
+                - Lower Bound: {paramsSteps[index][0]}{paramType === "First of Two Investments" && "%"}
                 <br />
-                Step: {paramsSteps[index][1] - paramsSteps[index][0]}
-                {paramType === "First of Two Investments" && "%"}
+                - Upper Bound: {paramsSteps[index][paramsSteps[index].length - 1]}{paramType === "First of Two Investments" && "%"}
+                <br />
+                - Step Size: {paramsSteps[index][1] - paramsSteps[index][0]}{paramType === "First of Two Investments" && "%"}
               </h4>
             ))}
             <div className={styles.buttonGroup}>
@@ -145,11 +149,20 @@ const TwoD = () => {
 
           <div className={styles.rightSide}>
             {!showCharts && (
-              <div className={styles.chartCount}>No Charts Generated Yet...</div>
+              loadingCharts ? (
+                <div className={styles.chartCount}>
+                  <h4>Loading Charts...</h4>
+                </div>
+              ) : (
+                <div className={styles.chartCount}>
+                  <h4>Please add charts and then generate.</h4>
+                </div>
+              )
             )}
+
             {showCharts && charts.length === 0 && (
               <div className={styles.noChartsMessage}>
-                Please add a selection of charts, and then generate.
+                <h4>Please add a selection of charts, and then generate.</h4>
               </div>
             )}
             {showCharts &&

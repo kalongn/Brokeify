@@ -25,7 +25,10 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
   const [events, setEvents] = useState([]);
   const [incomeExpenseEvents, setincomeExpenseEvents] = useState([]);
   const [investEvents, setInvestEvents] = useState([]);
-  const [displayedEvents, setdisplayedEvents] = useState([]);
+  const [displayedEvents, setDisplayedEvents] = useState({
+    1: [],
+    2: []
+  });  
   const isTwoD = activeTab === "2-D Exploration";
 
   const allParameterOptions = useMemo(() => [
@@ -107,16 +110,23 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
   }, [allParameterOptions, simulationInput.selectedScenario, simulationInput.numSimulations, setSimulationInput, isTwoD]);
 
   useEffect(() => {
-    const parameterValue = simulationInput[`parameter${parameterIndex}`];
-    if (parameterValue === "START_EVENT" || parameterValue === "DURATION_EVENT") {
-      setdisplayedEvents(events);
-    } else if (parameterValue === "EVENT_AMOUNT") {
-      setdisplayedEvents(incomeExpenseEvents);
-    } else if (parameterValue === "INVEST_PERCENTAGE") {
-      setdisplayedEvents(investEvents);
-    } else {
-      setdisplayedEvents([]);
+    if (parameterIndex !== 1 && parameterIndex !== 2) {
+      return;
     }
+    const parameterValue = simulationInput[`parameter${parameterIndex}`];
+    let eventsToDisplay = [];
+    if (parameterValue === "START_EVENT" || parameterValue === "DURATION_EVENT") {
+      eventsToDisplay = events;
+    } else if (parameterValue === "EVENT_AMOUNT") {
+      eventsToDisplay = incomeExpenseEvents;
+    } else if (parameterValue === "INVEST_PERCENTAGE") {
+      eventsToDisplay = investEvents;
+    }
+    // set the displayedEvent by the parameter
+    setDisplayedEvents(prev => ({
+      ...prev,
+      [parameterIndex]: eventsToDisplay
+    }));
   }, [parameterIndex, simulationInput, events, incomeExpenseEvents, investEvents]);
 
   // Prompt to AI: Plugged in Copilot's review about making remount keys flexible
@@ -133,13 +143,36 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
 
   // Only number of simulations and the selected scenario inputs are shared across all tabs
   const changeTab = (tab) => {
+    if (tab === activeTab) {
+      return;
+    }
+    // Navigating from 2-D to 1-D clears parameter 2 and associated values
+    if (tab === "1-D Exploration" && activeTab === "2-D Exploration") {
+      // Prompt to AI (Amazon Q): Delete any simulationInput with a key with 2
+      // Worked as intended
+      setSimulationInput(prev => {
+        const newState = { ...prev };
+        Object.keys(newState).forEach(key => {
+          if (key.includes("2")) {
+            delete newState[key];
+          }
+        });
+        return newState;
+      });
+      // Clears all 2-D associated values
+      updateRemount([2]);
+    }
+
+    // Navigating to Charts clears all 1-D and 2-D associated values
+    if (tab === "Charts") {
+      setSimulationInput(() => ({
+        numSimulations: simulationInput.numSimulations,
+        selectedScenario: simulationInput.selectedScenario
+      }));
+      // Clears all 1-D and 2-D associated values
+      updateRemount([1, 2]);
+    }
     setActiveTab(tab);
-    setParameterIndex(Number(tab.at(0)));
-    setSimulationInput(() => ({
-      numSimulations: simulationInput.numSimulations,
-      selectedScenario: simulationInput.selectedScenario
-    }));
-    setInputRemounts(prev => prev.map(val => val + 1));
   }
 
   const handleChange = (e) => {
@@ -167,18 +200,18 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
       clearErrors(setErrors, field);
       return;
     }
-
+    const paramCount = Number(field.at(-1));
+    setParameterIndex(paramCount); // Doesn't update immediately
     // Prompt to AI (Amazon Q): Make this highlighted code more concise
     // Needed to adjust for prevSelection
     setSimulationInput((prev) => {
       const newState = { ...prev, [field]: selectedOption.value };
       // If the parameter field is changed, clear the associated fields
       if (field.startsWith("parameter")) {
-        const parameterCount = field.at(-1);
-        const fieldsToRemove = [`lowerBound${parameterCount}`, `upperBound${parameterCount}`, `stepSize${parameterCount}`];
+        const fieldsToRemove = [ `displayedEvents${paramCount}`, `lowerBound${paramCount}`, `upperBound${paramCount}`, `stepSize${paramCount}`];
         if (fieldsToRemove.some(f => prev[f] !== undefined)) {
           fieldsToRemove.forEach(f => delete newState[f]);
-          updateRemount([Number(parameterCount)]);
+          updateRemount([Number(paramCount)]);
         }
       }
       return newState;
@@ -293,6 +326,9 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
             <input
               id="numSimulations"
               type="number"
+              min="10"
+              max="1000"
+              step="10"
               name="numSimulations"
               defaultValue={simulationInput.numSimulations !== undefined ? simulationInput.numSimulations : 10}
               onChange={handleChange}
@@ -320,7 +356,7 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
                     Select Event Series {index + 1}
                     <Select
                       key={inputRemounts[index + 1]}
-                      options={displayedEvents.map((event) => ({ value: event.id, label: event.name }))}
+                      options={(displayedEvents[index + 1] || []).map((event) => ({ value: event.id, label: event.name }))}
                       onChange={(option) => handleSelectChange(option, `displayedEvents${index + 1}`)}
                       className="select"
                     />
