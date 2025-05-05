@@ -188,3 +188,27 @@
     display: block;
   }
   
+  .eventWrapper {
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  
+  .hoverInlineDetails {
+    display: none;
+    margin-top: 0.5rem;
+    background-color: #f8f8f8;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid #ccc;
+    font-size: 0.9rem;
+    color: #444;
+    border-radius: 4px;
+  }
+  
+  .eventWrapper:hover .hoverInlineDetails {
+    display: block;
+  }
+  
+ 
+  
+  
+  
