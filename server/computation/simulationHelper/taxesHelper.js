@@ -21,6 +21,7 @@ export function calculateTaxes(federalIncomeTax, stateIncomeTax, capitalGainTax,
     //The IRS imposes a 10% penalty on the portion of the distribution that's 
     // included in your gross income, in addition to the regular income tax owed on that amount
     totalTax += .1 * earlyWithdrawalAmount;
+    if(isNaN(totalTax)) totalTax = 0;
     let eventDetails = `Year: ${currentYear} - TAX - Paying $${Math.ceil(totalTax * 100) / 100} in early withdrawl tax.\n`;
     updateLog(eventDetails);
     const curYearFedTaxableIncome = curYearIncome - 0.15 * curYearSS - federalStandardDeduction;

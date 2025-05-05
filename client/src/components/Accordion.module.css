@@ -9,8 +9,6 @@
 .accordion h3 {
     margin: 0;
     padding: 0;
-   
-
 
 }
 
@@ -21,7 +19,12 @@
     margin-top: 1rem;
     border-bottom: solid 1px var(--color-silver);
 }
-
+.accordionMiniTitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 .accordionContent {
     padding: 0.5rem;
 }
+
