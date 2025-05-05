@@ -3,28 +3,46 @@ import { run } from './planValidator.js';
 import mongoose from "mongoose";
 const DB_ADDRESS = `${process.env.DB_ADDRESS}`;
 async function main() {
+    const batchResults = [];
+    const tasksBatch = workerData.tasksBatch; 
+    const workerIndex = workerData.workerIndex; 
+
+    if (!tasksBatch || !Array.isArray(tasksBatch)) {
+        parentPort.postMessage({ error: "Invalid or missing tasksBatch in workerData" });
+        return;
+    }
     try {
         await mongoose.connect(DB_ADDRESS);
-        const result = await run(
-            workerData.scenarioID,
-            workerData.fedIncome,
-            workerData.capitalGains,
-            workerData.fedDeduction,
-            workerData.stateTax,
-            workerData.rmdTable,
-            workerData.csvFile,
-            workerData.logFile,
-            workerData.explorationArray,
-            workerData.step1,
-            workerData.step2,
-            workerData.seed,
-        );
-        
-        parentPort.postMessage(JSON.parse(JSON.stringify(result)));
+        for (let i = 0; i < tasksBatch.length; i++) {
+            const taskData = tasksBatch[i];
+            console.log(`Worker ${workerIndex}: Starting task ${i + 1}/${tasksBatch.length}`);
+
+            try {
+                const result = await run(
+                    taskData.scenarioID, 
+                    taskData.fedIncome,  
+                    taskData.capitalGains,
+                    taskData.fedDeduction,
+                    taskData.stateTax,
+                    taskData.rmdTable,
+                    taskData.csvFile,     
+                    taskData.logFile,     
+                    taskData.explorationArray,
+                    taskData.step1,
+                    taskData.step2,
+                    taskData.seed,
+                );
+                batchResults.push(JSON.parse(JSON.stringify(result)));
+            }
+            catch (taskError) {
+                console.error(`Worker ${workerIndex}: Error processing task ${i} (Scenario: ${taskData.scenarioID}, Step1: ${taskData.step1}, Step2: ${taskData.step2}):`, taskError);
+            }
+        }
+        parentPort.postMessage(batchResults);
         await mongoose.disconnect();
     } catch (err) {
         parentPort.postMessage({ error: err.message });
     }
 }
   
-await main();
+main();

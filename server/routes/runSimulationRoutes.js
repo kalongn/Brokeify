@@ -64,8 +64,7 @@ router.get("/runSimulation", async (req, res) => {
                     name: scenario.name + " | created at " + scenario.dateCreated,
                 }
             });
-
-        const previousRun = await simulationController.read(user.previousSimulation);
+        const previousRun = await simulationController.readWithNoPopulate(user.previousSimulation);
         let simulationType = null;
         if (previousRun) {
             simulationType = previousRun.simulationType;
@@ -321,9 +320,9 @@ router.post("/runSimulation", async (req, res) => {
                         param2 = {
                             type: exploration.parameter2,
                             eventID: exploration.displayedEvents2,
-                            lowerBound: Number(exploration.lowerBound2) / 100,
-                            upperBound: Number(exploration.upperBound2) / 100,
-                            step: Number(exploration.stepSize2) / 100,
+                            lowerBound: Number(exploration.lowerBound2),
+                            upperBound: Number(exploration.upperBound2),
+                            step: Number(exploration.stepSize2),
                         };
                         break;
                     case "ROTH_BOOLEAN":
