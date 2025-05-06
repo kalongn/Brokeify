@@ -65,7 +65,7 @@ router.get("/runSimulation", async (req, res) => {
                 }
             });
 
-        const previousRun = await simulationController.readWithPopulate(user.previousSimulation);
+        const previousRun = await simulationController.readWithPopulateAndNoResults(user.previousSimulation);
         const extractParamDetails = (eventObject, stepsArray, paramTypeString) => {
             const typeMapping = {
                 "START_EVENT": "Start Year",
