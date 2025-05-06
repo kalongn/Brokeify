@@ -18,12 +18,18 @@ import ModalAddChart from "../../components/ModalAddChart";
 
 {/*Note: We need charts from charts.jsx too I believe, which is why
   we have "Add Chart" button here.The logic for that is the same. 
-  "Add 1D Chart" is the new functionality. */}
+    Updated Note: Add Chart also has values for the scenario parameter!
+
+  "Add 1D Chart" is the new functionality. 
+
+  
+  */}
 
 const OneD = () => {
   const { simulationId } = useParams();
 
   const [loading, setLoading] = useState(true);
+  const [loadingCharts, setLoadingCharts] = useState(false);
 
   const [scenarioName, setScenarioName] = useState("Unknown Scenario");
   const [paramOneType, setParamOneType] = useState(null);
@@ -60,6 +66,8 @@ const OneD = () => {
 
   const handleGenerateCharts = async () => {
     try {
+      setLoadingCharts(true);
+      setShowCharts(false);
       const response = await Axios.post(`/charts/${simulationId}`, charts);
       const generatedCharts = response.data;
       setCharts(generatedCharts);
@@ -72,6 +80,8 @@ const OneD = () => {
         alert("Error fetching Graph Result. Please try again.");
       }
       setShowCharts(false);
+    } finally {
+      setLoadingCharts(false);
     }
   };
 
@@ -88,20 +98,22 @@ const OneD = () => {
           <div className={styles.leftSide}>
             <h2>{scenarioName} 1D Results</h2>
             <h4>
-              Type: {paramOneType !== "Disable Roth" ? <>{paramOneType}</> : <>Roth Optimizer</>}
+              Parameter 1: {paramOneType !== "Disable Roth" ? <>{paramOneType}</> : <>Roth Optimizer</>}
               {paramOneType !== "Disable Roth" ? (
                 <>
-                  , Event: {paramOneName}
                   <br />
-                  From: {paramOneSteps[0]}{paramOneType === "First of Two Investments" && "%"}
+                  - Event: {paramOneName}
                   <br />
-                  To: {paramOneSteps[paramOneSteps.length - 1]}{paramOneType === "First of Two Investments" && "%"}
+                  - Lower Bound: {paramOneSteps[0]}{paramOneType === "First of Two Investments" && "%"}
                   <br />
-                  Step: {paramOneSteps[1] - paramOneSteps[0]}{paramOneType === "First of Two Investments" && "%"}
+                  - Upper Bound: {paramOneSteps[paramOneSteps.length - 1]}{paramOneType === "First of Two Investments" && "%"}
+                  <br />
+                  - Step Size: {paramOneSteps[1] - paramOneSteps[0]}{paramOneType === "First of Two Investments" && "%"}
                 </>
               ) : (
                 <>
-                  , Enabled versus Disabled Roth
+                  <br />
+                  - Enable versus Disable Roth
                 </>
               )}
             </h4>
@@ -146,12 +158,25 @@ const OneD = () => {
           </div>
 
           <div className={styles.rightSide}>
-            {!showCharts && <div className={styles.chartCount}>No Charts Generated Yet...</div>}
+
+            {!showCharts && (
+              loadingCharts ? (
+                <div className={styles.chartCount}>
+                  <h4>Loading Charts...</h4>
+                </div>
+              ) : (
+                <div className={styles.chartCount}>
+                  <h4>Please add charts and then generate.</h4>
+                </div>
+              )
+            )}
+
             {showCharts && charts.length === 0 && (
               <div className={styles.noChartsMessage}>
-                Please add a selection of charts, and then generate.
+                <h4>Please add a selection of charts, and then generate.</h4>
               </div>
             )}
+
             {showCharts && charts.length > 0 && charts.map((chart) => (
               <div key={chart.id} className={styles.chart}>
                 <h3>{chart.label}</h3>

@@ -2,11 +2,13 @@ import express from "express";
 import { distributionToBackend, distributionToFrontend, canEdit } from "./helper.js";
 import ScenarioController from "../db/controllers/ScenarioController.js";
 import DistributionController from "../db/controllers/DistributionController.js";
+import UserController from "../db/controllers/UserController.js";
 
 const router = express.Router();
 
 const scenarioController = new ScenarioController();
 const distributionController = new DistributionController();
+const userController = new UserController();
 
 
 router.get("/basicInfo/:scenarioId", async (req, res) => {
@@ -40,6 +42,28 @@ router.get("/basicInfo/:scenarioId", async (req, res) => {
     } catch (error) {
         console.error("Error in basic info route:", error);
         return res.status(500).send("Error retrieving basic info.");
+    }
+});
+
+router.get("/basicInfo/stateTax/:state/:maritalStatus", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).send("Not logged in.");
+    }
+    try {
+        const userId = req.session.user;
+        const state = req.params.state;
+        const maritalStatus = req.params.maritalStatus;
+        const user = await userController.readWithTaxes(userId);
+        let isValid = false;
+        if (maritalStatus === "MARRIEDJOINT") {
+            isValid = user.userSpecificTaxes.some(tax => tax.state === state && tax.filingStatus === "MARRIEDJOINT") && user.userSpecificTaxes.some(tax => tax.state === state && tax.filingStatus === "SINGLE");
+        } else {
+            isValid = user.userSpecificTaxes.some(tax => tax.state === state && tax.filingStatus === maritalStatus);
+        }
+        return res.status(200).send(isValid);
+    } catch (error) {
+        console.error("Error in basic info route:", error);
+        return res.status(500).send("Error retrieving state tax info.");
     }
 });
 

@@ -48,16 +48,16 @@ export async function chooseEventTimeframe(scenario) {
             const eventID = scenario.events[eventIDIndex];
             const event = await eventFactory.read(eventID);
             
-            if(!(event.startsWith!==undefined||event.startsAfter!==undefined)){
+            if(!(event.startsWith!=null||event.startsAfter!=null)){
                 continue;
             }
             //starts with or starts after
-            if(event.startsWith!==undefined){
+            if(event.startsWith!=null){
                 const refedEvent = await eventFactory.read(event.startsWith);
                 const duration  = await sample(0, event.durationTypeDistribution);
                 await eventFactory.update(event._id, {startYear: refedEvent.startYear, duration: duration});
             }
-            else if(event.startsAfter!==undefined){
+            else if(event.startsAfter!=null){
                 const refedEvent = await eventFactory.read(event.startsAfter);
                 const duration  = await sample(0, event.durationTypeDistribution);
                 await eventFactory.update(event._id, {startYear: refedEvent.startYear+refedEvent.duration+1, duration: duration});
@@ -157,32 +157,35 @@ export async function getCashInvestment(investmentTypes) {
 
     if (cashInvestmentType) {
         //found, return its associated investment
-        return cashInvestmentType.investments[0]; //assuming it has only one investment
+        const res =  await investmentFactory.read(cashInvestmentType.investments[0]); //assuming it has only one investment
+        return {cashInvestment: res, investmentTypes: investmentTypes};
     }
-
     //not found, create new Cash investment and investment type
     const newCashInvestment = await investmentFactory.create({
         value: 0,
+        purchasePrice: 0,
         taxStatus: "CASH"
     });
+    const d1 = await distributionFactory.create("FIXED_PERCENTAGE", { value: 0 });
+    const d2 = await distributionFactory.create("FIXED_AMOUNT", { value: 0 });
 
     const newCashInvestmentType = await investmentTypeFactory.create({
         name: cashName,
         description: "Cash holdings",
         expectedAnnualReturn: 0,
-        expectedAnnualReturnDistribution: await distributionFactory.create("FIXED_PERCENTAGE", { value: 0 }),
+        expectedAnnualReturnDistribution: d1._id,
         expenseRatio: 0,
         expectedAnnualIncome: 0,
-        expectedAnnualIncomeDistribution: await distributionFactory.create("FIXED_AMOUNT", { value: 0 }),
+        expectedAnnualIncomeDistribution: d2._id,
         taxability: false,
-        investments: [newCashInvestment]
+        investments: [newCashInvestment._id]
     });
 
 
 
     investmentTypes.push(newCashInvestmentType);
 
-    return newCashInvestment;
+    return {cashInvestment: newCashInvestment, investmentTypes: investmentTypes};
 }
 export async function setupMap(scenarioID){
     const scenario = await scenarioFactory.read(scenarioID);

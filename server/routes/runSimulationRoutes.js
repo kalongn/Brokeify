@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from "url";
 
-import { canView, distributionToString } from "./helper.js";
+import { canView } from "./helper.js";
 import { validateRun } from "../computation/planValidator.js";
 
 import UserController from "../db/controllers/UserController.js";
@@ -65,18 +65,71 @@ router.get("/runSimulation", async (req, res) => {
                 }
             });
 
-        const previousRun = await simulationController.read(user.previousSimulation);
-        let simulationType = null;
-        if (previousRun) {
-            simulationType = previousRun.simulationType;
-        }
+        const previousRun = await simulationController.readWithPopulate(user.previousSimulation);
+        const extractParamDetails = (eventObject, stepsArray, paramTypeString) => {
+            const typeMapping = {
+                "START_EVENT": "Start Year",
+                "DURATION_EVENT": "Duration",
+                "EVENT_AMOUNT": "Initial Amount",
+                "INVEST_PERCENTAGE": "First of Two Investments",
+                "ROTH_BOOLEAN": "Disable Roth"
+            };
+
+            const type = typeMapping[paramTypeString] ?? null;
+            let name = null;
+            let lower = null;
+            let upper = null;
+            let step = null;
+
+            if (paramTypeString === "ROTH_BOOLEAN") {
+                return { name, type, lower, upper, step };
+            }
+
+            name = eventObject?.name ?? null;
+
+            if (Array.isArray(stepsArray) && stepsArray.length > 0) {
+                lower = stepsArray[0];
+                upper = stepsArray[stepsArray.length - 1];
+                if (stepsArray.length > 1) {
+                    step = stepsArray[1] - stepsArray[0];
+                }
+                if (paramTypeString === "INVEST_PERCENTAGE") {
+                    const multiplier = 100;
+                    if (typeof lower === 'number') lower *= multiplier;
+                    if (typeof upper === 'number') upper *= multiplier;
+                    if (typeof step === 'number') step *= multiplier;
+                }
+            }
+
+            return { name, type, lower, upper, step };
+        };
+
+        const paramOneDetails = previousRun?.paramOneType
+            ? extractParamDetails(previousRun.paramOne, previousRun.paramOneSteps, previousRun.paramOneType)
+            : {};
+
+        const paramTwoDetails = previousRun?.paramTwoType
+            ? extractParamDetails(previousRun.paramTwo, previousRun.paramTwoSteps, previousRun.paramTwoType)
+            : {};
 
         const data = {
             isRunning: user.isRunningSimulation,
-            previousRun: user.previousSimulation,
-            previousRunSimulationType: simulationType,
+            previousRun: user.previousSimulation || null,
+            previousRunScenarioName: previousRun?.scenario?.name || null,
+            previousRunSimulationType: previousRun?.simulationType || null,
+            previousRunSimulationAmount: previousRun?.results?.length ?? null,
+            previousRunParamOne: paramOneDetails.name ?? null,
+            previousRunParamOneType: paramOneDetails.type ?? null,
+            previousRunParamOneLower: paramOneDetails.lower ?? null,
+            previousRunParamOneUpper: paramOneDetails.upper ?? null,
+            previousRunParamOneStep: paramOneDetails.step ?? null,
+            previousRunParamTwo: paramTwoDetails.name ?? null,
+            previousRunParamTwoType: paramTwoDetails.type ?? null,
+            previousRunParamTwoLower: paramTwoDetails.lower ?? null,
+            previousRunParamTwoUpper: paramTwoDetails.upper ?? null,
+            previousRunParamTwoStep: paramTwoDetails.step ?? null,
             scenarios: readyScenarios,
-        }
+        };
         return res.status(200).send(data);
     } catch (error) {
         console.error("Error fetching scenarios:", error);
@@ -321,9 +374,9 @@ router.post("/runSimulation", async (req, res) => {
                         param2 = {
                             type: exploration.parameter2,
                             eventID: exploration.displayedEvents2,
-                            lowerBound: Number(exploration.lowerBound2) / 100,
-                            upperBound: Number(exploration.upperBound2) / 100,
-                            step: Number(exploration.stepSize2) / 100,
+                            lowerBound: Number(exploration.lowerBound2),
+                            upperBound: Number(exploration.upperBound2),
+                            step: Number(exploration.stepSize2),
                         };
                         break;
                     case "ROTH_BOOLEAN":

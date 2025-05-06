@@ -10,7 +10,7 @@ import Distributions from "../../components/Distributions";
 import styles from "./Form.module.css";
 import buttonStyles from "../ScenarioForm.module.css";
 import errorStyles from "../../components/ErrorMessage.module.css";
-
+import Tooltip from "../../components/Tooltip";
 const EventSeriesForm = () => {
   const navigate = useNavigate();
 
@@ -321,12 +321,13 @@ const EventSeriesForm = () => {
     const newErrors = {};
     // Validate general form for name input
     validateRequired(newErrors, "name", formData.name);
-
     // Validate distributions
     for (const [field, value] of Object.entries(distributions)) {
       // expectedAnnualChange distribution is specific to income and expense event types
-      if (field === "expectedAnnualChange" && (eventType === "income" || eventType === "expense")) {
-        validateDistribution(newErrors, field, value, true);
+      if (field === "expectedAnnualChange") {
+        if (eventType === "income" || eventType === "expense") {
+          validateDistribution(newErrors, field, value, true);
+        }
         continue;
       }
       validateDistribution(newErrors, field, value);
@@ -601,7 +602,8 @@ const EventSeriesForm = () => {
               className={errors.duration ? errorStyles.highlight : ""}
             />
             <label id="eventType" className={styles.newline}>
-              Type
+              Type <Tooltip text="Income refers to money received, such as dividends or interest. Expense is money spent, including fees, taxes, or withdrawals. Invest involves allocating funds to assets like stocks or bonds to earn returns. 
+              Rebalance means adjusting your portfolio to maintain the desired mix of assets." />
             </label>
             <div>
               <label className={`${styles.radioButton} ${errors.eventType ? errorStyles.highlight : ""}`}>
@@ -641,7 +643,7 @@ const EventSeriesForm = () => {
                   </label>
                 )}
                 <label className={styles.newline}>
-                  Initial Value
+                  Initial Value <Tooltip text="This is the starting value of this income/expense event type" />
                   <input
                     type="number"
                     name="initialValue"
@@ -651,7 +653,7 @@ const EventSeriesForm = () => {
                     value={typeFormData.initialValue}
                   />
                 </label>
-                <label id="expectedAnnualChange">Expected Annual Change</label>
+                <label id="expectedAnnualChange">Expected Annual Change <Tooltip text="This is the anticipated yearly increase or decrease in value" /></label>
                 <Distributions
                   options={["fixed", "uniform", "normal"]}
                   name="expectedAnnualChange"
@@ -661,7 +663,7 @@ const EventSeriesForm = () => {
                   className={errors.expectedAnnualChange ? errorStyles.highlight : ""}
                 />
                 {maritalStatus === "MARRIEDJOINT" && <label>
-                  Specific Percentage Increase
+                  Specific Percentage Increase <Tooltip text="This is the portion of income/expense attributed to the user when married. When single or when spouse reaches life expectancy, this is assumed to be 100%. Please input a number between 0-100." />
                   <input
                     type="number"
                     name="percentageIncrease"
@@ -680,7 +682,7 @@ const EventSeriesForm = () => {
             {(eventType === "invest" || eventType === "rebalance") && (
               <div>
                 <label id="allocationMethod" className={styles.newline}>
-                  Investment Allocation Method
+                  Investment Allocation Method <Tooltip text="Fixed percentages maintain a constant allocation across asset classes without adjustments. In contrast, a glide path gradually shifts the allocation to more conservative investments (ex: more bonds, fewer stocks) as the target date nears (ex: retirement)." />
                 </label>
                 <label className={`${styles.radioButton} ${errors.allocationMethod ? errorStyles.highlight : ""}`}>
                   <input
@@ -854,6 +856,7 @@ const EventSeriesForm = () => {
                 {eventType === "invest" && (
                   <label className={styles.newline}>
                     Maximum Cash (in pre-defined cash investment)
+                    <Tooltip text="This is a limit on the amount of cash in a portfolio to prevent excessive holdings in low-return cash investments as part of a predefined strategy." />
                     <input
                       type="number"
                       name="maximumCash"

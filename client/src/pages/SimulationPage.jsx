@@ -12,6 +12,8 @@ import * as Ladda from 'ladda/js/ladda'; // or import from submodule path
 import styles from './SimulationPage.module.css';
 
 const ScenarioSimulation = () => {
+  const chartTabsRef = useRef(null);
+
   const [scenarios, setScenarios] = useState([]);
   const [simulationInput, setSimulationInput] = useState({
     numSimulations: 10
@@ -19,7 +21,11 @@ const ScenarioSimulation = () => {
   const [errors, setErrors] = useState({});
   const [isRunning, setIsRunning] = useState(false);
   const [previousRun, setPreviousRun] = useState(null);
+  const [previousRunScenarioName, setPreviousRunScenarioName] = useState(null);
+  const [previousRunSimulationAmount, setPreviousRunSimulationAmount] = useState(null);
   const [previousRunSimulationType, setPreviousRunSimulationType] = useState(null);
+  const [previousRunParamOne, setPreviousRunParamOne] = useState(null);
+  const [previousRunParamTwo, setPreviousRunParamTwo] = useState(null);
 
   // Co-pilot (Gemini 2.5 pro) assistance:
   // Idea: only user to only run 1 simulation at a time, need a setInterval to check if the simulation is still running
@@ -43,10 +49,38 @@ const ScenarioSimulation = () => {
       setScenarios(data.scenarios);
       setPreviousRun(data.previousRun);
       setPreviousRunSimulationType(data.previousRunSimulationType);
+      setPreviousRunSimulationAmount(data.previousRunSimulationAmount);
+      setPreviousRunScenarioName(data.previousRunScenarioName);
+      if (data.previousRunParamOneType) {
+        setPreviousRunParamOne({
+          paramOne: data.previousRunParamOne,
+          paramOneType: data.previousRunParamOneType,
+          paramOneLower: data.previousRunParamOneLower,
+          paramOneUpper: data.previousRunParamOneUpper,
+          paramOneStep: data.previousRunParamOneStep,
+        });
+      } else {
+        setPreviousRunParamOne(null);
+      }
+      if (data.previousRunParamTwoType) {
+        setPreviousRunParamTwo({
+          paramTwo: data.previousRunParamTwo,
+          paramTwoType: data.previousRunParamTwoType,
+          paramTwoLower: data.previousRunParamTwoLower,
+          paramTwoUpper: data.previousRunParamTwoUpper,
+          paramTwoStep: data.previousRunParamTwoStep,
+        });
+      } else {
+        setPreviousRunParamTwo(null);
+      }
       setIsRunning(data.isRunning);
 
       if (data.isRunning) {
         setPreviousRun(null);
+        setPreviousRunScenarioName(null);
+        setPreviousRunSimulationAmount(null);
+        setPreviousRunParamOne(null);
+        setPreviousRunParamTwo(null);
         setPreviousRunSimulationType(null);
 
         // Check if button ref is available and start Ladda
@@ -102,6 +136,11 @@ const ScenarioSimulation = () => {
     };
   }, []);
 
+  const simulationTypeMapping = {
+    "NORMAL": "Regular Simulation",
+    "1D": "1D-Exploration Simulation",
+    "2D": "2D-Exploration Simulation"
+  }
 
   const handleRunSimulation = async () => {
     if (!simulationInput.selectedScenario) {
@@ -109,8 +148,11 @@ const ScenarioSimulation = () => {
       return;
     }
     const num = simulationInput.numSimulations;
-    if (isNaN(num) || num < 10 || num > 100) {
-      setErrors({ simulation: 'Number of simulation runs must be between 10 and 100' });
+    if (isNaN(num) || num < 10 || num > 1000) {
+      setErrors({ numSimulations: 'Number of simulation runs must be between 10 and 1000' });
+      return;
+    }
+    if (chartTabsRef.current && !chartTabsRef.current.validateFields()) {
       return;
     }
 
@@ -136,7 +178,7 @@ const ScenarioSimulation = () => {
         exploration = null;
       }
 
-      const response = await Axios.post('/runSimulation', {},
+      await Axios.post('/runSimulation', {},
         {
           params: {
             scenarioId: selectedScenarioId,
@@ -146,10 +188,34 @@ const ScenarioSimulation = () => {
         }
       );
 
+      const response = await Axios.get('/runSimulation');
       const data = response.data;
       setPreviousRun(data.previousRun);
       setPreviousRunSimulationType(data.previousRunSimulationType);
-
+      setPreviousRunSimulationAmount(data.previousRunSimulationAmount);
+      setPreviousRunScenarioName(data.previousRunScenarioName);
+      if (data.previousRunParamOneType) {
+        setPreviousRunParamOne({
+          paramOne: data.previousRunParamOne,
+          paramOneType: data.previousRunParamOneType,
+          paramOneLower: data.previousRunParamOneLower,
+          paramOneUpper: data.previousRunParamOneUpper,
+          paramOneStep: data.previousRunParamOneStep,
+        });
+      } else {
+        setPreviousRunParamOne(null);
+      }
+      if (data.previousRunParamTwoType) {
+        setPreviousRunParamTwo({
+          paramTwo: data.previousRunParamTwo,
+          paramTwoType: data.previousRunParamTwoType,
+          paramTwoLower: data.previousRunParamTwoLower,
+          paramTwoUpper: data.previousRunParamTwoUpper,
+          paramTwoStep: data.previousRunParamTwoStep,
+        });
+      } else {
+        setPreviousRunParamTwo(null);
+      }
     } catch (error) {
       setErrors({ simulation: 'An error occurred during the simulation' });
       console.error('Simulation error:', error);
@@ -165,50 +231,92 @@ const ScenarioSimulation = () => {
   return (
     <Layout>
       <div className={styles.background}>
-        <h2>Scenario Simulation</h2>
+        <div >
+          <p>To run a simulation, a scenario needs at least the Basic Information section completed.</p>
+
+        </div>
         <ErrorMessage errors={errors} />
         <div className={styles.columns}>
           <ChartTabs
+            ref={chartTabsRef}
             scenarios={scenarios}
             simulationInput={simulationInput}
             setSimulationInput={setSimulationInput}
             setErrors={setErrors}
           />
           <div className={styles.section}>
-            <h2>Results</h2>
-            {!isRunning && previousRun === null && (
-              <p style={{ marginTop: '20px', fontStyle: 'italic' }}>
-                Please select a scenario, enter number of simulations, and run simulation to see results.
-              </p>
-            )}
-            {isRunning ? (
-              <p>A simulation is running... Please wait.</p>
-            ) : (
+            <h3>Most Recent Simulation Results</h3>
+            <p className={styles.disclaimer}>
+              {previousRun !== null ? (
+                <span>
+                  <strong>Scenario: </strong> {previousRunScenarioName}
+                  <br /><strong>Simulation Type: </strong>{simulationTypeMapping[previousRunSimulationType]}
+                  <br /><strong>Number of Simulations: </strong> {previousRunSimulationAmount}
+                  {previousRunParamOne && (
+                    <>
+                      <br /><strong>Parameter 1: {previousRunParamOne.paramOneType === "Disable Roth" ? "Roth Optimizer" : previousRunParamOne.paramOneType}</strong>
+                      {previousRunParamOne.paramOneType !== "Disable Roth" ? (
+                        <>
+                          <br />- Event: {previousRunParamOne.paramOne}
+                          <br />- Lower Bound: {previousRunParamOne.paramOneLower}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
+                          <br />- Upper Bound: {previousRunParamOne.paramOneUpper}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
+                          <br />- Step Size: {previousRunParamOne.paramOneStep}{previousRunParamOne.paramOneType === "First of Two Investments" && "%"}
+                        </>
+                      ) :
+                        <>
+                          <br />- Enable versus Disable Roth
+                        </>
+                      }
+                    </>
+                  )}
+                  {previousRunParamTwo && (
+                    <>
+                      <br /><strong>Parameter 2:</strong>
+                      <br />- Type: {previousRunParamTwo.paramTwoType}
+                      <br />- Parameter: {previousRunParamTwo.paramTwo}
+                      <br />- Lower Bound: {previousRunParamTwo.paramTwoLower}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
+                      <br />- Upper Bound: {previousRunParamTwo.paramTwoUpper}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
+                      <br />- Step Size: {previousRunParamTwo.paramTwoStep}{previousRunParamTwo.paramTwoType === "First of Two Investments" && "%"}
+                    </>
+                  )}
+                </span>
+              ) : (
+                isRunning ? (
+                  <span>
+                    Simulation is running... Please wait.
+                  </span>
+                )
+                  :
+                  (
+                    <span>
+                      No simulation results are available. Please run a simulation to see the results.
+                    </span>
+                  )
+              )}
+            </p>
+            {
               previousRun !== null && (
                 <div>
                   {previousRunSimulationType === "NORMAL" && <>
-                    <h3>Most Recent Run Result (Normal):</h3>
                     <Link className={styles.seeResults} to={`/visualizations/charts/${previousRun}`}>
                       See Normal Results
                     </Link>
                   </>}
 
                   {previousRunSimulationType === "1D" && <>
-                    <h3>Most Recent Run Result (1D):</h3>
                     <Link className={styles.seeResults} to={`/visualizations/OneDimensional/${previousRun}`}>
                       See 1D Results
                     </Link>
                   </>}
 
                   {previousRunSimulationType === "2D" && <>
-                    <h3>Most Recent Run Result (2D)</h3>
                     <Link className={styles.seeResults} to={`/visualizations/TwoDimensional/${previousRun}`}>
                       See 2D Results
                     </Link>
                   </>}
                 </div>
               )
-            )}
+            }
             <div className={styles.buttonBox}>
               <div className={styles.buttons}>
                 <button
@@ -224,6 +332,44 @@ const ScenarioSimulation = () => {
             </div>
           </div>
         </div>
+        <details className={styles.disclaimer}>
+          <summary><strong>Disclaimer</strong></summary>
+          <i>
+            <ul>
+              <li>The system expects the starting year of everything to be at least the current year.</li>
+              <li>The system assumes all users are US citizens.</li>
+              <li>The system does not account for state income tax unless a file of the matching state of residence is uploaded.
+                <ul>
+                  <li>By default, files for NY, NJ, CT, and WA of year 2024 are provided.</li>
+                  <li>For married filers, both MARRIEDJOINT and SINGLE files are required; otherwise, only the SINGLE file is needed.</li>
+                </ul>
+              </li>
+              <li>The system will fetch the latest version of state tax brackets available, federal tax brackets, and the RMD table.
+                <ul>
+                  <li>If the year of computation is earlier than the latest version of information, we will still just use the latest version and will not calculate reverse inflation.</li>
+                </ul>
+              </li>
+              <li>All taxes are adjusted for the inflation rate.</li>
+              <li>The system assumes all users take the federal standard deduction.</li>
+              <li>The system assumes that the user satisfies the conditions to use the standard deductions in <a className={styles.specialLink} href="https://www.irs.gov/publications/p17">Table 10-1</a>.</li>
+              <li>The system assumes the user satisfies the conditions for using <a className={styles.specialLink} href="https://www.irs.gov/publications/p590b">IRS Publication 590-B Table III</a>.</li>
+              <li>The system assumes all capital gains are long-term.</li>
+              <li>The system assumes that states tax capital gains the same way as other income. This is reasonable because most states tax them the same way.</li>
+              <li>The system assumes that state income tax can be computed in a similar manner as federal income tax, using a table of tax rates and brackets for each filing status, and ignores any deviations from this.</li>
+              <li>The system also ignores any deductions or exemptions for state income tax.</li>
+              <li>The system assumes that 85% of social security benefits are subject to federal income tax.</li>
+              <li>When part of an investment is sold, the system uses the average cost basis method to compute the capital gains.</li>
+              <li>The system ignores capital gains tax related to the cash investment.</li>
+              <li>The system runs inflation on an annual basis.</li>
+              <li>The system assumes the IRS annual contribution limits for retirement accounts adjust smoothly with inflation.</li>
+              <li>The system assumes that investments have no capital gains at the start of the simulation.</li>
+              <li>For married couples, the system assumes that all investments are jointly owned, and the beneficiary is the surviving spouse. When the user or the spouse reaches their life expectancy (death), the percentages of income and expense transactions associated with the deceased spouse are omitted from transaction amounts for future years, and the survivor&apos;s tax filing status changes from married filing jointly to single.</li>
+              <li>The system assumes that no tax needs to be paid in the starting year of the simulation.</li>
+              <li>The system assumes all simulations start in the current actual year.</li>
+              <li>The system results may be inaccurate and do not necessarily reflect real life.</li>
+            </ul>
+          </i>
+        </details>
       </div>
     </Layout>
   );

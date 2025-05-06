@@ -152,12 +152,12 @@ async function validate(scenarioID, explorationArray) {
                     //throw("Lower Bound of scenario exploration must be Integer");
                 }
                 if(!Number.isInteger(explorationValue.step)){
-                    throw("Step of scenario exploration must be Integer");
+                    //throw("Step of scenario exploration must be Integer");
                 }
                 if(explorationValue.upperBound<=explorationValue.lowerBound){
                     throw("Upper bound of scenario exploration must be strictly larger than lower bound");
                 }
-                if(explorationValue.step>=explorationValue.upperBound-explorationValue.lowerBound){
+                if(explorationValue.step>explorationValue.upperBound-explorationValue.lowerBound){
                     throw("Step size of scenario exploration is too large given bounds");
                 }
                 if(explorationValue.type === "INVEST_PERCENTAGE"){
@@ -165,7 +165,7 @@ async function validate(scenarioID, explorationArray) {
                         throw("Bounds of invest percentage must be between 0-100");
                     }
                     //make sure event is only among 2 investments
-                    const originalEvent = await eventFactory.read(explorationArray[0].eventID);
+                    const originalEvent = await eventFactory.read(explorationArray[i].eventID);
                     if(originalEvent.allocatedInvestments.length!==2){
                         throw("Number of investments in invest scenario exploration must be 2");
                     }
@@ -418,13 +418,12 @@ export async function run(
         }
         //modify the scenario according to the step
 
-        if(explorationArray[0].type==="ROTH_BOOLEAN"){
+        if(explorationArray[j].type==="ROTH_BOOLEAN"){
             //0 = off, 1 = on
             trueValues.push(step)
             if(step===-2){  // Roth -> -1 is roth, -2 not roth
+                copiedScenario = await scenarioFactory.update(copiedScenario._id, {startYearRothOptimizer: null});
                 copiedScenario.startYearRothOptimizer=undefined;
-                await scenarioFactory.update(copiedScenario._id, {startYearRothOptimizer: undefined});
-
             }
             else{
                 // Should already be in the scenario
@@ -437,7 +436,7 @@ export async function run(
                 
             }
         }
-        else if(explorationArray[0].type==="START_EVENT"){
+        else if(explorationArray[j].type==="START_EVENT"){
             trueValues.push(step+explorationArray[j].lowerBound)
             const diff = step;  //distance from lowerBound
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
@@ -446,12 +445,12 @@ export async function run(
                 if(copiedEvent.name.toString()===originalEvent.name.toString()){
                     const newDist1 = await distributionFactory.create("FIXED_AMOUNT", {value: diff+explorationArray[j].lowerBound});
                     newDists.push(newDist1);
-                    await eventFactory.update(copiedEvent._id, {startYearTypeDistribution: newDist1._id, startsWith: undefined, startsAfter: undefined});
+                    await eventFactory.update(copiedEvent._id, {startYearTypeDistribution: newDist1._id, startsWith: null, startsAfter: null});
                 }
             }
 
         }
-        else if(explorationArray[0].type==="DURATION_EVENT"){
+        else if(explorationArray[j].type==="DURATION_EVENT"){
             trueValues.push(step+explorationArray[j].lowerBound)
             const diff = step;  //distance from lowerBound
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
@@ -464,7 +463,7 @@ export async function run(
                 }
             }
         }
-        else if(explorationArray[0].type==="EVENT_AMOUNT"){
+        else if(explorationArray[j].type==="EVENT_AMOUNT"){
             trueValues.push(step+explorationArray[j].lowerBound)
             const diff = step;  //distance from lowerBound
             const originalEvent = await eventFactory.read(explorationArray[j].eventID);
@@ -475,7 +474,7 @@ export async function run(
                 }
             }
         }
-        else if(explorationArray[0].type==="INVEST_PERCENTAGE"){
+        else if(explorationArray[j].type==="INVEST_PERCENTAGE"){
             const firstInitial = ((step)+explorationArray[j].lowerBound)/100;  //distance from lowerBound
             trueValues.push(firstInitial)
             const secondInitial = 1-firstInitial;
@@ -727,89 +726,100 @@ export async function validateRun(scenarioID, numTimes, stateTaxIDArray, usernam
 
     //Figure out how many worker threads to run at once:
     const cpuCount = os.cpus().length;
-    let parallel = cpuCount - 2;
+    let parallel = cpuCount - 4;
     if (1 > parallel) {
         parallel = 2; // have a minimum of 2
     }
+    parallel = Math.min(promiseParameters.length, parallel);
 
-    const resultsAccumulator = []; // To store results as they come in
-    const activeWorkers = []; // To track active worker promises
 
-    console.log(`Running simulations with up to ${parallel} parallel workers...`);
+    const tasksPerWorker = Math.ceil(promiseParameters.length / parallel);
+    const taskBatches = [];
+    for (let i = 0; i < parallel; i++) {
+        const start = i * tasksPerWorker;
+        const end = start + tasksPerWorker;
+        const batch = promiseParameters.slice(start, end);
+        if (batch.length > 0) {
+            taskBatches.push(batch);
+        }
+    }
+    parallel = taskBatches.length;
 
-    for (let i = 0; i < promiseParameters.length; i++) {
-        const data = promiseParameters[i];
-        const workerPromise = runInWorker({
-                scenarioID: data.scenarioID,
-                fedIncome: data.fedIncome,
-                capitalGains: data.capitalGains,
-                fedDeduction: data.fedDeduction,
-                stateTax: data.stateTax,
-                rmdTable: data.rmdTable,
-                csvFile: data.csvFile,
-                logFile: data.logFile,
-                explorationArray: data.explorationArray,
-                step1: data.step1,
-                step2: data.step2,
-                seed: data.seed,
+
+    console.log(`Dividing ${promiseParameters.length} tasks into ${parallel} batches for parallel execution.`);
+
+    const allWorkerPromises = [];
+    let resultsAccumulator;
+    if (promiseParameters.length === 1) {
+        console.log("Running a single simulation task directly in the main process.");
+        const taskData = promiseParameters[0]; // Get the single task's data
+
+        try {
+            // Call the 'run' function directly (it's already imported/available)
+            const singleResult = await run(
+                taskData.scenarioID,
+                taskData.fedIncome,
+                taskData.capitalGains,
+                taskData.fedDeduction,
+                taskData.stateTax,
+                taskData.rmdTable,
+                taskData.csvFile,     // Pass the potentially non-null csv/log paths
+                taskData.logFile,
+                taskData.explorationArray,
+                taskData.step1,
+                taskData.step2,
+                taskData.seed,
+            );
+            // Place the single result into an array to match the structure expected later
+            // Use JSON methods to mimic worker behavior and avoid potential Mongoose object issues
+            resultsAccumulator = [JSON.parse(JSON.stringify(singleResult))];
+
+        } catch (error) {
+            console.error(`Error running single task directly (Scenario: ${taskData.scenarioID}):`, error);
+            // Handle the error, perhaps by adding an error object to the results
+            resultsAccumulator = [{ error: `Direct run failed: ${error.message}` }];
+        }
+    }
+    else{
+        for (let i = 0; i < parallel; i++) {
+            const batch = taskBatches[i];
+            const workerIndex = i;
+
+            const workerPromise = runInWorker({
+                tasksBatch: batch,      
+                workerIndex: workerIndex 
             })
-            .then(result => {
-                if (result.error) {
-                    // Propagate error to be caught by Promise.all later
-                    throw new Error(result.error);
+            .then(batchResults => {
+                // Worker should return an array of results, one per task in its batch
+                if (!Array.isArray(batchResults)) {
+                    // Handle case where worker returned an error object instead of array
+                    if (batchResults && batchResults.error) {
+                        throw new Error(`Worker ${workerIndex} execution failed: ${batchResults.error}`);
+                    } else {
+                        throw new Error(`Worker ${workerIndex} returned invalid data type: ${typeof batchResults}`);
+                    }
                 }
-                resultsAccumulator.push(result);
-                // Find and remove the completed promise from activeWorkers
-                const index = activeWorkers.findIndex(p => p === wrappedPromise);
-                if (index > -1) {
-                    activeWorkers.splice(index, 1);
-                }
-                //console.log(`Worker ${i+1} finished. Active: ${activeWorkers.length}`);
-                return result; // Pass the result along if needed elsewhere
+                console.log(`Worker ${workerIndex} finished processing batch of ${batch.length} tasks.`);
+                return batchResults; // Return the array of results from this batch
             })
             .catch(error => {
-                // Handle potential errors during worker execution or result processing
-                console.error(`Error in worker for simulation ${i+1}:`, error);
-                // Ensure promise is removed even on error
-                const index = activeWorkers.findIndex(p => p === wrappedPromise);
-                if (index > -1) {
-                    activeWorkers.splice(index, 1);
-                }
-                throw error; // Re-throw the error to be caught by Promise.all
+                console.error(`Error processing batch in worker ${workerIndex}:`, error);
+                // Return an array containing error placeholders for this batch's results
+                // Or re-throw if you want Promise.all to reject immediately
+                return batch.map(task => ({ error: `Worker failed: ${error.message}` })); // Match result structure potentially
             });
-
-        // Wrap the promise to easily find it later for removal
-        const wrappedPromise = workerPromise;
-        activeWorkers.push(wrappedPromise);
-        //console.log(`Worker ${i+1} started. Active: ${activeWorkers.length}`);
-
-        // If we've reached the parallel limit, wait for at least one worker to finish
-        if (activeWorkers.length >= parallel) {
-            //console.log(`Reached parallel limit (${parallel}). Waiting for a worker to finish...`);
-            try {
-                await Promise.race(activeWorkers);
-            } catch (error) {
-                // Error already logged in the .catch block,
-                // Promise.race rejects if any promise in the iterable rejects.
-                // We continue the loop as the specific promise is removed in its catch handler.
-                // console.log("Caught error via Promise.race, continuing...");
-            }
+            allWorkerPromises.push(workerPromise);
         }
     }
 
-    // Wait for all remaining workers to complete
-    console.log("All simulations dispatched. Waiting for remaining workers to finish...");
-    try {
-        await Promise.all(activeWorkers); // Wait for any remaining promises
-    } catch(error) {
-         console.error("Error occurred while waiting for final workers:", error);
-         // Decide how to handle final errors, maybe throw or just log.
-         // Note: Individual errors were likely already logged by the .catch handler.
-    }
-
-
+    // Wait for all workers (batches) to complete
+    console.log("All workers launched. Waiting for all batches to complete...");
+    const resultsFromAllBatches = await Promise.all(allWorkerPromises);
     console.log("All workers finished.");
 
+    // Flatten the results from all batches into a single array
+    if(!resultsAccumulator) resultsAccumulator = resultsFromAllBatches.flat();
+    console.log(`Collected ${resultsAccumulator.length} total results from ${parallel} workers.`);
     // Update compiled results with the accumulated results
     compiledResults.results = resultsAccumulator; // Assign the collected results
 
