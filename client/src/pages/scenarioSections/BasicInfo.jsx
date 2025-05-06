@@ -193,14 +193,27 @@ const BasicInfo = () => {
   };
 
   // Check if state tax data is in database
-  const validateStateFile = () => {
-    const stateFile = `${formData.state}_${formData.maritalStatus}`;
-    // TODO: fix this arbitrary if statement
-    if (stateFile !== "NY_MARRIEDJOINT" && Object.keys(errors).length === 0) {
-      setShowStateModal(true);
-      return false;
+  const validateStateFile = async () => {
+    // Corrected check using Array.includes()
+    if (["NY", "CT", "NJ", "WA"].includes(formData.state)) {
+      return true;
     }
-    return true;
+    try {
+      const response = await Axios.get(`/basicInfo/stateTax/${formData.state}/${formData.maritalStatus}`);
+      if (response.data) {
+        return true;
+      } else {
+        setShowStateModal(true);
+      }
+    } catch (error) {
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        alert("You do not have permission to view this scenario.");
+      } else {
+        console.error("Error fetching state tax data:", error);
+        alert("Error fetching state tax data. Please try again.");
+      }
+    }
+    return false;
   }
 
   const uploadToBackend = async () => {
@@ -226,7 +239,7 @@ const BasicInfo = () => {
   }
 
   const handleSubmit = async () => {
-    if (!validateFields() || !validateStateFile()) {
+    if (!validateFields() || !await validateStateFile()) {
       return false;
     }
     return await uploadToBackend();
