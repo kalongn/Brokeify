@@ -208,10 +208,7 @@ const EventSeriesForm = () => {
 
   // InvestmentRow functions are for invest and rebalance types
   const handleInvestmentRowChange = (index, field, value) => {
-    let prevInvestment = typeFormData.investmentRows[index].investment;
-    prevInvestment = prevInvestment !== "" ? prevInvestment : null;
     const updatedInvestmentRows = [...typeFormData.investmentRows];
-
     // Check if name is a number field and parse if so
     let processedValue = value;
     if (field !== "investment" && value.length > 0) {
@@ -222,13 +219,6 @@ const EventSeriesForm = () => {
       [field]: processedValue
     };
     setTypeFormData(prev => ({ ...prev, investmentRows: updatedInvestmentRows }));
-
-    // Prevent duplicate investment selections by removing the current and adding the previous
-    setInvestments(investments.filter(investment => investment.value !== value));
-    if (prevInvestment !== null) {
-      prevInvestment = allInvestments.find(investment => investment.id === prevInvestment);
-      setInvestments(prev => [...prev, { value: prevInvestment.id, label: prevInvestment.label + "\n(" + prevInvestment.taxStatus + ")" }]);
-    }
   };
 
   const addInvestmentRow = () => {
@@ -321,12 +311,13 @@ const EventSeriesForm = () => {
     const newErrors = {};
     // Validate general form for name input
     validateRequired(newErrors, "name", formData.name);
-
     // Validate distributions
     for (const [field, value] of Object.entries(distributions)) {
       // expectedAnnualChange distribution is specific to income and expense event types
-      if (field === "expectedAnnualChange" && (eventType === "income" || eventType === "expense")) {
-        validateDistribution(newErrors, field, value, true);
+      if (field === "expectedAnnualChange") {
+        if (eventType === "income" || eventType === "expense") {
+          validateDistribution(newErrors, field, value, true);
+        }
         continue;
       }
       validateDistribution(newErrors, field, value);
@@ -415,6 +406,14 @@ const EventSeriesForm = () => {
           totalFinalPercentage += row.finalPercentage;
         }
       });
+
+      // check for dup investment type
+      const investmentTypes = invRows.map(row => row.investment);
+      const investmentTypesUnique = new Set(investmentTypes)
+      if (investmentTypes.length !== investmentTypesUnique.size) {
+        newErrors.investmentRow = "Investment Allocation's investment types must be unique";
+      }
+
       // Total the percentages only if all row fields are filled
       if (newErrors.investmentRow === undefined) {
         if (allocMethod === "fixed" && totalPercentage !== 100) {

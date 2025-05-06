@@ -1,0 +1,42 @@
+.barContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  margin-bottom: 3rem;
+}
+
+.bar, .barUnit {
+  height: 0.5rem;
+}
+
+.bar {
+  display: flex;
+  flex-direction: row;
+  height: 0.5rem;
+  width: 90%;
+}
+
+.barUnit {
+  background-color: var(--color-silver);
+  border-radius: 1rem;
+}
+
+.node {
+  display: flex;
+  justify-self: center;
+  position: relative;
+  top: -0.25rem;
+  width: 1rem;
+  height: 1rem;
+  background-color: var(--color-silver);
+  border-radius: 0.3rem;
+}
+.filled {
+  background-color: var(--color-primary);
+}
+.nodeText {
+  margin: 0;
+  font-size: 0.8rem;
+  text-align: center;
+}
