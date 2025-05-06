@@ -119,7 +119,7 @@ const ScenarioForm = () => {
         </div> :
         <div id={styles.formBackground}>
           {!onCreationForm &&
-            <ProgressBar currProgress={(currentSectionIndex + 1) / sections.length} sections={sections} />
+            <ProgressBar currentSectionIndex={currentSectionIndex} sections={sections} />
           }
           <div id={styles.formSection} style={onCreationForm ? { marginTop: "4rem" } : {}}>
             <Outlet context={{ childRef, scenarioId, scenarioHash, fetchScenarioHash }} />
