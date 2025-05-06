@@ -222,6 +222,10 @@ const EventSeriesForm = () => {
       [field]: processedValue
     };
     setTypeFormData(prev => ({ ...prev, investmentRows: updatedInvestmentRows }));
+    // Prevent duplicate investment selection handling if the input is not a Select
+    if (field !== "investment" && value.length > 0) {
+      return;
+    }
 
     // Prevent duplicate investment selections by removing the current and adding the previous
     setInvestments(investments.filter(investment => investment.value !== value));
