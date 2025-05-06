@@ -22,11 +22,14 @@ const ModalState = ({ isOpen, onClose, uploadToBackend }) => {
       <p style={{ whiteSpace: "pre-line" }}>
         State of residence is used to determine state income taxes, tax brackets, and standard deductions.
         You can upload a YAML file containing the appropriate information for your state.
-        Note that without this data, the financial projection will ignore state taxes.
+        <br /><br />
+        Without this data, the financial projection will <b>ignore state taxes</b>.
         If you receive social security benefits and live in a state that taxes them, the tax will be ignored for financial projections regardless.
+        <br /><br />
+        <i>Note: By default, files for NY, NJ, CT, and WA of year 2024 are provided.</i>
       </p>
       <div id={buttonStyles.navButtons}>
-          <button onClick={handleContinue} className={buttonStyles.deemphasizedButton}>Ignore & Continue</button>
+        <button onClick={handleContinue} className={buttonStyles.deemphasizedButton}>Ignore & Continue</button>
         <button onClick={() => navigate("/Profile")} className={`${buttonStyles.emphasizedButton} ${styles.uploadButton}`}>Upload in Profile</button>
       </div>
     </ModalBase>
