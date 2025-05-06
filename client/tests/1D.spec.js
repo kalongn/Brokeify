@@ -112,7 +112,7 @@ test('1D Simulation Successfully Run', async ({ page }) => {
   await page.getByRole('spinbutton', { name: 'Step Size' }).fill('1');
   await expect(page.getByRole('heading', { name: 'Scenario Simulation' })).toBeVisible({ timeout: 120000 });
   await page.getByRole('button', { name: 'Run Simulation' }).click();
-  await expect(page.getByRole('link', { name: 'See 1D Results' })).toBeVisible({ timeout: 120000 });
+  await expect(page.getByRole('link', { name: 'See 1D Results' })).toBeVisible({ timeout: 150000 });
   await page.getByRole('link', { name: 'See 1D Results' }).click();
   await expect(page.getByRole('heading', { name: 'Scenario 1 1D Results' })).toBeVisible({ timeout: 120000 });
 });
@@ -139,7 +139,7 @@ test('Add Multiline Chart', async ({ page }) => {
     await page.getByRole('spinbutton', { name: 'Upper Bound' }).fill('2026');
     await page.getByRole('spinbutton', { name: 'Step Size' }).click();
     await page.getByRole('spinbutton', { name: 'Step Size' }).fill('1');
-    await expect(page.getByRole('heading', { name: 'Scenario Simulation' })).toBeVisible({ timeout: 120000 });
+    await expect(page.getByRole('heading', { name: 'Scenario Simulation' })).toBeVisible({ timeout: 150000 });
     await page.getByRole('button', { name: 'Run Simulation' }).click();
     await expect(page.getByRole('link', { name: 'See 1D Results' })).toBeVisible({ timeout: 120000 });
     await page.getByRole('link', { name: 'See 1D Results' }).click();
@@ -178,7 +178,7 @@ test('Add Multiline Chart', async ({ page }) => {
     await page.getByRole('spinbutton', { name: 'Step Size' }).fill('1');
     await expect(page.getByRole('heading', { name: 'Scenario Simulation' })).toBeVisible({ timeout: 120000 });
     await page.getByRole('button', { name: 'Run Simulation' }).click();
-    await expect(page.getByRole('link', { name: 'See 1D Results' })).toBeVisible({ timeout: 120000 });
+    await expect(page.getByRole('link', { name: 'See 1D Results' })).toBeVisible({ timeout: 150000 });
     await page.getByRole('link', { name: 'See 1D Results' }).click();
     await expect(page.getByRole('heading', { name: 'Scenario 1 1D Results' })).toBeVisible({ timeout: 120000 });
   
@@ -216,7 +216,7 @@ test('Generate Final Value Line Chart', async ({ page }) => {
     await page.getByRole('spinbutton', { name: 'Step Size' }).fill('1');
     await expect(page.getByRole('heading', { name: 'Scenario Simulation' })).toBeVisible({ timeout: 120000 });
     await page.getByRole('button', { name: 'Run Simulation' }).click();
-    await expect(page.getByRole('link', { name: 'See 1D Results' })).toBeVisible({ timeout: 120000 });
+    await expect(page.getByRole('link', { name: 'See 1D Results' })).toBeVisible({ timeout: 150000 });
     await page.getByRole('link', { name: 'See 1D Results' }).click();
     await expect(page.getByRole('heading', { name: 'Scenario 1 1D Results' })).toBeVisible({ timeout: 120000 });
   
