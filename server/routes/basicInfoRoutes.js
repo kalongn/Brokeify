@@ -60,7 +60,6 @@ router.get("/basicInfo/stateTax/:state/:maritalStatus", async (req, res) => {
         } else {
             isValid = user.userSpecificTaxes.some(tax => tax.state === state && tax.filingStatus === maritalStatus);
         }
-        console.log(isValid)
         return res.status(200).send(isValid);
     } catch (error) {
         console.error("Error in basic info route:", error);
