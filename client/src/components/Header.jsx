@@ -1,6 +1,8 @@
 import { useLocation, Link } from 'react-router-dom';
 import { useState } from "react";
 import { VscChromeClose } from "react-icons/vsc";
+import { IoMdArrowBack } from "react-icons/io";
+
 import PropTypes from 'prop-types';
 import ModalImport from './ModalImport';
 import Axios from 'axios';
@@ -106,11 +108,9 @@ const Header = ({ setVerified }) => {
       );
     }
     // Charts page
-    if (path.startsWith('/visualizations/charts')) {
-      const pathParts = path.split('/');
-      const id = pathParts[pathParts.length - 1];
+    if (path.startsWith('/visualizations/')) {
       return (
-        <Link to={`/Scenario/${id}`} className={styles.icon}><VscChromeClose /></Link>
+        <Link to={`/Simulation`} className={styles.icon}><IoMdArrowBack size={25} /></Link>
       );
     }
 
