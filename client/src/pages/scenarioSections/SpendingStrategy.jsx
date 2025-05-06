@@ -67,7 +67,7 @@ const SpendingStrategy = () => {
 
   return (
     <div>
-      <h2 id={styles.heading}>Spending Strategy</h2>
+      <h2 id={styles.heading} data-testid="heading">Spending Strategy</h2>
       <p>
         Specify the order of discretionary expenses to be paid as cash allows.
       </p>

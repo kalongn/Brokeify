@@ -247,7 +247,7 @@ const BasicInfo = () => {
 
   return (
     <div id={styles.formSection}>
-      <h2 id={styles.heading}>Basic Information</h2>
+      <h2 id={styles.heading} data-testid="heading">Basic Information</h2>
       <ModalState isOpen={showStateModal} onClose={setShowStateModal} uploadToBackend={uploadToBackend} />
       {loading ? <div> Loading...</div> :
         <>

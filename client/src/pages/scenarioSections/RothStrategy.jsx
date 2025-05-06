@@ -144,7 +144,7 @@ const RothStrategy = () => {
 
   return (
     <div>
-      <h2 id={styles.heading}>Roth Conversion Strategy & Optimizer <Tooltip orientation="below" text="A Roth conversion is a transfer from pre-tax to after-tax retirement accounts, and the Roth conversion optimizer helps assess if and when such conversions can reduce lifetime taxes." /></h2>
+      <h2 id={styles.heading} data-testid="heading">Roth Conversion Strategy & Optimizer <Tooltip orientation="below" text="A Roth conversion is a transfer from pre-tax to after-tax retirement accounts, and the Roth conversion optimizer helps assess if and when such conversions can reduce lifetime taxes." /></h2>
       <p>
         Specify the order in which investments should be transferred from
         pre-tax to after-tax retirement accounts when triggering a conversion.

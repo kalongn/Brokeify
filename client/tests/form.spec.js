@@ -7,14 +7,14 @@ const navigateToForm = async (page) => {
   await page.getByRole('link', { name: 'Continue as Guest' }).click();
   await expect(page).toHaveURL("http://localhost:5173/Home");
   await page.getByRole('link', { name: 'Create Scenario' }).click();
-  await expect(page.getByText('Basic Information')).toBeVisible();
+  await expect(page.getByTestId('heading').getByText('Basic Information')).toBeVisible();
 }
 
 // Testing Basic Info section
 test('Basic Info: Invalid', async ({ page }) => {
   await navigateToForm(page);
   await page.getByRole('button', { name: 'Next' }).click();
-  await expect(page.getByText('Basic Information')).toBeVisible();
+  await expect(page.getByTestId('heading').getByText('Basic Information')).toBeVisible();
   await page.fill('[name="name"]', "test scenario");
   await page.fill('#financialGoal', "-333");
   await page.click('#state');
@@ -24,16 +24,16 @@ test('Basic Info: Invalid', async ({ page }) => {
   await page.getByTestId('distributions-lifeExpectancy').getByRole('radio', { name: 'Fixed Value' }).check();
   await page.getByTestId('fixedInput').fill("1000");
   await page.getByRole('button', { name: 'Next' }).click();
-  await expect(page.getByText('Basic Information')).toBeVisible();
+  await expect(page.getByTestId('heading').getByText('Basic Information')).toBeVisible();
   await expect(page.getByTestId('errorMessage')).toBeInViewport();
 });
 
 const basicInfoValid = async (page) => {
-  await expect(page.getByText('Basic Information')).toBeVisible();
+  await expect(page.getByTestId('heading').getByText('Basic Information')).toBeVisible();
   await page.fill('[name="name"]', "test scenario");
   await page.fill('#financialGoal', "3330");
   await page.click('#state');
-  await page.getByRole('option', { name: 'Wyoming' }).click();
+  await page.getByRole('option', { name: 'New York' }).click();
   await page.getByText('Married').click();
   await page.fill('#birthYear', "2000");
   await page.getByTestId('distributions-lifeExpectancy').getByRole('radio', { name: 'Fixed Value' }).check();
@@ -55,7 +55,7 @@ test('Basic Info: Valid & Persistent', async ({ page }) => {
   // It gave the correct functions, and I filled them in
   await expect(page.locator('input[name="name"]')).toHaveValue('test scenario');
   await expect(page.locator('#financialGoal')).toHaveValue('3330');
-  await expect(page.locator('#state')).toContainText('Wyoming');
+  await expect(page.locator('#state')).toContainText('New York');
   await expect(page.getByText('Married')).toBeChecked();
   await expect(page.locator('#birthYear')).toHaveValue('2000');
   await expect(page.getByTestId('fixedInput')).toHaveValue('90');
@@ -145,6 +145,8 @@ test('Add & Delete Investments Invalid', async ({ page }) => {
   await page.getByRole('button', { name: 'Add New Investment' }).click();
   await page.getByRole('button', { name: 'Add New Investment' }).click();
   await page.getByRole('button', { name: 'Add New Investment' }).click();
+
+  await page.waitForTimeout(3000);
   const tableRows = page.locator('tr');
   // Counting header row and Cash row(+2)
   await expect(tableRows).toHaveCount(5);
@@ -189,6 +191,7 @@ const addInvestmentsValid = async (page) => {
   await page.getByRole('button', { name: 'Add New Investment' }).click();
   await page.getByRole('button', { name: 'Add New Investment' }).click();
   await page.getByRole('button', { name: 'Add New Investment' }).click();
+  await page.waitForTimeout(3000);
   const tableRows = page.locator('tr');
   // Counting header row and Cash row(+2)
   await expect(tableRows).toHaveCount(7);
@@ -330,23 +333,22 @@ test('Limits: Invalid', async ({ page }) => {
   await basicInfoValid(page);
   await addInvestmentsValid(page);
   await addEventSeriesValid(page);
-
-  await expect(page.getByText('Inflation & Contribution Limits')).toBeVisible();
+  await expect(page.getByTestId('heading').getByText('Inflation & Contribution Limits')).toBeVisible();
   await page.getByTestId('distributions-inflationAssumption').getByRole('radio', { name: 'Fixed Percentage' }).check();
   await page.getByTestId('fixedInput').fill("110");
   await page.locator('[name="initialLimit"]').fill("1000");
   await page.getByRole('button', { name: 'Next' }).click();
-  await expect(page.getByText('Inflation & Contribution Limits')).toBeVisible();
+  await expect(page.getByTestId('heading').getByText('Inflation & Contribution Limits')).toBeVisible();
   await expect(page.getByTestId('errorMessage')).toBeInViewport();
 });
 
 const limitsValid = async (page) => {
-  await expect(page.getByText('Inflation & Contribution Limits')).toBeVisible();
+  await expect(page.getByTestId('heading').getByText('Inflation & Contribution Limits')).toBeVisible();
   await page.getByTestId('distributions-inflationAssumption').getByRole('radio', { name: 'Fixed Percentage' }).check();
   await page.getByTestId('fixedInput').fill("32");
   await page.locator('[name="initialLimit"]').fill("1000");
   await page.getByRole('button', { name: 'Next' }).click();
-  await expect(page.getByText('Spending Strategy')).toBeVisible();
+  await expect(page.getByTestId('heading').getByText('Spending Strategy')).toBeVisible();
 }
 
 test('Limits: Valid & Persistent', async ({ page }) => {
@@ -373,7 +375,7 @@ test("Roth: Valid", async ({ page }) => {
   await page.getByRole('button', { name: 'Next' }).click();
   await page.getByRole('button', { name: 'Next' }).click();
   await page.getByRole('button', { name: 'Next' }).click();
-  await expect(page.getByText('Roth Conversion Strategy & Optimizer')).toBeVisible();
+  await expect(page.getByTestId('heading').getByText('Roth Conversion Strategy & Optimizer')).toBeVisible();
   await page.getByRole('button', { name: 'Save & Close' }).click({ force: true });
   await expect(page).toHaveURL("http://localhost:5173/Home");
 });
