@@ -8,6 +8,52 @@ test('logInAsGuest', async ({ page }) => {
 
 });
 
+
+test('Test Sharing as Guest', async ({ page }) => {
+    await page.goto('http://localhost:5173/');
+  await page.getByRole('link', { name: 'Continue as Guest' }).click();
+  await expect(page).toHaveURL("http://localhost:5173/Home");
+  await page.getByRole('link', { name: 'Shared Scenarios' }).click();
+  await expect(page.getByText('Whoops...you don\'t have')).toBeVisible();
+  await page.getByRole('heading', { name: 'Shared Scenarios' }).click();
+  await expect(page.getByRole('heading', { name: 'Shared Scenarios' })).toBeVisible();
+});
+
+test('Test Import Scenario Modal', async ({ page }) => {
+    await page.goto('http://localhost:5173/');
+  await page.getByRole('link', { name: 'Continue as Guest' }).click();
+  await page.goto('http://localhost:5173/Home');
+  await expect(page.getByRole('button', { name: 'Import Scenario' })).toBeVisible();
+  await page.getByRole('button', { name: 'Import Scenario' }).click();
+  await expect(page.getByRole('heading', { name: 'Import Scenario' })).toBeVisible();
+});
+
+
+test('Test Tax Import', async ({ page }) => {
+    await page.goto('http://localhost:5173/');
+    await page.getByRole('link', { name: 'Continue as Guest' }).click();
+    await page.goto('http://localhost:5173/Home');
+    await page.getByRole('heading', { name: 'Brokeify' }).click();
+    await expect(page.getByRole('link', { name: 'My Profile' })).toBeVisible();
+    await page.getByRole('link', { name: 'My Profile' }).click();
+    await expect(page.getByRole('heading', { name: 'My Profile' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'File Upload' })).toBeVisible();
+    await page.getByRole('button', { name: 'Upload YAML' }).click();
+    await expect(page.getByRole('heading', { name: 'Upload State Taxes' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Upload File' })).toBeVisible();
+    await page.locator('[id="_closeModalIcon_1ycgb_1"]').click();
+  });
+
+ 
+  test('test Sharing', async ({ page }) => {
+    await page.goto('http://localhost:5173/');
+
+    await page.getByRole('link', { name: 'Continue as Guest' }).click();
+    await page.goto('http://localhost:5173/Home');
+    await page.goto('http://localhost:5173/SharedScenarios');
+    await expect(page.getByRole('heading', { name: 'Shared Scenarios' })).toBeVisible();
+  });
+
 test('logout test', async ({ page }) => {
   await page.goto('http://localhost:5173/');
   await page.getByRole('link', { name: 'Continue as Guest' }).click();

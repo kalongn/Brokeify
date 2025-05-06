@@ -44,16 +44,36 @@ test.beforeEach(async ({ page }) => {
 });
 
 
-test('View Scenario', async ({ page }) => {
+
+test('Scenario Overview', async ({ page }) => {
+  
   await page.goto('http://localhost:5173/Home');
-  await page.getByRole('link', { name: 'Simulation' }).click();
-  await expect(page.getByRole('heading', { name: 'Scenario Simulation' })).toBeVisible();
+  await page.getByRole('link', { name: 'Shared Scenarios' }).click();
   await page.getByRole('link', { name: 'My Scenarios' }).click();
-  await expect(page.getByRole('heading', { name: 'My Scenarios' })).toBeVisible();
+  await page.goto('http://localhost:5173/Home');
   await page.getByRole('link', { name: 'Scenario 1 Scenario 1 SINGLE' }).click();
+  await expect(page.getByRole('link').filter({ hasText: /^$/ }).first()).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Scenario 1' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Scenario Overview' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Basic Information' })).toBeVisible();
 });
 
+
+
+
+test('View Scenario', async ({ page }) => {
+  await page.goto('http://localhost:5173/Home');
+  await page.getByRole('link', { name: 'Shared Scenarios' }).click();
+  await page.getByRole('link', { name: 'My Scenarios' }).click();
+  await page.goto('http://localhost:5173/Home');
+  await page.getByRole('link', { name: 'Scenario 1 Scenario 1 SINGLE' }).click();
+  await expect(page.getByRole('link').filter({ hasText: /^$/ }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Scenario 1' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Scenario Overview' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Basic Information' })).toBeVisible();
+  await page.getByRole('link').filter({ hasText: /^$/ }).first().click();
+  await expect(page.getByRole('heading', { name: 'View Scenario' })).toBeVisible();
+});
 /*
 test('View Scenario', async ({ page }) => {
   await page.getByRole('link', { name: 'Scenario 1 Scenario 1 SINGLE' }).click();
