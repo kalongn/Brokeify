@@ -1,0 +1,51 @@
+import { test, expect } from '@playwright/test';
+
+test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:5173/');
+    await page.getByRole('link', { name: 'Continue as Guest' }).click();
+    await page.getByRole('link', { name: 'Create Scenario' }).click();
+    await page.getByRole('textbox', { name: 'Scenario Name' }).click();
+    await page.getByRole('textbox', { name: 'Scenario Name' }).press('ControlOrMeta+a');
+    await page.getByRole('textbox', { name: 'Scenario Name' }).fill('Scenario 1');
+    await page.getByRole('spinbutton', { name: 'Financial Goal Specify a non-' }).click();
+    await page.getByRole('spinbutton', { name: 'Financial Goal Specify a non-' }).fill('10000');
+    await page.locator('#state svg').click();
+    await page.locator('.css-19bb58m').click();
+    await page.getByRole('combobox', { name: 'State of Residence Select...' }).fill('New ');
+    await page.getByRole('option', { name: 'New York' }).click();
+    await page.getByRole('radio', { name: 'Single' }).check();
+    await page.getByRole('spinbutton', { name: 'Your Birth Year' }).click();
+    await page.getByRole('spinbutton', { name: 'Your Birth Year' }).fill('2004');
+    await page.getByRole('radio', { name: 'Fixed Value' }).check();
+    await page.getByTestId('fixedInput').click();
+    await page.getByTestId('fixedInput').fill('90');
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByRole('heading', { name: 'Investment Types' })).toBeVisible();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByRole('heading', { name: 'Investments' })).toBeVisible();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByRole('heading', { name: 'Event Series' })).toBeVisible();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByRole('heading', { name: 'Inflation & Contribution' })).toBeVisible();
+    await page.getByRole('radio', { name: 'Fixed Percentage' }).check();
+    await page.getByTestId('fixedInput').click();
+    await page.getByTestId('fixedInput').fill('5');
+    await page.getByRole('spinbutton', { name: 'After-Tax Retirement Accounts' }).click();
+    await page.getByRole('spinbutton', { name: 'After-Tax Retirement Accounts' }).fill('10000');
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByRole('heading', { name: 'Spending Strategy' })).toBeVisible();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByRole('heading', { name: 'Expense Withdrawal Strategy' })).toBeVisible();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByRole('heading', { name: 'Required Minimum Distribution' })).toBeVisible();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.getByRole('heading', { name: 'Roth Conversion Strategy &' })).toBeVisible();
+    await page.getByRole('button', { name: 'Save & Close' }).click();
+    await expect(page.getByRole('heading', { name: 'My Scenarios' })).toBeVisible();
+});
+
+test('Go to Simulation Page', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'My Scenarios' })).toBeVisible();
+    await page.getByRole('link', { name: 'Simulation' }).click();
+    await expect(page.getByRole('heading', { name: 'Scenario Simulation' })).toBeVisible();
+});

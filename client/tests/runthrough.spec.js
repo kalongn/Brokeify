@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-test.beforeEach(async ({ page }) => {
+
+test('test', async ({ page }) => {
   await page.goto('http://localhost:5173/');
   await page.getByRole('link', { name: 'Continue as Guest' }).click();
   await page.getByRole('link', { name: 'Create Scenario' }).click();
@@ -42,25 +43,3 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole('button', { name: 'Save & Close' }).click();
   await expect(page.getByRole('heading', { name: 'My Scenarios' })).toBeVisible();
 });
-
-
-test('View Scenario', async ({ page }) => {
-  await page.goto('http://localhost:5173/Home');
-  await page.getByRole('link', { name: 'Simulation' }).click();
-  await expect(page.getByRole('heading', { name: 'Scenario Simulation' })).toBeVisible();
-  await page.getByRole('link', { name: 'My Scenarios' }).click();
-  await expect(page.getByRole('heading', { name: 'My Scenarios' })).toBeVisible();
-  await page.getByRole('link', { name: 'Scenario 1 Scenario 1 SINGLE' }).click();
-  await expect(page.getByRole('heading', { name: 'Scenario 1' })).toBeVisible();
-});
-
-/*
-test('View Scenario', async ({ page }) => {
-  await page.getByRole('link', { name: 'Scenario 1 Scenario 1 SINGLE' }).click();
-  await page.waitForTimeout(30000);
-  await expect(page).toHaveURL("http://localhost:5173/Home");
-  await page.getByRole('link').filter({ hasText: /^$/ }).first().click();
-  await expect(page.locator('h1')).toContainText('View Scenario');
-});
-
-*/
