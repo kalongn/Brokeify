@@ -142,29 +142,30 @@ test('Add & Delete Investments Invalid', async ({ page }) => {
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.getByText('Add New Investment')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Add New Investment' }).click();
-  await page.getByRole('button', { name: 'Add New Investment' }).click();
-  await page.getByRole('button', { name: 'Add New Investment' }).click();
-
-  await page.waitForTimeout(3000);
   const tableRows = page.locator('tr');
-  // Counting header row and Cash row(+2)
-  await expect(tableRows).toHaveCount(5);
-  const investmentRow1 = tableRows.nth(2);
-  const investmentRow2 = tableRows.nth(3);
-  const investmentRow3 = tableRows.nth(4);
-
+  
   // Create two rows with the same investment type and tax status
+  await page.getByRole('button', { name: 'Add New Investment' }).click();
+  await expect(tableRows).toHaveCount(3);
+  const investmentRow1 = tableRows.nth(2);
   await investmentRow1.locator('#selectInvestment').click()
   await page.getByRole('option', { name: 'Stocks' }).click();
   await investmentRow1.locator('[name="dollarValue"]').fill('100');
   await investmentRow1.locator('#selectTaxStatus').click()
   await page.getByRole('option', { name: 'Non-Retirement' }).click();
+
+  await page.getByRole('button', { name: 'Add New Investment' }).click();
+  await expect(tableRows).toHaveCount(4);
+  const investmentRow2 = tableRows.nth(3);
   await investmentRow2.locator('#selectInvestment').click()
   await page.getByRole('option', { name: 'Stocks' }).click();
   await investmentRow2.locator('[name="dollarValue"]').fill('2090');
+  
   await investmentRow2.locator('#selectTaxStatus').click()
   await page.getByRole('option', { name: 'Non-Retirement' }).click();
+  await page.getByRole('button', { name: 'Add New Investment' }).click();
+  // Counting header row and Cash row(+2)
+  await expect(tableRows).toHaveCount(5);
 
   // Triggers error because not all fields are filled
   await page.getByRole('button', { name: 'Next' }).click();
@@ -174,6 +175,8 @@ test('Add & Delete Investments Invalid', async ({ page }) => {
   page.on('dialog', async (dialog) => {
     await dialog.accept();
   });
+
+  const investmentRow3 = tableRows.nth(4);
   await investmentRow3.getByTestId('deleteButton').click();
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.getByText('Add New Investment')).toBeVisible();
@@ -184,48 +187,50 @@ const addInvestmentsValid = async (page) => {
   await addInvestmentTypeValid(page, "Stocks");
   await addInvestmentTypeValid(page, "Bonds");
   await page.getByRole('button', { name: 'Next' }).click();
+  await page.waitForTimeout(3000);
   await expect(page.getByText('Add New Investment')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Add New Investment' }).click();
-  await page.getByRole('button', { name: 'Add New Investment' }).click();
-  await page.getByRole('button', { name: 'Add New Investment' }).click();
-  await page.getByRole('button', { name: 'Add New Investment' }).click();
-  await page.getByRole('button', { name: 'Add New Investment' }).click();
-  await page.waitForTimeout(3000);
   const tableRows = page.locator('tr');
-  // Counting header row and Cash row(+2)
-  await expect(tableRows).toHaveCount(7);
-  const investmentRow1 = tableRows.nth(2);
-  const investmentRow2 = tableRows.nth(3);
-  const investmentRow3 = tableRows.nth(4);
-  const investmentRow4 = tableRows.nth(5);
-  const investmentRow5 = tableRows.nth(6);
-
   // Creating unique investments
+  await page.getByRole('button', { name: 'Add New Investment' }).click();
+  await expect(tableRows).toHaveCount(3);
+  const investmentRow1 = tableRows.nth(2);
   await investmentRow1.locator('#selectInvestment').click()
   await page.getByRole('option', { name: 'Stocks' }).click();
   await investmentRow1.locator('[name="dollarValue"]').fill('100');
   await investmentRow1.locator('#selectTaxStatus').click()
   await page.getByRole('option', { name: 'Non-Retirement' }).click();
 
+  await page.getByRole('button', { name: 'Add New Investment' }).click();
+  await expect(tableRows).toHaveCount(4);
+  const investmentRow2 = tableRows.nth(3);
   await investmentRow2.locator('#selectInvestment').click()
   await page.getByRole('option', { name: 'Stocks' }).click();
   await investmentRow2.locator('[name="dollarValue"]').fill('90');
   await investmentRow2.locator('#selectTaxStatus').click()
   await page.getByRole('option', { name: 'Pre-Tax Retirement' }).click();
 
+  await page.getByRole('button', { name: 'Add New Investment' }).click();
+  await expect(tableRows).toHaveCount(5);
+  const investmentRow3 = tableRows.nth(4);
   await investmentRow3.locator('#selectInvestment').click()
   await page.getByRole('option', { name: 'Stocks' }).click();
   await investmentRow3.locator('[name="dollarValue"]').fill('80');
   await investmentRow3.locator('#selectTaxStatus').click()
   await page.getByRole('option', { name: 'After-Tax Retirement' }).click();
 
+  await page.getByRole('button', { name: 'Add New Investment' }).click();
+  await expect(tableRows).toHaveCount(6);
+  const investmentRow4 = tableRows.nth(5);
   await investmentRow4.locator('#selectInvestment').click()
   await page.getByRole('option', { name: 'Bonds' }).click();
   await investmentRow4.locator('[name="dollarValue"]').fill('900');
   await investmentRow4.locator('#selectTaxStatus').click()
   await page.getByRole('option', { name: 'Pre-Tax Retirement' }).click();
 
+  await page.getByRole('button', { name: 'Add New Investment' }).click();
+  await expect(tableRows).toHaveCount(7);
+  const investmentRow5 = tableRows.nth(6);
   await investmentRow5.locator('#selectInvestment').click()
   await page.getByRole('option', { name: 'Bonds' }).click();
   await investmentRow5.locator('[name="dollarValue"]').fill('800');
@@ -262,7 +267,7 @@ test('Add Event Series Invalid', async ({ page }) => {
   await page.getByTestId('distributions-duration').getByRole('radio', { name: 'Sample from Normal Distribution' }).check();
   await page.getByTestId('normalMean').fill("1000");
   await page.getByTestId('normalStandardDeviation').fill("995");
-  await page.getByText('Income').click();
+  await page.getByRole('radio', { name: 'Income' }).check();
 
   // Event-specific form fields
   await page.locator('[name="isSocialSecurity"]').check();
