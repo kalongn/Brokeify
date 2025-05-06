@@ -247,13 +247,14 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
   };
 
   const validateFields = () => {
-    const newErrors = {};
     // Normal Charts fields are checked in SimulationPage
     if (activeTab === "Charts") {
       return true;
     }
-    
+    const newErrors = {};
     const requiredParams = activeTab === "2-D Exploration" ? [1, 2] : [1];
+    let numSteps = 1;
+
     for (const num of requiredParams) {
       const paramName = `parameter${num}`;
       if (simulationInput[paramName] === undefined) {
@@ -299,7 +300,6 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
           newErrors[`stepSize${num}`] = `Step Size ${num} is required`;
         }
         // Check if values fall within acceptable ranges
-        // lower should never be its initial value of -1
         if (lower < lowerBoundRestriction) {
           newErrors[`lowerBound${num}`] = `Lower Bound ${num} must be greater than or equal to ${lowerBoundRestriction}`;
         }
@@ -312,15 +312,21 @@ const ChartTabs = forwardRef(({ scenarios, simulationInput, setSimulationInput, 
         if (newErrors[`lowerBound${num}`] === undefined && newErrors[`upperBound${num}`] === undefined && step > diff) {
           newErrors[`stepSize${num}`] = `Step Size ${num} must be within the bounds (${lower} - ${upper})`;
         }
-        // Check enough simulation runs allotted
-        const simulationsPerStep = simulationInput.numSimulations/(diff/step);
-        if (simulationsPerStep < 1) {
-          newErrors[`parameter${num}Simulation`] = "Insufficient number of simulations to be distributed across parameters. Increase number of simulations, decrease bounds, or increase step size";
+        // Check enough simulation runs allotted (different between 1-D and 2-D)
+        let simulationsPerParam = simulationInput.numSimulations;
+        numSteps *= diff/step;
+        // num can be 1 in this loop for 2-D, but it cannot be 2 for 1-D
+        if (activeTab === "1-D Exploration") {
+          simulationsPerParam = simulationsPerParam/numSteps;
+        } else if (num === 2) {
+          simulationsPerParam = simulationsPerParam/numSteps;
+        }
+        if (simulationsPerParam < 1) {
+          newErrors[`numSimulations`] = "Insufficient number of simulations to be distributed across parameters. Increase number of simulations, decrease bounds, or increase step size.";
         }
       }
     }
     // Prevent user from selecting same event for the same parameter for 2d
-    console.log(simulationInput);
     if (isTwoD && simulationInput.parameter1 !== undefined && simulationInput.parameter1 === simulationInput.parameter2 && simulationInput.displayedEvents1 === simulationInput.displayedEvents2) {
       newErrors[`displayedEvents2`] = "Same parameters must have different events";
     }
