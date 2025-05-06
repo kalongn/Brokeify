@@ -130,7 +130,7 @@ const Limits = () => {
 
   return (
     <div>
-      <h2 id={styles.heading}>Inflation & Contribution Limits</h2>
+      <h2 id={styles.heading} data-testid="heading">Inflation & Contribution Limits</h2>
       <ErrorMessage errors={errors} />
       <form>
         <label id="inflationAssumption">Inflation Assumption Percentage  <Tooltip orientation="below" text="This is the projected rate at which prices will increase over time"></Tooltip></label>

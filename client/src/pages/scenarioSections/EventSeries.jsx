@@ -66,7 +66,7 @@ const EventSeries = () => {
 
   return (
     <div>
-      <h2 id={styles.heading}>Event Series</h2>
+      <h2 id={styles.heading} data-testid="heading">Event Series</h2>
       <p>
         An event series is a sequence of recurring financial events
         (income, expense, investment, or rebalancing) over a defined period.

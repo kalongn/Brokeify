@@ -70,7 +70,7 @@ const InvestmentTypes = () => {
 
   return (
     <div>
-      <h2 id={styles.heading}>Investment Types</h2>
+      <h2 id={styles.heading} data-testid="heading">Investment Types</h2>
       <p>
         Create investment types or view the default ones.
       </p>
