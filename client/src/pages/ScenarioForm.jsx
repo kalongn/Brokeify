@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Axios from "axios";
 
 import Layout from "../components/Layout";
+import ProgressBar from "../components/ProgressBar";
 import styles from "./ScenarioForm.module.css";
 
 const ScenarioForm = () => {
@@ -22,12 +23,13 @@ const ScenarioForm = () => {
     { path: "investment-types", label: "Investment Types" },
     { path: "investments", label: "Investments" },
     { path: "event-series", label: "Event Series" },
-    { path: "limits", label: "Inflation & Contribution Limits" },
+    { path: "limits", label: "Inflation & Limits" },
     { path: "spending-strategy", label: "Spending Strategy" },
-    { path: "expense-strategy", label: "Expense Withdrawal Strategy" },
-    { path: "rmd-strategy", label: "Required Minimum Distribution Strategy" },
-    { path: "roth-strategy", label: "Roth Conversion Strategy & Optimizer" },
+    { path: "expense-strategy", label: "Expense Strategy" },
+    { path: "rmd-strategy", label: "RMD Strategy" },
+    { path: "roth-strategy", label: "Roth Strategy" },
   ];
+  const onCreationForm = path.includes("new") || path.includes("edit");
 
   const [scenarioHash, setScenarioHash] = useState("");
   const [loading, setLoading] = useState(true);
@@ -116,7 +118,10 @@ const ScenarioForm = () => {
           Loading...
         </div> :
         <div id={styles.formBackground}>
-          <div id={styles.formSection}>
+          {!onCreationForm &&
+            <ProgressBar currentSectionIndex={currentSectionIndex} sections={sections} />
+          }
+          <div id={styles.formSection} style={onCreationForm ? { marginTop: "4rem" } : {}}>
             <Outlet context={{ childRef, scenarioId, scenarioHash, fetchScenarioHash }} />
             {/* Navigation buttons */}
             {/* Only appears if not creating a new investment type or event series */}
@@ -124,7 +129,7 @@ const ScenarioForm = () => {
             Prompt to AI (Copilot): Create navigation buttons to go between sections
             Generated code worked and only condensed Next and Save & Close buttons code
            */}
-            {!(path.includes("new") || path.includes("edit")) && <div id={styles.navButtons}>
+            {!onCreationForm && <div id={styles.navButtons}>
               <button
                 className={styles.deemphasizedButton}
                 onClick={handleBack}
