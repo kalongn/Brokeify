@@ -53,6 +53,15 @@ export default class SimulationController {
         }
     }
 
+    async readWithPopulateAndNoResults(id) {
+        try {
+            const simulation = await Simulation.findById(id).populate("scenario paramOne paramTwo paramOneSteps paramTwoSteps");
+            return simulation;
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
     async readWithPopulate(id) {
         try {
             const simulation = await Simulation.findById(id).populate("scenario results paramOne paramTwo paramOneSteps paramTwoSteps");
