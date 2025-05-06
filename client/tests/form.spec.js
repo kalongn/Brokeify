@@ -294,10 +294,10 @@ const addEventSeriesValid = async (page) => {
   await page.getByTestId('distributions-duration').getByRole('radio', { name: 'Sample from Normal Distribution' }).check();
   await page.getByTestId('normalMean').fill("3");
   await page.getByTestId('normalStandardDeviation').fill("2");
-  await page.getByText('Rebalance').click();
+  await page.getByRole('radio', { name: 'Rebalance' }).check();
 
   // Event-specific form fields
-  await page.getByText("Glide Path").click();
+  await page.getByRole('radio', { name: 'Glide Path' }).check();
   await page.locator('#taxStatus').click()
   await page.getByRole('option', { name: 'Pre-Tax Retirement' }).click();
 
@@ -377,9 +377,14 @@ test("Roth: Valid", async ({ page }) => {
   await limitsValid(page);
 
   await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByTestId('heading').getByText('Spending Strategy')).toBeVisible();
   await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByTestId('heading').getByText('Expense Withdrawal Strategy')).toBeVisible();
   await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByTestId('heading').getByText('Required Minimum Distribution Strategy')).toBeVisible();
   await page.getByRole('button', { name: 'Next' }).click();
+
+  await page.waitForTimeout(3000);
   await expect(page.getByTestId('heading').getByText('Roth Conversion Strategy & Optimizer')).toBeVisible();
   await page.getByRole('button', { name: 'Save & Close' }).click({ force: true });
   await expect(page).toHaveURL("http://localhost:5173/Home");
