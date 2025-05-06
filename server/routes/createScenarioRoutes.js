@@ -30,6 +30,8 @@ router.post("/newScenario", async (req, res) => {
                 taxability: true,
                 investments: [await investmentController.create({ value: 0, taxStatus: "CASH" })],
             })],
+            inflationAssumptionDistribution: await distributionController.create("FIXED_PERCENTAGE", { value: 0 }),
+            annualPostTaxContributionLimit: 0,
             ownerFirstName: user.firstName,
             ownerLastName: user.lastName,
             ownerEmail: user.email,

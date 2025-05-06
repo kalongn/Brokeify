@@ -12,6 +12,8 @@ import * as Ladda from 'ladda/js/ladda'; // or import from submodule path
 import styles from './SimulationPage.module.css';
 
 const ScenarioSimulation = () => {
+  const chartTabsRef = useRef(null);
+
   const [scenarios, setScenarios] = useState([]);
   const [simulationInput, setSimulationInput] = useState({
     numSimulations: 10
@@ -147,7 +149,10 @@ const ScenarioSimulation = () => {
     }
     const num = simulationInput.numSimulations;
     if (isNaN(num) || num < 10 || num > 1000) {
-      setErrors({ simulation: 'Number of simulation runs must be between 10 and 1000' });
+      setErrors({ numSimulations: 'Number of simulation runs must be between 10 and 1000' });
+      return;
+    }
+    if (chartTabsRef.current && !chartTabsRef.current.validateFields()) {
       return;
     }
 
@@ -233,6 +238,7 @@ const ScenarioSimulation = () => {
         <ErrorMessage errors={errors} />
         <div className={styles.columns}>
           <ChartTabs
+            ref={chartTabsRef}
             scenarios={scenarios}
             simulationInput={simulationInput}
             setSimulationInput={setSimulationInput}

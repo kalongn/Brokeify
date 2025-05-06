@@ -1,11 +1,12 @@
 import { useState, useImperativeHandle, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import { stateMap, validateRequired, validateDistribution, clearErrors } from "../../utils/ScenarioHelper";
+import Axios from "axios";
 
 import Select from "react-select";
 import Distributions from "../../components/Distributions";
+import ModalState from "../../components/ModalState";
 import ErrorMessage from "../../components/ErrorMessage";
-import Axios from "axios";
 
 import styles from "./Form.module.css";
 import errorStyles from "../../components/ErrorMessage.module.css";
@@ -17,6 +18,7 @@ const BasicInfo = () => {
   // Get ref from the context 
   const { childRef, scenarioId } = useOutletContext();
 
+  const [showStateModal, setShowStateModal] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   // Determine if what distribution fields are shown and contain values for backend
@@ -190,6 +192,30 @@ const BasicInfo = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Check if state tax data is in database
+  const validateStateFile = async () => {
+    // Corrected check using Array.includes()
+    if (["NY", "CT", "NJ", "WA"].includes(formData.state)) {
+      return true;
+    }
+    try {
+      const response = await Axios.get(`/basicInfo/stateTax/${formData.state}/${formData.maritalStatus}`);
+      if (response.data) {
+        return true;
+      } else {
+        setShowStateModal(true);
+      }
+    } catch (error) {
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        alert("You do not have permission to view this scenario.");
+      } else {
+        console.error("Error fetching state tax data:", error);
+        alert("Error fetching state tax data. Please try again.");
+      }
+    }
+    return false;
+  }
+
   const uploadToBackend = async () => {
     const data = {
       name: formData.name,
@@ -213,7 +239,7 @@ const BasicInfo = () => {
   }
 
   const handleSubmit = async () => {
-    if (!validateFields()) {
+    if (!validateFields() || !await validateStateFile()) {
       return false;
     }
     return await uploadToBackend();
@@ -222,6 +248,7 @@ const BasicInfo = () => {
   return (
     <div id={styles.formSection}>
       <h2 id={styles.heading}>Basic Information</h2>
+      <ModalState isOpen={showStateModal} onClose={setShowStateModal} uploadToBackend={uploadToBackend} />
       {loading ? <div> Loading...</div> :
         <>
           <ErrorMessage errors={errors} />
